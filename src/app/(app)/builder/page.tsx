@@ -13,7 +13,7 @@ export default async function BuilderPage() {
   if (!user) redirect('/login')
 
   const portfoliosRes = await supabase.from('portfolios').select('*').eq('user_id', user.id).order('updated_at', { ascending: false })
-  const subRes = await supabase.from('subscriptions').select('status').eq('user_id', user.id).single()
+  const subRes = await supabase.from('subscriptions').select('status').eq('user_id', user.id).maybeSingle()
 
   const portfolios = (portfoliosRes.data ?? []) as Portfolio[]
   const isPro = (subRes.data as { status: string } | null)?.status === 'active' || (subRes.data as { status: string } | null)?.status === 'trialing'

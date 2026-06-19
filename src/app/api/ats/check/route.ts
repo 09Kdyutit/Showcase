@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: report })
   } catch (err) {
-    console.error('[ats/check]', err instanceof Error ? err.message : 'unknown')
+    console.error('[ats/check]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'ATS check failed. Please try again.' }, { status: 500 })
   }
 }

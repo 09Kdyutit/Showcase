@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { Upload, FileText, Zap, Copy, Check, AlertCircle, X, Lock, File } from 'lucide-react'
+import { Upload, FileText, Zap, Copy, Check, AlertCircle, X, Lock, File, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient, tryCreateClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -15,10 +15,13 @@ import type { Resume, ParsedResume } from '@/types/database'
 
 type UploadStatus = 'idle' | 'uploading' | 'done' | 'paste-needed' | 'error'
 
+const MAX_FILE_BYTES = 4 * 1024 * 1024
+
 function FileUploadZone({ onText }: { onText: (text: string) => void }) {
   const [drag, setDrag] = useState(false)
   const [status, setStatus] = useState<UploadStatus>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const processFile = useCallback(async (file: File) => {
@@ -33,6 +36,10 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
       toast.error('Only PDF, DOCX, or TXT files are supported')
       return
     }
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error('File is too large. Max 4MB.')
+      return
+    }
 
     setFileName(file.name)
 
@@ -44,25 +51,45 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
       return
     }
 
-    // PDF / DOCX — upload to Supabase Storage, then ask user to paste text
+    // PDF / DOCX — extract text server-side, fall back to manual paste only if extraction fails
     setStatus('uploading')
     try {
-      const supabase = tryCreateClient()
-      if (supabase) {
-        const { data: userData } = await supabase.auth.getUser()
-        if (userData.user) {
-          const ext = file.name.split('.').pop() ?? 'pdf'
-          const path = `${userData.user.id}/${Date.now()}.${ext}`
-          await supabase.storage.from('resumes').upload(path, file, {
-            contentType: file.type,
-            upsert: false,
-          })
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/resume/extract-text', { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErrorMessage(data.message ?? data.error ?? 'Could not extract text from this file.')
+        setStatus('paste-needed')
+        return
+      }
+
+      onText(data.data.text)
+      setStatus('done')
+      toast.success('Resume text extracted — ready to analyze')
+
+      // Also archive the original file in storage, best-effort
+      try {
+        const supabase = tryCreateClient()
+        if (supabase) {
+          const { data: userData } = await supabase.auth.getUser()
+          if (userData.user) {
+            const ext = file.name.split('.').pop() ?? 'pdf'
+            const path = `${userData.user.id}/${Date.now()}.${ext}`
+            await supabase.storage.from('resumes').upload(path, file, {
+              contentType: file.type,
+              upsert: false,
+            })
+          }
         }
+      } catch {
+        // archival failure is non-fatal
       }
     } catch {
-      // upload failure is non-fatal; paste is the fallback
+      setErrorMessage('Could not reach the server to extract text from this file.')
+      setStatus('paste-needed')
     }
-    setStatus('paste-needed')
   }, [onText])
 
   function onDrop(e: React.DragEvent) {
@@ -97,13 +124,12 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
       <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
         <div className="flex items-center gap-2">
           <File className="h-4 w-4 text-amber-400 shrink-0" />
-          <p className="text-xs font-medium text-amber-400">{fileName} uploaded</p>
+          <p className="text-xs font-medium text-amber-400">{fileName}</p>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          PDF/DOCX text extraction requires a copy-paste step. Open your file, select all text (Cmd+A), and paste it
-          in the box below.
+          {errorMessage ?? 'Could not extract text automatically. Open your file, select all text (Cmd+A), and paste it in the box below.'}
         </p>
-        <button onClick={() => { setStatus('idle'); setFileName(null) }} className="text-xs text-muted-foreground/60 hover:text-muted-foreground underline">
+        <button onClick={() => { setStatus('idle'); setFileName(null); setErrorMessage(null) }} className="text-xs text-muted-foreground/60 hover:text-muted-foreground underline">
           Try a different file
         </button>
       </div>
@@ -138,7 +164,7 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
             <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
               <Upload className="h-4 w-4 text-brand-400 animate-bounce" />
             </div>
-            <p className="text-sm text-muted-foreground">Uploading…</p>
+            <p className="text-sm text-muted-foreground">Extracting text…</p>
           </>
         ) : (
           <>
@@ -147,7 +173,7 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">Upload your resume</p>
-              <p className="text-xs text-muted-foreground/70 mt-0.5">PDF, DOCX, or TXT · max 10MB</p>
+              <p className="text-xs text-muted-foreground/70 mt-0.5">PDF, DOCX, or TXT · max 4MB · text extracted automatically</p>
             </div>
           </>
         )}
@@ -195,11 +221,18 @@ export default function ResumePage() {
         .eq('id', activeResume.id)
       toast.success('Resume saved')
     } else {
-      const { data } = await supabase
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) { setSaving(false); return }
+      const { data, error } = await supabase
         .from('resumes')
-        .insert({ title: 'My Resume', raw_text: text })
+        .insert({ title: 'My Resume', raw_text: text, user_id: userData.user.id })
         .select()
         .single()
+      if (error) {
+        toast.error('Could not save resume')
+        setSaving(false)
+        return
+      }
       if (data) { setActiveResume(data); setResumes([data, ...resumes]) }
       toast.success('Resume saved')
     }
@@ -210,14 +243,41 @@ export default function ResumePage() {
     if (!text.trim()) { toast.error('Add your resume text first'); return }
     setAnalyzing(true)
     try {
+      // Analyzing always persists — a resume row must exist (and stay in sync with the
+      // current text) before /api/ai/analyze-resume can attach parsed_json to it. Without
+      // this, a user who clicks Analyze without first clicking Save loses their result on
+      // refresh and ProofScore has nothing to audit.
+      let resume = activeResume
+      const supabase = createClient()
+      if (!resume) {
+        const { data: userData } = await supabase.auth.getUser()
+        if (!userData.user) throw new Error('Not signed in')
+        const { data, error } = await supabase
+          .from('resumes')
+          .insert({ title: 'My Resume', raw_text: text, user_id: userData.user.id })
+          .select()
+          .single()
+        if (error) throw new Error('Could not save resume')
+        if (data) {
+          resume = data
+          setActiveResume(data)
+          setResumes((prev) => [data, ...prev])
+        }
+      } else if (resume.raw_text !== text) {
+        await supabase.from('resumes').update({ raw_text: text, updated_at: new Date().toISOString() }).eq('id', resume.id)
+      }
+
       const res = await fetch('/api/ai/analyze-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText: text, resumeId: activeResume?.id }),
+        body: JSON.stringify({ resumeText: text, resumeId: resume?.id }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setParsed(data.data)
+      if (resume) {
+        setActiveResume({ ...resume, parsed_json: data.data as unknown as Resume['parsed_json'] })
+      }
       toast.success('Resume analyzed!')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Analysis failed')
@@ -438,12 +498,20 @@ export default function ResumePage() {
                 </div>
               )}
 
-              <Button asChild variant="gradient" size="sm" className="w-full gap-1.5">
-                <Link href="/builder">
-                  <Upload className="h-3.5 w-3.5" />
-                  Build portfolio from this resume
-                </Link>
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button asChild variant="gradient" size="sm" className="gap-1.5">
+                  <Link href="/builder">
+                    <Upload className="h-3.5 w-3.5" />
+                    Build portfolio
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
+                  <Link href="/audit">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    Run ProofScore
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
         </div>

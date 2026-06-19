@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getJobProvider } from '@/lib/jobs/providers'
+import { searchJobs } from '@/lib/jobs/providers'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const provider = getJobProvider()
-    const result = await provider.search(parsed.data)
+    const result = await searchJobs(parsed.data)
 
     return NextResponse.json({ data: result })
   } catch (err) {

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: result })
   } catch (err) {
-    console.error('[improve-resume]', err instanceof Error ? err.message : 'unknown error')
+    console.error('[improve-resume]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Improvement failed. Please try again.' }, { status: 500 })
   }
 }

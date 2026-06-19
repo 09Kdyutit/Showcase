@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   const [profileRes, subRes, portfoliosRes, auditsRes, resumesRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
+    supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
     supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
     supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),

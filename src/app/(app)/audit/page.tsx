@@ -1,19 +1,21 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
   BarChart3, AlertCircle, CheckCircle2, ArrowRight, Info, Copy, Check,
-  Search, Lightbulb, TrendingUp, Zap, Target, Upload, FileText,
+  Search, Lightbulb, TrendingUp, Zap, Target, FileText,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
+import { createClient } from '@/lib/supabase/client'
 import { cn, scoreColor } from '@/lib/utils'
-import type { AuditResult, AuditCategory } from '@/types/database'
+import type { AuditResult, AuditCategory, Resume } from '@/types/database'
 
 function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
   const [copied, setCopied] = useState(false)
@@ -266,43 +268,32 @@ function AuditLoadingPanel({ step }: { step: number }) {
 }
 
 export default function AuditPage() {
-  const [resumeText, setResumeText] = useState('')
+  const [resumes, setResumes] = useState<Resume[]>([])
+  const [loadingResumes, setLoadingResumes] = useState(true)
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null)
   const [targetRole, setTargetRole] = useState('')
   const [industry, setIndustry] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
   const [scanStep, setScanStep] = useState(0)
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
-  const [dragOver, setDragOver] = useState(false)
 
-  const processFile = useCallback(async (file: File) => {
-    const isTxt = file.type === 'text/plain' || file.name.endsWith('.txt')
-    if (isTxt) {
-      const text = await file.text()
-      setResumeText(text.slice(0, 15000))
-      setUploadedFileName(file.name)
-      toast.success('Resume text loaded — review it below then run audit')
-      return
-    }
-    // PDF/DOCX: can't extract text client-side; guide user
-    setUploadedFileName(file.name)
-    toast('Open your PDF, select all text (⌘A), copy, then paste below', { icon: '📋' })
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('resumes')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .then(({ data }) => {
+        setResumes(data ?? [])
+        setSelectedResumeId(data?.[0]?.id ?? null)
+        setLoadingResumes(false)
+      })
   }, [])
 
-  function onDrop(e: React.DragEvent) {
-    e.preventDefault()
-    setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) processFile(file)
-  }
-
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (file) processFile(file)
-  }
+  const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null
 
   async function runAudit() {
-    if (!resumeText.trim()) { toast.error('Paste your resume text to run an audit'); return }
+    if (!selectedResumeId) { toast.error('Select a resume to audit'); return }
     if (!targetRole.trim()) { toast.error('Enter your target role'); return }
 
     setLoading(true)
@@ -319,7 +310,7 @@ export default function AuditPage() {
       const res = await fetch('/api/ai/audit-portfolio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText, targetRole, industry: industry || 'Technology' }),
+        body: JSON.stringify({ resumeId: selectedResumeId, targetRole, industry: industry || 'Technology' }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Audit failed')
@@ -341,14 +332,56 @@ export default function AuditPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-1">ProofScore Audit</h1>
         <p className="text-muted-foreground text-sm">
-          Paste your resume or portfolio content for an honest, detailed audit across 11 hiring-readiness
-          categories.
+          ProofScore audits the resume you already uploaded against a specific target role — an honest score
+          across 11 hiring-readiness categories. (Resume parsing extracts your experience; ProofScore judges
+          how well it lands for the role you pick below.)
         </p>
       </div>
 
       {/* Input */}
       {!result && (
         <div className="glass-card p-6 space-y-5">
+          {loadingResumes ? (
+            <Skeleton className="h-16 w-full" />
+          ) : resumes.length === 0 ? (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              <p className="text-sm text-amber-300 flex-1">
+                Upload your resume first — ProofScore audits it for a target role.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/resume">Go to Resume</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label htmlFor="resume-select">Resume to audit *</Label>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-200/60 border border-border/60">
+                <FileText className="h-4 w-4 text-emerald-400 shrink-0" />
+                {resumes.length > 1 ? (
+                  <select
+                    id="resume-select"
+                    value={selectedResumeId ?? ''}
+                    onChange={(e) => setSelectedResumeId(e.target.value)}
+                    className="flex-1 bg-transparent text-sm text-foreground outline-none"
+                  >
+                    {resumes.map((r) => (
+                      <option key={r.id} value={r.id} className="bg-surface-100">
+                        {r.title} {r.parsed_json ? '· Parsed' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="flex-1 text-sm text-foreground">{selectedResume?.title}</span>
+                )}
+                {selectedResume?.parsed_json && <Badge variant="success">Parsed</Badge>}
+                <Link href="/resume" className="text-xs text-muted-foreground hover:text-foreground underline shrink-0">
+                  Manage
+                </Link>
+              </div>
+            </div>
+          )}
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="role">Target role *</Label>
@@ -370,53 +403,12 @@ export default function AuditPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="resume">Resume content *</Label>
-              <label
-                htmlFor="resume-file-upload"
-                className={cn(
-                  'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border cursor-pointer transition-all',
-                  dragOver
-                    ? 'border-brand-400 bg-brand-500/10 text-brand-300'
-                    : 'border-border text-muted-foreground hover:border-brand-500/50 hover:text-foreground',
-                )}
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={onDrop}
-              >
-                {uploadedFileName ? (
-                  <><FileText className="h-3.5 w-3.5 text-emerald-400" /><span className="text-emerald-400 max-w-[140px] truncate">{uploadedFileName}</span></>
-                ) : (
-                  <><Upload className="h-3.5 w-3.5" />Upload resume</>
-                )}
-                <input
-                  id="resume-file-upload"
-                  type="file"
-                  className="sr-only"
-                  accept=".txt,.pdf,.docx,text/plain,application/pdf"
-                  onChange={onFileChange}
-                />
-              </label>
-            </div>
-            <Textarea
-              id="resume"
-              placeholder="Paste your resume text here, or upload a .txt file above. Include your summary, experience, projects, and skills..."
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              className="min-h-[240px] font-mono text-xs leading-relaxed"
-            />
-            <p className="text-xs text-muted-foreground/60">
-              {resumeText.length} characters · recommended 300–5000
-            </p>
-          </div>
-
           <Button
             variant="gradient"
             size="lg"
             onClick={runAudit}
             loading={loading}
-            disabled={!resumeText.trim() || !targetRole.trim()}
+            disabled={!selectedResumeId || !targetRole.trim()}
             className="w-full gap-2"
           >
             <BarChart3 className="h-4 w-4" />

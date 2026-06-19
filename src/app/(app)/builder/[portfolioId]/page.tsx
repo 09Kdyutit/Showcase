@@ -45,8 +45,8 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     const supabase = createClient()
     const [portfolioRes, subRes, resumeRes] = await Promise.all([
       supabase.from('portfolios').select('*').eq('id', portfolioId).single(),
-      supabase.from('subscriptions').select('status').single(),
-      supabase.from('resumes').select('raw_text').order('created_at', { ascending: false }).limit(1).single(),
+      supabase.from('subscriptions').select('status').maybeSingle(),
+      supabase.from('resumes').select('raw_text').order('created_at', { ascending: false }).limit(1).maybeSingle(),
     ])
     if (!portfolioRes.data) { router.push('/builder'); return }
     setPortfolio(portfolioRes.data)

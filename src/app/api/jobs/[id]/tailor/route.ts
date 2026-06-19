@@ -55,8 +55,17 @@ export async function POST(
       saved_job_id,
     } = parsed.data
 
-    // Resolve job
+    // Resolve job — `jobId` is the saved job's job_listing_id, a real job_listings_cache
+    // UUID (jobs are cached there on save, since fixture/external-provider ids aren't UUIDs).
     let job: JobListing | null = FIXTURE_JOBS.find(j => j.id === jobId) ?? null
+    if (!job) {
+      const { data: cached } = await supabase
+        .from('job_listings_cache')
+        .select('*')
+        .eq('id', jobId)
+        .maybeSingle()
+      if (cached) job = cached as JobListing
+    }
     if (!job && saved_job_id) {
       // Fall back to saved job import data
       const { data: savedJob } = await supabase
@@ -164,7 +173,7 @@ export async function POST(
       },
     })
   } catch (err) {
-    console.error('[tailor]', err instanceof Error ? err.message : 'unknown')
+    console.error('[tailor]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Tailor failed. Please try again.' }, { status: 500 })
   }
 }

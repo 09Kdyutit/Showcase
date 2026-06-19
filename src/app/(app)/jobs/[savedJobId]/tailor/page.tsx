@@ -8,7 +8,7 @@ import {
   Sparkles, ChevronDown, ChevronUp, Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, apiErrorMessage } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,7 +16,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { TailoredResumeOutput } from '@/lib/ai/schemas'
 import type { JobListing, TruthEntry, TailoredBullet, SavedJob } from '@/types/database'
-import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 
 // ── Truth Entry Card ──────────────────────────────────────────────────────────
 function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confirmed: boolean) => void }) {
@@ -199,7 +198,7 @@ function ImportJobDialog({ onConfirm }: { onConfirm: (job: Partial<JobListing>) 
       })
       if (!res.ok) {
         const { error } = await res.json()
-        toast.error(error ?? 'Import failed')
+        toast.error(apiErrorMessage(error, 'Import failed'))
         return
       }
       const { data } = await res.json()
@@ -287,10 +286,15 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       if (savedJobData) {
         setSavedJob(savedJobData as SavedJob)
 
-        // Resolve the job listing
+        // Resolve the job listing — saved jobs from search/recommendations are cached into
+        // job_listings_cache on save (their original provider id isn't a cache UUID).
         if (savedJobData.job_listing_id) {
-          const fixture = FIXTURE_JOBS.find(j => j.id === savedJobData.job_listing_id)
-          if (fixture) setJob(fixture)
+          const { data: cached } = await supabase
+            .from('job_listings_cache')
+            .select('*')
+            .eq('id', savedJobData.job_listing_id)
+            .single()
+          if (cached) setJob(cached as JobListing)
         } else if (savedJobData.imported_title) {
           setJob({
             id: savedJobData.id,
@@ -364,7 +368,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
           toast.error('Tailor Studio requires Pro')
           return
         }
-        toast.error(error ?? 'Generation failed')
+        toast.error(apiErrorMessage(error, 'Generation failed'))
         return
       }
 

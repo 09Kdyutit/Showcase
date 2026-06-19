@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getJobProvider } from '@/lib/jobs/providers'
+import { searchJobs } from '@/lib/jobs/providers'
 import { computeMatchScore } from '@/lib/jobs/match'
 import { isProUser } from '@/lib/ai/rate-limit'
 import type { ParsedResume, JobListing } from '@/types/database'
@@ -34,8 +34,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     // Search using the candidate's target role as query
-    const provider = getJobProvider()
-    const searchResult = await provider.search({
+    const searchResult = await searchJobs({
       query: parsedResume.skills.slice(0, 3).join(' ') + (profile?.target_role ? ' ' + profile.target_role : ''),
       limit: 50,
     })
@@ -46,7 +45,7 @@ export async function POST(request: NextRequest) {
         const { score, breakdown } = computeMatchScore(job, parsedResume)
         return { job, score, breakdown }
       })
-      .filter(({ score }) => score >= 30) // Filter out very low matches
+      .filter(({ score }) => score >= 60) // Only show roles that are a real fit, not stretch/adjacent matches
       .sort((a, b) => b.score - a.score)
 
     // Return top 20 with match data
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: recommendations, is_demo: searchResult.is_demo })
   } catch (err) {
-    console.error('[jobs/recommendations]', err instanceof Error ? err.message : 'unknown')
+    console.error('[jobs/recommendations]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: 'Recommendations failed. Please try again.' }, { status: 500 })
   }
 }

@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: result, auditId: audit?.id })
   } catch (err) {
-    console.error('[audit-portfolio]', err instanceof Error ? err.message : 'unknown error')
+    console.error('[audit-portfolio]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Audit failed. Please try again.' }, { status: 500 })
   }
 }

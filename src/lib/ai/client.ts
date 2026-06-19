@@ -71,19 +71,22 @@ function getMockResponse(messages: AIMessage[]): string {
 // ── OpenAI error → user-friendly message ─────────────────────────────────────
 
 function toUserError(err: unknown): Error {
+  // Always keep the raw error reachable via .cause — the friendly message above is for the
+  // user, but swallowing the real error (e.g. a schema validation failure) makes bugs like
+  // that invisible in logs. Callers should log err.cause, not just err.message.
   if (err instanceof OpenAI.APIError) {
-    if (err.status === 429) return new Error('AI service is temporarily overloaded. Please try again in a moment.')
-    if (err.status === 401) return new Error('AI service authentication failed. Please contact support.')
-    if (err.status === 400) return new Error('AI request was invalid. Please try again.')
-    if (err.status >= 500) return new Error('AI service is temporarily unavailable. Please try again.')
-    return new Error(`AI request failed. Please try again.`)
+    if (err.status === 429) return new Error('AI service is temporarily overloaded. Please try again in a moment.', { cause: err })
+    if (err.status === 401) return new Error('AI service authentication failed. Please contact support.', { cause: err })
+    if (err.status === 400) return new Error('AI request was invalid. Please try again.', { cause: err })
+    if (err.status >= 500) return new Error('AI service is temporarily unavailable. Please try again.', { cause: err })
+    return new Error(`AI request failed. Please try again.`, { cause: err })
   }
   if (err instanceof Error) {
     if (err.name === 'APIConnectionTimeoutError' || err.message.includes('timeout')) {
-      return new Error('AI request timed out. Please try again.')
+      return new Error('AI request timed out. Please try again.', { cause: err })
     }
   }
-  return new Error('AI service encountered an error. Please try again.')
+  return new Error('AI service encountered an error. Please try again.', { cause: err instanceof Error ? err : undefined })
 }
 
 // ── Core: Responses API with structured outputs ───────────────────────────────

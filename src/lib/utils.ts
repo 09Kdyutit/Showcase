@@ -59,6 +59,18 @@ export function absoluteUrl(path: string): string {
   return `${base}${path}`
 }
 
+// API routes sometimes return Zod's flatten().fieldErrors as `error` (an object of
+// field -> string[]) instead of a plain string. Passing that straight into toast.error()
+// crashes React with "Objects are not valid as a React child".
+export function apiErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'string') return error
+  if (error && typeof error === 'object') {
+    const firstValue = Object.values(error as Record<string, unknown>)[0]
+    if (Array.isArray(firstValue) && typeof firstValue[0] === 'string') return firstValue[0]
+  }
+  return fallback
+}
+
 export function hashString(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {

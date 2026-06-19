@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('profiles').select('*').single().then(({ data }) => {
+    supabase.from('profiles').select('*').maybeSingle().then(({ data }) => {
       if (data) {
         setProfile(data)
         setName(data.full_name ?? '')

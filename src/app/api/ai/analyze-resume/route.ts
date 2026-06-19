@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: result })
   } catch (err) {
-    console.error('[analyze-resume]', err instanceof Error ? err.message : 'unknown error')
+    console.error('[analyze-resume]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Analysis failed. Please try again.' }, { status: 500 })
   }
 }

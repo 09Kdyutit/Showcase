@@ -431,7 +431,7 @@ export interface TailoredBullet {
   reason: string
   source_evidence: string | null
   needs_user_input: boolean
-  placeholder?: string
+  placeholder?: string | null
   accepted: boolean
 }
 

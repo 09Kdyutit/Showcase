@@ -8,7 +8,7 @@ import {
   Star, TrendingUp, Send,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, apiErrorMessage } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -408,7 +408,7 @@ function JobDetailPanel({
 }
 
 // ── Pipeline View ─────────────────────────────────────────────────────────────
-function PipelineView({ savedJobs }: { savedJobs: SavedJob[] }) {
+function PipelineView({ savedJobs, isPro }: { savedJobs: SavedJob[]; isPro: boolean }) {
   const byStage = PIPELINE_STAGES.map(s => ({
     ...s,
     jobs: savedJobs.filter(j => j.status === s.id),
@@ -417,9 +417,18 @@ function PipelineView({ savedJobs }: { savedJobs: SavedJob[] }) {
   const totalApplied = savedJobs.filter(j => ['applied', 'interview', 'offer'].includes(j.status)).length
   const interviews = savedJobs.filter(j => j.status === 'interview').length
   const offers = savedJobs.filter(j => j.status === 'offer').length
+  const activeSaved = savedJobs.filter(j => !j.is_dismissed).length
 
   return (
     <div className="p-6 space-y-6">
+      {!isPro && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-surface-200/60 border border-border/60 text-xs">
+          <span className="text-muted-foreground">
+            <span className="text-foreground font-medium">{activeSaved} / 5</span> saved jobs on the free plan
+          </span>
+          <Link href="/billing" className="text-brand-400 hover:text-brand-300 font-medium">Upgrade for unlimited</Link>
+        </div>
+      )}
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         {[
@@ -613,7 +622,19 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(false)
   const [loadingRecs, setLoadingRecs] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
+  const [isPro, setIsPro] = useState(false)
+  const [isDemo, setIsDemo] = useState(true)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return
+      supabase.from('subscriptions').select('status').eq('user_id', data.user.id).maybeSingle().then(({ data: sub }) => {
+        setIsPro(sub?.status === 'active' || sub?.status === 'trialing')
+      })
+    })
+  }, [])
 
   const fetchJobs = useCallback(async (f: SearchFilters) => {
     setLoading(true)
@@ -629,6 +650,7 @@ export default function JobsPage() {
       if (res.ok) {
         const { data } = await res.json()
         setJobs(data.jobs ?? [])
+        setIsDemo(Boolean(data.is_demo))
       }
     } catch {
       toast.error('Could not load job listings')
@@ -680,8 +702,9 @@ export default function JobsPage() {
         body: JSON.stringify({ parsed_resume: parsedResume }),
       })
       if (res.ok) {
-        const { data } = await res.json()
+        const { data, is_demo } = await res.json()
         setRecommendations(data ?? [])
+        setIsDemo(Boolean(is_demo))
       }
     } catch { /* non-fatal */ }
     setLoadingRecs(false)
@@ -720,15 +743,41 @@ export default function JobsPage() {
       const res = await fetch('/api/jobs/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_listing_id: job.id }),
+        // job.id is provider-local (fixture/external), not a job_listings_cache UUID — send
+        // the full snapshot so the server can find-or-create the cache row and FK to it.
+        body: JSON.stringify({
+          job: {
+            provider: job.provider,
+            provider_job_id: job.provider_job_id,
+            source_url: job.source_url,
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            work_mode: job.work_mode,
+            employment_type: job.employment_type,
+            seniority: job.seniority,
+            salary_min: job.salary_min,
+            salary_max: job.salary_max,
+            salary_currency: job.salary_currency,
+            description: job.description,
+            structured_data: job.structured_data,
+            posted_at: job.posted_at,
+          },
+        }),
       })
       if (!res.ok) {
-        const { error } = await res.json()
+        const { error, code } = await res.json()
         if (error === 'You have already saved this job') {
           toast.info('Already saved')
           return
         }
-        toast.error(error ?? 'Could not save job')
+        if (code === 'PRO_REQUIRED') {
+          toast.error(apiErrorMessage(error, 'Upgrade to Pro to save more jobs'), {
+            action: { label: 'Upgrade', onClick: () => { window.location.href = '/billing' } },
+          })
+          return
+        }
+        toast.error(apiErrorMessage(error, 'Could not save job'))
         return
       }
       const { data } = await res.json()
@@ -748,7 +797,6 @@ export default function JobsPage() {
   }
 
   const displayJobs = tab === 'for-you' ? recommendations.map(r => r.job) : jobs
-  const isDemo = true // Always true with fixture provider
 
   return (
     <div className="flex flex-col h-full">
@@ -795,7 +843,7 @@ export default function JobsPage() {
       {/* Main layout */}
       {tab === 'pipeline' ? (
         <div className="flex-1 overflow-y-auto thin-scrollbar">
-          <PipelineView savedJobs={savedJobs} />
+          <PipelineView savedJobs={savedJobs} isPro={isPro} />
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden">

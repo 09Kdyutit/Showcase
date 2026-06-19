@@ -5,7 +5,7 @@ import { MatchExplanationSchema } from '@/lib/ai/schemas'
 import { buildMatchExplanationPrompt } from '@/lib/ai/prompts'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { computeMatchScore } from '@/lib/jobs/match'
-import { getJobProvider } from '@/lib/jobs/providers'
+import { getJobById } from '@/lib/jobs/providers'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
 import type { JobListing, ParsedResume } from '@/types/database'
@@ -47,11 +47,14 @@ export async function POST(request: NextRequest) {
     // Resolve job listing
     let jobListing: JobListing | null = null
     if (job_id) {
-      // Try fixture first (fast), then provider
+      // Try fixture first (fast), then the cache (saved/searched jobs are cached there), then provider
       jobListing = FIXTURE_JOBS.find(j => j.id === job_id) ?? null
       if (!jobListing) {
-        const provider = getJobProvider()
-        jobListing = await provider.getById(job_id)
+        const { data: cached } = await supabase.from('job_listings_cache').select('*').eq('id', job_id).maybeSingle()
+        jobListing = (cached as JobListing | null) ?? null
+      }
+      if (!jobListing) {
+        jobListing = await getJobById(job_id)
       }
     } else if (inlineJob) {
       jobListing = {
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { score, breakdown } })
   } catch (err) {
-    console.error('[jobs/match]', err instanceof Error ? err.message : 'unknown')
+    console.error('[jobs/match]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: 'Match analysis failed. Please try again.' }, { status: 500 })
   }
 }

@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
+  // pdf-parse pulls in pdfjs-dist, which loads a worker chunk at runtime — Next's bundler
+  // can't resolve that chunk path. Opting it out of bundling lets it use native Node require.
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
 }
 
 export default nextConfig

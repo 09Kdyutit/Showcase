@@ -97,6 +97,9 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 Upgrade · $15/mo
               </Link>
             </Button>
+            <p className="text-[11px] text-center text-muted-foreground/60 mt-2">
+              or <Link href="/billing" className="text-brand-400 hover:text-brand-300 underline">$150/yr — save $30</Link>
+            </p>
           </div>
         </div>
       )}

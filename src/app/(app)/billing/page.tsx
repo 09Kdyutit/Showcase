@@ -30,7 +30,7 @@ export default function BillingPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('subscriptions').select('*').single().then(({ data }) => {
+    supabase.from('subscriptions').select('*').maybeSingle().then(({ data }) => {
       setSub(data)
       setLoading(false)
     })

@@ -14,7 +14,7 @@ export const ParsedResumeSchema = z.object({
     period: z.string(),
     bullets: z.array(z.string()),
     metrics: z.array(z.string()),
-    has_metrics: z.boolean().optional(),
+    has_metrics: z.boolean().nullable().optional(),
   })),
   education: z.array(z.object({
     institution: z.string(),
@@ -26,7 +26,7 @@ export const ParsedResumeSchema = z.object({
     description: z.string(),
     technologies: z.array(z.string()),
     links: z.array(z.string()),
-    has_outcome: z.boolean().optional(),
+    has_outcome: z.boolean().nullable().optional(),
   })),
   certifications: z.array(z.string()),
   links: z.object({
@@ -38,7 +38,7 @@ export const ParsedResumeSchema = z.object({
   weak_bullets: z.array(z.string()),
   missing_proof: z.array(z.string()),
   possible_case_studies: z.array(z.string()),
-  overall_resume_quality: z.enum(['strong', 'average', 'weak']).optional(),
+  overall_resume_quality: z.enum(['strong', 'average', 'weak']).nullable().optional(),
   years_of_experience: z.number().nullable().optional(),
   seniority_level: z.enum(['student', 'junior', 'mid', 'senior', 'lead', 'executive']).nullable().optional(),
 })
@@ -50,7 +50,7 @@ export const ImprovedBulletSchema = z.object({
   improved: z.string(),
   explanation: z.string(),
   missing_info: z.array(z.string()),
-  could_be_case_study: z.boolean().optional(),
+  could_be_case_study: z.boolean().nullable().optional(),
 })
 
 export type ImprovedBulletOutput = z.infer<typeof ImprovedBulletSchema>
@@ -58,7 +58,7 @@ export type ImprovedBulletOutput = z.infer<typeof ImprovedBulletSchema>
 // ── RoleMatchResult ───────────────────────────────────────────────────────────
 export const RoleMatchSchema = z.object({
   match_score: z.number(),
-  verdict: z.enum(['ready_now', 'nearly_ready', 'developing', 'significant_gap', 'career_change']).optional(),
+  verdict: z.enum(['ready_now', 'nearly_ready', 'developing', 'significant_gap', 'career_change']).nullable().optional(),
   matching_skills: z.array(z.string()),
   missing_skills: z.array(z.string()),
   transferable_skills: z.array(z.string()),
@@ -66,7 +66,7 @@ export const RoleMatchSchema = z.object({
   strengths: z.array(z.string()),
   recommendations: z.array(z.string()),
   realistic_timeline: z.string(),
-  strongest_asset: z.string().optional(),
+  strongest_asset: z.string().nullable().optional(),
 })
 
 export type RoleMatchOutput = z.infer<typeof RoleMatchSchema>
@@ -101,8 +101,8 @@ export const PortfolioContentSchema = z.object({
     subheadline: z.string(),
     tagline: z.string(),
   }),
-  recruiterSummary: z.string().optional(),
-  featuredResult: z.string().optional(),
+  recruiterSummary: z.string().nullable().optional(),
+  featuredResult: z.string().nullable().optional(),
   about: z.object({
     bio: z.string(),
     values: z.array(z.string()),
@@ -122,23 +122,23 @@ export const PortfolioContentSchema = z.object({
   projects: z.array(z.object({
     title: z.string(),
     role: z.string(),
-    summary: z.string().optional(),
+    summary: z.string().nullable().optional(),
     problem: z.string(),
     process: z.string(),
     outcome: z.string(),
     metrics: z.array(z.string()),
     links: z.array(z.object({ label: z.string(), url: z.string() })),
-    tags: z.array(z.string()).optional(),
+    tags: z.array(z.string()).nullable().optional(),
   })),
   proof: z.array(z.object({
     label: z.string(),
     value: z.string(),
   })),
   contact: z.object({
-    email: z.string().optional(),
-    linkedin: z.string().optional(),
-    github: z.string().optional(),
-    website: z.string().optional(),
+    email: z.string().nullable().optional(),
+    linkedin: z.string().nullable().optional(),
+    github: z.string().nullable().optional(),
+    website: z.string().nullable().optional(),
   }),
   cta: z.object({
     headline: z.string(),
@@ -184,7 +184,7 @@ export const TailoredBulletSchema = z.object({
   reason: z.string(),
   source_evidence: z.string().nullable(),
   needs_user_input: z.boolean(),
-  placeholder: z.string().optional(),
+  placeholder: z.string().nullable().optional(),
   accepted: z.boolean(),
 })
 
