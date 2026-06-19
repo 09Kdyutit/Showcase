@@ -15,8 +15,28 @@ import {
   ChevronDown,
   ChevronUp,
   Lock,
+  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// ── Pricing data ──────────────────────────────────────────────────────────────
+
+const FREE_FEATURES = [
+  'Resume text parsing',
+  'Basic ProofScore preview (3 categories)',
+  'Draft portfolio (unpublished)',
+  '1 portfolio',
+]
+const PRO_FEATURES = [
+  'Everything in Free',
+  'Full AI portfolio generation from resume',
+  'Complete ProofScore audit — all 11 categories',
+  'Public portfolio at showcase.app/p/your-name',
+  'Tailor Studio — role-specific resume in one click',
+  'Truth Ledger — every change traced to your real experience',
+  'Unlimited portfolios',
+  'Priority AI processing',
+]
 
 // ── UTM helpers ───────────────────────────────────────────────────────────────
 
@@ -333,6 +353,8 @@ function WaitlistContent() {
   const [submitting, setSubmitting] = useState(false)
   const [referralCode, setReferralCode] = useState<string | undefined>()
   const [alreadyJoined, setAlreadyJoined] = useState(false)
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const isAnnual = billing === 'annual'
   const formCardRef = useRef<HTMLDivElement>(null)
 
   // Capture localStorage UTMs on mount
@@ -425,6 +447,7 @@ function WaitlistContent() {
             {[
               { label: 'How it works', href: '#how-it-works' },
               { label: 'ProofScore', href: '#proof-score' },
+              { label: 'Pricing', href: '#pricing' },
               { label: 'FAQ', href: '#faq' },
             ].map((link) => (
               <a
@@ -745,6 +768,109 @@ function WaitlistContent() {
             Four steps. No fluff, no fake experience. Just a portfolio that shows exactly what you can do and where the gaps are.
           </p>
           <HowItWorksFlow />
+        </div>
+      </section>
+
+      {/* ── Pricing ──────────────────────────────────────────────── */}
+      <section id="pricing" className="py-24 px-6 border-t border-white/[0.05]">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
+          <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight text-center">
+            Simple, honest pricing
+          </h2>
+          <p className="text-foreground/50 text-center max-w-md mx-auto mb-10">
+            Beta access is free. Here&apos;s what Pro looks like once we open up.
+          </p>
+
+          {/* Billing toggle */}
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <button
+              onClick={() => setBilling('monthly')}
+              className={cn(
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all',
+                !isAnnual ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling('annual')}
+              className={cn(
+                'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                isAnnual ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Annual
+              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                Save $30
+              </span>
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Free */}
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 flex flex-col">
+              <p className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest mb-3">Free</p>
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-4xl font-black text-foreground">$0</span>
+                <span className="text-muted-foreground/60">/month</span>
+              </div>
+              <p className="text-sm text-foreground/50 mb-6">Get started without a credit card.</p>
+              <ul className="space-y-3 mb-8 flex-1">
+                {FREE_FEATURES.map((f) => (
+                  <li key={f} className="flex items-start gap-3 text-sm text-foreground/70">
+                    <Check className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Pro */}
+            <div className="relative rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/[0.06] to-white/[0.02] p-8 flex flex-col overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" />
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-brand-400 uppercase tracking-widest">Showcase Pro</p>
+                <span className="text-[10px] font-bold text-brand-300 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                  {isAnnual ? 'Best value' : 'Most popular'}
+                </span>
+              </div>
+              {isAnnual ? (
+                <>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-4xl font-black text-foreground">$12.50</span>
+                    <span className="text-muted-foreground/60">/month</span>
+                  </div>
+                  <p className="text-sm text-emerald-400 font-medium mb-1">$150 billed annually — save $30</p>
+                  <p className="text-sm text-muted-foreground/40 line-through mb-6">$180/year if monthly</p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="text-4xl font-black text-foreground">$15</span>
+                    <span className="text-muted-foreground/60">/month</span>
+                  </div>
+                  <p className="text-sm text-foreground/50 mb-6">Full access. Cancel anytime.</p>
+                </>
+              )}
+              <ul className="space-y-3 mb-8 flex-1">
+                {PRO_FEATURES.map((f) => (
+                  <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
+                    <Check className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={scrollToForm}
+                className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(99,102,241,0.3)]"
+              >
+                <Zap className="h-4 w-4" />
+                Join the beta to get early Pro pricing
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -3,18 +3,29 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PROTECTED_ROUTES = ['/dashboard', '/builder', '/audit', '/resume', '/settings', '/billing', '/onboarding']
 const AUTH_ROUTES = ['/login']
-// Public self-serve signup is closed during the waitlist phase. No query string, auth
-// state, or env config can re-open it — every request to this path is redirected, full stop.
-const SIGNUP_CLOSED_ROUTES = ['/signup']
+
+// Pre-launch lockdown: the entire app — including the marketing homepage, /pricing,
+// /login, /signup, and every authenticated route — redirects to /waitlist. Existing
+// accounts get zero exception; there is no query string or path that opens a door.
+// Set LAUNCH_OPEN=true (env var on Vercel, not a query param) on launch day to lift this.
+const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
+const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund']
+const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook']
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
-  if (SIGNUP_CLOSED_ROUTES.some((r) => path.startsWith(r))) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/waitlist'
-    url.search = ''
-    return NextResponse.redirect(url)
+  if (!LAUNCH_OPEN) {
+    const isAllowed =
+      WAITLIST_ALLOWED_PATHS.includes(path) ||
+      WAITLIST_ALLOWED_API_PREFIXES.some((p) => path.startsWith(p))
+    if (!isAllowed) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/waitlist'
+      url.search = ''
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next({ request })
   }
 
   let supabaseResponse = NextResponse.next({ request })

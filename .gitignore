@@ -39,6 +39,9 @@ yarn-error.log*
 # supabase CLI local cache (contains live DB connection strings)
 supabase/.temp
 
+# claude code agent worktrees
+.claude/worktrees
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
