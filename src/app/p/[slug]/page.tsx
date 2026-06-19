@@ -1,0 +1,591 @@
+import { notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import type { Metadata } from 'next'
+import { Globe, Mail, ArrowRight, ExternalLink, Calendar } from 'lucide-react'
+import type { PortfolioContent } from '@/types/database'
+import { cn } from '@/lib/utils'
+
+interface PublicPortfolioPageProps {
+  params: Promise<{ slug: string }>
+}
+
+function getInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return 'P'
+  if (words.length === 1) return words[0][0].toUpperCase()
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase()
+}
+
+function getLevelDot(level: string) {
+  if (level === 'Expert') return 'bg-brand-400'
+  if (level === 'Advanced') return 'bg-violet-400'
+  if (level === 'Proficient') return 'bg-emerald-500'
+  return 'bg-surface-400'
+}
+
+function getLevelLabel(level: string) {
+  if (level === 'Expert') return 'text-brand-400'
+  if (level === 'Advanced') return 'text-violet-400'
+  if (level === 'Proficient') return 'text-emerald-400'
+  return 'text-muted-foreground/50'
+}
+
+const PROJECT_ACCENT_COLORS = [
+  'border-brand-500/30 bg-brand-500/[0.02]',
+  'border-violet-500/30 bg-violet-500/[0.02]',
+  'border-emerald-500/30 bg-emerald-500/[0.02]',
+  'border-amber-500/30 bg-amber-500/[0.02]',
+]
+
+const GRADIENT_STYLE = {
+  background: 'linear-gradient(135deg, #818cf8, #a78bfa)',
+  WebkitBackgroundClip: 'text' as const,
+  WebkitTextFillColor: 'transparent' as const,
+  backgroundClip: 'text' as const,
+  display: 'inline-block' as const,
+  willChange: 'transform' as const,
+  transform: 'translateZ(0)',
+}
+
+export async function generateMetadata({ params }: PublicPortfolioPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('portfolios')
+    .select('title, target_role, content')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single()
+
+  if (!data) return { title: 'Portfolio not found' }
+
+  const content = data.content as unknown as Partial<PortfolioContent>
+  const hero = content?.hero
+  return {
+    title: `${data.title} · Showcase`,
+    description: hero?.subheadline ?? `${data.target_role ?? 'Professional'} portfolio — built with Showcase`,
+    openGraph: {
+      title: `${data.title} — ${data.target_role ?? 'Portfolio'}`,
+      description: hero?.subheadline ?? `View ${data.title}'s professional portfolio`,
+      type: 'profile',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${data.title} · Showcase`,
+      description: hero?.subheadline ?? '',
+    },
+  }
+}
+
+export default async function PublicPortfolioPage({ params }: PublicPortfolioPageProps) {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: portfolio } = await supabase
+    .from('portfolios')
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single()
+
+  if (!portfolio) notFound()
+
+  const content = portfolio.content as unknown as Partial<PortfolioContent>
+  const hero = content?.hero
+  const about = content?.about
+  const skills = content?.skills ?? []
+  const experience = content?.experience ?? []
+  const projects = content?.projects ?? []
+  const proof = content?.proof?.filter((p) => p.value && p.label) ?? []
+  const contact = content?.contact
+  const cta = content?.cta
+  const recruiterSummary = (content as Record<string, unknown>)?.recruiterSummary as string | undefined
+  const featuredResult = (content as Record<string, unknown>)?.featuredResult as string | undefined
+
+  const initials = getInitials(portfolio.title)
+
+  const skillsByCategory = skills.reduce<Record<string, typeof skills>>((acc, skill) => {
+    const cat = skill.category || 'Other'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(skill)
+    return acc
+  }, {})
+  const categoryOrder = Object.keys(skillsByCategory)
+
+  const hasContent = hero?.headline || about?.bio || projects.length > 0 || experience.length > 0
+  const bioParagraphs = about?.bio?.split('\n\n').filter(Boolean) ?? []
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+
+      {/* ── Sticky nav ─────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.4)]">
+              <span className="text-white text-[11px] font-bold">{initials}</span>
+            </div>
+            <span className="font-semibold text-sm text-foreground truncate">{portfolio.title}</span>
+            {portfolio.target_role && (
+              <span className="text-xs text-muted-foreground/50 hidden sm:inline truncate">
+                · {portfolio.target_role}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {contact?.linkedin && (
+              <a
+                href={contact.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:border-border transition-all"
+              >
+                <ExternalLink className="h-3 w-3" />
+                LinkedIn
+              </a>
+            )}
+            {contact?.email && (
+              <a
+                href={`mailto:${contact.email}`}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-violet-500 text-white text-xs font-semibold shrink-0 hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.3)]"
+              >
+                <Mail className="h-3 w-3" />
+                Get in touch
+              </a>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero ───────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        {/* Grid + glow background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 right-0 w-[500px] h-[400px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24">
+
+          {/* Avatar */}
+          <div className="relative mb-8 inline-block">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.35)]">
+              <span className="text-white text-3xl font-black">{initials}</span>
+            </div>
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 blur-2xl opacity-25 -z-10" />
+          </div>
+
+          {/* Tagline pill */}
+          {hero?.tagline && (
+            <p className="text-xs font-bold text-brand-400 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse inline-block" />
+              {hero.tagline}
+            </p>
+          )}
+
+          {/* Headline — the most important line on this page */}
+          <h1 className="text-[clamp(2.25rem,5vw,3.75rem)] font-black tracking-tight leading-[1.04] text-balance max-w-4xl mb-6">
+            {hero?.headline ?? portfolio.title}
+          </h1>
+
+          {/* Subheadline */}
+          {hero?.subheadline && (
+            <p className="text-xl text-foreground/60 leading-relaxed max-w-2xl mb-8 font-light">
+              {hero.subheadline}
+            </p>
+          )}
+
+          {/* Featured result pill — the single most impressive achievement */}
+          {featuredResult && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-300 font-medium mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {featuredResult}
+            </div>
+          )}
+
+          {/* Contact row */}
+          {contact && Object.values(contact).some(Boolean) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {contact.email && (
+                <a
+                  href={`mailto:${contact.email}`}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(99,102,241,0.3)]"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  {contact.email}
+                  <ArrowRight className="h-3 w-3" />
+                </a>
+              )}
+              {contact.linkedin && (
+                <a
+                  href={contact.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  LinkedIn
+                </a>
+              )}
+              {contact.github && (
+                <a
+                  href={contact.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  GitHub
+                </a>
+              )}
+              {contact.website && (
+                <a
+                  href={contact.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  Website
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Proof metrics ──────────────────────────────────────── */}
+      {proof.length > 0 && (
+        <section className="relative border-y border-white/[0.06]">
+          <div className="max-w-5xl mx-auto px-6 py-16">
+            <div className={cn(
+              'grid gap-0',
+              proof.length === 2 ? 'grid-cols-2' :
+              proof.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4',
+            )}>
+              {proof.slice(0, 4).map((p, i) => (
+                <div
+                  key={p.label}
+                  className={cn(
+                    'text-center px-6 py-2',
+                    i < proof.slice(0, 4).length - 1 && 'border-r border-white/[0.06]',
+                  )}
+                >
+                  <p
+                    className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight mb-2 leading-none"
+                    style={GRADIENT_STYLE}
+                  >
+                    {p.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground/60 font-medium leading-snug max-w-[120px] mx-auto">{p.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Recruiter summary ──────────────────────────────────── */}
+      {recruiterSummary && (
+        <section className="py-8 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <Globe className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-foreground/70 leading-relaxed">{recruiterSummary}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── About ──────────────────────────────────────────────── */}
+      {bioParagraphs.length > 0 && (
+        <section className="py-24 px-6">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">About</p>
+            <div className="grid lg:grid-cols-[1fr_260px] gap-16 items-start">
+              <div className="space-y-6">
+                {bioParagraphs.map((para, i) => (
+                  <p key={i} className={cn(
+                    'leading-[1.85]',
+                    i === 0 ? 'text-xl text-foreground/90 font-light' : 'text-base text-foreground/65',
+                  )}>
+                    {para}
+                  </p>
+                ))}
+              </div>
+              {about?.values && about.values.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-5">Working principles</p>
+                  {about.values.map((v) => (
+                    <div key={v} className="flex items-start gap-3 py-2.5 border-b border-white/[0.05] last:border-0">
+                      <div className="w-1 h-1 rounded-full bg-brand-500/50 shrink-0 mt-2" />
+                      <p className="text-sm text-foreground/60 leading-relaxed">{v}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Selected Work ──────────────────────────────────────── */}
+      {projects.length > 0 && (
+        <section className="py-24 px-6 border-t border-white/[0.05]">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Selected work</p>
+            <div className="space-y-6">
+              {projects.slice(0, 5).map((proj, i) => (
+                <article
+                  key={i}
+                  className={cn(
+                    'rounded-2xl border p-8 lg:p-10 transition-all duration-300 hover:shadow-[0_0_40px_rgba(99,102,241,0.06)]',
+                    PROJECT_ACCENT_COLORS[i % PROJECT_ACCENT_COLORS.length]
+                  )}
+                >
+                  {/* Project header */}
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-[10px] font-black text-muted-foreground/25 tabular-nums">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <h3 className="text-2xl font-black text-foreground tracking-tight">{proj.title}</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground/60">
+                        {[proj.role, (proj as Record<string, unknown>).company as string, (proj as Record<string, unknown>).year as string].filter(Boolean).join(' · ')}
+                      </p>
+                      {proj.summary && (
+                        <p className="text-sm text-foreground/55 mt-2 leading-relaxed max-w-2xl">{proj.summary}</p>
+                      )}
+                    </div>
+                    {/* Metric pills */}
+                    {proj.metrics && proj.metrics.length > 0 && (
+                      <div className="flex flex-wrap gap-2 shrink-0 pt-1">
+                        {proj.metrics.slice(0, 3).map((m, mi) => (
+                          <span
+                            key={mi}
+                            className={cn(
+                              'px-3 py-1.5 rounded-lg border text-xs font-bold',
+                              i === 0 ? 'bg-brand-500/10 border-brand-500/20 text-brand-300' :
+                              i === 1 ? 'bg-violet-500/10 border-violet-500/20 text-violet-300' :
+                              'bg-emerald-500/10 border-emerald-500/20 text-emerald-300',
+                            )}
+                          >
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Tags */}
+                  {proj.tags && proj.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-8">
+                      {proj.tags.slice(0, 6).map((t) => (
+                        <span
+                          key={t}
+                          className="px-2.5 py-0.5 bg-white/[0.04] border border-white/[0.07] rounded-full text-[11px] text-muted-foreground/50"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* P / P / O — 3 columns with Outcome visually dominant */}
+                  {(proj.problem || proj.process || proj.outcome) && (
+                    <div className="grid sm:grid-cols-3 gap-6">
+                      {proj.problem && (
+                        <div>
+                          <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Problem</p>
+                          <p className="text-sm text-foreground/55 leading-relaxed">{proj.problem}</p>
+                        </div>
+                      )}
+                      {proj.process && (
+                        <div>
+                          <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Process</p>
+                          <p className="text-sm text-foreground/55 leading-relaxed">{proj.process}</p>
+                        </div>
+                      )}
+                      {proj.outcome && (
+                        <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.18] p-5">
+                          <p className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
+                          <p className="text-sm text-foreground/90 leading-relaxed font-medium">{proj.outcome}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Links */}
+                  {proj.links && proj.links.filter((l) => l.url).length > 0 && (
+                    <div className="flex gap-3 mt-8 pt-6 border-t border-white/[0.05]">
+                      {proj.links.filter((l) => l.url).map((link, li) => (
+                        <a
+                          key={li}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors font-semibold"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {link.label || 'View project'}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Skills ─────────────────────────────────────────────── */}
+      {skills.length > 0 && (
+        <section className="py-24 px-6 border-t border-white/[0.05]">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Skills & expertise</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+              {categoryOrder.map((cat) => (
+                <div key={cat}>
+                  <p className="text-[10px] font-bold text-muted-foreground/35 uppercase tracking-[0.15em] mb-4">{cat}</p>
+                  <div className="space-y-3">
+                    {skillsByCategory[cat].map((s) => (
+                      <div key={s.name} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', getLevelDot(s.level))} />
+                          <span className="text-sm text-foreground/75">{s.name}</span>
+                        </div>
+                        <span className={cn('text-[10px] font-semibold', getLevelLabel(s.level))}>
+                          {s.level}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Experience ─────────────────────────────────────────── */}
+      {experience.length > 0 && (
+        <section className="py-24 px-6 border-t border-white/[0.05]">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Experience</p>
+            <div className="space-y-0">
+              {experience.map((exp, i) => (
+                <div key={i} className="flex gap-8">
+                  {/* Timeline */}
+                  <div className="hidden sm:flex flex-col items-center pt-1.5">
+                    <div className="w-2 h-2 rounded-full bg-brand-500/50 ring-4 ring-brand-500/10 shrink-0" />
+                    {i < experience.length - 1 && (
+                      <div className="w-px flex-1 bg-gradient-to-b from-brand-500/15 to-transparent min-h-[56px] mt-1" />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className={cn('flex-1 pb-12', i === experience.length - 1 && 'pb-0')}>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-4">
+                      <div>
+                        <h3 className="font-bold text-foreground text-lg leading-tight">{exp.role}</h3>
+                        <span className="text-sm text-muted-foreground/60 font-medium">{exp.company}</span>
+                      </div>
+                      {exp.period && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/40 shrink-0 font-medium tabular-nums">
+                          <Calendar className="h-3 w-3" />
+                          {exp.period}
+                        </div>
+                      )}
+                    </div>
+
+                    {exp.bullets && exp.bullets.length > 0 && (
+                      <ul className="space-y-2.5 mb-4">
+                        {exp.bullets.map((b, bi) => (
+                          <li key={bi} className="flex items-start gap-3 text-sm text-foreground/60 leading-relaxed">
+                            <div className="w-1 h-1 rounded-full bg-muted-foreground/20 shrink-0 mt-2.5" />
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {exp.metrics && exp.metrics.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {exp.metrics.map((m, mi) => (
+                          <span
+                            key={mi}
+                            className="text-xs text-emerald-400 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold"
+                          >
+                            {m}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Contact CTA ────────────────────────────────────────── */}
+      {(cta || contact?.email) && (
+        <section className="py-32 px-6 border-t border-white/[0.05]">
+          <div className="max-w-5xl mx-auto">
+            <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.07),transparent)]" />
+              <div className="relative z-10">
+                <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-5 tracking-tight">
+                  {cta?.headline ?? "Let's work together"}
+                </h2>
+                <p className="text-foreground/50 text-lg mb-10 max-w-md mx-auto font-light">
+                  Open to the right conversations. Send a note and I&apos;ll respond within 24 hours.
+                </p>
+                {contact?.email && (
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-[0_0_40px_rgba(99,102,241,0.35)]"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {cta?.buttonLabel ?? 'Get in touch'}
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Footer ─────────────────────────────────────────────── */}
+      <footer className="py-8 px-6 border-t border-white/[0.05]">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <a
+            href="https://showcase.app"
+            className="flex items-center gap-2 group"
+          >
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="text-white text-[9px] font-bold">S</span>
+            </div>
+            <span className="text-xs text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
+              Built with Showcase
+            </span>
+          </a>
+          {!hasContent && (
+            <p className="text-xs text-muted-foreground/30">Portfolio coming soon</p>
+          )}
+          <a
+            href="#"
+            className="text-xs text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
+          >
+            Back to top ↑
+          </a>
+        </div>
+      </footer>
+    </div>
+  )
+}
