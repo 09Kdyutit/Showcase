@@ -264,6 +264,8 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   const [parsedResume, setParsedResume] = useState<Record<string, unknown> | null>(null)
   const [resumeId, setResumeId] = useState<string | null>(null)
   const [tailored, setTailored] = useState<TailoredResumeOutput | null>(null)
+  const [assetId, setAssetId] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
   const [truthMap, setTruthMap] = useState<TruthEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -375,11 +377,49 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       const { data } = await res.json()
       setTailored(data)
       setTruthMap(data.truth_map ?? [])
+      setAssetId(data.asset_id ?? null)
       toast.success('Application kit generated')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Generation failed')
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function handleExport() {
+    if (!assetId) { toast.error('Generate the application kit first'); return }
+    setExporting(true)
+    try {
+      const res = await fetch('/api/resume/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tailored_asset_id: assetId, format: 'docx' }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        if (body?.error === 'export_blocked') {
+          toast.error(body.message ?? 'Confirm pending Truth Ledger items before exporting')
+          setActiveSection('truth')
+          return
+        }
+        toast.error(apiErrorMessage(body?.error, 'Export failed. Please try again.'))
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${job?.title ? job.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() : 'showcase-resume'}.docx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      const coverage = res.headers.get('X-ATS-Coverage')
+      toast.success(coverage ? `Exported — ATS coverage ${coverage}%` : 'Exported')
+    } catch {
+      toast.error('Export failed. Please try again.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -492,6 +532,18 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               Recruiter note
             </label>
           </div>
+          {tailored && (
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              size="sm"
+              disabled={exporting || !assetId}
+              className="gap-1.5"
+            >
+              {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+              Export DOCX
+            </Button>
+          )}
           <Button
             onClick={handleGenerate}
             variant="gradient"

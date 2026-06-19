@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { Upload, FileText, Zap, Copy, Check, AlertCircle, X, Lock, File, BarChart3 } from 'lucide-react'
+import { Upload, FileText, Zap, Copy, Check, AlertCircle, X, Lock, File, BarChart3, Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient, tryCreateClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -189,6 +189,7 @@ export default function ResumePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
@@ -283,6 +284,38 @@ export default function ResumePage() {
       toast.error(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
       setAnalyzing(false)
+    }
+  }
+
+  async function exportDocx() {
+    if (!activeResume) { toast.error('Save your resume first'); return }
+    setExporting(true)
+    try {
+      const res = await fetch('/api/resume/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume_id: activeResume.id, format: 'docx' }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        toast.error(body?.message ?? 'Export failed. Please try again.')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${(activeResume.title || 'showcase-resume').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.docx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      const coverage = res.headers.get('X-ATS-Coverage')
+      toast.success(coverage ? `Exported — ATS coverage ${coverage}%` : 'Exported')
+    } catch {
+      toast.error('Export failed. Please try again.')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -512,6 +545,16 @@ export default function ResumePage() {
                   </Link>
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 mt-2"
+                onClick={exportDocx}
+                disabled={exporting}
+              >
+                {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                Export DOCX
+              </Button>
             </div>
           )}
         </div>

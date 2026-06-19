@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { TailoredContent, ParsedResume } from '@/types/database'
-import { getUnconfirmedFabricationRisks, extractTextFromDocx, computeCoverage, slugify } from '@/lib/jobs/truth-ledger'
+import { getUnconfirmedFabricationRisks, computeCoverage, slugify } from '@/lib/jobs/truth-ledger'
 import {
   Document,
   Packer,
@@ -105,9 +105,20 @@ export async function POST(req: NextRequest) {
 
   const buffer = await Packer.toBuffer(doc)
 
-  // ── ATS round-trip: extract text for coverage check ───────────────────────
+  // ── ATS round-trip: actually read the generated file back, not the source data ──
+  // Reconstructing text from `content`/`parsed` would trivially "match" since it's the
+  // same data twice — this proves nothing about whether the .docx itself is intact and
+  // machine-readable. Extracting from the real buffer catches genuine corruption risk.
+  const mammoth = await import('mammoth')
+  const { value: extractedText } = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
 
-  const extractedText = extractTextFromDocx(content, parsed)
+  if (extractedText.trim().length < 50) {
+    return NextResponse.json(
+      { error: 'export_corrupted', message: 'Generated file failed text-extraction validation. Please try again.' },
+      { status: 500 }
+    )
+  }
+
   const coverageResult = computeCoverage(extractedText, content, parsed)
 
   // Return file + coverage metadata via headers (not body — body is binary)

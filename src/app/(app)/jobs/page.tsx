@@ -63,6 +63,7 @@ function JobCard({
   job,
   isSelected,
   matchScore,
+  isAdjacent,
   isSaved,
   onSelect,
   onSave,
@@ -70,6 +71,7 @@ function JobCard({
   job: JobListing
   isSelected: boolean
   matchScore?: number
+  isAdjacent?: boolean
   isSaved: boolean
   onSelect: () => void
   onSave: () => void
@@ -136,7 +138,14 @@ function JobCard({
           )}
           <span className="text-[11px] text-muted-foreground/40">{posted}</span>
         </div>
-        {matchScore !== undefined && <MatchScoreBadge score={matchScore} />}
+        <div className="flex items-center gap-1.5">
+          {isAdjacent && (
+            <Badge variant="outline" className="text-[10px] text-violet-400/80 border-violet-500/20 bg-violet-500/5">
+              Adjacent opportunity
+            </Badge>
+          )}
+          {matchScore !== undefined && <MatchScoreBadge score={matchScore} />}
+        </div>
       </div>
     </div>
   )
@@ -613,7 +622,8 @@ export default function JobsPage() {
   const [tab, setTab] = useState<Tab>('browse')
   const [filters, setFilters] = useState<SearchFilters>(INITIAL_FILTERS)
   const [jobs, setJobs] = useState<JobListing[]>([])
-  const [recommendations, setRecommendations] = useState<Array<{ job: JobListing; match_score: number; match_breakdown: MatchBreakdown }>>([])
+  const [recommendations, setRecommendations] = useState<Array<{ job: JobListing; match_score: number; match_breakdown: MatchBreakdown; is_adjacent?: boolean }>>([])
+  const [includeAdjacent, setIncludeAdjacent] = useState(false)
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   const [savedJobMap, setSavedJobMap] = useState<Map<string, string>>(new Map())
@@ -699,7 +709,7 @@ export default function JobsPage() {
       const res = await fetch('/api/jobs/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parsed_resume: parsedResume }),
+        body: JSON.stringify({ parsed_resume: parsedResume, include_adjacent: includeAdjacent }),
       })
       if (res.ok) {
         const { data, is_demo } = await res.json()
@@ -708,13 +718,14 @@ export default function JobsPage() {
       }
     } catch { /* non-fatal */ }
     setLoadingRecs(false)
-  }, [])
+  }, [includeAdjacent])
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchJobs(INITIAL_FILTERS); void fetchSavedJobs() }, [fetchJobs, fetchSavedJobs])
 
+  // Refetch whenever the tab is active or the adjacent-roles toggle changes
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { if (tab === 'for-you' && recommendations.length === 0) void fetchRecommendations() }, [tab, recommendations.length, fetchRecommendations])
+  useEffect(() => { if (tab === 'for-you') void fetchRecommendations() }, [tab, includeAdjacent, fetchRecommendations])
 
   // Debounced search
   useEffect(() => {
@@ -824,6 +835,17 @@ export default function JobsPage() {
               </button>
             ))}
           </div>
+          {tab === 'for-you' && (
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={includeAdjacent}
+                onChange={(e) => setIncludeAdjacent(e.target.checked)}
+                className="accent-brand-500"
+              />
+              Include adjacent roles
+            </label>
+          )}
           {isDemo && (
             <Badge variant="outline" className="text-[10px] text-amber-400/70 border-amber-500/20 bg-amber-500/5">
               Demo listings
@@ -894,12 +916,13 @@ export default function JobsPage() {
                           onSave={() => handleSave(job)}
                         />
                       ))
-                    : recommendations.map(({ job, match_score, match_breakdown }) => (
+                    : recommendations.map(({ job, match_score, match_breakdown, is_adjacent }) => (
                         <JobCard
                           key={job.id}
                           job={job}
                           isSelected={selectedJob?.id === job.id}
                           matchScore={match_score}
+                          isAdjacent={is_adjacent}
                           isSaved={savedIds.has(job.id)}
                           onSelect={() => handleSelectJob(job, { score: match_score, breakdown: match_breakdown })}
                           onSave={() => handleSave(job)}

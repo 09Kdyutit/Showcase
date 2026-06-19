@@ -1,6 +1,6 @@
 import type { JobListing, ParsedResume, MatchBreakdown, Seniority } from '@/types/database'
 
-const SENIORITY_RANK: Record<Seniority, number> = {
+export const SENIORITY_RANK: Record<Seniority, number> = {
   internship: 0,
   entry: 1,
   mid: 2,
@@ -38,7 +38,7 @@ function skillsOverlap(resumeSkills: string[], jobSkills: string[]): { matched: 
   return { matched, missing }
 }
 
-function mapSeniority(parsed: ParsedResume): Seniority | null {
+export function mapSeniority(parsed: ParsedResume): Seniority | null {
   if (parsed.seniority_level === 'student') return 'entry'
   if (parsed.seniority_level === 'junior') return 'entry'
   if (parsed.seniority_level === 'mid') return 'mid'

@@ -11,7 +11,9 @@
     "verify": "node scripts/verify.mjs && npm run typecheck && npm run lint && npm run build",
     "test:ai": "node --env-file=.env.local scripts/test-openai.mjs",
     "test:match": "node --experimental-strip-types scripts/test-match-engine.mjs",
-    "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs"
+    "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
+    "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
+    "test:taxonomy": "node --experimental-strip-types scripts/test-role-taxonomy.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
