@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { extractPdfViaVision } from '@/lib/ai/pdf-vision'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB — stays under typical serverless body limits
 
@@ -53,15 +54,39 @@ export async function POST(request: NextRequest) {
       ])
     }
 
+    let usedVisionFallback = false
+
     if (isPdf) {
-      const { PDFParse } = await import('pdf-parse')
-      const parser = new PDFParse({ data: buffer })
       try {
-        const result = await withTimeout(parser.getText())
-        // Strip pdf-parse's "-- N of M --" page-separator footers — noise, not resume content
-        text = result.text.replace(/^--\s*\d+\s*of\s*\d+\s*--$/gm, '')
-      } finally {
-        await parser.destroy()
+        const { PDFParse } = await import('pdf-parse')
+        const parser = new PDFParse({ data: buffer })
+        try {
+          const result = await withTimeout(parser.getText())
+          // Strip pdf-parse's "-- N of M --" page-separator footers — noise, not resume content
+          text = result.text.replace(/^--\s*\d+\s*of\s*\d+\s*--$/gm, '')
+        } finally {
+          await parser.destroy()
+        }
+      } catch (parseErr) {
+        // pdf-parse threw outright (corrupted structure, unsupported encoding, etc.) —
+        // don't give up yet, fall through to the vision fallback below.
+        console.error('[resume/extract-text] pdf-parse threw, will try vision fallback:', parseErr instanceof Error ? parseErr.message : parseErr)
+        text = ''
+      }
+
+      // Standard text extraction failed or returned near-nothing — most commonly a
+      // scanned/photographed resume, or a PDF exported with outlined fonts that have no
+      // real text layer at all. A vision-capable model can still read it as an image.
+      if (text.replace(/\n{3,}/g, '\n\n').trim().length < 50) {
+        try {
+          const visionText = await withTimeout(extractPdfViaVision(buffer))
+          if (visionText.length >= 50) {
+            text = visionText
+            usedVisionFallback = true
+          }
+        } catch (visionErr) {
+          console.error('[resume/extract-text] vision fallback also failed:', visionErr instanceof Error ? visionErr.message : visionErr)
+        }
       }
     } else if (isDocx) {
       const mammoth = await import('mammoth')
@@ -79,13 +104,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'extraction_too_short',
-          message: 'Could not extract enough text from this file. It may be a scanned image PDF — try pasting the text manually instead.',
+          message: isPdf
+            ? 'This PDF appears to have no readable text or image content (it may be empty or corrupted) — try pasting the text manually instead.'
+            : 'Could not extract enough text from this file. Try pasting the text manually instead.',
         },
         { status: 422 }
       )
     }
 
-    return NextResponse.json({ data: { text } })
+    return NextResponse.json({ data: { text, extraction_method: usedVisionFallback ? 'vision' : 'text' } })
   } catch (err) {
     console.error('[resume/extract-text]', err instanceof Error ? err.message : 'unknown error')
     return NextResponse.json(
