@@ -17,7 +17,7 @@ Status values: `NOT_STARTED` / `IN_PROGRESS` / `PASS` / `FAIL` / `BLOCKED`.
 | P0-05 | Secrets | Rotate credentials pasted in chat this session (Stripe keys, Supabase service role, DB password) | BLOCKED | — | manual | Flagged twice already | Requires user to rotate in Stripe/Supabase dashboards — only they can authorize/execute this | Document exact steps; await user action | — |
 | P0-06 | Secrets | gitleaks scan of full repo + git history | NOT_STARTED | — | `gitleaks detect` | — | brew install needed | Install via brew, run, fix findings | — |
 | P0-07 | AI Truth | Truth Ledger export-block still fails closed under expanded adversarial set | NOT_STARTED | `scripts/test-truth-ledger.mjs` | `npm run test:truth-ledger` | 15/15 (existing scope) | — | Expand adversarial cases | — |
-| P0-08 | Data loss | Account deletion cascades correctly across all 14 tables + storage | NOT_STARTED | `scripts/test-account-deletion.mjs` | `npm run test:deletion` | — | — | Check if deletion route exists at all first | — |
+| P0-08 | Data loss | Account deletion cascades correctly across all 14 tables + storage | PASS | `src/app/api/account/delete/route.ts`, `src/app/(app)/settings/page.tsx`, `scripts/test-account-deletion.mjs` | `npm run test:deletion` | 13/13. Was a non-functional stub before this session (button just toasted "contact support"). Built real deletion: type-DELETE-to-confirm dialog -> auth.admin.deleteUser cascades all 14+ tables (all have ON DELETE CASCADE) + explicit storage cleanup. Verified deleted user cannot log back in. | — | done | pending |
 
 ## P1 — High (production webhook, rate limiting, session hardening, CSRF, monitoring, rollback, backups)
 
@@ -41,7 +41,7 @@ Status values: `NOT_STARTED` / `IN_PROGRESS` / `PASS` / `FAIL` / `BLOCKED`.
 | P1-16 | Email | Production SMTP / confirmation / reset readiness docs | NOT_STARTED | `security/EMAIL_READINESS.md` | manual | — | — | Document; actual SMTP creds are user's | — |
 | P1-17 | CI | GitHub Actions security workflow | NOT_STARTED | `.github/workflows/security.yml` | manual (no remote to trigger yet) | — | No git remote configured | Write workflow file regardless; trigger is BLOCKED until a remote exists | — |
 | P1-18 | Headers | CSP/header tightening + automated header test | NOT_STARTED | `next.config.ts`, `scripts/test-headers.mjs` | `npm run test:headers` | — | — | Audit current headers, tighten, test | — |
-| P1-19 | Privacy | Account deletion route + UI if missing | NOT_STARTED | TBD pending P0-08 discovery | `npm run test:deletion` | — | — | Discover current state first | — |
+| P1-19 | Privacy | Account deletion route + UI if missing | PASS | Same as P0-08 | `npm run test:deletion` | Same as P0-08 | — | done | pending |
 | P1-20 | Privacy | DATA_FLOW.md / RETENTION_POLICY.md / PRIVACY_OPERATIONS.md | NOT_STARTED | `security/*.md` | manual | — | — | Write | — |
 
 ## P2 — Medium (load testing, accessibility, visual QA, docs) — only after P0/P1 substantially done

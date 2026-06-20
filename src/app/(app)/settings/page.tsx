@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,6 +9,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { apiErrorMessage } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
 const EXPERIENCE_LEVELS = [
@@ -19,6 +29,7 @@ const EXPERIENCE_LEVELS = [
 ]
 
 export default function SettingsPage() {
+  const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -26,6 +37,9 @@ export default function SettingsPage() {
   const [targetRole, setTargetRole] = useState('')
   const [industry, setIndustry] = useState('')
   const [expLevel, setExpLevel] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -56,9 +70,29 @@ export default function SettingsPage() {
   }
 
   async function deleteAccount() {
-    const confirm = window.confirm('Are you sure you want to delete your account? This cannot be undone.')
-    if (!confirm) return
-    toast.error('Please contact support to delete your account.')
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: deleteConfirmText }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(apiErrorMessage(body?.error, 'Failed to delete account. Please try again.'))
+        return
+      }
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      toast.success('Your account has been deleted.')
+      router.push('/signup')
+    } catch {
+      toast.error('Failed to delete account. Please try again.')
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+      setDeleteConfirmText('')
+    }
   }
 
   if (loading) {
@@ -135,11 +169,46 @@ export default function SettingsPage() {
             <p className="text-sm font-medium text-foreground">Delete account</p>
             <p className="text-xs text-muted-foreground">Permanently delete your account and all data. This cannot be undone.</p>
           </div>
-          <Button variant="destructive" size="sm" onClick={deleteAccount}>
+          <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
             Delete
           </Button>
         </div>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={(open) => { setDeleteDialogOpen(open); if (!open) setDeleteConfirmText('') }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete your account</DialogTitle>
+            <DialogDescription>
+              This permanently deletes your profile, resumes, portfolios, audits, saved jobs,
+              applications, tailored assets, and subscription record. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label>Type DELETE to confirm</Label>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              autoComplete="off"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteConfirmText !== 'DELETE' || deleting}
+              loading={deleting}
+              onClick={deleteAccount}
+            >
+              Permanently delete account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
