@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { generateSlug } from '@/lib/utils'
 
 const EXPERIENCE_LEVELS = [
@@ -69,11 +70,26 @@ export default function OnboardingPage() {
       }).eq('id', user.id)
 
       if (form.resumeText.trim()) {
-        await supabase.from('resumes').insert({
-          user_id: user.id,
-          title: 'My Resume',
-          raw_text: form.resumeText,
-        })
+        const { data: resume } = await supabase
+          .from('resumes')
+          .insert({ user_id: user.id, title: 'My Resume', raw_text: form.resumeText })
+          .select()
+          .single()
+
+        // Parse immediately so ProofScore and portfolio generation have structured data
+        // ready the moment onboarding finishes — without this, the resume sits as raw
+        // text only and both features dead-end asking the user to "parse it first."
+        if (resume) {
+          try {
+            await fetch('/api/ai/analyze-resume', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ resumeText: form.resumeText, resumeId: resume.id }),
+            })
+          } catch {
+            // Non-fatal — user can re-trigger parsing from the Resume page if this fails
+          }
+        }
       }
 
       const slug = generateSlug(form.targetRole || 'portfolio')
@@ -219,14 +235,20 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-3">
               <div>
-                <Label>Paste your resume <span className="text-muted-foreground/60 font-normal">(optional but recommended)</span></Label>
-                <p className="text-xs text-muted-foreground/60 mt-1 mb-3">Copy and paste your resume text. We will parse it and use it to generate your portfolio.</p>
+                <Label>Upload your resume <span className="text-muted-foreground/60 font-normal">(optional but recommended)</span></Label>
+                <p className="text-xs text-muted-foreground/60 mt-1 mb-3">We extract everything from it automatically — experience, skills, projects, education — and use it to generate your portfolio and ProofScore.</p>
+              </div>
+              <FileUploadZone onText={(t) => update('resumeText', t)} />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground/50">or paste text</span>
+                <div className="flex-1 h-px bg-border" />
               </div>
               <Textarea
                 placeholder="Paste your resume text here..."
                 value={form.resumeText}
                 onChange={(e) => update('resumeText', e.target.value)}
-                className="min-h-[240px] font-mono text-xs leading-relaxed"
+                className="min-h-[160px] font-mono text-xs leading-relaxed"
               />
               {!form.resumeText && (
                 <p className="text-xs text-muted-foreground/50">
