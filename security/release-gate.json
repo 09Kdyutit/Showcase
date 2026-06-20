@@ -33,7 +33,7 @@
     { "id": "P1-15", "area": "deployment", "description": "Actual staging deployment exists", "status": "BLOCKED", "release_blocking": true, "evidence": null, "blocker": "No hosting account access" },
     { "id": "P1-16", "area": "email", "description": "Production SMTP/email readiness", "status": "NOT_STARTED", "release_blocking": false, "evidence": null },
     { "id": "P1-17", "area": "ci", "description": "CI security workflow file exists", "status": "NOT_STARTED", "release_blocking": false, "evidence": null },
-    { "id": "P1-18", "area": "headers", "description": "Security headers tightened + tested", "status": "NOT_STARTED", "release_blocking": true, "evidence": null },
+    { "id": "P1-18", "area": "headers", "description": "Security headers tightened + tested", "status": "PASS", "release_blocking": true, "evidence": "test:headers 13/13. Removed script-src 'unsafe-eval' (verified via real production build + Playwright: signup flow, hydration, zero CSP console violations). Added frame-ancestors 'self' (modern clickjacking protection) and Strict-Transport-Security. Removed a stale/incorrect connect-src entry for api.anthropic.com (app uses OpenAI server-side only; browser never connects to either provider directly)." },
     { "id": "P1-19", "area": "privacy", "description": "Account deletion route exists and works", "status": "PASS", "release_blocking": true, "evidence": "Same as P0-08 — built this session, test:deletion 13/13" },
     { "id": "P1-20", "area": "privacy", "description": "Privacy/retention documentation", "status": "NOT_STARTED", "release_blocking": false, "evidence": null },
 

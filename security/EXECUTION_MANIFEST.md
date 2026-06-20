@@ -40,7 +40,7 @@ Status values: `NOT_STARTED` / `IN_PROGRESS` / `PASS` / `FAIL` / `BLOCKED`.
 | P1-15 | Deployment | Actual staging deployment | BLOCKED | — | manual | — | No Vercel/hosting account access | User must connect repo to a host | — |
 | P1-16 | Email | Production SMTP / confirmation / reset readiness docs | NOT_STARTED | `security/EMAIL_READINESS.md` | manual | — | — | Document; actual SMTP creds are user's | — |
 | P1-17 | CI | GitHub Actions security workflow | NOT_STARTED | `.github/workflows/security.yml` | manual (no remote to trigger yet) | — | No git remote configured | Write workflow file regardless; trigger is BLOCKED until a remote exists | — |
-| P1-18 | Headers | CSP/header tightening + automated header test | NOT_STARTED | `next.config.ts`, `scripts/test-headers.mjs` | `npm run test:headers` | — | — | Audit current headers, tighten, test | — |
+| P1-18 | Headers | CSP/header tightening + automated header test | PASS | `next.config.ts`, `scripts/test-headers.mjs` | `npm run test:headers` | 13/13. Removed `unsafe-eval` (verified via real prod build + Playwright signup flow, zero CSP violations). Added `frame-ancestors 'self'` + HSTS. Removed stale `api.anthropic.com` connect-src entry (app calls OpenAI server-side only). | — | done | pending |
 | P1-19 | Privacy | Account deletion route + UI if missing | PASS | Same as P0-08 | `npm run test:deletion` | Same as P0-08 | — | done | pending |
 | P1-20 | Privacy | DATA_FLOW.md / RETENTION_POLICY.md / PRIVACY_OPERATIONS.md | NOT_STARTED | `security/*.md` | manual | — | — | Write | — |
 

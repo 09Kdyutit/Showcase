@@ -7,16 +7,24 @@ const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  // Only takes effect on actual HTTPS connections — harmless to ship over local http dev.
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com",
+      // No 'unsafe-eval' — verified the production build and runtime (incl. client
+      // hydration, Stripe.js, and Supabase realtime) work without it.
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.anthropic.com",
+      // api.openai.com/Anthropic intentionally absent: every AI call happens server-side
+      // in API routes, never from the browser, so the browser has no reason to connect
+      // to either provider directly.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "frame-ancestors 'self'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
