@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { generateSlug } from '@/lib/utils'
+import { PORTFOLIO_GOALS } from '@/lib/constants'
 
 const EXPERIENCE_LEVELS = [
   { value: 'student', label: 'Student', desc: 'Currently in school or bootcamp' },
@@ -23,14 +24,6 @@ const EXPERIENCE_LEVELS = [
 const INDUSTRIES = [
   'Technology', 'Product', 'Design', 'Engineering', 'Marketing', 'Data / Analytics',
   'Finance', 'Healthcare', 'Education', 'Consulting', 'Startups', 'Other'
-]
-
-const PORTFOLIO_GOALS = [
-  { value: 'job_search', label: 'Active job search' },
-  { value: 'freelance', label: 'Win freelance clients' },
-  { value: 'promotion', label: 'Get promoted internally' },
-  { value: 'career_change', label: 'Career change' },
-  { value: 'personal', label: 'Personal brand' },
 ]
 
 const STEPS = ['Role & Experience', 'Goals & Links', 'Resume']
@@ -66,6 +59,10 @@ export default function OnboardingPage() {
         target_role: form.targetRole,
         experience_level: form.experienceLevel,
         industry: form.industry,
+        portfolio_goal: form.portfolioGoal || null,
+        linkedin_url: form.linkedin || null,
+        github_url: form.github || null,
+        website_url: form.website || null,
         onboarding_completed: true,
       }).eq('id', user.id)
 

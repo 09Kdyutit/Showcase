@@ -149,9 +149,10 @@ SUBHEADLINE — one sentence that answers the question "why should I hire this p
 TAGLINE — 3-5 words, a short identity label (e.g. "Lead Designer · B2B SaaS" or "Full-stack · Fintech")
 
 RECRUITER SUMMARY — a single sentence specifically for recruiters/sourcers to copy-paste into a note:
-  - Format: "Available for [role type] roles at [company stage/type]. Prefers [work arrangement]. Open to [location or remote]."
-  - Only include details that can be inferred from the resume (seniority, industry)
-  - Example: "Available for Senior and Staff IC roles at Series B–D B2B SaaS companies. Prefers remote or SF/NYC hybrid."
+  - Format: "Available for [role type] roles at [company stage/type]."
+  - [role type] and [company stage/type] may only be inferred from things actually demonstrable from the resume (seniority level, industry, company sizes worked at) — never invent a location or work-arrangement preference (remote/hybrid/onsite, specific cities) unless the resume's location field or text explicitly states one. The candidate's work-mode preference is not something a resume's content can tell you, so guessing it is fabrication, not inference.
+  - Example with no location signal in the resume: "Available for Senior and Staff IC roles at Series B–D B2B SaaS companies."
+  - Example when the resume's location field says "Remote" or similar: "Available for Senior and Staff IC roles at Series B–D B2B SaaS companies. Open to remote."
 
 ABOUT BIO — 2-3 paragraphs, professional not personal:
   - Paragraph 1: What you do, who you do it for, and the specific type of problems you solve. Reference a signature project.
@@ -166,11 +167,29 @@ WORKING VALUES — 3-5 principles the resume actually demonstrates:
 
 CASE STUDIES (projects):
   - Each case study must feel like a real case study, not a resume bullet expanded
-  - Problem: 2-3 sentences. The specific situation, why it was urgent, what the stakes were.
-  - Process: 2-3 sentences. The actual decisions made, methods used, constraints navigated.
+  - Problem: 2-3 sentences. The specific situation, why it was urgent, what the stakes were — only
+    state stakes/context that the resume actually implies (e.g. "low activation rate" if that's the
+    metric being improved), never invent a backstory detail (team size, deadline pressure, specific
+    prior numbers) that isn't in the source bullet.
+  - Process: 2-3 sentences. The actual decisions made, methods used, constraints navigated — use
+    ONLY methods stated in that specific bullet or clearly implied by its wording. Do not borrow a
+    method from the candidate's general skills list (e.g. "User Research" appearing in skills) and
+    attribute it to a project that doesn't explicitly mention doing research — that is fabricating
+    process detail for this specific achievement, not restructuring it. If the source bullet is
+    short, write a short, honest process sentence rather than padding it with a plausible-sounding
+    but unstated method.
   - Outcome: 1-2 sentences. START with the number if one exists. Be specific about what changed.
   - DO NOT start outcome with "As a result" or "This led to" — lead with the metric or the change itself
   - If no outcome metric exists, write what specifically changed and prompt: "[Add: quantify the impact]"
+  - CRITICAL — every portfolio must have at least 1-2 case studies, even when the resume has no
+    dedicated "Projects" section: many real resumes only list experience bullets, never a formal
+    project list. When that's the case, elevate the single most significant, most evidence-backed
+    achievement from the experience section (the one with the clearest metric or scope) into a full
+    case study — same company/role, same facts, just reframed as Problem/Process/Outcome instead of
+    a flat bullet. This is not inventing anything: it's restructuring a real achievement that's
+    already in the resume into the format that actually demonstrates how the person thinks, not just
+    what they did. Do not skip the projects array just because the source resume had no "Projects"
+    heading — a portfolio with zero case studies is far weaker than one built from experience.
 
 BULLET REWRITES — improve clarity, not claims:
   - Before: "Led cross-functional team to deliver product improvements"

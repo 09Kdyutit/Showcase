@@ -13,9 +13,10 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PaywallCard } from '@/components/ui/paywall'
-import type { Portfolio, PortfolioContent } from '@/types/database'
+import type { Portfolio, PortfolioContent, ParsedResume } from '@/types/database'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { portfolioGoalLabel } from '@/lib/constants'
 
 interface BuilderPageProps {
   params: Promise<{ portfolioId: string }>
@@ -36,6 +37,14 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [publishing, setPublishing] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const [resumeText, setResumeText] = useState('')
+  const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
+  const [profileMeta, setProfileMeta] = useState<{
+    industry: string | null
+    portfolio_goal: string | null
+    linkedin_url: string | null
+    github_url: string | null
+    website_url: string | null
+  } | null>(null)
   const [genMsg, setGenMsg] = useState('')
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -43,10 +52,14 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
 
   async function load() {
     const supabase = createClient()
-    const [portfolioRes, subRes, resumeRes] = await Promise.all([
+    const { data: { user } } = await supabase.auth.getUser()
+    const [portfolioRes, subRes, resumeRes, profileRes] = await Promise.all([
       supabase.from('portfolios').select('*').eq('id', portfolioId).single(),
       supabase.from('subscriptions').select('status').maybeSingle(),
-      supabase.from('resumes').select('raw_text').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('resumes').select('raw_text, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      user
+        ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url').eq('id', user.id).single()
+        : Promise.resolve({ data: null }),
     ])
     if (!portfolioRes.data) { router.push('/builder'); return }
     setPortfolio(portfolioRes.data)
@@ -57,6 +70,8 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     lastSavedRef.current = { title: portfolioRes.data.title, targetRole: portfolioRes.data.target_role ?? '', content: c }
     setIsPro(subRes.data?.status === 'active' || subRes.data?.status === 'trialing')
     setResumeText(resumeRes.data?.raw_text ?? '')
+    setParsedResume((resumeRes.data?.parsed_json as unknown as ParsedResume) ?? null)
+    setProfileMeta(profileRes.data ?? null)
     setLoading(false)
   }
 
@@ -96,7 +111,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
 
   async function generatePortfolio() {
     if (!isPro) { toast.error('Pro required for AI generation'); return }
-    if (!resumeText) { toast.error('Upload a resume first on the Resume page'); return }
+    if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
 
     setGenerating(true)
     const MSGS = [
@@ -112,23 +127,36 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     const iv = setInterval(() => { mi = (mi + 1) % MSGS.length; setGenMsg(MSGS[mi]) }, 3000)
 
     try {
-      const analyzeRes = await fetch('/api/ai/analyze-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText }),
-      })
-      const { data: parsedResume, error: analyzeErr } = await analyzeRes.json()
-      if (!analyzeRes.ok) throw new Error(analyzeErr?.message ?? analyzeErr ?? 'Resume analysis failed')
+      // Reuse the resume's already-parsed structured data (from onboarding or the Resume
+      // page) instead of re-parsing from scratch on every generation — faster, and avoids
+      // paying for the same AI call twice. Only fall back to a fresh parse for legacy
+      // resumes that predate parsed_json being stored.
+      let resolvedParsedResume = parsedResume
+      if (!resolvedParsedResume) {
+        const analyzeRes = await fetch('/api/ai/analyze-resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resumeText }),
+        })
+        const { data, error: analyzeErr } = await analyzeRes.json()
+        if (!analyzeRes.ok) throw new Error(analyzeErr?.message ?? analyzeErr ?? 'Resume analysis failed')
+        resolvedParsedResume = data
+      }
+
+      const links: Record<string, string> = {}
+      if (profileMeta?.linkedin_url) links.linkedin = profileMeta.linkedin_url
+      if (profileMeta?.github_url) links.github = profileMeta.github_url
+      if (profileMeta?.website_url) links.website = profileMeta.website_url
 
       const genRes = await fetch('/api/ai/generate-portfolio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          parsedResume,
+          parsedResume: resolvedParsedResume,
           targetRole: targetRole || 'Professional',
-          industry: 'Technology',
-          portfolioGoal: 'Active job search',
-          links: {},
+          industry: profileMeta?.industry || 'Technology',
+          portfolioGoal: portfolioGoalLabel(profileMeta?.portfolio_goal),
+          links,
           portfolioId,
         }),
       })

@@ -12,6 +12,10 @@ export type Database = {
           target_role: string | null
           experience_level: string | null
           industry: string | null
+          portfolio_goal: string | null
+          linkedin_url: string | null
+          github_url: string | null
+          website_url: string | null
           onboarding_completed: boolean
           created_at: string
           updated_at: string
@@ -24,6 +28,10 @@ export type Database = {
           target_role?: string | null
           experience_level?: string | null
           industry?: string | null
+          portfolio_goal?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          website_url?: string | null
           onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
@@ -36,6 +44,10 @@ export type Database = {
           target_role?: string | null
           experience_level?: string | null
           industry?: string | null
+          portfolio_goal?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          website_url?: string | null
           onboarding_completed?: boolean
           updated_at?: string
         }
