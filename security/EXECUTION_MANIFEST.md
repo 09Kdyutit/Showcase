@@ -23,8 +23,8 @@ Status values: `NOT_STARTED` / `IN_PROGRESS` / `PASS` / `FAIL` / `BLOCKED`.
 
 | ID | Release area | Exact task | Status | Implementation files | Verification command | Evidence | Blocker | Next action | Commit |
 |---|---|---|---|---|---|---|---|---|---|
-| P1-01 | Stripe | Webhook event idempotency (duplicate/replayed events don't double-apply) | NOT_STARTED | `src/app/api/stripe/webhook/route.ts` | `npm run test:stripe` | — | — | Add processed-event tracking | — |
-| P1-02 | Stripe | Invalid signature, wrong price ID, frontend Pro spoof all rejected | NOT_STARTED | `scripts/test-stripe-webhook.mjs` | `npm run test:stripe` | — | — | Write tests | — |
+| P1-01 | Stripe | Webhook event idempotency (duplicate/replayed events don't double-apply) | PASS | `src/app/api/stripe/webhook/route.ts`, migration 010 | `npm run test:stripe-webhook` | 6/6. Added `processed_webhook_events` table (unique event_id) + `last_webhook_event_at` out-of-order guard. Real test: signed duplicate event short-circuits, older out-of-order event doesn't regress newer status. | — | done | pending |
+| P1-02 | Stripe | Invalid signature, wrong price ID, frontend Pro spoof all rejected | PASS | `scripts/test-stripe-config.mjs`, `scripts/test-stripe-webhook.mjs` | `npm run test:stripe` | 14/14 combined (8 config + 6 webhook) | — | done | pending |
 | P1-03 | Stripe | Production webhook endpoint registered | BLOCKED | — | manual | — | No deployed public URL exists yet | User must deploy first, then register webhook in Stripe dashboard | — |
 | P1-04 | Rate limiting | Distributed rate limiter abstraction (memory fallback for local dev) | NOT_STARTED | `src/lib/rate-limit/*` | `npm run test:abuse` | — | — | Build types.ts/memory.ts/distributed.ts/index.ts | — |
 | P1-05 | Rate limiting | Upstash Redis wired for production | BLOCKED | — | manual | — | Requires Upstash account creation + API token | User must create account and provide `UPSTASH_REDIS_REST_URL`/`TOKEN` | — |

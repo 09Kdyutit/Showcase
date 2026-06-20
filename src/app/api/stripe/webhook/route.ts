@@ -19,6 +19,23 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = await createServiceClient()
+  const eventCreatedAt = new Date(event.created * 1000).toISOString()
+
+  // Idempotency: Stripe does not guarantee exactly-once delivery — retries and replays
+  // are expected. Recording the event id with a unique constraint, before doing any
+  // work, makes "already handled this exact event" an atomic check rather than a hope.
+  // If insertion conflicts, we've seen this event id before — short-circuit cleanly.
+  const { error: dedupeError } = await supabase
+    .from('processed_webhook_events')
+    .insert({ event_id: event.id, event_type: event.type })
+  if (dedupeError) {
+    if (dedupeError.code === '23505') {
+      console.warn('[webhook] Duplicate/replayed event ignored:', event.id, event.type)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+    console.error('[webhook] Failed to record event for idempotency:', dedupeError.message)
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+  }
 
   try {
     switch (event.type) {
@@ -39,6 +56,9 @@ export async function POST(request: NextRequest) {
         const resolvedUserId = userId || await getUserIdFromCustomer(supabase, sub.customer as string)
         if (!resolvedUserId) break
 
+        // Out-of-order guard: skip if a newer event already updated this row.
+        if (await isStaleEvent(supabase, resolvedUserId, eventCreatedAt)) break
+
         const priceItem = sub.items.data[0]
         const { error: upsertError } = await supabase.from('subscriptions').upsert({
           user_id: resolvedUserId,
@@ -52,6 +72,7 @@ export async function POST(request: NextRequest) {
             ? new Date(priceItem.current_period_end * 1000).toISOString()
             : null,
           cancel_at_period_end: sub.cancel_at_period_end,
+          last_webhook_event_at: eventCreatedAt,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
         if (upsertError) throw upsertError
@@ -60,9 +81,16 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription
+        const { data: existing } = await supabase
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_subscription_id', sub.id)
+          .maybeSingle()
+        if (existing?.user_id && await isStaleEvent(supabase, existing.user_id, eventCreatedAt)) break
+
         const { error } = await supabase
           .from('subscriptions')
-          .update({ status: 'canceled', updated_at: new Date().toISOString() })
+          .update({ status: 'canceled', last_webhook_event_at: eventCreatedAt, updated_at: new Date().toISOString() })
           .eq('stripe_subscription_id', sub.id)
         if (error) throw error
         break
@@ -97,6 +125,7 @@ export async function POST(request: NextRequest) {
                 ? new Date(priceItem.current_period_end * 1000).toISOString()
                 : null,
               cancel_at_period_end: sub.cancel_at_period_end,
+              last_webhook_event_at: eventCreatedAt,
               updated_at: new Date().toISOString(),
             }, { onConflict: 'user_id' })
             if (upsertError) throw upsertError
@@ -111,6 +140,20 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ received: true })
+}
+
+async function isStaleEvent(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  userId: string,
+  eventCreatedAt: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('subscriptions')
+    .select('last_webhook_event_at')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!data?.last_webhook_event_at) return false
+  return new Date(data.last_webhook_event_at) > new Date(eventCreatedAt)
 }
 
 async function getUserIdFromCustomer(supabase: Awaited<ReturnType<typeof createServiceClient>>, customerId: string): Promise<string | null> {

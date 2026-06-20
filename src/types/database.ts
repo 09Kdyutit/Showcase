@@ -50,6 +50,7 @@ export type Database = {
           price_id: string | null
           current_period_end: string | null
           cancel_at_period_end: boolean
+          last_webhook_event_at: string | null
           created_at: string
           updated_at: string
         }
@@ -62,6 +63,7 @@ export type Database = {
           price_id?: string | null
           current_period_end?: string | null
           cancel_at_period_end?: boolean
+          last_webhook_event_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -72,6 +74,7 @@ export type Database = {
           price_id?: string | null
           current_period_end?: string | null
           cancel_at_period_end?: boolean
+          last_webhook_event_at?: string | null
           updated_at?: string
         }
       }

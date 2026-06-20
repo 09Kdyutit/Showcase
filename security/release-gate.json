@@ -16,8 +16,8 @@
     { "id": "P0-INJECTION", "area": "ai-security", "description": "Prompt injection resisted on live AI route", "status": "PASS", "release_blocking": true, "evidence": "test:prompt-injection 9/9" },
     { "id": "P0-STRIPE-ENTITLEMENT", "area": "payments", "description": "Real checkout -> webhook -> DB entitlement activation works end to end", "status": "PASS", "release_blocking": true, "evidence": "Verified live: real Stripe Checkout, real webhook signature, subscriptions.status=active confirmed via direct DB query" },
 
-    { "id": "P1-01", "area": "stripe", "description": "Webhook event idempotency", "status": "NOT_STARTED", "release_blocking": true, "evidence": null },
-    { "id": "P1-02", "area": "stripe", "description": "Invalid signature / wrong price / spoof rejection tests", "status": "NOT_STARTED", "release_blocking": true, "evidence": null },
+    { "id": "P1-01", "area": "stripe", "description": "Webhook event idempotency", "status": "PASS", "release_blocking": true, "evidence": "test:stripe-webhook 6/6 — duplicate event ids short-circuited via processed_webhook_events unique constraint, out-of-order events rejected via last_webhook_event_at comparison (migration 010)" },
+    { "id": "P1-02", "area": "stripe", "description": "Invalid signature / wrong price / spoof rejection tests", "status": "PASS", "release_blocking": true, "evidence": "test:stripe-webhook covers invalid signature; test:stripe-config covers price ID validity; test:authorization covers frontend Pro spoof" },
     { "id": "P1-03", "area": "stripe", "description": "Production webhook endpoint registered", "status": "BLOCKED", "release_blocking": true, "evidence": null, "blocker": "No deployed public URL exists yet" },
     { "id": "P1-04", "area": "rate-limiting", "description": "Distributed rate limiter abstraction with local-dev fallback", "status": "NOT_STARTED", "release_blocking": true, "evidence": null },
     { "id": "P1-05", "area": "rate-limiting", "description": "Upstash Redis wired for production", "status": "BLOCKED", "release_blocking": false, "evidence": null, "blocker": "Requires Upstash account creation" },
