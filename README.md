@@ -15,7 +15,7 @@ AI portfolio builder and career-readiness analyzer. Turns resumes, projects, and
 - **Next.js 16** (App Router, Proxy/middleware, async params)
 - **Supabase** (Auth, Postgres, Storage, RLS on every table)
 - **Stripe** (Subscriptions, webhooks, customer portal)
-- **Anthropic Claude** (AI parsing, generation, auditing)
+- **OpenAI** (AI parsing, generation, auditing)
 - **Tailwind CSS v4** (CSS-based config, `@theme` tokens)
 - **Radix UI** (Accessible primitives)
 

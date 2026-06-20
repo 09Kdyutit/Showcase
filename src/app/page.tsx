@@ -601,7 +601,7 @@ export default function LandingPage() {
                     {
                       icon: Lock,
                       title: 'Your data stays private',
-                      desc: 'Resume content is never shared, indexed, or sold. Processed securely via Anthropic API for your session only.',
+                      desc: 'Resume content is never shared, indexed, or sold. Processed securely via OpenAI\'s API for your session only.',
                     },
                     {
                       icon: Eye,

@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         <div className="space-y-8 text-sm text-foreground/80 leading-relaxed">
           {[
             { h: 'What we collect', body: 'We collect your email address, name, and professional information you choose to provide (resume, projects, links). We also collect usage data to improve the product.' },
-            { h: 'How we use your data', body: 'We use your data to: generate and display your portfolio, provide ProofScore analysis, deliver the service, and improve our product. We process your resume with Anthropic\'s Claude API under a data processing agreement.' },
+            { h: 'How we use your data', body: 'We use your data to: generate and display your portfolio, provide ProofScore analysis, deliver the service, and improve our product. We process your resume with OpenAI\'s API under a data processing agreement.' },
             { h: 'What we do not do', body: 'We do not sell your resume or portfolio data to third parties. We do not use your data to train AI models. We do not share your private resume data with other users.' },
             { h: 'Public portfolios', body: 'If you publish your portfolio, it becomes publicly accessible at your portfolio URL. Unpublished portfolios are private and only accessible by you.' },
             { h: 'Data retention', body: 'We retain your data as long as your account is active. You can delete your account and all associated data by contacting support.' },

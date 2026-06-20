@@ -67,7 +67,7 @@ This document covers the security model for Showcase.
 - `DATABASE_URL` — direct Postgres connection string
 - `STRIPE_SECRET_KEY` — can charge customers
 - `STRIPE_WEBHOOK_SECRET` — used to verify webhook authenticity
-- `AI_API_KEY` — Anthropic API key, costs money per request
+- `OPENAI_API_KEY` — OpenAI API key, costs money per request
 
 **Safe to expose in frontend:**
 - `NEXT_PUBLIC_SUPABASE_URL` — public Supabase URL

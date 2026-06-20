@@ -13,9 +13,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      // No 'unsafe-eval' — verified the production build and runtime (incl. client
-      // hydration, Stripe.js, and Supabase realtime) work without it.
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+      // No 'unsafe-eval' in production — verified the production build and runtime
+      // (incl. client hydration, Stripe.js, and Supabase realtime) work without it.
+      // React's dev mode (Fast Refresh, dev-time stack traces) does call eval() and
+      // React's own docs say it never does in production, so this is dev-only.
+      `script-src 'self' 'unsafe-inline' https://js.stripe.com${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",

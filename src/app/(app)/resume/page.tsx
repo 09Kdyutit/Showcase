@@ -391,9 +391,9 @@ export default function ResumePage() {
 
           {/* Privacy note */}
           <div className="flex items-start gap-2 p-3 rounded-xl bg-surface-200/60 border border-border/60">
-            <Lock className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground/60 leading-relaxed">
-              Your resume is processed by Anthropic&apos;s Claude API to generate your portfolio. It is never
+            <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your resume is processed by OpenAI&apos;s API to generate your portfolio. It is never
               shared, sold, or used to train AI models. You control your data.
             </p>
           </div>
