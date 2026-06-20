@@ -26,6 +26,21 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  if (cat.score === null) {
+    return (
+      <div className="glass-card p-5 opacity-60">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
+            <h3 className="font-semibold text-sm text-foreground">{cat.name}</h3>
+          </div>
+          <Badge variant="outline" className="text-[10px]">Pro</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">Upgrade to Pro to score this category.</p>
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
@@ -325,7 +340,7 @@ export default function AuditPage() {
   }
 
   const criticalItems = result?.categories.filter((c) => c.severity === 'critical') ?? []
-  const sortedCategories = result?.categories.slice().sort((a, b) => a.score - b.score) ?? []
+  const sortedCategories = result?.categories.slice().sort((a, b) => (a.score ?? 100) - (b.score ?? 100)) ?? []
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
@@ -473,7 +488,7 @@ export default function AuditPage() {
           </div>
 
           {/* What's strong */}
-          {result.categories.filter((c) => c.score >= 80).length > 0 && (
+          {result.categories.filter((c) => c.score !== null && c.score >= 80).length > 0 && (
             <div className="glass-card p-5 border-emerald-500/15 bg-emerald-500/[0.02]">
               <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
@@ -481,7 +496,7 @@ export default function AuditPage() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {result.categories
-                  .filter((c) => c.score >= 80)
+                  .filter((c) => c.score !== null && c.score >= 80)
                   .map((c) => (
                     <Badge key={c.name} variant="success" className="text-xs">
                       {c.name} · {c.score}

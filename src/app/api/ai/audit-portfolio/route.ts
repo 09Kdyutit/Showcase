@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { callStructured } from '@/lib/ai/client'
-import { buildAuditPrompt } from '@/lib/ai/prompts'
-import { AuditResultSchema } from '@/lib/ai/schemas'
+import { buildAuditExplanationPrompt } from '@/lib/ai/prompts'
+import { AuditExplanationResultSchema, type ParsedResumeOutput, type PortfolioContentOutput } from '@/lib/ai/schemas'
+import { computeProofScore } from '@/lib/proofscore/engine'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 
 const schema = z.object({
-  resumeText: z.string().max(15000).optional(),
   portfolioId: z.string().uuid().optional(),
   resumeId: z.string().uuid().optional(),
   targetRole: z.string().min(1).max(200),
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { resumeText, portfolioId, resumeId, targetRole, industry } = parsed.data
+    const { portfolioId, resumeId, targetRole, industry } = parsed.data
     const isPro = await isProUser(user.id)
 
     const rl = await checkRateLimit(user.id, 'audit_completed', isPro)
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let portfolioContent = null
+    let portfolioContent: PortfolioContentOutput | null = null
     if (portfolioId) {
       const { data } = await supabase
         .from('portfolios')
@@ -50,43 +50,85 @@ export async function POST(request: NextRequest) {
         .eq('id', portfolioId)
         .eq('user_id', user.id)
         .single()
-      portfolioContent = data?.content ?? null
+      portfolioContent = (data?.content as unknown as PortfolioContentOutput) ?? null
     }
 
-    let resolvedResumeText = resumeText ?? null
-    if (resumeId && !resolvedResumeText) {
+    let parsedResume: ParsedResumeOutput | null = null
+    let resumeText: string | null = null
+    if (resumeId) {
       const { data } = await supabase
         .from('resumes')
-        .select('raw_text')
+        .select('raw_text, parsed_json')
         .eq('id', resumeId)
         .eq('user_id', user.id)
         .single()
-      resolvedResumeText = data?.raw_text ?? null
+      resumeText = data?.raw_text ?? null
+      parsedResume = (data?.parsed_json as unknown as ParsedResumeOutput) ?? null
     }
 
-    if (!resolvedResumeText && !portfolioContent) {
-      return NextResponse.json({ error: 'Provide resume text or a portfolio to audit' }, { status: 400 })
+    if (!parsedResume && !portfolioContent) {
+      return NextResponse.json(
+        { error: resumeId ? 'This resume has not been parsed yet. Re-upload it to run ProofScore.' : 'Provide a resume or a portfolio to audit' },
+        { status: 400 }
+      )
     }
 
     trackAsync(user.id, 'proofscore_started', { portfolio_id: portfolioId ?? null, is_pro: isPro })
 
-    const result = await callStructured(
+    // Deterministic first: every numeric score and its supporting evidence is computed
+    // from structured facts, not AI judgment. AI is only used afterward to explain them.
+    const deterministic = computeProofScore(parsedResume, portfolioContent, targetRole, industry, isPro)
+
+    const explanation = await callStructured(
       [
         {
           role: 'user',
-          content: buildAuditPrompt(
-            resolvedResumeText,
-            portfolioContent as Record<string, unknown> | null,
+          content: buildAuditExplanationPrompt(
+            resumeText,
+            portfolioContent as unknown as Record<string, unknown> | null,
             targetRole,
             industry,
-            isPro
+            deterministic.categories
           ),
         },
       ],
-      AuditResultSchema,
-      'audit_result',
-      { tier: 'main', maxOutputTokens: 8000, temperature: 0.2 }
+      AuditExplanationResultSchema,
+      'audit_explanation',
+      { tier: 'main', maxOutputTokens: 6000, temperature: 0.2 }
     )
+
+    const explanationByKey = new Map(explanation.categories.map((c) => [c.key, c]))
+    const rankedKeys = deterministic.categories
+      .filter((c) => c.score !== null)
+      .slice()
+      .sort((a, b) => a.weight * (100 - (a.score ?? 100)) < b.weight * (100 - (b.score ?? 100)) ? 1 : -1)
+      .map((c) => c.key)
+
+    const mergedCategories = deterministic.categories.map((det) => {
+      const exp = explanationByKey.get(det.key)
+      const priority = det.score === null ? 0 : rankedKeys.indexOf(det.key) + 1
+      return {
+        key: det.key,
+        name: det.name,
+        score: det.score,
+        maxScore: det.maxScore,
+        weight: det.weight,
+        explanation: exp?.explanation ?? det.evidence.join(' '),
+        issues: exp?.issues ?? [],
+        severity: det.severity,
+        fix: exp?.fix ?? 'Upgrade to Pro to see a specific fix for this category.',
+        example: exp?.example ?? '',
+        priority,
+      }
+    })
+
+    const result = {
+      overall_score: deterministic.overall_score,
+      summary: explanation.summary,
+      categories: mergedCategories,
+      missing_evidence: explanation.missing_evidence,
+      top_priorities: explanation.top_priorities,
+    }
 
     const { data: audit } = await supabase.from('audits').insert({
       user_id: user.id,

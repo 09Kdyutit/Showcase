@@ -585,9 +585,11 @@ export interface PortfolioContent {
 }
 
 export interface AuditCategory {
+  key: string
   name: string
-  score: number
+  score: number | null
   maxScore: number
+  weight: number
   explanation: string
   issues: string[]
   severity: 'critical' | 'major' | 'minor'
