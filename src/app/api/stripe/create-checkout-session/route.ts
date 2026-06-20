@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: user.id },
       subscription_data: {
         metadata: { user_id: user.id },
-        trial_period_days: 0,
       },
       allow_promotion_codes: true,
     })

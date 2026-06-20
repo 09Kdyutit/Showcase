@@ -40,35 +40,42 @@ export async function POST(request: NextRequest) {
         if (!resolvedUserId) break
 
         const priceItem = sub.items.data[0]
-        await supabase.from('subscriptions').upsert({
+        const { error: upsertError } = await supabase.from('subscriptions').upsert({
           user_id: resolvedUserId,
           stripe_customer_id: sub.customer as string,
           stripe_subscription_id: sub.id,
           status: sub.status,
           price_id: priceItem?.price?.id ?? null,
-          current_period_end: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+          // current_period_end lives on the subscription item, not the subscription itself,
+          // as of Stripe API 2025-03-31+ (subscriptions can have items with different cycles).
+          current_period_end: priceItem?.current_period_end
+            ? new Date(priceItem.current_period_end * 1000).toISOString()
+            : null,
           cancel_at_period_end: sub.cancel_at_period_end,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
+        if (upsertError) throw upsertError
         break
       }
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({ status: 'canceled', updated_at: new Date().toISOString() })
           .eq('stripe_subscription_id', sub.id)
+        if (error) throw error
         break
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null }
         if (invoice.subscription) {
-          await supabase
+          const { error } = await supabase
             .from('subscriptions')
             .update({ status: 'past_due', updated_at: new Date().toISOString() })
             .eq('stripe_subscription_id', invoice.subscription as string)
+          if (error) throw error
         }
         break
       }
@@ -80,16 +87,19 @@ export async function POST(request: NextRequest) {
           const userId = session.metadata?.user_id
           if (userId && sub) {
             const priceItem = sub.items.data[0]
-            await supabase.from('subscriptions').upsert({
+            const { error: upsertError } = await supabase.from('subscriptions').upsert({
               user_id: userId,
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: sub.id,
               status: sub.status,
               price_id: priceItem?.price?.id ?? null,
-              current_period_end: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+              current_period_end: priceItem?.current_period_end
+                ? new Date(priceItem.current_period_end * 1000).toISOString()
+                : null,
               cancel_at_period_end: sub.cancel_at_period_end,
               updated_at: new Date().toISOString(),
             }, { onConflict: 'user_id' })
+            if (upsertError) throw upsertError
           }
         }
         break

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import { Globe, Mail, ArrowRight, ExternalLink, Calendar } from 'lucide-react'
 import type { PortfolioContent } from '@/types/database'
-import { cn } from '@/lib/utils'
+import { cn, safeHref } from '@/lib/utils'
 
 interface PublicPortfolioPageProps {
   params: Promise<{ slug: string }>
@@ -133,9 +133,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
             )}
           </div>
           <div className="flex items-center gap-2">
-            {contact?.linkedin && (
+            {safeHref(contact?.linkedin) && (
               <a
-                href={contact.linkedin}
+                href={safeHref(contact?.linkedin)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:border-border transition-all"
@@ -215,9 +215,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                   <ArrowRight className="h-3 w-3" />
                 </a>
               )}
-              {contact.linkedin && (
+              {safeHref(contact.linkedin) && (
                 <a
-                  href={contact.linkedin}
+                  href={safeHref(contact.linkedin)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
@@ -226,9 +226,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                   LinkedIn
                 </a>
               )}
-              {contact.github && (
+              {safeHref(contact.github) && (
                 <a
-                  href={contact.github}
+                  href={safeHref(contact.github)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
@@ -237,9 +237,9 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                   GitHub
                 </a>
               )}
-              {contact.website && (
+              {safeHref(contact.website) && (
                 <a
-                  href={contact.website}
+                  href={safeHref(contact.website)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
@@ -417,12 +417,12 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                   )}
 
                   {/* Links */}
-                  {proj.links && proj.links.filter((l) => l.url).length > 0 && (
+                  {proj.links && proj.links.filter((l) => safeHref(l.url)).length > 0 && (
                     <div className="flex gap-3 mt-8 pt-6 border-t border-white/[0.05]">
-                      {proj.links.filter((l) => l.url).map((link, li) => (
+                      {proj.links.filter((l) => safeHref(l.url)).map((link, li) => (
                         <a
                           key={li}
-                          href={link.url}
+                          href={safeHref(link.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors font-semibold"

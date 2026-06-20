@@ -71,6 +71,21 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
+// Portfolio link fields (contact.linkedin/github/website, project links) are AI-extracted
+// or user-entered strings rendered directly as <a href>. Without this check, a value like
+// "javascript:alert(document.cookie)" would render as a live, clickable XSS payload on the
+// public portfolio page. Only allow the protocols a hyperlink should ever need.
+export function safeHref(url: string | null | undefined): string | undefined {
+  if (!url) return undefined
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return url
+    return undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function hashString(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {

@@ -75,7 +75,10 @@ function FileUploadZone({ onText }: { onText: (text: string) => void }) {
         if (supabase) {
           const { data: userData } = await supabase.auth.getUser()
           if (userData.user) {
-            const ext = file.name.split('.').pop() ?? 'pdf'
+            // file.name is attacker-controlled — strip anything but safe extension chars
+            // so a crafted name like "x.pdf/../../other-user" can't inject path segments.
+            const rawExt = file.name.split('.').pop() ?? 'pdf'
+            const ext = /^[a-zA-Z0-9]{1,10}$/.test(rawExt) ? rawExt : 'pdf'
             const path = `${userData.user.id}/${Date.now()}.${ext}`
             await supabase.storage.from('resumes').upload(path, file, {
               contentType: file.type,

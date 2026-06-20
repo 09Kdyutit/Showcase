@@ -27,13 +27,37 @@ export async function POST(request: NextRequest) {
     const isTxt = type === 'text/plain' || name.toLowerCase().endsWith('.txt')
 
     const buffer = Buffer.from(await file.arrayBuffer())
+
+    // Magic-byte check — the declared MIME type and filename extension are both
+    // attacker-controlled. A renamed .exe claiming to be "resume.pdf" must be rejected
+    // before it ever reaches a parser, regardless of what the client says it is.
+    const isPdfSignature = buffer.length >= 4 && buffer.subarray(0, 4).toString('latin1') === '%PDF'
+    // DOCX is a zip container — real zip files start with 'PK' (0x50 0x4B).
+    const isZipSignature = buffer.length >= 2 && buffer[0] === 0x50 && buffer[1] === 0x4b
+    if (isPdf && !isPdfSignature) {
+      return NextResponse.json({ error: 'This file is not a valid PDF.' }, { status: 400 })
+    }
+    if (isDocx && !isZipSignature) {
+      return NextResponse.json({ error: 'This file is not a valid DOCX.' }, { status: 400 })
+    }
+
     let text = ''
+
+    // Parsers run on attacker-controlled bytes (zip bombs, deeply nested structures can
+    // hang or balloon memory) — bound how long we'll wait regardless of file content.
+    const PARSE_TIMEOUT_MS = 15_000
+    function withTimeout<T>(promise: Promise<T>): Promise<T> {
+      return Promise.race([
+        promise,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('parse_timeout')), PARSE_TIMEOUT_MS)),
+      ])
+    }
 
     if (isPdf) {
       const { PDFParse } = await import('pdf-parse')
       const parser = new PDFParse({ data: buffer })
       try {
-        const result = await parser.getText()
+        const result = await withTimeout(parser.getText())
         // Strip pdf-parse's "-- N of M --" page-separator footers — noise, not resume content
         text = result.text.replace(/^--\s*\d+\s*of\s*\d+\s*--$/gm, '')
       } finally {
@@ -41,7 +65,7 @@ export async function POST(request: NextRequest) {
       }
     } else if (isDocx) {
       const mammoth = await import('mammoth')
-      const result = await mammoth.extractRawText({ buffer })
+      const result = await withTimeout(mammoth.extractRawText({ buffer }))
       text = result.value
     } else if (isTxt) {
       text = buffer.toString('utf-8')
