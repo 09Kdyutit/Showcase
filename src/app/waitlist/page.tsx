@@ -580,7 +580,7 @@ function WaitlistContent() {
 
                 {/* Email — required */}
                 <div>
-                  <label htmlFor="email" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
+                  <label htmlFor="email" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
                     Email <span className="text-brand-400">*</span>
                   </label>
                   <input
@@ -597,8 +597,8 @@ function WaitlistContent() {
 
                 {/* Full name */}
                 <div>
-                  <label htmlFor="full_name" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Full name <span className="text-muted-foreground/30">(optional)</span>
+                  <label htmlFor="full_name" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
+                    Full name <span className="text-muted-foreground/70">(optional)</span>
                   </label>
                   <input
                     id="full_name"
@@ -613,8 +613,8 @@ function WaitlistContent() {
 
                 {/* Target role */}
                 <div>
-                  <label htmlFor="target_role" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Target role <span className="text-muted-foreground/30">(optional)</span>
+                  <label htmlFor="target_role" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
+                    Target role <span className="text-muted-foreground/70">(optional)</span>
                   </label>
                   <input
                     id="target_role"
@@ -628,8 +628,8 @@ function WaitlistContent() {
 
                 {/* Experience level */}
                 <div>
-                  <label htmlFor="experience_level" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Experience level <span className="text-muted-foreground/30">(optional)</span>
+                  <label htmlFor="experience_level" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
+                    Experience level <span className="text-muted-foreground/70">(optional)</span>
                   </label>
                   <select
                     id="experience_level"
@@ -649,8 +649,8 @@ function WaitlistContent() {
 
                 {/* What are you building */}
                 <div>
-                  <label htmlFor="user_type" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    What are you building? <span className="text-muted-foreground/30">(optional)</span>
+                  <label htmlFor="user_type" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
+                    What are you building? <span className="text-muted-foreground/70">(optional)</span>
                   </label>
                   <select
                     id="user_type"
@@ -669,8 +669,8 @@ function WaitlistContent() {
 
                 {/* Biggest challenge */}
                 <div>
-                  <label htmlFor="biggest_challenge" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Biggest challenge <span className="text-muted-foreground/30">(optional)</span>
+                  <label htmlFor="biggest_challenge" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
+                    Biggest challenge <span className="text-muted-foreground/70">(optional)</span>
                   </label>
                   <select
                     id="biggest_challenge"

@@ -176,6 +176,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -191,7 +192,7 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <p className="text-xs text-muted-foreground/60 text-center mt-6 leading-relaxed">
+          <p className="text-xs text-muted-foreground text-center mt-6 leading-relaxed">
             By creating an account, you agree to our{' '}
             <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2">
               Terms of Service

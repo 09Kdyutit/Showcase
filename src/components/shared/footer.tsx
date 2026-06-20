@@ -20,7 +20,7 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 mb-4">Product</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Product</p>
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
@@ -36,7 +36,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 mb-4">Legal</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Legal</p>
             <ul className="space-y-2.5">
               {[
                 { href: '/terms', label: 'Terms of Service' },
@@ -53,10 +53,10 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-border/60 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground/50">
+          <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Showcase. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground/40 italic">
+          <p className="text-xs text-muted-foreground italic">
             For professionals who show, not just tell.
           </p>
         </div>

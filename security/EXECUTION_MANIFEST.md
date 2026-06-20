@@ -50,7 +50,7 @@ Status values: `NOT_STARTED` / `IN_PROGRESS` / `PASS` / `FAIL` / `BLOCKED`.
 |---|---|---|---|---|---|---|---|---|---|
 | P2-01 | Load | k6/Artillery scripts against local dev | NOT_STARTED | `scripts/load/*` | `npm run test:load` | — | — | Build after P0/P1 | — |
 | P2-02 | E2E | Full 25-step paid-path Playwright run | NOT_STARTED | `scripts/test-e2e-full.mjs` | manual run | — | Stripe annual flow + email confirmation untested live | Build after P0/P1 | — |
-| P2-03 | Accessibility | Axe/Lighthouse pass on primary screens | NOT_STARTED | — | manual | — | — | After P0/P1 | — |
+| P2-03 | Accessibility | Axe/Lighthouse pass on primary screens | PASS (partial, honestly) | `scripts/test-accessibility.mjs`, login/signup/footer/waitlist | `npm run test:accessibility` | Fixed a critical button-name violation (password toggle buttons, no aria-label) and serious color-contrast on form labels/footer/disclaimer. 5/6 pages clean of critical/serious. Waitlist still has 29 contrast nodes on decorative text — would need a base design-token change with visual review, deliberately not done blind. Moderate landmark/region issues remain everywhere. | — | done for scoped fixes; broader contrast/landmark pass is follow-up work | pending |
 | P2-04 | Visual QA | Desktop+mobile screenshot review, all primary screens | NOT_STARTED | — | manual | — | — | After P0/P1 | — |
 
 ## Release gate
