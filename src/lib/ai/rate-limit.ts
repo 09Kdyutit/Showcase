@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { isAIEnabled, KILL_SWITCH_MESSAGE } from '@/lib/feature-flags'
 
 const LIMITS = {
   free: {
@@ -39,6 +40,13 @@ export async function checkRateLimit(
   eventName: EventName,
   isPro: boolean
 ): Promise<RateLimitResult> {
+  // Kill switch first, before any quota math — every AI-quota-gated route funnels
+  // through this function, making it the single choke point to halt AI spend
+  // during an incident without a code deploy.
+  if (!isAIEnabled()) {
+    return { allowed: false, reason: KILL_SWITCH_MESSAGE }
+  }
+
   const tier = isPro ? 'pro' : 'free'
   const limit = LIMITS[tier][eventName]
 

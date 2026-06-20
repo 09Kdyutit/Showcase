@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe, getOrCreateStripeCustomer } from '@/lib/stripe/client'
 import { absoluteUrl } from '@/lib/utils'
+import { isCheckoutEnabled, KILL_SWITCH_MESSAGE } from '@/lib/feature-flags'
 
 export async function POST(req: NextRequest) {
   try {
+    if (!isCheckoutEnabled()) {
+      return NextResponse.json({ error: KILL_SWITCH_MESSAGE }, { status: 503 })
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

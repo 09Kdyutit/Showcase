@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isProUser } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
+import { isPublishingEnabled, KILL_SWITCH_MESSAGE } from '@/lib/feature-flags'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -40,6 +41,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (action === 'publish') {
+      // Unpublishing is never blocked by this switch — taking content down must always
+      // stay available, including during the exact incident that would justify flipping it.
+      if (!isPublishingEnabled()) {
+        return NextResponse.json({ error: KILL_SWITCH_MESSAGE }, { status: 503 })
+      }
       const isPro = await isProUser(user.id)
       if (!isPro) {
         return NextResponse.json(

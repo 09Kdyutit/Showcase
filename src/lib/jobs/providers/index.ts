@@ -3,6 +3,7 @@ import { ExternalProvider } from './external'
 import { JobDataApiProvider } from './jobdataapi'
 import type { JobProvider, JobSearchParams, JobSearchResult } from './types'
 import type { JobListing } from '@/types/database'
+import { isJobsProviderEnabled } from '@/lib/feature-flags'
 
 export { FixtureProvider } from './fixture'
 export { FIXTURE_JOBS } from './fixture'
@@ -11,6 +12,10 @@ export { JobDataApiProvider } from './jobdataapi'
 export type { JobProvider, JobSearchParams, JobSearchResult } from './types'
 
 function getRealProvider(): JobProvider | null {
+  // Kill switch: forces fixture data immediately, without even attempting the real
+  // provider — for an abused/misbehaving external integration during an incident.
+  if (!isJobsProviderEnabled()) return null
+
   const jobDataApiKey = process.env.JOBDATA_API_KEY
   if (jobDataApiKey) return new JobDataApiProvider(jobDataApiKey)
 

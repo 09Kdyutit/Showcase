@@ -17,7 +17,7 @@ const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook']
 // Set LAUNCH_OPEN=true (env var on Vercel, not a query param) on launch day to lift this.
 const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
 const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund']
-const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook']
+const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook', '/api/health']
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
