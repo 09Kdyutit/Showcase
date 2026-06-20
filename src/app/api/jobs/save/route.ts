@@ -152,7 +152,7 @@ export async function PATCH(request: NextRequest) {
       .eq('id', id)
       .eq('user_id', user.id)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) throw error
     if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 })

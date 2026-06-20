@@ -18,7 +18,8 @@
     "test:uploads": "node scripts/test-uploads.mjs",
     "test:prompt-injection": "node scripts/test-prompt-injection.mjs",
     "test:xss": "node --env-file=.env.local scripts/test-xss.mjs",
-    "release:gate": "node scripts/release-gate.mjs"
+    "release:gate": "node scripts/release-gate.mjs",
+    "test:authorization": "node --env-file=.env.local scripts/test-api-authorization.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
