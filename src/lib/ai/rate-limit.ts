@@ -14,6 +14,7 @@ const LIMITS = {
     job_tailored: { max: 1, windowHours: 24 },
     ats_checked: { max: 1, windowHours: 24 },
     voice_profiled: { max: 1, windowHours: 168 }, // once per week
+    resume_pdf_vision: { max: 2, windowHours: 24 },
   },
   pro: {
     resume_analyzed: { max: 25, windowHours: 24 },
@@ -26,6 +27,7 @@ const LIMITS = {
     job_tailored: { max: 15, windowHours: 24 },
     ats_checked: { max: 20, windowHours: 24 },
     voice_profiled: { max: 5, windowHours: 24 },
+    resume_pdf_vision: { max: 10, windowHours: 24 },
   },
 } as const
 

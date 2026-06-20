@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { extractPdfViaVision } from '@/lib/ai/pdf-vision'
+import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB — stays under typical serverless body limits
 
@@ -77,15 +78,29 @@ export async function POST(request: NextRequest) {
       // Standard text extraction failed or returned near-nothing — most commonly a
       // scanned/photographed resume, or a PDF exported with outlined fonts that have no
       // real text layer at all. A vision-capable model can still read it as an image.
+      // This calls a paid model, unlike the free text-extraction path above, so it's
+      // rate-limited separately — but a limit hit here just skips the fallback (falls
+      // through to the existing "paste manually" error) rather than blocking the upload.
       if (text.replace(/\n{3,}/g, '\n\n').trim().length < 50) {
-        try {
-          const visionText = await withTimeout(extractPdfViaVision(buffer))
-          if (visionText.length >= 50) {
-            text = visionText
-            usedVisionFallback = true
+        const isPro = await isProUser(user.id)
+        const rl = await checkRateLimit(user.id, 'resume_pdf_vision', isPro)
+        if (rl.allowed) {
+          try {
+            const visionText = await withTimeout(extractPdfViaVision(buffer))
+            if (visionText.length >= 50) {
+              text = visionText
+              usedVisionFallback = true
+              await supabase.from('usage_events').insert({
+                user_id: user.id,
+                event_name: 'resume_pdf_vision',
+                metadata: { is_pro: isPro },
+              })
+            }
+          } catch (visionErr) {
+            console.error('[resume/extract-text] vision fallback also failed:', visionErr instanceof Error ? visionErr.message : visionErr)
           }
-        } catch (visionErr) {
-          console.error('[resume/extract-text] vision fallback also failed:', visionErr instanceof Error ? visionErr.message : visionErr)
+        } else {
+          console.error('[resume/extract-text] vision fallback skipped — rate limited:', rl.reason)
         }
       }
     } else if (isDocx) {
