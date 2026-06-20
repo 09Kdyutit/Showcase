@@ -51,7 +51,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <main className="min-h-screen bg-background flex">
       {/* Left panel */}
       <div className="hidden lg:flex flex-col flex-1 bg-surface-50 border-r border-border p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -204,6 +204,6 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

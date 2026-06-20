@@ -61,7 +61,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-32 px-4 sm:px-6 max-w-5xl mx-auto">
+      <main className="pt-24 pb-32 px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
             Simple, honest pricing
@@ -209,7 +209,7 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   )

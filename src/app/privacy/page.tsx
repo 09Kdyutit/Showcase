@@ -6,7 +6,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 pb-32 px-4 sm:px-6 max-w-3xl mx-auto">
+      <main className="pt-24 pb-32 px-4 sm:px-6 max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
         <p className="text-muted-foreground mb-12">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
         <div className="space-y-8 text-sm text-foreground/80 leading-relaxed">
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             </div>
           ))}
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   )

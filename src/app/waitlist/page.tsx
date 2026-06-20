@@ -138,7 +138,7 @@ function ProofScoreWidget() {
           >
             84
           </span>
-          <span className="text-xs text-muted-foreground/50 font-medium">/100</span>
+          <span className="text-xs text-muted-foreground font-medium">/100</span>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ function ProofScoreWidget() {
         ].map((item) => (
           <div key={item.label}>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] text-muted-foreground/60">{item.label}</span>
+              <span className="text-[11px] text-muted-foreground">{item.label}</span>
               <span className="text-[11px] font-semibold text-foreground/80">{item.score}</span>
             </div>
             <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
@@ -168,7 +168,7 @@ function ProofScoreWidget() {
         <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
         <div className="space-y-1.5">
           {['3 bullets have no measurable outcome', 'Leadership claims lack team size', 'Project depth: missing problem statement'].map((gap) => (
-            <div key={gap} className="flex items-center gap-2 text-[11px] text-muted-foreground/60">
+            <div key={gap} className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />
               {gap}
             </div>
@@ -216,14 +216,14 @@ function HowItWorksFlow() {
           key={s.title}
           className="relative rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-white/[0.12] transition-colors"
         >
-          <div className="absolute -top-3 -left-1 text-[10px] font-black text-muted-foreground/20 tabular-nums">
+          <div className="absolute -top-3 -left-1 text-[10px] font-black text-muted-foreground tabular-nums">
             {String(i + 1).padStart(2, '0')}
           </div>
           <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-4', s.color)}>
             <s.icon className="h-4 w-4" />
           </div>
           <h3 className="font-bold text-foreground text-sm mb-2">{s.title}</h3>
-          <p className="text-xs text-muted-foreground/60 leading-relaxed">{s.desc}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
         </div>
       ))}
     </div>
@@ -248,13 +248,13 @@ function FAQAccordion() {
           >
             <span className="text-sm font-medium text-foreground/80">{item.q}</span>
             {open === i
-              ? <ChevronUp className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-              : <ChevronDown className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+              ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+              : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
             }
           </button>
           {open === i && (
             <div className="px-5 pb-4">
-              <p className="text-sm text-muted-foreground/70 leading-relaxed">{item.a}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
             </div>
           )}
         </div>
@@ -302,7 +302,7 @@ function SuccessState({
 
       {/* What happens next */}
       <div className="text-left max-w-sm mx-auto mb-10 space-y-4">
-        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4">What happens next</p>
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">What happens next</p>
         {[
           'We invite early users in small batches.',
           'You build or audit a portfolio with Showcase.',
@@ -321,13 +321,13 @@ function SuccessState({
       {/* Referral share card */}
       {shareUrl && (
         <div className="max-w-sm mx-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 text-left">
-          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest mb-2">Share Showcase</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Share Showcase</p>
           <p className="text-sm text-foreground/65 mb-4 leading-relaxed">
             Tell a friend who should have a better portfolio. They&apos;ll join with your referral link.
           </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 min-w-0">
-              <p className="text-xs text-muted-foreground/60 truncate font-mono">{shareUrl}</p>
+              <p className="text-xs text-muted-foreground truncate font-mono">{shareUrl}</p>
             </div>
             <button
               onClick={copyLink}
@@ -470,6 +470,7 @@ function WaitlistContent() {
         </div>
       </nav>
 
+      <main>
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-24 pb-24 px-6">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
@@ -529,7 +530,7 @@ function WaitlistContent() {
                   'You control what gets published',
                   'Resume files stay private',
                 ].map((t) => (
-                  <div key={t} className="flex items-center gap-2 text-xs text-muted-foreground/50">
+                  <div key={t} className="flex items-center gap-2 text-xs text-muted-foreground">
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-500/70 shrink-0" />
                     {t}
                   </div>
@@ -590,7 +591,7 @@ function WaitlistContent() {
                     placeholder="you@example.com"
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all"
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                     required
                   />
                 </div>
@@ -598,7 +599,7 @@ function WaitlistContent() {
                 {/* Full name */}
                 <div>
                   <label htmlFor="full_name" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Full name <span className="text-muted-foreground/70">(optional)</span>
+                    Full name <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <input
                     id="full_name"
@@ -607,14 +608,14 @@ function WaitlistContent() {
                     placeholder="Alex Chen"
                     value={form.full_name}
                     onChange={(e) => update('full_name', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all"
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                   />
                 </div>
 
                 {/* Target role */}
                 <div>
                   <label htmlFor="target_role" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Target role <span className="text-muted-foreground/70">(optional)</span>
+                    Target role <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <input
                     id="target_role"
@@ -622,14 +623,14 @@ function WaitlistContent() {
                     placeholder="Product Designer, SWE, PM, Marketing..."
                     value={form.target_role}
                     onChange={(e) => update('target_role', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all"
+                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                   />
                 </div>
 
                 {/* Experience level */}
                 <div>
                   <label htmlFor="experience_level" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Experience level <span className="text-muted-foreground/70">(optional)</span>
+                    Experience level <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <select
                     id="experience_level"
@@ -650,7 +651,7 @@ function WaitlistContent() {
                 {/* What are you building */}
                 <div>
                   <label htmlFor="user_type" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    What are you building? <span className="text-muted-foreground/70">(optional)</span>
+                    What are you building? <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <select
                     id="user_type"
@@ -670,7 +671,7 @@ function WaitlistContent() {
                 {/* Biggest challenge */}
                 <div>
                   <label htmlFor="biggest_challenge" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Biggest challenge <span className="text-muted-foreground/70">(optional)</span>
+                    Biggest challenge <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <select
                     id="biggest_challenge"
@@ -715,8 +716,8 @@ function WaitlistContent() {
 
                 {/* Privacy note */}
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground/50 leading-relaxed">
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     We never sell your email. We use it only for beta access, product updates, and feedback requests.
                   </p>
                 </div>
@@ -735,7 +736,7 @@ function WaitlistContent() {
                   className={cn(
                     'w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-base transition-all',
                     submitting || !form.consent
-                      ? 'bg-white/[0.06] text-muted-foreground/40 cursor-not-allowed'
+                      ? 'bg-white/[0.06] text-muted-foreground cursor-not-allowed'
                       : 'bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:opacity-90 shadow-[0_0_30px_rgba(99,102,241,0.3)]',
                   )}
                 >
@@ -760,7 +761,7 @@ function WaitlistContent() {
       {/* ── How it works ─────────────────────────────────────────── */}
       <section id="how-it-works" className="py-24 px-6 border-t border-white/[0.05]">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4">How it works</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">How it works</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
             From messy resume to proof-of-work portfolio
           </h2>
@@ -774,7 +775,7 @@ function WaitlistContent() {
       {/* ── Pricing ──────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-6 border-t border-white/[0.05]">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight text-center">
             Simple, honest pricing
           </h2>
@@ -810,16 +811,16 @@ function WaitlistContent() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Free */}
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 flex flex-col">
-              <p className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest mb-3">Free</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Free</p>
               <div className="flex items-baseline gap-1 mb-2">
                 <span className="text-4xl font-black text-foreground">$0</span>
-                <span className="text-muted-foreground/60">/month</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
               <p className="text-sm text-foreground/50 mb-6">Get started without a credit card.</p>
               <ul className="space-y-3 mb-8 flex-1">
                 {FREE_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm text-foreground/70">
-                    <Check className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -839,16 +840,16 @@ function WaitlistContent() {
                 <>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-black text-foreground">$12.50</span>
-                    <span className="text-muted-foreground/60">/month</span>
+                    <span className="text-muted-foreground">/month</span>
                   </div>
                   <p className="text-sm text-emerald-400 font-medium mb-1">$150 billed annually — save $30</p>
-                  <p className="text-sm text-muted-foreground/40 line-through mb-6">$180/year if monthly</p>
+                  <p className="text-sm text-muted-foreground line-through mb-6">$180/year if monthly</p>
                 </>
               ) : (
                 <>
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-4xl font-black text-foreground">$15</span>
-                    <span className="text-muted-foreground/60">/month</span>
+                    <span className="text-muted-foreground">/month</span>
                   </div>
                   <p className="text-sm text-foreground/50 mb-6">Full access. Cancel anytime.</p>
                 </>
@@ -879,7 +880,7 @@ function WaitlistContent() {
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4">Why beta</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why beta</p>
               <h2 className="text-3xl font-black text-foreground mb-6 tracking-tight">
                 We are not launching to everyone yet — on purpose.
               </h2>
@@ -930,7 +931,7 @@ function WaitlistContent() {
                   </div>
                   <div>
                     <p className="font-semibold text-sm text-foreground mb-1">{item.title}</p>
-                    <p className="text-xs text-muted-foreground/60 leading-relaxed">{item.desc}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -942,7 +943,7 @@ function WaitlistContent() {
       {/* ── FAQ ──────────────────────────────────────────────────── */}
       <section id="faq" className="py-24 px-6 border-t border-white/[0.05]">
         <div className="max-w-2xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
           <h2 className="text-3xl font-black text-foreground mb-12 tracking-tight text-center">Questions answered</h2>
           <FAQAccordion />
         </div>
@@ -972,6 +973,7 @@ function WaitlistContent() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="py-10 px-6 border-t border-white/[0.05]">
@@ -984,13 +986,13 @@ function WaitlistContent() {
                 </div>
                 <span className="font-bold text-sm">Showcase</span>
               </div>
-              <p className="text-xs text-muted-foreground/40">Turn your experience into evidence.</p>
+              <p className="text-xs text-muted-foreground">Turn your experience into evidence.</p>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground/40">
-              <Link href="/privacy" className="hover:text-muted-foreground/70 transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-muted-foreground/70 transition-colors">Terms</Link>
-              <Link href="/refund" className="hover:text-muted-foreground/70 transition-colors">Refund</Link>
-              <a href="mailto:hello@showcase.app" className="hover:text-muted-foreground/70 transition-colors">Contact</a>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+              <Link href="/refund" className="hover:text-foreground transition-colors">Refund</Link>
+              <a href="mailto:hello@showcase.app" className="hover:text-foreground transition-colors">Contact</a>
             </div>
           </div>
         </div>
