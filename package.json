@@ -25,7 +25,8 @@
     "test:stripe-config": "node --env-file=.env.local scripts/test-stripe-config.mjs",
     "test:stripe-webhook": "node --env-file=.env.local scripts/test-stripe-webhook.mjs",
     "test:stripe": "npm run test:stripe-config && npm run test:stripe-webhook",
-    "test:abuse": "node --env-file=.env.local scripts/test-abuse.mjs"
+    "test:abuse": "node --env-file=.env.local scripts/test-abuse.mjs",
+    "test:csrf": "node --env-file=.env.local scripts/test-csrf.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

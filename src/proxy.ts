@@ -1,8 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isTrustedOrigin } from '@/lib/security/origin-check'
 
 const PROTECTED_ROUTES = ['/dashboard', '/builder', '/audit', '/resume', '/settings', '/billing', '/onboarding']
 const AUTH_ROUTES = ['/login']
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+// Stripe (and any future webhook provider) signs its own payloads — the signature
+// check in the route handler is the real authentication, and the request is
+// legitimately cross-origin by design (it originates from Stripe's servers, not a
+// browser), so Origin enforcement doesn't apply to it.
+const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook']
 
 // Pre-launch lockdown: the entire app — including the marketing homepage, /pricing,
 // /login, /signup, and every authenticated route — redirects to /waitlist. Existing
@@ -14,6 +21,15 @@ const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook']
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
+
+  if (
+    path.startsWith('/api/') &&
+    STATE_CHANGING_METHODS.has(request.method) &&
+    !ORIGIN_CHECK_EXEMPT_PREFIXES.some((p) => path.startsWith(p)) &&
+    !isTrustedOrigin(request.headers, request.headers.get('host'))
+  ) {
+    return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
+  }
 
   if (!LAUNCH_OPEN) {
     const isAllowed =
