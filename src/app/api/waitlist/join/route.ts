@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
+import { getRateLimiter } from '@/lib/rate-limit'
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email address').toLowerCase(),
@@ -23,22 +24,11 @@ const schema = z.object({
   consent: z.boolean().refine((v) => v === true, { message: 'You must agree to receive updates.' }),
 })
 
-// Simple in-memory IP rate limit (resets on server restart, good enough for beta)
-const ipAttempts = new Map<string, { count: number; resetAt: number }>()
+// Postgres-backed (or Upstash, if configured) — safe across multiple server instances,
+// unlike a per-process in-memory Map which only protects whichever instance happens to
+// receive the request.
 const IP_LIMIT = 5
-const IP_WINDOW_MS = 60 * 60 * 1000 // 1 hour
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = ipAttempts.get(ip)
-  if (!entry || now > entry.resetAt) {
-    ipAttempts.set(ip, { count: 1, resetAt: now + IP_WINDOW_MS })
-    return false
-  }
-  if (entry.count >= IP_LIMIT) return true
-  entry.count++
-  return false
-}
+const IP_WINDOW_SECONDS = 60 * 60 // 1 hour
 
 function generateToken(length = 24): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
@@ -62,7 +52,8 @@ export async function POST(req: NextRequest) {
       req.headers.get('x-real-ip') ??
       'unknown'
 
-    if (isRateLimited(ip)) {
+    const rl = await getRateLimiter().check(`waitlist:${ip}`, IP_LIMIT, IP_WINDOW_SECONDS)
+    if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
