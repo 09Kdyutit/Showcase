@@ -1,0 +1,13 @@
+title = "Showcase gitleaks config"
+
+[extend]
+useDefault = true
+
+# Historical false positive: an early commit used a placeholder string shaped like a
+# Stripe test key as a non-functional fallback default (never a real credential — the
+# Stripe SDK just needs *some* string to construct without throwing when unconfigured).
+# Fixed in src/lib/stripe/client.ts to no longer match secret-shaped patterns at all;
+# this allowlist entry only suppresses the now-historical commit from re-flagging in CI.
+[allowlist]
+description = "Non-functional Stripe SDK fallback placeholder (never a real key)"
+regexes = ['''sk_test_placeholder''']

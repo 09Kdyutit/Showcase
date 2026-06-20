@@ -4,7 +4,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
   console.warn('STRIPE_SECRET_KEY is not set')
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_placeholder', {
+// Deliberately not shaped like a real Stripe key (no sk_test_/sk_live_ prefix) so secret
+// scanners (gitleaks, etc.) never flag this fallback as a possible leaked credential.
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'STRIPE_NOT_CONFIGURED', {
   apiVersion: '2026-05-27.dahlia',
   typescript: true,
 })

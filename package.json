@@ -20,7 +20,8 @@
     "test:xss": "node --env-file=.env.local scripts/test-xss.mjs",
     "release:gate": "node scripts/release-gate.mjs",
     "test:authorization": "node --env-file=.env.local scripts/test-api-authorization.mjs",
-    "test:deletion": "node --env-file=.env.local scripts/test-account-deletion.mjs"
+    "test:deletion": "node --env-file=.env.local scripts/test-account-deletion.mjs",
+    "test:secrets": "gitleaks detect --source . --no-banner --config .gitleaks.toml"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
