@@ -30,7 +30,8 @@
     "test:headers": "node scripts/test-headers.mjs",
     "test:kill-switches": "node --env-file=.env.local scripts/test-kill-switches.mjs",
     "test:accessibility": "node scripts/test-accessibility.mjs",
-    "test:load": "node scripts/load-test.mjs"
+    "test:load": "node scripts/load-test.mjs",
+    "test:e2e-paid": "node --env-file=.env.local scripts/test-e2e-paid-path.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
