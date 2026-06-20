@@ -66,14 +66,13 @@ privacy policy if it isn't already.
   real provider is configured (vs. fixture/demo data), sends search queries
   (not personal resume data) to that provider.
 
-## Known gap (real, not yet fixed)
+## Test-account hygiene
 
-This session created a meaningful number of real test accounts directly
-against the live `yogwhfrjhcbnvoxitcay` project while building and running
-the adversarial test suites (`profiles` currently has 108 rows; many are
-`*-test-<timestamp>@example.com` accounts from `scripts/test-*.mjs`). The
-account-deletion test cleans up after itself, but several other test scripts
-(RLS, authorization, abuse, kill-switches, CSRF) create accounts that are
-**not** deleted afterward. **Recommend a cleanup pass — delete all
-`*@example.com` profiles — before treating `profiles` row counts as
-meaningful, and before launch.**
+This session's adversarial test suites create real accounts against the live
+project (most don't clean up after themselves — only `test:deletion` does).
+107 leftover `*@example.com` test accounts accumulated and were removed via
+`scripts/cleanup-test-accounts.mjs` (real `auth.admin.deleteUser()` calls, same
+mechanism as the verified account-deletion feature — not a raw table DELETE).
+`profiles` is back down to genuine rows only as of 2026-06-19. Re-run that
+script if running the test suites again leaves accounts behind — it only ever
+targets `@example.com` (RFC 2606 reserved, no real user can have this domain).
