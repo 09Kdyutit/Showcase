@@ -1,31 +1,46 @@
 # Launch Checklist
 
-Only unavoidable human actions. Everything else is already done.
+For the detailed, continuously-updated release-readiness tracking, see
+`security/EXECUTION_MANIFEST.md` and run `npm run release:gate` — that's the
+source of truth. This file is the short human-readable version.
+
+**Status as of 2026-06-19:** Stripe product/price creation, webhook signature
+verification, RLS, rate limiting, and security headers are done and verified
+(see manifest). What's left is genuinely unavoidable human action.
 
 ## Critical (must do before launch)
 
-- [ ] **Rotate Supabase database password**  
-  The database password was exposed in development. Go to Supabase Dashboard → Settings → Database → Reset database password before pointing production traffic at it.
+- [ ] **Rotate every credential ever pasted into a chat/terminal session**
+  (Stripe keys, Supabase service-role key, DB password) in the Stripe and
+  Supabase dashboards. This is P0-05 in the manifest — flagged, not yet done.
 
-- [ ] **Set all env vars in your deployment environment**  
-  Copy from `.env.example`. None of these are in the code. See [DEPLOYMENT.md](./DEPLOYMENT.md).
+- [ ] **Upgrade the Supabase project off the Free tier.** Confirmed directly
+  against the project this session: Free tier has **zero automated backups and
+  zero point-in-time recovery**. See `security/BACKUP_RESTORE.md` for the full
+  finding and what tier to pick. Do not launch with real customer/payment data
+  on a database with no backup coverage.
 
-- [ ] **Apply Supabase migration**  
+- [ ] **Set all env vars in your deployment environment**, including
+  `LAUNCH_OPEN=true` and `OPENAI_API_KEY` (not `AI_API_KEY` — the app uses
+  OpenAI, not Anthropic). Copy from `.env.example`. See [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+- [ ] **Deploy to a real launch target — NOT the existing Vercel project.**
+  The Vercel project already linked in this repo (`casefile-ten.vercel.app`)
+  is reserved for the waitlist landing page only, per explicit instruction.
+  Launch needs its own separate deployment target.
+
+- [ ] **Register the production Stripe webhook** against the real launch
+  domain once it exists. See [STRIPE_SETUP.md](./STRIPE_SETUP.md). Add the
+  signing secret as `STRIPE_WEBHOOK_SECRET`, and confirm `npm run test:stripe`
+  still passes against it.
+
+- [ ] **Apply all Supabase migrations to the production project** (currently
+  011 total):
   ```bash
   supabase link --project-ref yogwhfrjhcbnvoxitcay
   supabase db push
   ```
   Verify RLS is on every table — run the verification SQL in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
-
-- [ ] **Create Stripe product and price**  
-  Stripe Dashboard → Products → Create product → Add price: $15/month recurring.  
-  Copy the price ID (starts with `price_`) → set as `STRIPE_PRICE_ID_PRO_MONTHLY`.
-
-- [ ] **Create and configure Stripe webhook**  
-  See [STRIPE_SETUP.md](./STRIPE_SETUP.md). Add the signing secret as `STRIPE_WEBHOOK_SECRET`.
-
-- [ ] **Deploy to Vercel**  
-  See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Verification (must test before announcing)
 
@@ -37,6 +52,9 @@ Only unavoidable human actions. Everything else is already done.
 - [ ] Publish portfolio → visit `/p/your-slug` → verify it loads publicly
 - [ ] Open billing portal → cancel subscription → verify downgrade at period end
 - [ ] Try to publish as a free user → verify 403 error
+- [ ] Delete a test account → confirm it can no longer log in
+- [ ] Run a real Stripe **live-mode** transaction once (small/refundable) before
+  announcing — everything to date has only been verified against test-mode keys
 
 ## Before announcing to users
 
@@ -46,10 +64,21 @@ Only unavoidable human actions. Everything else is already done.
 - [ ] Confirm Supabase Auth redirect URL is set correctly for production domain
 - [ ] Test auth callback: `/callback` must work for magic links
 
-## What does NOT need to be done
+## What does NOT need to be done (verified this session, see manifest for evidence)
 
-- Rate limiting: already enforced server-side
-- RLS: already in the migration
-- Webhook signature verification: already in the webhook handler
-- Security headers: already in `next.config.ts`
+- Rate limiting: Postgres-backed, atomic, proven under real concurrent load (`test:abuse`)
+- RLS: cross-user isolation proven via real adversarial two-account tests (`test:rls`)
+- API ownership checks: all 21 routes audited, zero gaps (`test:authorization`)
+- Webhook signature verification + idempotency + out-of-order protection (`test:stripe`)
+- CSRF/Origin enforcement on all state-changing API routes (`test:csrf`)
+- Security headers, including CSP without `unsafe-eval` (`test:headers`)
+- Account deletion, cascading correctly across all tables + storage (`test:deletion`)
 - Pro gating: already on every AI route and publish endpoint
+- Secret scanning: gitleaks clean (`test:secrets`)
+
+## Still genuinely open (not yet done, not blocking on external access)
+
+- No CI workflow yet — run `npm run verify && npm run release:gate` manually before each deploy
+- No error monitoring (Sentry or equivalent) wired up
+- No health-check/kill-switch endpoints
+- No accessibility or cross-device visual QA pass
