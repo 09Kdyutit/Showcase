@@ -96,18 +96,36 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     }
   }, [title, targetRole, content, portfolioId])
 
-  const scheduleAutosave = useCallback(() => {
+  // Debounce off the actual [title, targetRole, content] values via an effect, rather than
+  // calling a manually-built `save` closure from inside each setState updater. The old
+  // approach scheduled a timer using whatever `save` closure existed *before* the edit being
+  // made was applied — every single autosave was missing the one edit that triggered it,
+  // so an isolated action like "click Generate once" never actually got persisted by
+  // autosave at all. An effect re-runs after the state commits, so the `save` it closes
+  // over here always reflects the value that was just set, not the one before it.
+  const hasLoadedRef = useRef(false)
+  useEffect(() => {
+    if (!hasLoadedRef.current) return
     setSaveState('unsaved')
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current)
     autosaveTimer.current = setTimeout(() => save(false), 2500)
-  }, [save])
+    return () => { if (autosaveTimer.current) clearTimeout(autosaveTimer.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, targetRole, content])
+
+  // Declared after the autosave effect above so it commits second on the initial-load
+  // render — the autosave effect still sees hasLoadedRef as false on that first pass and
+  // correctly skips scheduling a no-op save of the data that was just loaded.
+  useEffect(() => {
+    if (!loading) hasLoadedRef.current = true
+  }, [loading])
 
   function updateContent(updater: (prev: Partial<PortfolioContent>) => Partial<PortfolioContent>) {
-    setContent(prev => { const next = updater(prev); scheduleAutosave(); return next })
+    setContent(updater)
   }
 
-  function updateTitle(v: string) { setTitle(v); scheduleAutosave() }
-  function updateRole(v: string) { setTargetRole(v); scheduleAutosave() }
+  function updateTitle(v: string) { setTitle(v) }
+  function updateRole(v: string) { setTargetRole(v) }
 
   async function generatePortfolio() {
     if (!isPro) { toast.error('Pro required for AI generation'); return }

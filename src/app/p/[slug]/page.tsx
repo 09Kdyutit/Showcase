@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Globe, Mail, ArrowRight, ExternalLink, Calendar } from 'lucide-react'
 import type { PortfolioContent } from '@/types/database'
 import { cn, safeHref } from '@/lib/utils'
+import { Reveal } from '@/components/shared/reveal'
 
 interface PublicPortfolioPageProps {
   params: Promise<{ slug: string }>
@@ -21,13 +22,6 @@ function getLevelDot(level: string) {
   if (level === 'Advanced') return 'bg-violet-400'
   if (level === 'Proficient') return 'bg-emerald-500'
   return 'bg-surface-400'
-}
-
-function getLevelLabel(level: string) {
-  if (level === 'Expert') return 'text-brand-400'
-  if (level === 'Advanced') return 'text-violet-400'
-  if (level === 'Proficient') return 'text-emerald-400'
-  return 'text-muted-foreground/50'
 }
 
 const PROJECT_ACCENT_COLORS = [
@@ -116,7 +110,19 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
   const bioParagraphs = about?.bio?.split('\n\n').filter(Boolean) ?? []
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground">
+      {/* ── Ambient background, spans the full scroll height ───── */}
+      {/* A flat black page below the hero is the single biggest reason this used to read
+          as a boring template — these blobs give every section its own zone of light
+          instead of one decorated hero sitting above a dead-flat list. */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl" />
+        <div className="absolute top-[20%] right-[-10%] w-[500px] h-[400px] bg-violet-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-[50%] left-[-10%] w-[550px] h-[450px] bg-emerald-500/4 rounded-full blur-3xl" />
+        <div className="absolute top-[78%] right-[5%] w-[480px] h-[420px] bg-amber-500/[0.035] rounded-full blur-3xl" />
+        <div className="absolute bottom-[-5%] left-1/3 w-[600px] h-[400px] bg-brand-500/4 rounded-full blur-3xl" />
+      </div>
 
       {/* ── Sticky nav ─────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
@@ -159,11 +165,6 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        {/* Grid + glow background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
-        <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/4 right-0 w-[500px] h-[400px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
-
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24">
 
           {/* Avatar */}
@@ -298,8 +299,14 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
       {/* ── About ──────────────────────────────────────────────── */}
       {bioParagraphs.length > 0 && (
-        <section className="py-24 px-6">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative py-24 px-6 overflow-hidden">
+          <p
+            aria-hidden
+            className="absolute -top-4 -left-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums"
+          >
+            00
+          </p>
+          <Reveal className="max-w-5xl mx-auto relative">
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">About</p>
             <div className="grid lg:grid-cols-[1fr_260px] gap-16 items-start">
               <div className="space-y-6">
@@ -324,21 +331,27 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                 </div>
               )}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* ── Selected Work ──────────────────────────────────────── */}
       {projects.length > 0 && (
-        <section className="py-24 px-6 border-t border-white/[0.05]">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
+          <p
+            aria-hidden
+            className="absolute -top-4 right-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums"
+          >
+            01
+          </p>
+          <div className="max-w-5xl mx-auto relative">
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Selected work</p>
             <div className="space-y-6">
               {projects.slice(0, 5).map((proj, i) => (
+                <Reveal key={i} className={cn(i > 0 && 'delay-100')}>
                 <article
-                  key={i}
                   className={cn(
-                    'rounded-2xl border p-8 lg:p-10 transition-all duration-300 hover:shadow-[0_0_40px_rgba(99,102,241,0.06)]',
+                    'rounded-2xl border p-8 lg:p-10 transition-all duration-300 hover:shadow-[0_0_40px_rgba(99,102,241,0.06)] hover:-translate-y-0.5',
                     PROJECT_ACCENT_COLORS[i % PROJECT_ACCENT_COLORS.length]
                   )}
                 >
@@ -434,6 +447,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                     </div>
                   )}
                 </article>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -442,37 +456,53 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
       {/* ── Skills ─────────────────────────────────────────────── */}
       {skills.length > 0 && (
-        <section className="py-24 px-6 border-t border-white/[0.05]">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
+          <p
+            aria-hidden
+            className="absolute -top-4 -left-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums"
+          >
+            02
+          </p>
+          <Reveal className="max-w-5xl mx-auto relative">
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Skills & expertise</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
               {categoryOrder.map((cat) => (
                 <div key={cat}>
                   <p className="text-[10px] font-bold text-muted-foreground/35 uppercase tracking-[0.15em] mb-4">{cat}</p>
-                  <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
                     {skillsByCategory[cat].map((s) => (
-                      <div key={s.name} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', getLevelDot(s.level))} />
-                          <span className="text-sm text-foreground/75">{s.name}</span>
-                        </div>
-                        <span className={cn('text-[10px] font-semibold', getLevelLabel(s.level))}>
-                          {s.level}
-                        </span>
-                      </div>
+                      <span
+                        key={s.name}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors',
+                          s.level === 'Expert' ? 'bg-brand-500/10 border-brand-500/25 text-foreground/90' :
+                          s.level === 'Advanced' ? 'bg-violet-500/8 border-violet-500/20 text-foreground/80' :
+                          s.level === 'Proficient' ? 'bg-emerald-500/8 border-emerald-500/20 text-foreground/75' :
+                          'bg-white/[0.03] border-white/[0.08] text-foreground/60',
+                        )}
+                      >
+                        <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', getLevelDot(s.level))} />
+                        {s.name}
+                      </span>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* ── Experience ─────────────────────────────────────────── */}
       {experience.length > 0 && (
-        <section className="py-24 px-6 border-t border-white/[0.05]">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
+          <p
+            aria-hidden
+            className="absolute -top-4 right-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums"
+          >
+            03
+          </p>
+          <Reveal className="max-w-5xl mx-auto relative">
             <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Experience</p>
             <div className="space-y-0">
               {experience.map((exp, i) => (
@@ -527,14 +557,14 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* ── Contact CTA ────────────────────────────────────────── */}
       {(cta || contact?.email) && (
         <section className="py-32 px-6 border-t border-white/[0.05]">
-          <div className="max-w-5xl mx-auto">
+          <Reveal className="max-w-5xl mx-auto">
             <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.07),transparent)]" />
@@ -557,7 +587,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
                 )}
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
