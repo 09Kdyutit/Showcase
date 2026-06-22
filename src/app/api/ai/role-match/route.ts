@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { RoleMatchSchema } from '@/lib/ai/schemas'
-import { buildRoleMatchPrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { roleMatchPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import type { ParsedResume } from '@/types/database'
@@ -36,17 +35,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await callStructured(
-      [{ role: 'user', content: buildRoleMatchPrompt(parsedResume as unknown as ParsedResume, targetRole, industry) }],
-      RoleMatchSchema,
-      'role_match',
-      { tier: 'fast', maxOutputTokens: 3000, temperature: 0.2 }
-    )
+    const { data: result, meta } = await runPrompt(roleMatchPrompt, {
+      parsedResume: parsedResume as unknown as ParsedResume,
+      targetRole,
+      industry,
+    })
 
     await supabase.from('usage_events').insert({
       user_id: user.id,
       event_name: 'role_matched',
       metadata: { target_role: targetRole, industry },
+    })
+
+    await supabase.from('generations').insert({
+      user_id: user.id,
+      type: 'role_match',
+      output: result as unknown as Record<string, unknown>,
+      model_used: meta.model,
+      prompt_id: meta.promptId,
+      prompt_version: meta.promptVersion,
+      provider: meta.provider,
+      status: 'completed',
     })
 
     return NextResponse.json({ data: result })

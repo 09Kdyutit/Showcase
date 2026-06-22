@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { AtsReportSchema } from '@/lib/ai/schemas'
-import { buildAtsCheckPrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { atsCheckPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
@@ -32,12 +31,7 @@ export async function POST(request: NextRequest) {
 
     const { resume_text, job_keywords, tailored_asset_id } = parsed.data
 
-    const report = await callStructured(
-      [{ role: 'user', content: buildAtsCheckPrompt(resume_text, job_keywords) }],
-      AtsReportSchema,
-      'ats_report',
-      { tier: 'fast', maxOutputTokens: 3000, temperature: 0.1 }
-    )
+    const { data: report, meta } = await runPrompt(atsCheckPrompt, { resumeText: resume_text, jobKeywords: job_keywords })
 
     // Store ATS report on tailored asset if provided
     if (tailored_asset_id) {
@@ -56,6 +50,17 @@ export async function POST(request: NextRequest) {
         keywords_checked: job_keywords.length,
         issues_found: report.issues.length,
       },
+    })
+
+    await supabase.from('generations').insert({
+      user_id: user.id,
+      type: 'ats_check',
+      output: report as unknown as Record<string, unknown>,
+      model_used: meta.model,
+      prompt_id: meta.promptId,
+      prompt_version: meta.promptVersion,
+      provider: meta.provider,
+      status: 'completed',
     })
 
     return NextResponse.json({ data: report })

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { buildAuditExplanationPrompt } from '@/lib/ai/prompts'
-import { AuditExplanationResultSchema, type ParsedResumeOutput, type PortfolioContentOutput } from '@/lib/ai/schemas'
+import { runPrompt } from '@/lib/ai/client'
+import { proofScoreExplanationPrompt } from '@/lib/ai/prompts/registry'
+import type { ParsedResumeOutput, PortfolioContentOutput } from '@/lib/ai/schemas'
 import { computeProofScore } from '@/lib/proofscore/engine'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
@@ -79,23 +79,13 @@ export async function POST(request: NextRequest) {
     // from structured facts, not AI judgment. AI is only used afterward to explain them.
     const deterministic = computeProofScore(parsedResume, portfolioContent, targetRole, industry, isPro)
 
-    const explanation = await callStructured(
-      [
-        {
-          role: 'user',
-          content: buildAuditExplanationPrompt(
-            resumeText,
-            portfolioContent as unknown as Record<string, unknown> | null,
-            targetRole,
-            industry,
-            deterministic.categories
-          ),
-        },
-      ],
-      AuditExplanationResultSchema,
-      'audit_explanation',
-      { tier: 'main', maxOutputTokens: 6000, temperature: 0.2 }
-    )
+    const { data: explanation, meta } = await runPrompt(proofScoreExplanationPrompt, {
+      resumeText,
+      portfolioContent: portfolioContent as unknown as Record<string, unknown> | null,
+      targetRole,
+      industry,
+      categories: deterministic.categories,
+    })
 
     const explanationByKey = new Map(explanation.categories.map((c) => [c.key, c]))
     const rankedKeys = deterministic.categories
@@ -148,6 +138,17 @@ export async function POST(request: NextRequest) {
         .eq('id', portfolioId)
         .eq('user_id', user.id)
     }
+
+    await supabase.from('generations').insert({
+      user_id: user.id,
+      type: 'audit_explanation',
+      output: explanation as unknown as Record<string, unknown>,
+      model_used: meta.model,
+      prompt_id: meta.promptId,
+      prompt_version: meta.promptVersion,
+      provider: meta.provider,
+      status: 'completed',
+    })
 
     await supabase.from('usage_events').insert({
       user_id: user.id,

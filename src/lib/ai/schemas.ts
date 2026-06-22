@@ -92,6 +92,8 @@ export const AuditExplanationResultSchema = z.object({
   top_priorities: z.array(z.string()),
 })
 
+export type AuditExplanationResultOutput = z.infer<typeof AuditExplanationResultSchema>
+
 // Full merged shape returned to the client: deterministic fields + AI explanation fields.
 export const AuditCategorySchema = z.object({
   key: z.string(),

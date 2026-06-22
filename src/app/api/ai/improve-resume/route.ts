@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { ImprovedBulletSchema } from '@/lib/ai/schemas'
-import { buildResumeBulletImprovementPrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { resumeBulletPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
@@ -35,17 +34,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await callStructured(
-      [{ role: 'user', content: buildResumeBulletImprovementPrompt(bullet, role, context) }],
-      ImprovedBulletSchema,
-      'improved_bullet',
-      { tier: 'fast', maxOutputTokens: 1500, temperature: 0.3 }
-    )
+    const { data: result, meta } = await runPrompt(resumeBulletPrompt, { bullet, role, context })
 
     await supabase.from('usage_events').insert({
       user_id: user.id,
       event_name: 'bullet_improved',
       metadata: { role, original_length: bullet.length },
+    })
+
+    await supabase.from('generations').insert({
+      user_id: user.id,
+      type: 'bullet_improvement',
+      output: result as unknown as Record<string, unknown>,
+      model_used: meta.model,
+      prompt_id: meta.promptId,
+      prompt_version: meta.promptVersion,
+      provider: meta.provider,
+      status: 'completed',
     })
 
     return NextResponse.json({ data: result })

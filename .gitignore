@@ -48,3 +48,6 @@ next-env.d.ts
 
 # visual QA review artifacts — regenerate with npm run capture:screenshots
 /screenshots
+
+# prompt-eval run outputs — regenerate with npm run eval:prompts / test:multi-model
+/evals/results

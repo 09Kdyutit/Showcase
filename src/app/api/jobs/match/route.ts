@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { MatchExplanationSchema } from '@/lib/ai/schemas'
-import { buildMatchExplanationPrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { matchExplanationPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { computeMatchScore } from '@/lib/jobs/match'
 import { getJobById } from '@/lib/jobs/providers'
@@ -89,21 +88,13 @@ export async function POST(request: NextRequest) {
     let aiExplanation: string | null = null
     if (include_ai_explanation && isPro) {
       try {
-        const explanation = await callStructured(
-          [{
-            role: 'user',
-            content: buildMatchExplanationPrompt(
-              resumeData,
-              jobListing,
-              score,
-              breakdown.matched_skills,
-              breakdown.missing_skills
-            ),
-          }],
-          MatchExplanationSchema,
-          'match_explanation',
-          { tier: 'fast', maxOutputTokens: 800, temperature: 0.2 }
-        )
+        const { data: explanation } = await runPrompt(matchExplanationPrompt, {
+          parsedResume: resumeData,
+          job: jobListing,
+          deterministicScore: score,
+          matchedSkills: breakdown.matched_skills,
+          missingSkills: breakdown.missing_skills,
+        })
         aiExplanation = [
           explanation.score_justification,
           `Strength: ${explanation.top_strength}`,

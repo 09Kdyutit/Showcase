@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { TailoredResumeSchema } from '@/lib/ai/schemas'
-import { buildTailorPrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { tailorApplicationPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
@@ -106,15 +105,12 @@ export async function POST(
     const resumeData = parsed_resume as unknown as ParsedResume
 
     // Run the tailor prompt — the most important AI call in the product
-    const tailored = await callStructured(
-      [{
-        role: 'user',
-        content: buildTailorPrompt(resumeData, job, generate_cover_letter, generate_recruiter_note),
-      }],
-      TailoredResumeSchema,
-      'tailored_resume',
-      { tier: 'main', maxOutputTokens: 8000, temperature: 0.25 }
-    )
+    const { data: tailored, meta } = await runPrompt(tailorApplicationPrompt, {
+      parsedResume: resumeData,
+      job,
+      generateCoverLetter: generate_cover_letter,
+      generateRecruiterNote: generate_recruiter_note,
+    })
 
     // Store the tailored asset
     const { data: asset, error: assetErr } = await supabase
@@ -164,6 +160,17 @@ export async function POST(
         recruiter_note: generate_recruiter_note,
         truth_entries: tailored.truth_map.length,
       },
+    })
+
+    await supabase.from('generations').insert({
+      user_id: user.id,
+      type: 'tailor_application',
+      output: tailored as unknown as Record<string, unknown>,
+      model_used: meta.model,
+      prompt_id: meta.promptId,
+      prompt_version: meta.promptVersion,
+      provider: meta.provider,
+      status: 'completed',
     })
 
     return NextResponse.json({

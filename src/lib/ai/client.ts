@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type { z } from 'zod'
 import { openai, MODELS, type ModelTier } from './openai'
+import type { PromptSpec } from './prompts/types'
 
 const IS_MOCK_MODE = !process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'development'
 
@@ -136,6 +137,48 @@ export async function callStructured<T>(
   }
 
   return response.output_parsed as T
+}
+
+// ── Registry-driven calls ─────────────────────────────────────────────────────
+//
+// The only call path route files should use going forward. Takes a PromptSpec from
+// src/lib/ai/prompts/registry.ts so model tier, temperature, token budget, schema, and
+// version all come from one place instead of being re-typed at every call site. Returns
+// operational metadata alongside the parsed output so callers can persist prompt_id/
+// prompt_version/provider/model on the generations row (Phase 13 versioning) without
+// hand-typing those strings either.
+
+export interface RunPromptResult<T> {
+  data: T
+  meta: {
+    promptId: string
+    promptVersion: string
+    provider: 'openai'
+    model: string
+    schemaName: string
+  }
+}
+
+export async function runPrompt<TInput, TOutput>(
+  spec: PromptSpec<TInput, TOutput>,
+  input: TInput
+): Promise<RunPromptResult<TOutput>> {
+  const data = await callStructured(
+    spec.buildMessages(input),
+    spec.outputSchema,
+    spec.schemaName,
+    { tier: spec.modelTier, maxOutputTokens: spec.maxOutputTokens, temperature: spec.temperature }
+  )
+  return {
+    data,
+    meta: {
+      promptId: spec.id,
+      promptVersion: spec.version,
+      provider: 'openai',
+      model: MODELS[spec.modelTier],
+      schemaName: spec.schemaName,
+    },
+  }
 }
 
 // ── Backward-compat: routes that have not yet adopted callStructured ──────────

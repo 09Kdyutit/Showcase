@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { callStructured } from '@/lib/ai/client'
-import { StructuredJobDataSchema } from '@/lib/ai/schemas'
-import { buildJobParsePrompt } from '@/lib/ai/prompts'
+import { runPrompt } from '@/lib/ai/client'
+import { jobParsePrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
@@ -34,12 +33,7 @@ export async function POST(request: NextRequest) {
     const { description, source_url, title, company } = parsed.data
 
     // Parse the job description into structured data
-    const structuredData = await callStructured(
-      [{ role: 'user', content: buildJobParsePrompt(description) }],
-      StructuredJobDataSchema,
-      'structured_job_data',
-      { tier: 'fast', maxOutputTokens: 2000, temperature: 0.1 }
-    )
+    const { data: structuredData } = await runPrompt(jobParsePrompt, { jobText: description })
 
     // Extract title/company from description if not provided
     const inferredTitle = title ?? extractTitle(description)

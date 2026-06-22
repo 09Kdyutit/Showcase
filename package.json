@@ -12,6 +12,8 @@
     "test:ai": "node --env-file=.env.local scripts/test-openai.mjs",
     "test:match": "node --experimental-strip-types scripts/test-match-engine.mjs",
     "test:proofscore": "node --experimental-strip-types scripts/test-proofscore-engine.mjs",
+    "test:portfolio-themes": "node --experimental-strip-types scripts/test-portfolio-themes.mjs",
+    "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
     "test:taxonomy": "node --experimental-strip-types scripts/test-role-taxonomy.mjs",
@@ -33,9 +35,18 @@
     "test:accessibility": "node scripts/test-accessibility.mjs",
     "test:load": "node scripts/load-test.mjs",
     "test:e2e-paid": "node --env-file=.env.local scripts/test-e2e-paid-path.mjs",
-    "capture:screenshots": "node scripts/capture-screenshots.mjs"
+    "capture:screenshots": "node scripts/capture-screenshots.mjs",
+    "test:marketing-truthfulness": "node scripts/test-marketing-truthfulness.mjs",
+    "test:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",
+    "test:eval-graders": "node scripts/test-eval-graders.mjs",
+    "test:ai-regression": "node --env-file=.env.local scripts/test-ai-regression.mjs",
+    "test:multi-model": "node --env-file=.env.local --experimental-strip-types scripts/test-multi-model-review.mjs",
+    "eval:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",
+    "eval:multi-model": "node --env-file=.env.local --experimental-strip-types scripts/eval-multi-model.mjs",
+    "eval:compare": "node scripts/compare-prompt-versions.mjs"
   },
   "dependencies": {
+    "@google/genai": "^2.9.0",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-accordion": "^1.2.14",
     "@radix-ui/react-avatar": "^1.2.0",
