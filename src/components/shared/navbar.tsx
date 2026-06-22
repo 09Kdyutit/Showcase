@@ -24,7 +24,7 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '/#features', label: 'Features' },
+    { href: '/#built-for', label: "Who it's for" },
     { href: '/waitlist#how-it-works', label: 'How it works' },
     { href: '/waitlist#faq', label: 'FAQ' },
   ]

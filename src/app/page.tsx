@@ -13,6 +13,9 @@ import {
 import { StickyMobileCTA } from '@/components/landing/sticky-mobile-cta'
 import { FaqAccordion } from '@/components/landing/faq-accordion'
 import { CompanyMarquee } from '@/components/landing/company-marquee'
+import { TrackedSection } from '@/components/landing/tracked-section'
+import { TrackedLink } from '@/components/landing/tracked-link'
+import { ViewTracker } from '@/components/landing/view-tracker'
 
 const FLOW_STEPS = [
   { icon: FileText, step: '01', title: 'Upload your resume', desc: 'Paste or upload your resume. Showcase parses it instantly — skills, projects, experience, all of it.' },
@@ -22,12 +25,16 @@ const FLOW_STEPS = [
   { icon: ArrowRight, step: '05', title: 'Tailor and apply', desc: 'One click creates a role-specific resume kit. Every change traced to your real experience in the Truth Ledger.' },
 ]
 
+// Names match the real 11 categories in src/lib/proofscore/engine.ts and the
+// /proofscore methodology page exactly — this is fictional demonstration data, but
+// the category names themselves must be real so the demo doesn't contradict the
+// product it is illustrating.
 const PROOF_CATEGORIES = [
-  { name: 'First Impression', score: 72, color: 'bg-amber-500' },
-  { name: 'Target Role Fit', score: 85, color: 'bg-emerald-500' },
-  { name: 'Proof Strength', score: 41, color: 'bg-red-500' },
-  { name: 'Project Depth', score: 58, color: 'bg-orange-500' },
-  { name: 'Keyword Relevance', score: 79, color: 'bg-brand-500' },
+  { name: 'First-impression clarity', score: 72, color: 'bg-amber-500' },
+  { name: 'Target-role alignment', score: 85, color: 'bg-emerald-500' },
+  { name: 'Evidence strength', score: 41, color: 'bg-red-500' },
+  { name: 'Project depth', score: 58, color: 'bg-orange-500' },
+  { name: 'Keyword support', score: 79, color: 'bg-brand-500' },
 ]
 
 
@@ -36,7 +43,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <StickyMobileCTA />
+      <ViewTracker event="landing_viewed" metadata={{ route: '/' }} />
 
+      <main>
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background grid */}
@@ -50,19 +59,19 @@ export default function LandingPage() {
           <div className="inline-flex items-center gap-2 mb-8 animate-fade-in">
             <Badge variant="pro" className="px-3 py-1 text-xs">
               <Zap className="h-3 w-3" />
-              AI-powered portfolio builder
+              Built for early-career job seekers
             </Badge>
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] text-balance mb-6">
-            <span className="text-foreground animate-fade-in">Your career is a body of work.</span>
+            <span className="text-foreground animate-fade-in">Your résumé lists claims.</span>
             <br />
             <span className="animate-fade-in" style={{ animationDelay: '120ms' }}>
-              <span className="gradient-text">It&apos;s time to show it</span>
+              <span className="gradient-text">Showcase turns them</span>
             </span>
             <br />
             <span className="text-foreground animate-fade-in" style={{ animationDelay: '240ms' }}>
-              as evidence.
+              into evidence.
             </span>
           </h1>
 
@@ -70,8 +79,10 @@ export default function LandingPage() {
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed text-balance animate-fade-in"
             style={{ animationDelay: '360ms' }}
           >
-            Showcase turns your resume and projects into a professional proof-of-work portfolio —
-            with a ProofScore that shows exactly what is strong, what is weak, and what to fix.
+            Built for students, new grads, and early-career professionals with real projects but
+            no clear way to prove them. Upload your résumé and Showcase turns it into a
+            portfolio, scores the strength of its evidence, and tells you exactly what to
+            improve — without inventing a thing.
           </p>
 
           <div
@@ -79,13 +90,13 @@ export default function LandingPage() {
             style={{ animationDelay: '480ms' }}
           >
             <Button asChild variant="gradient" size="xl" className="w-full sm:w-auto gap-2.5 shadow-glow">
-              <Link href="/waitlist">
-                Join the beta
+              <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="hero_primary">
+                Join the private beta
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </TrackedLink>
             </Button>
             <Button asChild variant="outline" size="xl" className="w-full sm:w-auto">
-              <Link href="#how-it-works">See how it works</Link>
+              <TrackedLink href="#how-it-works" event="hero_secondary_cta_clicked" ctaLabel="see_how_it_works">See how it works</TrackedLink>
             </Button>
           </div>
 
@@ -117,7 +128,7 @@ export default function LandingPage() {
                     <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
                   </div>
                   <div className="flex-1 mx-4 h-6 bg-surface-300 rounded-lg flex items-center px-3">
-                    <span className="text-xs text-muted-foreground/60">showcase.app/p/alex-chen</span>
+                    <span className="text-xs text-muted-foreground/60">showcase.app/p/maya-torres</span>
                   </div>
                   <Badge variant="success" className="text-[10px] px-2 py-0.5">Published</Badge>
                 </div>
@@ -126,21 +137,22 @@ export default function LandingPage() {
                 <div className="p-6 grid md:grid-cols-[1fr_280px] gap-6">
                   {/* Left — portfolio preview */}
                   <div className="space-y-4 text-left">
+                    <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Fictional demonstration data</p>
                     {/* Identity */}
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">AC</span>
+                          <span className="text-white text-xs font-bold">MT</span>
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-foreground">Alex Chen</p>
-                          <p className="text-xs text-muted-foreground">Product Designer · San Francisco</p>
+                          <p className="text-sm font-bold text-foreground">Maya Torres</p>
+                          <p className="text-xs text-muted-foreground">CS New Grad · Operations Analytics Intern</p>
                         </div>
                       </div>
                     </div>
                     {/* Role tags */}
                     <div className="flex flex-wrap gap-2">
-                      {['B2B SaaS', '5 yrs exp', 'Ex-Figma'].map((tag) => (
+                      {['New grad', 'Data Analyst track', '1 internship'].map((tag) => (
                         <span key={tag} className="bg-surface-300 rounded-md px-2.5 py-1 text-xs text-muted-foreground/80 border border-border/60">
                           {tag}
                         </span>
@@ -148,20 +160,20 @@ export default function LandingPage() {
                     </div>
                     {/* Positioning statement */}
                     <p className="text-xs text-muted-foreground/80 leading-relaxed border-l-2 border-brand-500/30 pl-3">
-                      I help B2B SaaS teams ship interfaces that users actually adopt — specializing in
-                      complex checkout flows, design systems, and 0→1 product work.
+                      CS graduate who builds internal tools that make operations teams faster to
+                      ship and easier to trust.
                     </p>
                     {/* Case study cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
-                        <p className="text-xs font-semibold text-foreground/80 mb-1">Checkout Redesign</p>
-                        <p className="text-xs text-emerald-400 font-medium mb-1.5">+24% completion · −18% abandonment</p>
-                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Saved ~$180k/month in lost revenue. 12 user interviews, 3 A/B cycles, shipped in 6 weeks.</p>
+                        <p className="text-xs font-semibold text-foreground/80 mb-1">Internal Analytics Dashboard</p>
+                        <p className="text-xs text-emerald-400 font-medium mb-1.5">Built solo · shipped in 6-week internship</p>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Operations team manually compiled reports in spreadsheets. Built a dashboard pulling live data instead. Outcome not yet quantified — flagged below.</p>
                       </div>
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
-                        <p className="text-xs font-semibold text-foreground/80 mb-1">Design System v2</p>
-                        <p className="text-xs text-brand-400 font-medium mb-1.5">3 products · 40% faster shipping</p>
-                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Led token architecture, built 120-component library. Reduced design-to-dev handoff from 2 wks to 3 days.</p>
+                        <p className="text-xs font-semibold text-foreground/80 mb-1">Course Scheduler App</p>
+                        <p className="text-xs text-brand-400 font-medium mb-1.5">Class project · Python + SQLite</p>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Built a scheduling tool for 40 classmates after registration conflicts caused repeated enrollment errors.</p>
                       </div>
                     </div>
                   </div>
@@ -228,6 +240,7 @@ export default function LandingPage() {
         {/* Scroll cue */}
         <a
           href="#how-it-works"
+          aria-label="Scroll to how it works"
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
         >
           <ChevronDown className="h-5 w-5 animate-bounce" />
@@ -236,9 +249,9 @@ export default function LandingPage() {
 
       {/* ─── Showcase vs. ChatGPT / templates ────────────────── */}
       <AnimatedSection>
-        <section className="py-20 px-4 sm:px-6 border-y border-border bg-surface-50/30">
+        <TrackedSection event="comparison_viewed" className="py-20 px-4 sm:px-6 border-y border-border bg-surface-50/30">
           <div className="max-w-5xl mx-auto">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest text-center mb-12">Why not just use ChatGPT or a template?</p>
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest text-center mb-12">Why not just use ChatGPT or a template?</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               <div className="glass-card p-6">
                 <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
@@ -269,7 +282,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </section>
+        </TrackedSection>
       </AnimatedSection>
 
       {/* ─── Career domains marquee ───────────────────────────── */}
@@ -314,6 +327,33 @@ export default function LandingPage() {
         </StaggerContainer>
       </section>
 
+      {/* ─── Built for ─────────────────────────────────────────── */}
+      <AnimatedSection>
+        <TrackedSection event="audience_section_viewed" id="built-for" className="py-24 px-4 sm:px-6 bg-surface-50/30 border-y border-border">
+          <div className="max-w-5xl mx-auto">
+            <Badge variant="outline" className="mb-4">Built for</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10 text-balance max-w-2xl">
+              Early-career job seekers who have real work to show but no clear way to prove it
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                'A student turning coursework and internships into credible case studies',
+                'A new graduate making side projects understandable to recruiters',
+                'An early-career professional translating day-to-day work into measurable evidence',
+                'A career switcher connecting previous experience to a new target role',
+              ].map((s) => (
+                <div key={s} className="glass-card p-5 text-sm text-muted-foreground leading-relaxed">{s}</div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground/60 mt-8 max-w-2xl leading-relaxed">
+              Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce
+              generic applications. If the evidence is not there, we tell you it is missing — we do not
+              invent it.
+            </p>
+          </div>
+        </TrackedSection>
+      </AnimatedSection>
+
       {/* ─── ProofScore section ───────────────────────────────── */}
       <section className="py-32 px-4 sm:px-6 bg-surface-50/50">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -355,11 +395,11 @@ export default function LandingPage() {
           <FadeIn from="right" delay={0.1}>
             <div className="space-y-3">
               {[
-                { cat: 'First Impression Clarity', score: 72, sev: 'major', fix: 'Your headline is vague. Add your specific role and a measurable value prop.' },
-                { cat: 'Proof Strength', score: 41, sev: 'critical', fix: 'Only 2 of 8 bullets include measurable outcomes. Add metrics to 3 more.' },
-                { cat: 'Project Depth', score: 58, sev: 'major', fix: 'Projects show what you did, not the problem you solved or the impact.' },
-                { cat: 'Target Role Alignment', score: 85, sev: 'minor', fix: 'Strong overall. Add 3 more role-specific keywords to push above 90.' },
-                { cat: 'Keyword Relevance', score: 79, sev: 'minor', fix: 'Missing: "design systems", "cross-functional", "Figma", "stakeholder alignment".' },
+                { cat: 'First-impression clarity', score: 72, sev: 'major', fix: 'Your headline is vague. Add your specific role and a measurable value prop.' },
+                { cat: 'Evidence strength', score: 41, sev: 'critical', fix: 'Only 2 of 8 bullets include measurable outcomes. Add metrics to 3 more.' },
+                { cat: 'Project depth', score: 58, sev: 'major', fix: 'Projects show what you did, not the problem you solved or the impact.' },
+                { cat: 'Target-role alignment', score: 85, sev: 'minor', fix: 'Strong overall. Add 3 more role-specific keywords to push above 90.' },
+                { cat: 'Keyword support', score: 79, sev: 'minor', fix: 'Missing: "design systems", "cross-functional", "Figma", "stakeholder alignment".' },
               ].map(({ cat, score, sev, fix }) => (
                 <div key={cat} className="glass-card p-4 hover:border-border/60 transition-colors">
                   <div className="flex items-center justify-between mb-2">
@@ -390,7 +430,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Pricing ──────────────────────────────────────────── */}
-      <section id="pricing" className="py-32 px-4 sm:px-6 max-w-5xl mx-auto">
+      <TrackedSection event="pricing_viewed" id="pricing" className="py-32 px-4 sm:px-6 max-w-5xl mx-auto">
         <AnimatedSection className="text-center mb-16">
           <Badge variant="outline" className="mb-4">Simple pricing</Badge>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -433,7 +473,7 @@ export default function LandingPage() {
                 )}
               </ul>
               <Button asChild variant="secondary" size="lg" className="w-full">
-                <Link href="/waitlist">Join the beta</Link>
+                <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_free_card">Join the private beta</TrackedLink>
               </Button>
             </div>
           </StaggerChild>
@@ -472,7 +512,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button asChild variant="gradient" size="lg" className="w-full shadow-glow">
-                  <Link href="/waitlist">Join the beta</Link>
+                  <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_pro_card">Join the private beta</TrackedLink>
                 </Button>
                 <p className="text-xs text-muted-foreground/60 text-center mt-3">
                   Private beta · Help shape V1 · Early access
@@ -481,7 +521,7 @@ export default function LandingPage() {
             </div>
           </StaggerChild>
         </StaggerContainer>
-      </section>
+      </TrackedSection>
 
       {/* ─── Before / After ───────────────────────────────────── */}
       <section className="py-32 px-4 sm:px-6 bg-surface-50/50">
@@ -492,6 +532,7 @@ export default function LandingPage() {
           <p className="text-muted-foreground max-w-xl mx-auto">
             One version gets skimmed and closed. The other gets a call.
           </p>
+          <p className="text-xs text-muted-foreground/40 mt-3 uppercase tracking-widest">Fictional demonstration data</p>
         </AnimatedSection>
 
         <StaggerContainer className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
@@ -503,21 +544,17 @@ export default function LandingPage() {
               </div>
               <div className="space-y-3">
                 <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-red-500/30">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Summary</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Résumé bullet</p>
                   <p className="text-sm text-muted-foreground/80">
-                    Experienced designer with skills in multiple areas, passionate about creating great user
-                    experiences for customers.
+                    Built an internal analytics dashboard and worked with operations.
                   </p>
                 </div>
                 <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-red-500/30">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Recent Project
+                    What a recruiter sees
                   </p>
-                  <p className="text-sm text-muted-foreground/80 font-medium mb-1">Redesigned the company website</p>
                   <p className="text-sm text-muted-foreground/60">
-                    • Helped improve the website design
-                    <br />• Worked with the development team
-                    <br />• Made things more user-friendly
+                    No problem stated. No outcome. No way to tell if this mattered or took a weekend.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
@@ -538,37 +575,33 @@ export default function LandingPage() {
               </div>
               <div className="space-y-3">
                 <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-emerald-500/30">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                    Positioning
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Case Study: Internal Analytics Dashboard
                   </p>
                   <p className="text-sm text-foreground/90">
-                    Product Designer with 5 years building conversion-focused B2B SaaS interfaces. I help teams
-                    ship features that users actually adopt.
+                    <strong className="text-foreground/70">Problem:</strong> Operations manually compiled
+                    weekly reports in spreadsheets, with no live view of the data.
+                    <br />
+                    <strong className="text-foreground/70">Role:</strong> Sole builder, intern project.
+                    <br />
+                    <strong className="text-foreground/70">Process:</strong> Scoped requirements with the
+                    ops lead, built the dashboard, shipped it in a 6-week internship.
+                    <br />
+                    <strong className="text-foreground/70">Outcome:</strong> Not yet quantified.
                   </p>
                 </div>
-                <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-emerald-500/30">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                    Case Study: Checkout Redesign
-                  </p>
-                  <p className="text-sm text-foreground/90 font-medium mb-2">
-                    +24% checkout completion · 18% cart abandonment reduction
-                  </p>
-                  <p className="text-sm text-muted-foreground/80">
-                    <strong className="text-foreground/70">Problem:</strong> Drop-off at payment step was costing
-                    ~$180k/month in lost revenue.
-                    <br />
-                    <strong className="text-foreground/70">Process:</strong> 12 user interviews, heatmap analysis, 3
-                    A/B test cycles.
-                    <br />
-                    <strong className="text-foreground/70">Outcome:</strong> Redesigned form shipped in 6 weeks,
-                    measurable impact in 30 days.
+                <div className="bg-amber-500/[0.06] border border-amber-500/20 rounded-lg p-4">
+                  <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">ProofScore flag</p>
+                  <p className="text-sm text-foreground/80">
+                    Outcome is not quantified yet. Add a number — hours saved, report turnaround time, or
+                    adoption — before this goes out.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
                   <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
                     <Star className="h-3 w-3 text-emerald-400 fill-emerald-400" />
                   </div>
-                  <p className="text-xs text-emerald-400/80">Recruiter screenshots it. Forwards to hiring manager.</p>
+                  <p className="text-xs text-emerald-400/80">A recruiter can see exactly what was built, why, and what to ask about in the interview.</p>
                 </div>
               </div>
             </div>
@@ -667,6 +700,7 @@ export default function LandingPage() {
           </div>
         </section>
       </AnimatedSection>
+      </main>
 
       <Footer />
     </div>

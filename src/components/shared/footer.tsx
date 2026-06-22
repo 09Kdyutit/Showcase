@@ -24,8 +24,10 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
+                { href: '/proofscore', label: 'How ProofScore works' },
+                { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
-                { href: '/signup', label: 'Get started free' },
+                { href: '/waitlist', label: 'Join the private beta' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">

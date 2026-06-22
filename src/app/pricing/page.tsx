@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
 import { CheckCircle2, Lock, ArrowRight, Zap } from 'lucide-react'
 import { Navbar } from '@/components/shared/navbar'
@@ -8,6 +7,7 @@ import { Footer } from '@/components/shared/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { TrackedLink } from '@/components/landing/tracked-link'
 
 const FREE_FEATURES = [
   'Resume text parsing',
@@ -67,7 +67,9 @@ export default function PricingPage() {
             Simple, honest pricing
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Start free with real features. Upgrade when you are ready for full AI generation, complete audits, and public publishing.
+            Free gets you the transformation: a real portfolio draft and your first ProofScore.
+            Pro takes it from draft to shareable — publish it, tailor it per role, and fix every
+            evidence gap.
           </p>
         </div>
 
@@ -126,7 +128,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Button asChild variant="secondary" size="lg" className="w-full">
-              <Link href="/signup">Get started free</Link>
+              <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_page_free_card">Join the private beta</TrackedLink>
             </Button>
           </div>
 
@@ -172,11 +174,11 @@ export default function PricingPage() {
               </ul>
               <div className="space-y-3">
                 <Button asChild variant="gradient" size="lg" className="w-full gap-2 shadow-glow">
-                  <Link href={`/signup?plan=${billing}`}>
+                  <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_page_pro_card">
                     <Zap className="h-4 w-4" />
-                    Start with Showcase Pro
+                    Join the private beta
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </TrackedLink>
                 </Button>
                 <div className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
