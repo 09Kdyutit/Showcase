@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url)
 const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8')
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-const PAGES = ['/waitlist', '/login', '/signup', '/pricing', '/privacy', '/terms']
+const PAGES = ['/', '/waitlist', '/login', '/signup', '/pricing', '/privacy', '/terms', '/refund', '/proofscore', '/for-career-services']
 
 let PASS = 0, FAIL = 0
 const FAILING_IMPACTS = new Set(['critical', 'serious'])

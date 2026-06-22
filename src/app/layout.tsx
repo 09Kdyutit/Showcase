@@ -14,25 +14,31 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  // Fallback matches the actual current Vercel deployment, not an aspirational/unregistered
+  // domain — NEXT_PUBLIC_APP_URL should always be set explicitly per environment, but this
+  // must still resolve to something real if it's ever missing in a preview deploy.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://casefile-ten.vercel.app'),
   title: {
-    default: 'Showcase — Turn your experience into evidence',
+    default: 'Showcase — Your résumé lists claims. Showcase turns them into evidence.',
     template: '%s · Showcase',
   },
   description:
-    'Turn your resume, projects, and work history into a professional proof-of-work portfolio. Get your ProofScore and know exactly where you stand.',
-  keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'ProofScore', 'professional portfolio'],
+    'Built for students, new grads, and early-career professionals. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve — without inventing a thing.',
+  keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'ProofScore', 'professional portfolio', 'early career job search'],
   authors: [{ name: 'Showcase' }],
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     title: 'Showcase — Turn your experience into evidence',
-    description: 'Stop telling employers you are qualified. Show them.',
+    description: 'Your résumé lists claims. Showcase turns them into evidence — without inventing a thing.',
     siteName: 'Showcase',
+    url: '/',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Showcase — Turn your experience into evidence',
-    description: 'Stop telling employers you are qualified. Show them.',
+    description: 'Your résumé lists claims. Showcase turns them into evidence — without inventing a thing.',
   },
   robots: {
     index: true,
