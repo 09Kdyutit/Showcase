@@ -34,4 +34,5 @@ export const ALLOWED_METADATA_KEYS = new Set([
   'viewport',
   'experiment_variant',
   'cta_label',
+  'already_joined',
 ])

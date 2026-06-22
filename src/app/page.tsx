@@ -386,7 +386,7 @@ export default function LandingPage() {
             </ul>
             <Button asChild variant="gradient" size="lg" className="gap-2">
               <Link href="/waitlist">
-                Join the beta
+                Join the private beta
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

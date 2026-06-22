@@ -523,7 +523,7 @@ function WaitlistContent() {
                   onClick={() => scrollToForm('hero_primary')}
                   className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(99,102,241,0.35)]"
                 >
-                  Join the beta
+                  Join the private beta
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <a
@@ -758,7 +758,7 @@ function WaitlistContent() {
                     </>
                   ) : (
                     <>
-                      Join the Showcase beta
+                      Join the private beta
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -953,7 +953,7 @@ function WaitlistContent() {
                 onClick={() => scrollToForm('beta_explainer')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(99,102,241,0.25)]"
               >
-                Join the beta
+                Join the private beta
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -1025,7 +1025,7 @@ function WaitlistContent() {
                 onClick={() => scrollToForm('final_cta')}
                 className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-[0_0_40px_rgba(99,102,241,0.35)]"
               >
-                Join the Showcase beta
+                Join the private beta
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
