@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
+import { trackAsync } from '@/lib/analytics/track'
 import type Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -129,6 +130,7 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
             }, { onConflict: 'user_id' })
             if (upsertError) throw upsertError
+            trackAsync(userId, 'checkout_completed', { price_id: priceItem?.price?.id ?? null })
           }
         }
         break

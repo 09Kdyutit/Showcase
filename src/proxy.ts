@@ -16,8 +16,12 @@ const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook']
 // accounts get zero exception; there is no query string or path that opens a door.
 // Set LAUNCH_OPEN=true (env var on Vercel, not a query param) on launch day to lift this.
 const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
-const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund']
-const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook', '/api/health']
+// /opengraph-image is a code-generated route (app/opengraph-image.tsx) with no file
+// extension, so it isn't caught by the matcher's image-extension exclusion below —
+// without this, a social crawler fetching /waitlist's og:image would get redirected
+// to /waitlist itself instead of the actual image.
+const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund', '/opengraph-image']
+const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook', '/api/health', '/api/marketing/track']
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname

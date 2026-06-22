@@ -18,6 +18,9 @@ export type BetaEvent =
   | 'portfolio_published'
   | 'feedback_started'
   | 'feedback_submitted'
+  | 'signup_started'
+  | 'signup_completed'
+  | 'checkout_completed'
 
 export type TrackMeta = Record<string, string | number | boolean | null | undefined>
 
