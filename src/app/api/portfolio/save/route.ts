@@ -8,6 +8,7 @@ const schema = z.object({
   title: z.string().min(1).max(200).optional(),
   targetRole: z.string().max(200).optional(),
   content: z.record(z.string(), z.unknown()).optional(),
+  theme: z.string().max(50).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -22,12 +23,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const { portfolioId, title, targetRole, content } = parsed.data
+    const { portfolioId, title, targetRole, content, theme } = parsed.data
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
     if (title !== undefined) updates.title = title
     if (targetRole !== undefined) updates.target_role = targetRole
     if (content !== undefined) updates.content = content
+    if (theme !== undefined) updates.theme = theme
 
     const { error } = await supabase
       .from('portfolios')

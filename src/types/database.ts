@@ -130,6 +130,7 @@ export type Database = {
           target_role: string | null
           content: Json | null
           proof_score: number | null
+          ai_generated_at: string | null
           created_at: string
           updated_at: string
           published_at: string | null
@@ -144,6 +145,7 @@ export type Database = {
           target_role?: string | null
           content?: Json | null
           proof_score?: number | null
+          ai_generated_at?: string | null
           created_at?: string
           updated_at?: string
           published_at?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           target_role?: string | null
           content?: Json | null
           proof_score?: number | null
+          ai_generated_at?: string | null
           updated_at?: string
           published_at?: string | null
         }
@@ -246,6 +249,9 @@ export type Database = {
           status: string
           error: string | null
           created_at: string
+          prompt_id: string | null
+          prompt_version: string | null
+          provider: string | null
         }
         Insert: {
           id?: string
@@ -258,6 +264,9 @@ export type Database = {
           status?: string
           error?: string | null
           created_at?: string
+          prompt_id?: string | null
+          prompt_version?: string | null
+          provider?: string | null
         }
         Update: {
           output?: Json | null

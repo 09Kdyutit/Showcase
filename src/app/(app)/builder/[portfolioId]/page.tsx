@@ -17,6 +17,8 @@ import type { Portfolio, PortfolioContent, ParsedResume } from '@/types/database
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { portfolioGoalLabel } from '@/lib/constants'
+import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
+import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
 
 interface BuilderPageProps {
   params: Promise<{ portfolioId: string }>
@@ -31,6 +33,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [content, setContent] = useState<Partial<PortfolioContent>>({})
   const [title, setTitle] = useState('')
   const [targetRole, setTargetRole] = useState('')
+  const [theme, setTheme] = useState<ThemeId>('executive-dark')
   const [loading, setLoading] = useState(true)
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const [generating, setGenerating] = useState(false)
@@ -49,6 +52,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef({ title: '', targetRole: '', content: {} as Partial<PortfolioContent> })
+  // Synchronous guard checked before any state update — a second click landing before React
+  // re-renders (and the `generating` state/disabled prop actually reflect the first click)
+  // would otherwise both pass an `if (generating) return` check and fire two generations.
+  const generatingRef = useRef(false)
 
   async function load() {
     const supabase = createClient()
@@ -65,6 +72,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     setPortfolio(portfolioRes.data)
     setTitle(portfolioRes.data.title)
     setTargetRole(portfolioRes.data.target_role ?? '')
+    setTheme(coerceThemeId(portfolioRes.data.theme))
     const c = portfolioRes.data.content as unknown as Partial<PortfolioContent> ?? {}
     setContent(c)
     lastSavedRef.current = { title: portfolioRes.data.title, targetRole: portfolioRes.data.target_role ?? '', content: c }
@@ -84,7 +92,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       const res = await fetch('/api/portfolio/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolioId, title, targetRole, content }),
+        body: JSON.stringify({ portfolioId, title, targetRole, content, theme }),
       })
       if (!res.ok) throw new Error('Save failed')
       lastSavedRef.current = { title, targetRole, content }
@@ -94,10 +102,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       setSaveState('error')
       if (showToast) toast.error('Save failed — check your connection')
     }
-  }, [title, targetRole, content, portfolioId])
+  }, [title, targetRole, content, theme, portfolioId])
 
-  // Debounce off the actual [title, targetRole, content] values via an effect, rather than
-  // calling a manually-built `save` closure from inside each setState updater. The old
+  // Debounce off the actual [title, targetRole, content, theme] values via an effect, rather
+  // than calling a manually-built `save` closure from inside each setState updater. The old
   // approach scheduled a timer using whatever `save` closure existed *before* the edit being
   // made was applied — every single autosave was missing the one edit that triggered it,
   // so an isolated action like "click Generate once" never actually got persisted by
@@ -111,7 +119,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     autosaveTimer.current = setTimeout(() => save(false), 2500)
     return () => { if (autosaveTimer.current) clearTimeout(autosaveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, targetRole, content])
+  }, [title, targetRole, content, theme])
 
   // Declared after the autosave effect above so it commits second on the initial-load
   // render — the autosave effect still sees hasLoadedRef as false on that first pass and
@@ -126,10 +134,13 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
 
   function updateTitle(v: string) { setTitle(v) }
   function updateRole(v: string) { setTargetRole(v) }
+  function updateTheme(v: ThemeId) { setTheme(v) }
 
-  async function generatePortfolio() {
+  async function generatePortfolio(confirmOverwrite = false) {
     if (!isPro) { toast.error('Pro required for AI generation'); return }
     if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
+    if (generatingRef.current) return
+    generatingRef.current = true
 
     setGenerating(true)
     const MSGS = [
@@ -176,10 +187,24 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
           portfolioGoal: portfolioGoalLabel(profileMeta?.portfolio_goal),
           links,
           portfolioId,
+          confirmOverwrite,
         }),
       })
-      const { data, error: genErr } = await genRes.json()
-      if (!genRes.ok) throw new Error(genErr?.message ?? genErr ?? 'Generation failed')
+      const { data, error: genErr, code } = await genRes.json()
+      if (!genRes.ok) {
+        // The route detected real content that's been touched since the last generation —
+        // ask before clobbering it, rather than silently overwriting the user's own edits.
+        if (code === 'CONFIRM_OVERWRITE') {
+          generatingRef.current = false
+          setGenerating(false)
+          clearInterval(iv)
+          if (window.confirm('This will overwrite your current content with a fresh AI-generated draft. Continue?')) {
+            await generatePortfolio(true)
+          }
+          return
+        }
+        throw new Error(genErr?.message ?? genErr ?? 'Generation failed')
+      }
       updateContent(() => data)
       toast.success('Portfolio generated! Review and edit the content below.')
     } catch (err) {
@@ -187,6 +212,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     } finally {
       clearInterval(iv)
       setGenerating(false)
+      generatingRef.current = false
     }
   }
 
@@ -376,7 +402,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       <Button
                         variant="gradient"
                         size="sm"
-                        onClick={generatePortfolio}
+                        onClick={() => generatePortfolio()}
                         loading={generating}
                         disabled={!resumeText}
                         className="gap-1.5 w-full"
@@ -579,7 +605,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   </div>
                 </div>
 
-                {/* Live preview */}
+                {/* Live preview — the real theme renderer, shrunk to fit, not a mockup */}
                 <div>
                   <div className="glass-card overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-surface-200/50">
@@ -596,66 +622,24 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         : <Badge variant="default" className="text-xs shrink-0">Draft</Badge>
                       }
                     </div>
-                    <div className="p-6 space-y-6 max-h-[620px] overflow-y-auto thin-scrollbar">
-                      {hero?.headline ? (
-                        <>
-                          <div>
-                            {hero.tagline && <p className="text-xs text-brand-400 font-medium mb-2 uppercase tracking-wider">{hero.tagline}</p>}
-                            <h1 className="text-xl font-bold text-foreground mb-2 leading-tight">{hero.headline}</h1>
-                            {hero.subheadline && <p className="text-sm text-muted-foreground leading-relaxed">{hero.subheadline}</p>}
-                          </div>
-                          {about?.bio && (
-                            <div>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">About</p>
-                              <p className="text-sm text-foreground/80 leading-relaxed">{about.bio.slice(0, 180)}{about.bio.length > 180 ? '…' : ''}</p>
-                            </div>
-                          )}
-                          {proof.filter(p => p.value && p.label).length > 0 && (
-                            <div className="grid grid-cols-2 gap-2">
-                              {proof.filter(p => p.value && p.label).slice(0, 4).map((p, i) => (
-                                <div key={i} className="bg-surface-300/80 rounded-xl p-3 text-center">
-                                  <p className="text-base font-bold gradient-text">{p.value}</p>
-                                  <p className="text-xs text-muted-foreground mt-0.5">{p.label}</p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {skills.slice(0, 12).length > 0 && (
-                            <div>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Skills</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {skills.slice(0, 12).map((s) => (
-                                  <span key={s.name} className="px-2 py-0.5 bg-surface-300 rounded-lg text-xs text-foreground/70">{s.name}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {projects.slice(0, 2).map((proj, i) => (
-                            <div key={i} className="bg-surface-200 rounded-xl p-4 border border-border">
-                              <p className="text-sm font-semibold text-foreground mb-1">{proj.title}</p>
-                              {proj.summary && <p className="text-xs text-muted-foreground leading-relaxed">{proj.summary}</p>}
-                              {proj.metrics?.length > 0 && (
-                                <div className="flex gap-2 mt-2">
-                                  {proj.metrics.slice(0, 2).map((m, mi) => (
-                                    <span key={mi} className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{m}</span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-surface-300 flex items-center justify-center">
-                            <Eye className="h-6 w-6 text-muted-foreground/30" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground mb-1">Preview will appear here</p>
-                            <p className="text-xs text-muted-foreground/60">Fill in the hero section or use AI generation to get started</p>
-                          </div>
+                    {hero?.headline ? (
+                      <LivePreviewFrame
+                        themeId={theme}
+                        portfolio={{ title, slug: portfolio?.slug ?? '', target_role: targetRole, status: portfolio?.status ?? 'draft' }}
+                        content={content}
+                        height={620}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-surface-300 flex items-center justify-center">
+                          <Eye className="h-6 w-6 text-muted-foreground/30" />
                         </div>
-                      )}
-                    </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground mb-1">Preview will appear here</p>
+                          <p className="text-xs text-muted-foreground/60">Fill in the hero section or use AI generation to get started</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 </div>
@@ -903,8 +887,51 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             </TabsContent>
 
             <TabsContent value="settings">
-              <div className="max-w-lg space-y-5">
+              <div className="max-w-3xl space-y-5">
                 <div className="glass-card p-5 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Theme</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Changes the live preview instantly. Won&apos;t publish until you click Publish.</p>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    {THEME_LIST.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => updateTheme(t.id)}
+                        className={cn(
+                          'text-left rounded-xl border p-3 transition-all duration-150',
+                          theme === t.id ? 'border-brand-500/60 bg-brand-500/5 ring-1 ring-brand-500/30' : 'border-border bg-surface-100 hover:border-border/80'
+                        )}
+                      >
+                        <div
+                          className="h-16 rounded-lg mb-3 overflow-hidden flex flex-col gap-1 p-2"
+                          style={{ background: t.swatch.bg }}
+                        >
+                          <div className="h-1.5 w-1/2 rounded-full" style={{ background: t.swatch.accent }} />
+                          <div className="h-1 w-3/4 rounded-full opacity-60" style={{ background: t.swatch.text }} />
+                          <div className="h-1 w-2/3 rounded-full opacity-40" style={{ background: t.swatch.text }} />
+                          <div className="flex gap-1 mt-1">
+                            <div className="h-3 flex-1 rounded" style={{ background: t.swatch.text, opacity: 0.12 }} />
+                            <div className="h-3 flex-1 rounded" style={{ background: t.swatch.text, opacity: 0.12 }} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-xs font-semibold text-foreground">{t.name}</p>
+                          {theme === t.id && <CheckCircle2 className="h-3.5 w-3.5 text-brand-400 shrink-0" />}
+                        </div>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-2">{t.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {t.recommendedRoles.slice(0, 3).map((r) => (
+                            <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-surface-300 text-muted-foreground/70">{r}</span>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-card p-5 space-y-4 max-w-lg">
                   <h3 className="text-sm font-semibold text-foreground">Portfolio settings</h3>
                   <div className="space-y-1.5">
                     <Label>Portfolio title</Label>
@@ -924,7 +951,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   </div>
                 </div>
 
-                <div className="glass-card p-5 space-y-4">
+                <div className="glass-card p-5 space-y-4 max-w-lg">
                   <h3 className="text-sm font-semibold text-foreground">Publishing</h3>
                   <div className="flex items-center justify-between">
                     <div>
