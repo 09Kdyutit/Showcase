@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
   LayoutDashboard, FileText, Briefcase, BarChart3, Settings, CreditCard,
-  LogOut, Zap, ChevronRight, Menu, X, Search
+  LogOut, Zap, ChevronRight, Menu, X, Search, MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { href: '/builder', icon: Briefcase, label: 'Portfolio' },
   { href: '/audit', icon: BarChart3, label: 'ProofScore' },
   { href: '/jobs', icon: Search, label: 'Jobs' },
+  { href: '/interviews', icon: MessageSquare, label: 'Interview Lab' },
 ]
 
 const BOTTOM_ITEMS = [
