@@ -64,6 +64,24 @@ export async function checkRateLimit(
   try {
     const supabase = await createServiceClient()
 
+    // Global daily ceiling, independent of per-user limits — bounds aggregate spend if
+    // an attacker spreads calls across many accounts (each individually within its own
+    // per-user limit). Default is generous (won't bind under normal usage) but finite;
+    // override with AI_GLOBAL_DAILY_LIMIT for an incident. Checked before the per-user
+    // counter so a tripped global ceiling fails every request the same way, not just new
+    // users, and never advances the per-user counter for a call that wasn't going to run.
+    const globalMax = Number(process.env.AI_GLOBAL_DAILY_LIMIT) || 2000
+    const { data: globalData, error: globalError } = await supabase
+      .rpc('rate_limit_increment', { p_key: 'ai:global:daily', p_window_seconds: 86400, p_max: globalMax })
+      .single() as { data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null, error: { message: string } | null }
+    if (!globalError && globalData && !globalData.allowed) {
+      console.error(`[rate-limit/ai] GLOBAL daily AI ceiling reached: ${globalData.current_count}/${globalMax}`)
+      return {
+        allowed: false,
+        reason: 'AI features are temporarily at capacity platform-wide. Please try again later.',
+      }
+    }
+
     // Atomic increment-and-check via rate_limit_increment() (migration 011) — a single
     // INSERT ... ON CONFLICT DO UPDATE statement, so concurrent requests serialize on the
     // row instead of racing a separate SELECT-count-then-INSERT (which a real adversarial
