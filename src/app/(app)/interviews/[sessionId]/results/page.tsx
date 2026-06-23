@@ -3,12 +3,21 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Trash2, Info, Share2, Copy, X } from 'lucide-react'
+import { Trash2, Info, Share2, Copy, X, RotateCcw, CheckCircle2, MinusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 import { apiErrorMessage } from '@/lib/utils'
+
+interface RetryComparison {
+  originalWordCount: number
+  retryWordCount: number
+  wordCountDelta: number
+  observations: { label: string; changed: boolean }[]
+}
+interface RetryResult { retryAnswer: { answer_text: string }; previousAnswer: { answer_text: string }; comparison: RetryComparison }
 
 interface Share {
   id: string
@@ -46,6 +55,10 @@ export default function InterviewResultsPage() {
   const [shares, setShares] = useState<Share[]>([])
   const [creatingShare, setCreatingShare] = useState(false)
   const [newShareLink, setNewShareLink] = useState<string | null>(null)
+  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
+  const [retryText, setRetryText] = useState('')
+  const [submittingRetry, setSubmittingRetry] = useState(false)
+  const [retryResults, setRetryResults] = useState<Record<string, RetryResult>>({})
 
   async function loadShares() {
     const res = await fetch(`/api/interviews/sessions/${params.sessionId}/share`)
@@ -68,6 +81,28 @@ export default function InterviewResultsPage() {
     setNewShareLink(`${window.location.origin}/shared/${json.data.token}`)
     setCreatingShare(false)
     loadShares()
+  }
+
+  async function handleSubmitRetry(questionId: string) {
+    if (!retryText.trim()) {
+      toast.error('Write a retry answer before submitting.')
+      return
+    }
+    setSubmittingRetry(true)
+    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/answers/${questionId}/retry`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answerText: retryText.trim() }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      toast.error(apiErrorMessage(json.error, 'Could not submit retry.'))
+      setSubmittingRetry(false)
+      return
+    }
+    setRetryResults((prev) => ({ ...prev, [questionId]: json.data }))
+    setRetryingQuestionId(null)
+    setRetryText('')
+    setSubmittingRetry(false)
   }
 
   async function handleRevokeShare(shareId: string) {
@@ -201,10 +236,43 @@ export default function InterviewResultsPage() {
         <CardContent className="space-y-5">
           {questions.map((q) => {
             const answer = transcript.find((t) => t.question_id === q.id && t.speaker === 'candidate')
+            const retryResult = retryResults[q.id]
             return (
               <div key={q.id} className="space-y-2">
                 <p className="text-sm font-medium text-foreground">{q.question_text}</p>
                 <p className="text-sm text-muted-foreground bg-surface-100 rounded-xl p-3">{answer?.content ?? '(not answered)'}</p>
+
+                {session.status === 'completed' && answer && !retryResult && retryingQuestionId !== q.id && (
+                  <Button size="sm" variant="ghost" onClick={() => { setRetryingQuestionId(q.id); setRetryText('') }} className="gap-1.5 h-7 text-xs">
+                    <RotateCcw className="h-3 w-3" /> Retry this answer
+                  </Button>
+                )}
+
+                {retryingQuestionId === q.id && (
+                  <div className="space-y-2 pl-3 border-l-2 border-brand-500/30">
+                    <Textarea value={retryText} onChange={(e) => setRetryText(e.target.value)} placeholder="Try answering again..." className="min-h-[100px]" maxLength={10000} />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setRetryingQuestionId(null)}>Cancel</Button>
+                      <Button size="sm" onClick={() => handleSubmitRetry(q.id)} disabled={submittingRetry}>{submittingRetry ? 'Comparing…' : 'Submit Retry'}</Button>
+                    </div>
+                  </div>
+                )}
+
+                {retryResult && (
+                  <div className="rounded-xl border border-border/60 bg-surface-100 p-3 space-y-2">
+                    <p className="text-xs font-medium text-foreground">Retry comparison</p>
+                    <p className="text-sm text-foreground">{retryResult.retryAnswer.answer_text}</p>
+                    <div className="space-y-1 pt-2 border-t border-border/60">
+                      {retryResult.comparison.observations.map((o, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          {o.changed ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" /> : <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
+                          <span className={o.changed ? 'text-foreground' : 'text-muted-foreground'}>{o.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground/70 pt-1">These are objective text comparisons, not an AI quality judgment. Both attempts are saved — your original answer was never overwritten.</p>
+                  </div>
+                )}
               </div>
             )
           })}
