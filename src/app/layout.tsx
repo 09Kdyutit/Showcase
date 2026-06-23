@@ -15,12 +15,13 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  // Fallback matches the actual current Vercel deployment, not an aspirational/unregistered
-  // domain — NEXT_PUBLIC_APP_URL should always be set explicitly per environment, but this
-  // must still resolve to something real if it's ever missing in a preview deploy.
-  // showcase-app-three.vercel.app is the consolidated production project (showcase-app);
-  // casefile-ten.vercel.app is a legacy backup deployment, never used as a fallback target.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'),
+  // NEXT_PUBLIC_APP_URL is only set for Production. Preview deployments fall back to
+  // Vercel's auto-provided per-deployment VERCEL_URL so canonical/OG tags point at the
+  // actual preview URL instead of claiming to be the production domain.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://showcase-app-three.vercel.app')
+  ),
   title: {
     default: 'Showcase — Your résumé lists claims. Showcase turns them into evidence.',
     template: '%s · Showcase',
