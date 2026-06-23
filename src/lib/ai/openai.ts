@@ -1,3 +1,4 @@
+import 'server-only'
 import OpenAI from 'openai'
 
 // Fail loud at startup in production if key is absent

@@ -1,3 +1,4 @@
+import 'server-only'
 import { FixtureProvider } from './fixture'
 import { ExternalProvider } from './external'
 import { JobDataApiProvider } from './jobdataapi'

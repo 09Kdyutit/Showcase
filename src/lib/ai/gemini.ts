@@ -1,3 +1,4 @@
+import 'server-only'
 import { GoogleGenAI } from '@google/genai'
 import { z } from 'zod'
 import type { ReviewMode, ReviewRequest, ReviewerOutput } from './review-types.ts'
