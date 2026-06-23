@@ -28,6 +28,7 @@
     "test:interview-sharing": "node --env-file=.env.local scripts/test-interview-sharing.mjs",
     "test:interview-audio-validation": "node --experimental-strip-types scripts/test-interview-audio-validation.mjs",
     "test:interview-recording": "node --env-file=.env.local scripts/test-interview-recording.mjs",
+    "test:interview-deletion": "node --env-file=.env.local scripts/test-interview-deletion.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",

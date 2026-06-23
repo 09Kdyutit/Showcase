@@ -5,8 +5,10 @@ import { z } from 'zod'
 // Every user-owned table has ON DELETE CASCADE to auth.users (verified directly against
 // the schema), so deleting the auth user cascades resumes, portfolios, audits,
 // generations, usage_events, saved_jobs, applications, tailored_assets, voice_profiles,
-// evidence_items, subscriptions, and the profile row automatically. Storage objects are
-// not part of the Postgres FK graph and must be removed explicitly.
+// evidence_items, subscriptions, the profile row, and every interview_* table
+// (sessions, questions, answers, transcript_segments, evaluations, dimension_scores,
+// story_bank, drills, usage, shared_reports) automatically. Storage objects are not
+// part of the Postgres FK graph and must be removed explicitly.
 const schema = z.object({
   confirm: z.literal('DELETE'),
 })
@@ -38,6 +40,21 @@ export async function POST(request: NextRequest) {
       }
     } catch (err) {
       console.error('[account/delete] storage cleanup failed (continuing):', err instanceof Error ? err.message : err)
+    }
+
+    // interview-recordings nests one level deeper (${userId}/${sessionId}/${file}),
+    // so a flat list() of the user's own prefix only returns subfolder names, not
+    // files — list each subfolder too before removing.
+    try {
+      const { data: sessionFolders } = await service.storage.from('interview-recordings').list(user.id)
+      for (const folder of sessionFolders ?? []) {
+        const { data: recordings } = await service.storage.from('interview-recordings').list(`${user.id}/${folder.name}`)
+        if (recordings && recordings.length > 0) {
+          await service.storage.from('interview-recordings').remove(recordings.map((f) => `${user.id}/${folder.name}/${f.name}`))
+        }
+      }
+    } catch (err) {
+      console.error('[account/delete] interview recordings cleanup failed (continuing):', err instanceof Error ? err.message : err)
     }
 
     const { error: deleteError } = await service.auth.admin.deleteUser(user.id)
