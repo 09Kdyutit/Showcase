@@ -63,18 +63,28 @@ export async function checkRateLimit(
 
   try {
     const supabase = await createServiceClient()
-    const windowStart = new Date(Date.now() - limit.windowHours * 60 * 60 * 1000).toISOString()
 
-    const { count } = await supabase
-      .from('usage_events')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('event_name', eventName)
-      .gte('created_at', windowStart)
+    // Atomic increment-and-check via rate_limit_increment() (migration 011) — a single
+    // INSERT ... ON CONFLICT DO UPDATE statement, so concurrent requests serialize on the
+    // row instead of racing a separate SELECT-count-then-INSERT (which a real adversarial
+    // test proved lets 10 parallel requests all pass a limit of 3 — every request reads
+    // the same pre-insert count before any of them has recorded their own usage). The
+    // counter key is scoped per user+event, independent of usage_events, which remains a
+    // pure analytics/audit log and is no longer load-bearing for quota enforcement.
+    const key = `ai:${eventName}:${userId}`
+    const windowSeconds = limit.windowHours * 60 * 60
+    const { data, error } = await supabase
+      .rpc('rate_limit_increment', { p_key: key, p_window_seconds: windowSeconds, p_max: limit.max })
+      .single() as { data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null, error: { message: string } | null }
 
-    const used = count ?? 0
-    if (used >= limit.max) {
-      const retryAt = new Date(Date.now() + limit.windowHours * 60 * 60 * 1000)
+    if (error || !data) {
+      // Fail open on infrastructure error, same documented tradeoff as the Postgres
+      // rate limiter for non-AI routes — an outage here must never take down the feature.
+      return { allowed: true }
+    }
+
+    if (!data.allowed) {
+      const retryAt = new Date(Date.now() + data.retry_after_seconds * 1000)
       return {
         allowed: false,
         reason: `You have reached your ${tier} limit of ${limit.max} ${eventName.replace(/_/g, ' ')} per ${limit.windowHours} hours. ${isPro ? 'Try again later.' : 'Upgrade to Pro for higher limits.'}`,
