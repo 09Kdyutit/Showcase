@@ -62,17 +62,12 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const { data: profile } = await supabase
-      .from('interview_profiles')
-      .select('age_eligibility_confirmed')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    if (!profile?.age_eligibility_confirmed) {
-      return NextResponse.json({
-        error: 'Please confirm you are 18 or older before starting an interview.',
-        code: 'AGE_CONFIRMATION_REQUIRED',
-      }, { status: 403 })
-    }
+    // Age eligibility is intentionally NOT checked at creation time — the product
+    // flow is New Interview (configure) -> Lobby (privacy notice + age confirmation)
+    // -> Start, and the Lobby only exists after a session is created. Requiring
+    // confirmation here would make it impossible for any first-time user to ever
+    // reach the screen that collects it. /start (the actual transition into the live
+    // room) is the real gate — see sessions/[id]/start/route.ts.
 
     const isPro = await isProUser(user.id)
     const monthlyLimit = isPro ? PRO_SESSIONS_PER_MONTH : FREE_SESSIONS_PER_MONTH

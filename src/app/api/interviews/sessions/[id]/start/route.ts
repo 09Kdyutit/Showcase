@@ -11,6 +11,22 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // The real age-eligibility gate. Checked here, not at session creation, because
+    // the product flow is New Interview (configure) -> Lobby (privacy notice + age
+    // confirmation) -> Start -> Live, and the Lobby (where confirmation happens) only
+    // exists for a session that's already been created.
+    const { data: profile } = await supabase
+      .from('interview_profiles')
+      .select('age_eligibility_confirmed')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (!profile?.age_eligibility_confirmed) {
+      return NextResponse.json({
+        error: 'Please confirm you are 18 or older before starting an interview.',
+        code: 'AGE_CONFIRMATION_REQUIRED',
+      }, { status: 403 })
+    }
+
     const { data: session, error: fetchError } = await supabase
       .from('interview_sessions')
       .select('id, status, max_duration_seconds')
