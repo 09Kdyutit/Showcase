@@ -17,7 +17,9 @@ export const metadata: Metadata = {
   // Fallback matches the actual current Vercel deployment, not an aspirational/unregistered
   // domain — NEXT_PUBLIC_APP_URL should always be set explicitly per environment, but this
   // must still resolve to something real if it's ever missing in a preview deploy.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://casefile-ten.vercel.app'),
+  // showcase-app-three.vercel.app is the consolidated production project (showcase-app);
+  // casefile-ten.vercel.app is a legacy backup deployment, never used as a fallback target.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'),
   title: {
     default: 'Showcase — Your résumé lists claims. Showcase turns them into evidence.',
     template: '%s · Showcase',

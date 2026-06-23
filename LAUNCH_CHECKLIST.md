@@ -10,9 +10,9 @@ verification, RLS, rate limiting, and security headers are done and verified
 
 ## Critical (must do before launch)
 
-- [ ] **Rotate every credential ever pasted into a chat/terminal session**
+- [x] **Rotate every credential ever pasted into a chat/terminal session**
   (Stripe keys, Supabase service-role key, DB password) in the Stripe and
-  Supabase dashboards. This is P0-05 in the manifest — flagged, not yet done.
+  Supabase dashboards. Confirmed done by the account owner (P0-05 PASS).
 
 - [ ] **Upgrade the Supabase project off the Free tier.** Confirmed directly
   against the project this session: Free tier has **zero automated backups and
@@ -20,27 +20,30 @@ verification, RLS, rate limiting, and security headers are done and verified
   finding and what tier to pick. Do not launch with real customer/payment data
   on a database with no backup coverage.
 
-- [ ] **Set all env vars in your deployment environment**, including
+- [x] **Set all env vars in your deployment environment**, including
   `LAUNCH_OPEN=true` and `OPENAI_API_KEY` (not `AI_API_KEY` — the app uses
-  OpenAI, not Anthropic). Copy from `.env.example`. See [DEPLOYMENT.md](./DEPLOYMENT.md).
+  OpenAI, not Anthropic). Set in the `showcase-app` Vercel project.
 
-- [ ] **Deploy to a real launch target — NOT the existing Vercel project.**
-  The Vercel project already linked in this repo (`casefile-ten.vercel.app`)
-  is reserved for the waitlist landing page only, per explicit instruction.
-  Launch needs its own separate deployment target.
+- [x] **Deploy to a real launch target — `showcase-app`
+  (`https://showcase-app-three.vercel.app`), not the legacy project.**
+  `casefile-ten.vercel.app` (Vercel project `showcase`) is a legacy backup
+  deployment — do not deploy to it, point auth/webhooks at it, or use it for
+  beta traffic. `showcase-app` is the single production project going
+  forward; the local repo's `.vercel/project.json` is linked to it.
 
-- [ ] **Register the production Stripe webhook** against the real launch
-  domain once it exists. See [STRIPE_SETUP.md](./STRIPE_SETUP.md). Add the
-  signing secret as `STRIPE_WEBHOOK_SECRET`, and confirm `npm run test:stripe`
-  still passes against it.
+- [x] **Register the production Stripe webhook** against
+  `https://showcase-app-three.vercel.app/api/stripe/webhook`. Endpoint
+  `we_1TkEgnRrWPEIfq2Mh8VT0W2r` is enabled with all 6 required events
+  (checkout.session.completed, customer.subscription.{created,updated,deleted},
+  invoice.paid, invoice.payment_failed). Its signing secret is set as
+  `STRIPE_WEBHOOK_SECRET` in the `showcase-app` Vercel project.
 
-- [ ] **Apply all Supabase migrations to the production project** (currently
-  011 total):
-  ```bash
-  supabase link --project-ref yogwhfrjhcbnvoxitcay
-  supabase db push
-  ```
-  Verify RLS is on every table — run the verification SQL in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
+- [x] **Apply all Supabase migrations to the production project.** All 15
+  local migration files' content is live (verified by table/column
+  existence, not just the CLI ledger — some were applied via direct
+  migration tooling under timestamp-based version IDs that don't match the
+  local numeric filenames; this is a cosmetic ledger mismatch, not a missing
+  migration). RLS is enabled on every table.
 
 ## Verification (must test before announcing)
 

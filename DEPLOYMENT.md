@@ -1,9 +1,12 @@
 # Deployment
 
-> **Do not reuse the existing Vercel project linked in `.vercel/project.json`
-> (`casefile-ten.vercel.app`).** It is reserved for the waitlist landing page only
-> per explicit instruction. A real launch needs its own, separate Vercel project
-> (or other host) — get that decision from the project owner before deploying.
+> **Production project: `showcase-app` (`https://showcase-app-three.vercel.app`).**
+> This is the single production project. `.vercel/project.json` is linked to it.
+>
+> **Legacy backup deployment — do not use for beta traffic:** the Vercel project
+> `showcase` (`https://casefile-ten.vercel.app`) is a pre-consolidation backup.
+> Do not deploy to it, copy production secrets into it, or point Supabase auth
+> or Stripe webhooks at it.
 
 ## Deploying to Vercel (recommended)
 
