@@ -245,7 +245,7 @@ export default function InterviewResultsPage() {
               <p>{analysisMessage ?? 'AI-powered evidence analysis is not yet enabled for Showcase Interview Lab. Your transcript and answers below are saved and reviewable, but a scored evaluation is not available yet.'}</p>
             </div>
           )}
-          <p className="text-xs text-muted-foreground/70 mt-4 border-t border-border/60 pt-3">
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border/60 pt-3">
             Interview Readiness is a structured practice diagnostic based on your answers in Showcase. It is not a hiring prediction.
           </p>
         </CardContent>
@@ -302,7 +302,7 @@ export default function InterviewResultsPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground/70 pt-1">These are objective text comparisons, not an AI quality judgment. Both attempts are saved — your original answer was never overwritten.</p>
+                    <p className="text-xs text-muted-foreground pt-1">These are objective text comparisons, not an AI quality judgment. Both attempts are saved — your original answer was never overwritten.</p>
                   </div>
                 )}
               </div>

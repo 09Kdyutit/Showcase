@@ -116,7 +116,7 @@ export default function InterviewLivePage() {
       </div>
 
       <div className="rounded-2xl border border-border/60 bg-card p-6">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground/70 mb-2">{currentQuestion.competency.replace(/_/g, ' ')}</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{currentQuestion.competency.replace(/_/g, ' ')}</p>
         <p className="text-lg font-medium text-foreground leading-relaxed">{currentQuestion.question_text}</p>
       </div>
 

@@ -24,7 +24,7 @@ export default async function SharedReportPage({ params }: SharedReportPageProps
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="max-w-lg w-full space-y-6">
         <div className="text-center">
-          <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">Showcase Interview Lab</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">Showcase Interview Lab</p>
           <h1 className="text-2xl font-bold text-foreground tracking-tight mt-1 capitalize">{report.sessionType.replace(/_/g, ' ')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{report.targetRole}{report.targetCompany ? ` · ${report.targetCompany}` : ''}</p>
         </div>
@@ -63,7 +63,7 @@ export default async function SharedReportPage({ params }: SharedReportPageProps
             </div>
           )}
           {report.scoringNote && (
-            <p className="text-xs text-muted-foreground/70 border-t border-border/60 pt-3">{report.scoringNote}</p>
+            <p className="text-xs text-muted-foreground border-t border-border/60 pt-3">{report.scoringNote}</p>
           )}
         </div>
 

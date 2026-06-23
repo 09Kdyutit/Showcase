@@ -98,7 +98,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 Save $30 — go annual
               </Link>
             </Button>
-            <Link href="/billing?plan=monthly" className="block text-[11px] text-center text-muted-foreground/60 hover:text-muted-foreground mt-2">
+            <Link href="/billing?plan=monthly" className="block text-[11px] text-center text-muted-foreground hover:text-foreground mt-2">
               or $15/mo billed monthly
             </Link>
           </div>
@@ -132,7 +132,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-foreground truncate">{profile.full_name ?? profile.email}</p>
-              <p className="text-xs text-muted-foreground/60 truncate">{profile.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
             </div>
             <LogOut className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors shrink-0" />
           </div>

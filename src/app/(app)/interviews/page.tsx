@@ -69,7 +69,7 @@ export default async function InterviewHubPage() {
               </div>
             </div>
           )}
-          <p className="text-xs text-muted-foreground/70 mt-4 border-t border-border/60 pt-3">
+          <p className="text-xs text-muted-foreground mt-4 border-t border-border/60 pt-3">
             Interview Readiness is a structured practice diagnostic based on your answers in Showcase. It is not a hiring prediction.
           </p>
         </CardContent>
@@ -147,7 +147,7 @@ export default async function InterviewHubPage() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-muted-foreground/60 text-center pt-2">
+      <p className="text-xs text-muted-foreground text-center pt-2">
         Showcase never invents experience for your answers. Camera is optional and never used for appearance scoring.
       </p>
     </div>
