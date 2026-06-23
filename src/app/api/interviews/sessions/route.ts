@@ -92,6 +92,12 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Gather real, already-verified evidence (never invented) ──────────────
+    // A resumeId/portfolioId that doesn't exist or doesn't belong to this user is
+    // treated as "none provided," not an error — silently dropping an invalid/foreign
+    // ID here is what prevents both a 500 (interview_sessions.resume_id has a real FK
+    // constraint, which a nonexistent ID would violate at insert time) and any
+    // possibility of the insert succeeding with a foreign owner's ID attached.
+    let verifiedResumeId: string | null = null
     let resumeExperience: { id: string; company: string; role: string }[] = []
     if (input.resumeId) {
       const { data: resume } = await supabase
@@ -100,18 +106,32 @@ export async function POST(request: NextRequest) {
         .eq('id', input.resumeId)
         .eq('user_id', user.id)
         .maybeSingle()
-      const parsedExperience = (resume?.parsed_json as { experience?: { company?: string; role?: string }[] } | null)?.experience ?? []
-      resumeExperience = parsedExperience
-        .filter((e) => e.company && e.role)
-        .map((e, i) => ({ id: `${input.resumeId}-exp-${i}`, company: e.company!, role: e.role! }))
+      if (resume) {
+        verifiedResumeId = resume.id
+        const parsedExperience = (resume.parsed_json as { experience?: { company?: string; role?: string }[] } | null)?.experience ?? []
+        resumeExperience = parsedExperience
+          .filter((e) => e.company && e.role)
+          .map((e, i) => ({ id: `${resume.id}-exp-${i}`, company: e.company!, role: e.role! }))
+      }
     }
 
+    let verifiedPortfolioId: string | null = null
     let portfolioProjects: { id: string; title: string }[] = []
     if (input.portfolioId) {
-      let query = supabase.from('projects').select('id, title').eq('user_id', user.id).eq('portfolio_id', input.portfolioId)
-      if (input.selectedProjectIds?.length) query = query.in('id', input.selectedProjectIds)
-      const { data: projects } = await query.limit(10)
-      portfolioProjects = (projects ?? []).map((p) => ({ id: p.id, title: p.title }))
+      const { data: portfolio } = await supabase.from('portfolios').select('id').eq('id', input.portfolioId).eq('user_id', user.id).maybeSingle()
+      if (portfolio) {
+        verifiedPortfolioId = portfolio.id
+        let query = supabase.from('projects').select('id, title').eq('user_id', user.id).eq('portfolio_id', portfolio.id)
+        if (input.selectedProjectIds?.length) query = query.in('id', input.selectedProjectIds)
+        const { data: projects } = await query.limit(10)
+        portfolioProjects = (projects ?? []).map((p) => ({ id: p.id, title: p.title }))
+      }
+    }
+
+    let verifiedSavedJobId: string | null = null
+    if (input.savedJobId) {
+      const { data: savedJob } = await supabase.from('saved_jobs').select('id').eq('id', input.savedJobId).eq('user_id', user.id).maybeSingle()
+      if (savedJob) verifiedSavedJobId = savedJob.id
     }
 
     const plan = buildInterviewPlan({
@@ -127,9 +147,9 @@ export async function POST(request: NextRequest) {
       .from('interview_sessions')
       .insert({
         user_id: user.id,
-        saved_job_id: input.savedJobId ?? null,
-        resume_id: input.resumeId ?? null,
-        portfolio_id: input.portfolioId ?? null,
+        saved_job_id: verifiedSavedJobId,
+        resume_id: verifiedResumeId,
+        portfolio_id: verifiedPortfolioId,
         session_type: input.sessionType,
         delivery_mode: input.deliveryMode,
         coaching_mode: input.coachingMode,

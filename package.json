@@ -19,6 +19,7 @@
     "test:interview-plan": "node --experimental-strip-types scripts/test-interview-plan.mjs",
     "test:interview-live-config": "node --experimental-strip-types scripts/test-interview-live-config.mjs",
     "test:interview-rls": "node --env-file=.env.local scripts/test-interview-rls.mjs",
+    "test:interview-authorization": "node --env-file=.env.local scripts/test-interview-authorization.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
