@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, Zap, CreditCard, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,11 +23,14 @@ const PRO_FEATURES = [
 ]
 
 export default function BillingPage() {
+  const searchParams = useSearchParams()
   const [sub, setSub] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>(
+    searchParams.get('plan') === 'monthly' ? 'monthly' : 'annual'
+  )
 
   useEffect(() => {
     const supabase = createClient()
@@ -162,12 +166,14 @@ export default function BillingPage() {
             </div>
 
             {/* Billing cycle toggle */}
-            <div className="flex items-center gap-2 mb-6">
+            <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-xl bg-black/30 border border-white/10">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                  billingCycle === 'monthly' ? 'bg-surface-300 text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  'px-3 py-2.5 rounded-lg text-sm font-semibold transition-all',
+                  billingCycle === 'monthly'
+                    ? 'bg-surface-300 text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 Monthly
@@ -175,12 +181,17 @@ export default function BillingPage() {
               <button
                 onClick={() => setBillingCycle('annual')}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5',
-                  billingCycle === 'annual' ? 'bg-surface-300 text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  'relative px-3 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2',
+                  billingCycle === 'annual'
+                    ? 'bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.4)]'
+                    : 'text-emerald-400 hover:text-emerald-300'
                 )}
               >
                 Annual
-                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                <span className={cn(
+                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                  billingCycle === 'annual' ? 'bg-black/20 text-black' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                )}>
                   Save $30
                 </span>
               </button>

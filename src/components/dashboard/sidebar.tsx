@@ -92,14 +92,14 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
             <p className="text-xs font-semibold text-brand-300 mb-1">Showcase Pro</p>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">Unlock full AI generation, personalized job matching, Tailor Studio, and public portfolios.</p>
             <Button asChild variant="gradient" size="sm" className="w-full gap-1.5 text-xs shadow-[0_0_16px_rgba(99,70,200,0.3)]">
-              <Link href="/billing">
+              <Link href="/billing?plan=annual">
                 <Zap className="h-3 w-3" />
-                Upgrade · $15/mo
+                Save $30 — go annual
               </Link>
             </Button>
-            <p className="text-[11px] text-center text-muted-foreground/60 mt-2">
-              or <Link href="/billing" className="text-brand-400 hover:text-brand-300 underline">$150/yr — save $30</Link>
-            </p>
+            <Link href="/billing?plan=monthly" className="block text-[11px] text-center text-muted-foreground/60 hover:text-muted-foreground mt-2">
+              or $15/mo billed monthly
+            </Link>
           </div>
         </div>
       )}

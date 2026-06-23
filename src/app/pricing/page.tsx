@@ -55,7 +55,7 @@ const PRO_FEATURES = [
 ]
 
 export default function PricingPage() {
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const isAnnual = billing === 'annual'
 
   return (
@@ -74,13 +74,13 @@ export default function PricingPage() {
         </div>
 
         {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-12">
+        <div className="grid grid-cols-2 max-w-xs mx-auto gap-2 mb-12 p-1 rounded-2xl bg-black/30 border border-white/10">
           <button
             onClick={() => setBilling('monthly')}
             className={cn(
-              'px-4 py-2 rounded-xl text-sm font-medium transition-all',
+              'px-4 py-3 rounded-xl text-sm font-semibold transition-all',
               !isAnnual
-                ? 'bg-surface-200 text-foreground'
+                ? 'bg-surface-200 text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -89,14 +89,17 @@ export default function PricingPage() {
           <button
             onClick={() => setBilling('annual')}
             className={cn(
-              'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+              'relative px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2',
               isAnnual
-                ? 'bg-surface-200 text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-emerald-500 text-black shadow-[0_0_24px_rgba(16,185,129,0.45)]'
+                : 'text-emerald-400 hover:text-emerald-300',
             )}
           >
             Annual
-            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            <span className={cn(
+              'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+              isAnnual ? 'bg-black/20 text-black' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400',
+            )}>
               Save $30
             </span>
           </button>
