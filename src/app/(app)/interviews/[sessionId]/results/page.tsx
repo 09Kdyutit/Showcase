@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Trash2, Info, Share2, Copy, X, RotateCcw, CheckCircle2, MinusCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Trash2, Info, Share2, Copy, X, RotateCcw, CheckCircle2, MinusCircle, BookmarkPlus, Dumbbell, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { apiErrorMessage } from '@/lib/utils'
+import { recommendDrillsForDimensions } from '@/lib/interviews/drills'
 
 interface RetryComparison {
   originalWordCount: number
@@ -29,7 +31,7 @@ interface Share {
 }
 
 interface TranscriptSegment { id: string; speaker: string; content: string; question_id: string | null }
-interface Question { id: string; question_text: string; order_index: number }
+interface Question { id: string; question_text: string; order_index: number; competency: string }
 type Evaluation = { overall_score: number; readiness_band: string; result: { topFixes: string[]; strengths: string[] } } | null
 
 interface SessionDetail {
@@ -59,6 +61,7 @@ export default function InterviewResultsPage() {
   const [retryText, setRetryText] = useState('')
   const [submittingRetry, setSubmittingRetry] = useState(false)
   const [retryResults, setRetryResults] = useState<Record<string, RetryResult>>({})
+  const [savedStoryQuestionIds, setSavedStoryQuestionIds] = useState<Set<string>>(new Set())
 
   async function loadShares() {
     const res = await fetch(`/api/interviews/sessions/${params.sessionId}/share`)
@@ -103,6 +106,24 @@ export default function InterviewResultsPage() {
     setRetryingQuestionId(null)
     setRetryText('')
     setSubmittingRetry(false)
+  }
+
+  async function handleSaveAsStory(question: Question, answerText: string) {
+    const res = await fetch('/api/interviews/story-bank', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: question.question_text.slice(0, 200),
+        competencies: [question.competency],
+        outcome: answerText,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      toast.error(apiErrorMessage(json.error, 'Could not save story.'))
+      return
+    }
+    toast.success('Saved to your Story Bank.')
+    setSavedStoryQuestionIds((prev) => new Set(prev).add(question.id))
   }
 
   async function handleRevokeShare(shareId: string) {
@@ -242,10 +263,21 @@ export default function InterviewResultsPage() {
                 <p className="text-sm font-medium text-foreground">{q.question_text}</p>
                 <p className="text-sm text-muted-foreground bg-surface-100 rounded-xl p-3">{answer?.content ?? '(not answered)'}</p>
 
-                {session.status === 'completed' && answer && !retryResult && retryingQuestionId !== q.id && (
-                  <Button size="sm" variant="ghost" onClick={() => { setRetryingQuestionId(q.id); setRetryText('') }} className="gap-1.5 h-7 text-xs">
-                    <RotateCcw className="h-3 w-3" /> Retry this answer
-                  </Button>
+                {session.status === 'completed' && answer && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {!retryResult && retryingQuestionId !== q.id && (
+                      <Button size="sm" variant="ghost" onClick={() => { setRetryingQuestionId(q.id); setRetryText('') }} className="gap-1.5 h-7 text-xs">
+                        <RotateCcw className="h-3 w-3" /> Retry this answer
+                      </Button>
+                    )}
+                    <Button
+                      size="sm" variant="ghost" disabled={savedStoryQuestionIds.has(q.id)}
+                      onClick={() => handleSaveAsStory(q, answer.content)}
+                      className="gap-1.5 h-7 text-xs"
+                    >
+                      <BookmarkPlus className="h-3 w-3" /> {savedStoryQuestionIds.has(q.id) ? 'Saved to Story Bank' : 'Save as Story'}
+                    </Button>
+                  </div>
                 )}
 
                 {retryingQuestionId === q.id && (
@@ -278,6 +310,31 @@ export default function InterviewResultsPage() {
           })}
         </CardContent>
       </Card>
+
+      {/* Recommended practice */}
+      {session.status === 'completed' && (
+        <Card>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Practice Next</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              {latestEvaluation
+                ? 'Drills targeted at your weakest scored dimensions from this session.'
+                : 'General practice recommendations — these aren\'t personalized to this session yet, since AI-powered scoring isn\'t enabled.'}
+            </p>
+            <div className="grid sm:grid-cols-3 gap-2">
+              {recommendDrillsForDimensions([]).map((d) => (
+                <Link key={d.id} href="/interviews/drills" className="rounded-xl border border-border/60 p-3 hover:bg-surface-200 transition-colors">
+                  <p className="text-sm font-medium text-foreground">{d.label}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.objective}</p>
+                </Link>
+              ))}
+            </div>
+            <Link href="/interviews/drills" className="text-xs text-brand-400 hover:underline inline-flex items-center gap-1">
+              See all drills <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Private, revocable sharing */}
       {session.status === 'completed' && (

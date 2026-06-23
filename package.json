@@ -31,6 +31,7 @@
     "test:interview-deletion": "node --env-file=.env.local scripts/test-interview-deletion.mjs",
     "test:interview-retry-comparison": "node --experimental-strip-types scripts/test-interview-retry-comparison.mjs",
     "test:interview-retry": "node --env-file=.env.local scripts/test-interview-retry.mjs",
+    "test:interview-results-extras": "node --env-file=.env.local scripts/test-interview-results-extras.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
