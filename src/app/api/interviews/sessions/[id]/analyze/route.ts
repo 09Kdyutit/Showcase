@@ -1,0 +1,131 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { isInterviewAnalysisEnabled } from '@/lib/interviews/config'
+import { runInterviewAnalysis } from '@/lib/interviews/gemini/analysis'
+import { computeInterviewScore } from '@/lib/interviews/scoring'
+import { getAnalysisModel } from '@/lib/interviews/gemini/models'
+import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
+import type { InterviewPlan, TranscriptSegment, SessionType, DimensionId } from '@/lib/interviews/schemas'
+
+/**
+ * Runs (or, in this build, honestly declines to run) post-session analysis. As built,
+ * isInterviewAnalysisEnabled() is false in every environment (see config.ts) — no
+ * human has confirmed paid Gemini billing or reviewed ToS. This route's job in that
+ * state is to mark the session analysis_status='skipped' and tell the user truthfully
+ * that AI evidence analysis isn't available yet, rather than fabricate a score or
+ * silently leave the session in 'pending' forever. The enabled branch below is real,
+ * complete code — it has simply never executed against a live Gemini call in this
+ * session, for the reasons documented in src/lib/interviews/gemini/live.ts and
+ * analysis.ts.
+ */
+export async function POST(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: session, error: fetchError } = await supabase
+      .from('interview_sessions')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (fetchError) throw fetchError
+    if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session.status !== 'completed') {
+      return NextResponse.json({ error: `Session is ${session.status}, not yet completed.`, code: 'INVALID_STATE' }, { status: 409 })
+    }
+
+    if (!isInterviewAnalysisEnabled()) {
+      await supabase.from('interview_sessions').update({ analysis_status: 'skipped' }).eq('id', id)
+      return NextResponse.json({
+        data: { analysisAvailable: false },
+        message: 'AI-powered evidence analysis is not yet enabled for Showcase Interview Lab. Your transcript and answers are saved and you can review them, but a scored evaluation is not available yet.',
+      })
+    }
+
+    await supabase.from('interview_sessions').update({ analysis_status: 'running' }).eq('id', id)
+
+    const [{ data: transcriptRows }, { data: questions }] = await Promise.all([
+      supabase.from('interview_transcript_segments').select('*').eq('session_id', id).order('start_ms'),
+      supabase.from('interview_questions').select('*').eq('session_id', id).order('order_index'),
+    ])
+
+    const transcript: TranscriptSegment[] = (transcriptRows ?? []).map((s) => ({
+      id: s.id, speaker: s.speaker as 'interviewer' | 'candidate', startMs: s.start_ms, endMs: s.end_ms,
+      content: s.content, sourceMode: s.source_mode as 'text' | 'voice_live' | 'voice_recorded',
+    }))
+
+    const plan = session.session_plan as InterviewPlan
+    const sessionType = session.session_type as SessionType
+    const dimensionIds = Object.keys(DIMENSION_REGISTRY).filter((d) =>
+      DIMENSION_REGISTRY[d as DimensionId].appliesTo.includes(sessionType)
+    ) as DimensionId[]
+
+    let verifiedResumeEvidence: Record<string, unknown> = {}
+    if (session.resume_id) {
+      const { data: resume } = await supabase.from('resumes').select('parsed_json').eq('id', session.resume_id).eq('user_id', user.id).maybeSingle()
+      verifiedResumeEvidence = (resume?.parsed_json as Record<string, unknown>) ?? {}
+    }
+    let verifiedPortfolioEvidence: Record<string, unknown> = {}
+    if (session.portfolio_id) {
+      const { data: projects } = await supabase.from('projects').select('title, summary, problem, process, outcome, metrics').eq('portfolio_id', session.portfolio_id).eq('user_id', user.id)
+      verifiedPortfolioEvidence = { projects: projects ?? [] }
+    }
+
+    let result
+    try {
+      result = await runInterviewAnalysis({
+        plan, transcript, verifiedResumeEvidence, verifiedPortfolioEvidence,
+        targetJobRequirements: [], dimensionIds,
+      })
+    } catch (err) {
+      await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
+      console.error('[interviews/analyze] Gemini analysis failed', err instanceof Error ? err.message : err)
+      return NextResponse.json({ error: 'Analysis failed. Your session data is preserved and you can try again.', code: 'ANALYSIS_FAILED' }, { status: 502 })
+    }
+
+    let scoreResult
+    try {
+      scoreResult = computeInterviewScore(sessionType, result.data, transcript)
+    } catch (err) {
+      await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
+      console.error('[interviews/analyze] scoring rejected the analysis (likely a fabricated citation)', err instanceof Error ? err.message : err)
+      return NextResponse.json({ error: 'Analysis could not be verified and was discarded. Your session data is preserved.', code: 'ANALYSIS_REJECTED' }, { status: 502 })
+    }
+
+    const { data: evaluation, error: evalError } = await supabase
+      .from('interview_evaluations')
+      .insert({
+        user_id: user.id, session_id: id, prompt_id: 'interview-analysis', prompt_version: '1',
+        provider: 'gemini', model: result.meta.model, rubric_id: session.rubric_id, rubric_version: session.rubric_version,
+        overall_score: scoreResult.overallScore, readiness_band: scoreResult.readinessBand,
+        result: result.data, analysis_cost_metadata: { latencyMs: result.meta.latencyMs, promptTokenCount: result.meta.promptTokenCount },
+      })
+      .select('*')
+      .single()
+    if (evalError) throw evalError
+
+    const dimensionRows = scoreResult.dimensions.map((d) => ({
+      user_id: user.id, session_id: id, evaluation_id: evaluation.id,
+      dimension_id: d.dimensionId, score: d.score, weight: d.weight,
+      evidence_segment_ids: d.evidenceSegmentIds, explanation: d.explanation, confidence: d.confidence,
+    }))
+    if (dimensionRows.length > 0) {
+      const { error: dimError } = await supabase.from('interview_dimension_scores').insert(dimensionRows)
+      if (dimError) throw dimError
+    }
+
+    await supabase.from('interview_sessions').update({ analysis_status: 'completed' }).eq('id', id)
+    void questions // referenced for future per-question evaluation linkage; not yet used beyond this build's session-level scoring
+
+    return NextResponse.json({ data: { analysisAvailable: true, evaluation, dimensions: scoreResult.dimensions, model: getAnalysisModel() } })
+  } catch (err) {
+    console.error('[interviews/sessions/[id]/analyze POST]', err instanceof Error ? err.message : err)
+    return NextResponse.json({ error: 'Failed to analyze interview session.' }, { status: 500 })
+  }
+}
