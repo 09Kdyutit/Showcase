@@ -82,13 +82,15 @@ export default async function InterviewHubPage() {
             <div className="text-2xl font-bold text-foreground">{completedCount}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2"><BookOpen className="h-4 w-4" /><span className="text-xs font-medium">Story bank</span></div>
-            <div className="text-2xl font-bold text-foreground">{storyBank.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">{storyBank.filter((s) => s.evidence_status !== 'unverified').length} with linked evidence</p>
-          </CardContent>
-        </Card>
+        <Link href="/interviews/story-bank">
+          <Card className="h-full hover:bg-surface-200 transition-colors">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2"><BookOpen className="h-4 w-4" /><span className="text-xs font-medium">Story bank</span></div>
+              <div className="text-2xl font-bold text-foreground">{storyBank.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">{storyBank.filter((s) => s.evidence_status !== 'unverified').length} with linked evidence</p>
+            </CardContent>
+          </Card>
+        </Link>
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 text-muted-foreground mb-2"><Mic className="h-4 w-4" /><span className="text-xs font-medium">Voice interviews</span></div>

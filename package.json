@@ -22,6 +22,7 @@
     "test:interview-authorization": "node --env-file=.env.local scripts/test-interview-authorization.mjs",
     "test:interview-e2e": "node --env-file=.env.local scripts/test-interview-e2e.mjs",
     "test:interview-session-types": "node --env-file=.env.local scripts/test-interview-session-types.mjs",
+    "test:interview-story-bank": "node --env-file=.env.local scripts/test-interview-story-bank.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
