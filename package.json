@@ -26,6 +26,8 @@
     "test:interview-drills": "node --experimental-strip-types scripts/test-interview-drills.mjs",
     "test:interview-drills-ui": "node --env-file=.env.local scripts/test-interview-drills-ui.mjs",
     "test:interview-sharing": "node --env-file=.env.local scripts/test-interview-sharing.mjs",
+    "test:interview-audio-validation": "node --experimental-strip-types scripts/test-interview-audio-validation.mjs",
+    "test:interview-recording": "node --env-file=.env.local scripts/test-interview-recording.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
