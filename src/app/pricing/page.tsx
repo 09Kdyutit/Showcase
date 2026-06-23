@@ -80,8 +80,8 @@ export default function PricingPage() {
             className={cn(
               'px-4 py-3 rounded-xl text-sm font-semibold transition-all',
               !isAnnual
-                ? 'bg-surface-200 text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_24px_rgba(99,70,200,0.45)]'
+                : 'text-brand-300 hover:text-brand-200',
             )}
           >
             Monthly
