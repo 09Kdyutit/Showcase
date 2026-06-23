@@ -9,12 +9,6 @@ import { z } from 'zod'
 const SECONDS_PER_30_DAYS = 30 * 24 * 60 * 60
 const sessionCreateLimiter = new PostgresRateLimiter()
 
-// Only the three session types this build has a curated question bank for. Expanding
-// this list is mechanical (add templates to question-bank/index.ts) but should not be
-// silently implied as "supported" until the templates actually exist — buildInterviewPlan
-// throws for any other type, and this allowlist gives that a clean 400 instead of a 500.
-const IMPLEMENTED_SESSION_TYPES = ['recruiter_screen', 'behavioral', 'portfolio_walkthrough'] as const
-
 const createSchema = z.object({
   sessionType: z.enum(SESSION_TYPES),
   deliveryMode: z.enum(DELIVERY_MODES),
@@ -44,13 +38,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
     const input = parsed.data
-
-    if (!(IMPLEMENTED_SESSION_TYPES as readonly string[]).includes(input.sessionType)) {
-      return NextResponse.json({
-        error: `Session type "${input.sessionType}" does not have curated questions yet in this build. Available: ${IMPLEMENTED_SESSION_TYPES.join(', ')}.`,
-        code: 'SESSION_TYPE_NOT_IMPLEMENTED',
-      }, { status: 400 })
-    }
 
     // Voice mode requires the Live-voice Gemini gate, which is off in every environment
     // today (see src/lib/interviews/config.ts) — fail closed with a clear message

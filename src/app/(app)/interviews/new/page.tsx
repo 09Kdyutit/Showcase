@@ -12,7 +12,14 @@ import { cn, apiErrorMessage } from '@/lib/utils'
 const SESSION_TYPES = [
   { value: 'recruiter_screen', label: 'Recruiter Screen', desc: 'Background, motivation, role fit, logistics.' },
   { value: 'behavioral', label: 'Behavioral', desc: 'STAR-style stories: conflict, failure, ownership, ambiguity.' },
+  { value: 'hiring_manager', label: 'Hiring Manager', desc: 'Judgment, leadership, decisions you\'d defend.' },
   { value: 'portfolio_walkthrough', label: 'Portfolio Walkthrough', desc: 'Walk through a real project from your portfolio.' },
+  { value: 'project_deep_dive', label: 'Project Deep Dive', desc: 'Architecture, tradeoffs, scaling, debugging.' },
+  { value: 'technical_concept', label: 'Technical Concept', desc: 'Explain and reason about core concepts in your field.' },
+  { value: 'case_problem_solving', label: 'Case / Problem Solving', desc: 'Structured reasoning through an ambiguous problem.' },
+  { value: 'presentation_defense', label: 'Presentation Defense', desc: 'Defend a recommendation under pushback.' },
+  { value: 'job_specific_full_loop', label: 'Job-Specific Full Loop', desc: 'Mapped to a specific role\'s real requirements.' },
+  { value: 'rapid_fire_drill', label: 'Rapid-Fire Drill', desc: 'Many short, quick questions — speed and clarity.' },
 ] as const
 
 const DIFFICULTIES = ['foundational', 'standard', 'challenging'] as const
@@ -28,6 +35,7 @@ export default function NewInterviewPage() {
   const [difficulty, setDifficulty] = useState<typeof DIFFICULTIES[number]>('standard')
   const [sessionLength, setSessionLength] = useState<typeof LENGTHS[number]['value']>('quick')
   const [targetRole, setTargetRole] = useState('')
+  const [targetCompany, setTargetCompany] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit() {
@@ -42,6 +50,7 @@ export default function NewInterviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionType, difficulty, sessionLength, targetRole: targetRole.trim(),
+          targetCompany: targetCompany.trim() || undefined,
           deliveryMode: 'text', coachingMode: 'guided',
         }),
       })
@@ -67,15 +76,21 @@ export default function NewInterviewPage() {
 
       <Card>
         <CardHeader><CardTitle className="text-base">Target role</CardTitle></CardHeader>
-        <CardContent>
-          <Label htmlFor="targetRole">What role are you practicing for?</Label>
-          <Input id="targetRole" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="e.g. Product Designer" className="mt-2" maxLength={200} />
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="targetRole">What role are you practicing for?</Label>
+            <Input id="targetRole" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="e.g. Product Designer" className="mt-2" maxLength={200} />
+          </div>
+          <div>
+            <Label htmlFor="targetCompany">Target company (optional)</Label>
+            <Input id="targetCompany" value={targetCompany} onChange={(e) => setTargetCompany(e.target.value)} placeholder="e.g. Acme Corp" className="mt-2" maxLength={200} />
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Interview format</CardTitle></CardHeader>
-        <CardContent className="grid gap-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
           {SESSION_TYPES.map((t) => (
             <button
               key={t.value}

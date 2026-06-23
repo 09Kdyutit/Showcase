@@ -4,6 +4,7 @@
 // Run via: npm run test:interview-plan
 import { buildInterviewPlan } from '../src/lib/interviews/plan.ts'
 import { checkQuestionSafety } from '../src/lib/interviews/question-safety.ts'
+import { SESSION_TYPES } from '../src/lib/interviews/schemas.ts'
 
 let PASS = 0, FAIL = 0
 function record(label, ok, detail) {
@@ -44,13 +45,43 @@ const portfolioPlan = buildInterviewPlan({
 })
 record('Portfolio walkthrough questions carry source references to the real project', portfolioPlan.questions.some((q) => q.sourceReferences.some((r) => r.sourceType === 'portfolio_project' && r.sourceId === 'proj-1')))
 
-let threwOnUnknownSessionType = false
-try {
-  buildInterviewPlan({ sessionType: 'technical_concept', targetRole: 'Engineer', targetCompany: null, difficulty: 'standard', sessionLength: 'quick', evidence: {} })
-} catch {
-  threwOnUnknownSessionType = true
+// ── Coverage: every one of the 10 modeled session types must build a real plan ──
+// This is the regression test for the gap that existed until this build: rubrics.ts
+// had weight profiles for all 10 session types long before the question bank had
+// templates to back them, so 7 of 10 silently threw at session-creation time. Every
+// type below must now succeed, at every difficulty, with no template-count shortfall.
+for (const sessionType of SESSION_TYPES) {
+  for (const difficulty of ['foundational', 'standard', 'challenging']) {
+    let plan
+    let threw = false
+    try {
+      plan = buildInterviewPlan({
+        sessionType, targetRole: 'Engineer', targetCompany: 'Acme Corp',
+        difficulty, sessionLength: 'full',
+        evidence: { jobRequirements: ['Own end-to-end delivery of a major feature'] },
+      })
+    } catch (e) {
+      threw = true
+      console.error(`    (${sessionType}/${difficulty} threw: ${e.message})`)
+    }
+    record(`${sessionType} (${difficulty}) builds a real plan, does not throw`, !threw)
+    if (!plan) continue
+    record(`${sessionType} (${difficulty}) has at least 3 questions`, plan.questions.length >= 3, `got ${plan.questions.length}`)
+    record(`${sessionType} (${difficulty}) every question passes the safety filter`, plan.questions.every((q) => checkQuestionSafety(q.questionText).safe))
+    record(`${sessionType} (${difficulty}) rubric id matches the session type`, plan.rubricId === `rubric-${sessionType}`)
+    record(`${sessionType} (${difficulty}) no unsubstituted placeholders remain`, plan.questions.every((q) => !q.questionText.includes('{{')))
+  }
 }
-record('Session type with no curated templates yet fails closed (throws), not silently empty', threwOnUnknownSessionType)
+
+// ── Distinct session types must not collapse onto identical question content —
+// proves each type has its own real templates, not a shared fallback ───────────
+const allFirstQuestions = new Map()
+for (const sessionType of SESSION_TYPES) {
+  const plan = buildInterviewPlan({ sessionType, targetRole: 'Engineer', targetCompany: null, difficulty: 'standard', sessionLength: 'quick', evidence: {} })
+  allFirstQuestions.set(sessionType, plan.questions.map((q) => q.templateId).join(','))
+}
+const uniqueQuestionSets = new Set(allFirstQuestions.values())
+record('All 10 session types produce distinct question sets (no silent reuse across types)', uniqueQuestionSets.size === SESSION_TYPES.length, `${uniqueQuestionSets.size} distinct sets for ${SESSION_TYPES.length} types`)
 
 console.log(`\n  Interview plan builder test: ${PASS} passed, ${FAIL} failed\n`)
 process.exit(FAIL > 0 ? 1 : 0)
