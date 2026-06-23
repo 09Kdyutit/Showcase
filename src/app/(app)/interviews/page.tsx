@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowRight, MessageSquare, Mic, BookOpen, ShieldCheck } from 'lucide-react'
+import { ArrowRight, MessageSquare, Mic, BookOpen, Dumbbell, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -75,7 +75,7 @@ export default async function InterviewHubPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 text-muted-foreground mb-2"><MessageSquare className="h-4 w-4" /><span className="text-xs font-medium">Sessions completed</span></div>
@@ -88,6 +88,15 @@ export default async function InterviewHubPage() {
               <div className="flex items-center gap-2 text-muted-foreground mb-2"><BookOpen className="h-4 w-4" /><span className="text-xs font-medium">Story bank</span></div>
               <div className="text-2xl font-bold text-foreground">{storyBank.length}</div>
               <p className="text-xs text-muted-foreground mt-1">{storyBank.filter((s) => s.evidence_status !== 'unverified').length} with linked evidence</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/interviews/drills">
+          <Card className="h-full hover:bg-surface-200 transition-colors">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2"><Dumbbell className="h-4 w-4" /><span className="text-xs font-medium">Drills</span></div>
+              <div className="text-sm font-medium text-foreground">Practice one skill</div>
+              <p className="text-xs text-muted-foreground mt-1">15 focused exercises</p>
             </CardContent>
           </Card>
         </Link>
