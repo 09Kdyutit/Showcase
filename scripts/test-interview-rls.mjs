@@ -30,7 +30,7 @@ async function main() {
   console.log('User B:', b.userId)
 
   // ── User A creates real Interview Lab data ──────────────────────────────
-  await a.client.from('interview_profiles').insert({ user_id: a.userId, age_eligibility_confirmed: true, age_confirmed_at: new Date().toISOString(), terms_version_confirmed: '2026-06-23' })
+  await a.client.from('interview_profiles').insert({ user_id: a.userId })
 
   const samplePlan = { sessionType: 'behavioral', targetRole: 'Engineer', targetCompany: null, competencies: ['ownership'], questions: [], maxFollowUps: 2, rubricId: 'rubric-behavioral', rubricVersion: '1', forbiddenTopics: [], maxDurationSeconds: 420 }
   const { data: sessionA, error: sessionErr } = await a.client

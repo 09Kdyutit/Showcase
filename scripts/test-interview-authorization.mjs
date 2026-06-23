@@ -43,8 +43,7 @@ async function main() {
   const pageA = await signUpBrowser(browser, `interview-auth-a-${suffix}@example.com`)
   const pageB = await signUpBrowser(browser, `interview-auth-b-${suffix}@example.com`)
 
-  // ── User A confirms eligibility and creates a real session through the real API ──
-  await callApi(pageA, 'POST', '/api/interviews/profile', { ageEligibilityConfirmed: true })
+  // ── User A creates a real session through the real API ─────────────────────
   const createRes = await callApi(pageA, 'POST', '/api/interviews/sessions', {
     sessionType: 'behavioral', deliveryMode: 'text', coachingMode: 'guided',
     difficulty: 'standard', sessionLength: 'quick', targetRole: 'Auth Test Engineer',
@@ -57,9 +56,6 @@ async function main() {
     title: 'Secret story A', competencies: ['ownership'],
   })
   const storyId = storyRes.body?.data?.id
-
-  console.log('\n── User B confirms their own eligibility (separate account) ──')
-  await callApi(pageB, 'POST', '/api/interviews/profile', { ageEligibilityConfirmed: true })
 
   console.log('\n── Cross-user session access ──')
   {

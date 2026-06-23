@@ -7,8 +7,8 @@ import { createLiveEphemeralToken } from '@/lib/interviews/gemini/live'
 /**
  * Issues a short-lived Gemini Live ephemeral token for a voice session. Runs every
  * check the mission requires BEFORE reaching the point where a real implementation
- * would call Gemini — age eligibility, ownership, session state, entitlement — so
- * that once Live is actually enabled, this route does not need new security
+ * would call Gemini — ownership, session state, entitlement — so that once Live is
+ * actually enabled, this route does not need new security
  * plumbing, only the live.ts provider call itself. (Origin validation for all
  * /api/* state-changing requests already happens centrally in src/proxy.ts — see
  * security/release-gate.json P1-07 — so it is not repeated here.) As built,
@@ -25,15 +25,6 @@ export async function POST(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { data: profile } = await supabase
-      .from('interview_profiles')
-      .select('age_eligibility_confirmed')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    if (!profile?.age_eligibility_confirmed) {
-      return NextResponse.json({ error: 'Age eligibility not confirmed.', code: 'AGE_CONFIRMATION_REQUIRED' }, { status: 403 })
-    }
 
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')

@@ -57,12 +57,8 @@ async function main() {
   const sessionId = page.url().match(/interviews\/([a-f0-9-]+)\/lobby/)?.[1]
   record('A real session ID was assigned', !!sessionId, sessionId)
 
-  // ── 3. Lobby — age confirmation + start ─────────────────────────────────
+  // ── 3. Lobby — start ─────────────────────────────────────────────────────
   await page.waitForSelector('button:has-text("Start Interview")', { timeout: 10000 })
-  const ageCheckbox = page.locator('input[type=checkbox]')
-  const hasAgeCheckbox = await ageCheckbox.isVisible().catch(() => false)
-  record('Lobby shows the age-eligibility checkbox for a first-time user', hasAgeCheckbox)
-  if (hasAgeCheckbox) await ageCheckbox.check()
   await page.getByRole('button', { name: /start interview/i }).click()
   await page.waitForURL(/\/interviews\/[a-f0-9-]+\/live/, { timeout: 10000 })
   record('Starting the session navigates to the Live room', page.url().includes('/live'))

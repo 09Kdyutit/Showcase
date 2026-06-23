@@ -5,11 +5,10 @@
 // and there is no single flag whose absence accidentally enables anything.
 //
 // As of this build, GEMINI_PAID_PROJECT_CONFIRMED and GEMINI_INTERVIEW_ENABLED are
-// unset in every environment (no human has reviewed Gemini's ToS for this product,
-// confirmed paid billing, or signed off on the age-gate/consent flow this session
-// could not obtain). isInterviewLabRuntimeEnabled() is therefore false everywhere —
-// by design, not by omission. Every route that would call Gemini checks this before
-// doing anything else.
+// unset in every environment (no human has reviewed Gemini's ToS for this product or
+// confirmed paid billing). isInterviewLabRuntimeEnabled() is therefore false
+// everywhere — by design, not by omission. Every route that would call Gemini checks
+// this before doing anything else.
 
 export function isGeminiPaidProjectConfirmed(): boolean {
   return process.env.GEMINI_PAID_PROJECT_CONFIRMED === 'true'
@@ -37,11 +36,6 @@ export function isInterviewAnalysisEnabled(): boolean {
 
 export function isInterviewRecordingEnabled(): boolean {
   return isInterviewLabRuntimeEnabled() && process.env.INTERVIEW_RECORDING_ENABLED === 'true'
-}
-
-export function getInterviewMinimumAge(): number {
-  const n = Number(process.env.INTERVIEW_MINIMUM_AGE ?? '18')
-  return Number.isFinite(n) && n >= 18 ? n : 18 // never allow this to be configured below 18
 }
 
 /** Raw audio retention is OFF by default (mission gate item 10) regardless of a

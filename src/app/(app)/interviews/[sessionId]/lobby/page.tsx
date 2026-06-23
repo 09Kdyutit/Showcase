@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { ShieldCheck, Clock, FileText } from 'lucide-react'
+import { Clock, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,50 +17,27 @@ export default function InterviewLobbyPage() {
   const router = useRouter()
   const params = useParams<{ sessionId: string }>()
   const [detail, setDetail] = useState<SessionDetail | null>(null)
-  const [ageConfirmed, setAgeConfirmed] = useState(false)
-  const [needsAgeConfirmation, setNeedsAgeConfirmation] = useState(false)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, profileRes] = await Promise.all([
-        fetch(`/api/interviews/sessions/${params.sessionId}`),
-        fetch('/api/interviews/profile'),
-      ])
+      const sessionRes = await fetch(`/api/interviews/sessions/${params.sessionId}`)
       const sessionJson = await sessionRes.json()
-      const profileJson = await profileRes.json()
       if (!sessionRes.ok) {
         toast.error(apiErrorMessage(sessionJson.error, 'Could not load session.'))
         router.push('/interviews')
         return
       }
       setDetail(sessionJson.data)
-      setNeedsAgeConfirmation(!profileJson.data?.age_eligibility_confirmed)
       setLoading(false)
     }
     load()
   }, [params.sessionId, router])
 
   async function handleStart() {
-    if (needsAgeConfirmation && !ageConfirmed) {
-      toast.error('Please confirm you are 18 or older to continue.')
-      return
-    }
     setStarting(true)
     try {
-      if (needsAgeConfirmation) {
-        const profileRes = await fetch('/api/interviews/profile', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ageEligibilityConfirmed: true }),
-        })
-        if (!profileRes.ok) {
-          const json = await profileRes.json()
-          toast.error(apiErrorMessage(json.error, 'Could not confirm eligibility.'))
-          setStarting(false)
-          return
-        }
-      }
       const startRes = await fetch(`/api/interviews/sessions/${params.sessionId}/start`, { method: 'POST' })
       const startJson = await startRes.json()
       if (!startRes.ok) {
@@ -103,18 +80,6 @@ export default function InterviewLobbyPage() {
           <p>This is a private practice session. Showcase does not represent any real employer and never shares your results without your explicit consent.</p>
         </CardContent>
       </Card>
-
-      {needsAgeConfirmation && (
-        <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Eligibility</CardTitle></CardHeader>
-          <CardContent>
-            <label className="flex items-start gap-3 text-sm text-foreground cursor-pointer">
-              <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-border" />
-              <span>I confirm that I am 18 years of age or older.</span>
-            </label>
-          </CardContent>
-        </Card>
-      )}
 
       <Button onClick={handleStart} disabled={starting} size="lg" className="w-full">
         {starting ? 'Starting…' : 'Start Interview'}

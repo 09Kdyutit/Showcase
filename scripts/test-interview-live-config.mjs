@@ -16,7 +16,7 @@
 import {
   isGeminiPaidProjectConfirmed, isGeminiInterviewEnabled, isInterviewLabRuntimeEnabled,
   isInterviewLiveEnabled, isInterviewAnalysisEnabled, isInterviewRecordingEnabled,
-  getInterviewMinimumAge, isRawAudioRetentionAllowedPlatformWide, getMaxSessionMinutes,
+  isRawAudioRetentionAllowedPlatformWide, getMaxSessionMinutes,
   getMaxConcurrentSessions, getGlobalDailyBudgetUsd, getUserMonthlyBudgetUsd,
 } from '../src/lib/interviews/config.ts'
 import { readFileSync } from 'node:fs'
@@ -35,7 +35,6 @@ record('isInterviewLiveEnabled() is false by default', isInterviewLiveEnabled() 
 record('isInterviewAnalysisEnabled() is false by default', isInterviewAnalysisEnabled() === false)
 record('isInterviewRecordingEnabled() is false by default', isInterviewRecordingEnabled() === false)
 record('isRawAudioRetentionAllowedPlatformWide() is false by default', isRawAudioRetentionAllowedPlatformWide() === false)
-record('getInterviewMinimumAge() defaults to 18', getInterviewMinimumAge() === 18)
 record('getMaxSessionMinutes() defaults to 20', getMaxSessionMinutes() === 20)
 record('getMaxConcurrentSessions() defaults to 1', getMaxConcurrentSessions() === 1)
 record('getGlobalDailyBudgetUsd() is null (not 0, not Infinity) when unconfigured', getGlobalDailyBudgetUsd() === null)
@@ -65,11 +64,6 @@ delete process.env.GEMINI_PAID_PROJECT_CONFIRMED
 delete process.env.GEMINI_INTERVIEW_ENABLED
 delete process.env.INTERVIEW_LIVE_ENABLED
 
-// ── Minimum age can never be configured below 18, even if an env var tries ──
-process.env.INTERVIEW_MINIMUM_AGE = '13'
-record('INTERVIEW_MINIMUM_AGE=13 is rejected, floor stays 18', getInterviewMinimumAge() === 18)
-delete process.env.INTERVIEW_MINIMUM_AGE
-
 // ── Max session minutes has a hard ceiling no env can exceed ────────────────
 process.env.INTERVIEW_MAX_SESSION_MINUTES = '999'
 record('INTERVIEW_MAX_SESSION_MINUTES=999 is clamped to the 30-minute hard ceiling', getMaxSessionMinutes() === 30)
@@ -79,7 +73,7 @@ delete process.env.INTERVIEW_MAX_SESSION_MINUTES
 const example = readFileSync(new URL('../.env.example', import.meta.url), 'utf8')
 const expectedVars = [
   'GEMINI_ANALYSIS_MODEL', 'GEMINI_LIVE_MODEL', 'GEMINI_PAID_PROJECT_CONFIRMED', 'GEMINI_INTERVIEW_ENABLED',
-  'INTERVIEW_LIVE_ENABLED', 'INTERVIEW_ANALYSIS_ENABLED', 'INTERVIEW_RECORDING_ENABLED', 'INTERVIEW_MINIMUM_AGE',
+  'INTERVIEW_LIVE_ENABLED', 'INTERVIEW_ANALYSIS_ENABLED', 'INTERVIEW_RECORDING_ENABLED',
   'INTERVIEW_RAW_AUDIO_RETENTION', 'INTERVIEW_MAX_SESSION_MINUTES', 'INTERVIEW_MAX_CONCURRENT_SESSIONS',
   'INTERVIEW_GLOBAL_DAILY_BUDGET_USD', 'INTERVIEW_USER_MONTHLY_BUDGET_USD',
 ]
