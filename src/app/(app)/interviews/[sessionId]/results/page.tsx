@@ -3,12 +3,21 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Trash2, Info } from 'lucide-react'
+import { Trash2, Info, Share2, Copy, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiErrorMessage } from '@/lib/utils'
+
+interface Share {
+  id: string
+  scope: 'completion_only' | 'full_summary'
+  expires_at: string
+  revoked_at: string | null
+  access_count: number
+  created_at: string
+}
 
 interface TranscriptSegment { id: string; speaker: string; content: string; question_id: string | null }
 interface Question { id: string; question_text: string; order_index: number }
@@ -34,6 +43,42 @@ export default function InterviewResultsPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [analysisMessage, setAnalysisMessage] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [shares, setShares] = useState<Share[]>([])
+  const [creatingShare, setCreatingShare] = useState(false)
+  const [newShareLink, setNewShareLink] = useState<string | null>(null)
+
+  async function loadShares() {
+    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/share`)
+    const json = await res.json()
+    if (res.ok) setShares(json.data ?? [])
+  }
+
+  async function handleCreateShare(scope: Share['scope']) {
+    setCreatingShare(true)
+    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/share`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scope, expiresInDays: 30 }),
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      toast.error(apiErrorMessage(json.error, 'Could not create share link.'))
+      setCreatingShare(false)
+      return
+    }
+    setNewShareLink(`${window.location.origin}/shared/${json.data.token}`)
+    setCreatingShare(false)
+    loadShares()
+  }
+
+  async function handleRevokeShare(shareId: string) {
+    const res = await fetch(`/api/interviews/shares/${shareId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      toast.error('Could not revoke link.')
+      return
+    }
+    toast.success('Link revoked.')
+    loadShares()
+  }
 
   useEffect(() => {
     async function loadAndAnalyze() {
@@ -46,6 +91,11 @@ export default function InterviewResultsPage() {
       }
       setDetail(json.data)
       setLoading(false)
+      if (json.data.session.status === 'completed') {
+        const sharesRes = await fetch(`/api/interviews/sessions/${params.sessionId}/share`)
+        const sharesJson = await sharesRes.json()
+        if (sharesRes.ok) setShares(sharesJson.data ?? [])
+      }
 
       if (json.data.session.analysis_status === 'pending') {
         setAnalyzing(true)
@@ -160,6 +210,42 @@ export default function InterviewResultsPage() {
           })}
         </CardContent>
       </Card>
+
+      {/* Private, revocable sharing */}
+      {session.status === 'completed' && (
+        <Card>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Share2 className="h-4 w-4" /> Share This Report</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Private by default. A share link never includes your transcript or audio. You control what level of detail is shared, and you can revoke any link at any time.
+            </p>
+            {newShareLink && (
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">
+                <p className="text-xs text-foreground font-medium">Link created — copy it now, it won&apos;t be shown again:</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs text-muted-foreground bg-surface-100 rounded-lg px-2 py-1.5 flex-1 truncate">{newShareLink}</code>
+                  <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(newShareLink); toast.success('Copied.') }}><Copy className="h-3.5 w-3.5" /></Button>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" variant="outline" disabled={creatingShare} onClick={() => handleCreateShare('completion_only')}>Share completion only</Button>
+              <Button size="sm" variant="outline" disabled={creatingShare} onClick={() => handleCreateShare('full_summary')}>Share full summary</Button>
+            </div>
+            {shares.filter((s) => !s.revoked_at).length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <p className="text-xs font-medium text-foreground">Active links</p>
+                {shares.filter((s) => !s.revoked_at).map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                    <span>{s.scope === 'full_summary' ? 'Full summary' : 'Completion only'} · expires {new Date(s.expires_at).toLocaleDateString()} · viewed {s.access_count}x</span>
+                    <Button size="sm" variant="ghost" onClick={() => handleRevokeShare(s.id)} className="gap-1 h-7"><X className="h-3 w-3" /> Revoke</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
