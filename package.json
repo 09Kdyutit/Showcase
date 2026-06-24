@@ -33,6 +33,7 @@
     "test:interview-retry": "node --env-file=.env.local scripts/test-interview-retry.mjs",
     "test:interview-results-extras": "node --env-file=.env.local scripts/test-interview-results-extras.mjs",
     "test:interview-accessibility": "node --env-file=.env.local scripts/test-interview-accessibility.mjs",
+    "test:interview-browser-voice": "node --env-file=.env.local scripts/test-interview-browser-voice.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",
