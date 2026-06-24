@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trackMarketingEvent, useTrackOnView } from '@/lib/marketing/track-client'
+import { Logo } from '@/components/shared/logo'
 
 // ── Pricing data ──────────────────────────────────────────────────────────────
 
@@ -444,10 +445,7 @@ function WaitlistContent() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_12px_rgba(99,102,241,0.4)]">
-              <span className="text-white text-[11px] font-bold">S</span>
-            </div>
-            <span className="font-bold text-sm text-foreground">Showcase</span>
+            <Logo size="sm" />
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-[10px] font-bold text-brand-400 uppercase tracking-widest">
               Private Beta
             </span>
@@ -1040,10 +1038,7 @@ function WaitlistContent() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-                  <span className="text-white text-[9px] font-bold">S</span>
-                </div>
-                <span className="font-bold text-sm">Showcase</span>
+                <Logo size="sm" />
               </div>
               <p className="text-xs text-muted-foreground">Turn your experience into evidence.</p>
             </div>

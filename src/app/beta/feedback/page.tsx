@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Check, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/shared/logo'
 
 type Step = 'form' | 'success'
 
@@ -116,10 +117,7 @@ function BetaFeedbackContent() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_12px_rgba(99,102,241,0.4)]">
-              <span className="text-white text-[11px] font-bold">S</span>
-            </div>
-            <span className="font-bold text-sm text-foreground">Showcase</span>
+            <Logo size="sm" />
           </Link>
           <span className="text-xs text-muted-foreground/40">Beta Feedback</span>
         </div>

@@ -1,4 +1,6 @@
 import { ImageResponse } from 'next/og'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 export const alt = 'Showcase — Your résumé lists claims. Showcase turns them into evidence.'
 export const size = { width: 1200, height: 630 }
@@ -7,6 +9,15 @@ export const contentType = 'image/png'
 // Code-generated, not a designed asset — uses the product's real brand gradient
 // (brand-500 → violet-500, the same one used on the logo mark and CTAs) rather than
 // a generic stock-photo social card. Real product language, no fabricated metric.
+//
+// Satori (next/og's renderer) can't use next/image or load files by URL at render
+// time the way a normal page can — it needs a literal <img src> that's either an
+// absolute URL or a data URI. Reading the real icon PNG off disk and inlining it as
+// base64 is the standard approach, and means this social card uses the actual brand
+// mark instead of a hand-drawn "S" placeholder.
+const iconBase64 = readFileSync(join(process.cwd(), 'public', 'logo-icon.png')).toString('base64')
+const iconDataUri = `data:image/png;base64,${iconBase64}`
+
 export default async function OpengraphImage() {
   return new ImageResponse(
     (
@@ -24,19 +35,7 @@ export default async function OpengraphImage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(135deg, #6366f1, #a78bfa)',
-            }}
-          >
-            <span style={{ color: 'white', fontSize: 28, fontWeight: 700 }}>S</span>
-          </div>
+          <img src={iconDataUri} width={56} height={56} alt="" />
           <span style={{ color: '#fafafa', fontSize: 32, fontWeight: 700 }}>Showcase</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 980 }}>

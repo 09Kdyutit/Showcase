@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Logo } from '@/components/shared/logo'
 
 export function Footer() {
   return (
@@ -6,11 +7,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2 md:col-span-2">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">S</span>
-              </div>
-              <span className="font-bold text-foreground tracking-tight">Showcase</span>
+            <div className="mb-4">
+              <Logo />
             </div>
             <p className="text-sm font-medium text-foreground/80 mb-2">
               Turn your experience into evidence.

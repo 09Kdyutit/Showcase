@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { resolveSharedReport } from '@/lib/interviews/report-sharing'
 import { ShieldCheck } from 'lucide-react'
+import { Logo } from '@/components/shared/logo'
 
 interface SharedReportPageProps {
   params: Promise<{ token: string }>
@@ -24,7 +25,10 @@ export default async function SharedReportPage({ params }: SharedReportPageProps
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="max-w-lg w-full space-y-6">
         <div className="text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">Showcase Interview Lab</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Logo size="sm" showWordmark={false} />
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Showcase Interview Lab</p>
+          </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight mt-1 capitalize">{report.sessionType.replace(/_/g, ' ')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{report.targetRole}{report.targetCompany ? ` · ${report.targetCompany}` : ''}</p>
         </div>

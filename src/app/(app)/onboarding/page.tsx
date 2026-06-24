@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUploadZone } from '@/components/shared/file-upload-zone'
+import { Logo } from '@/components/shared/logo'
 import { generateSlug } from '@/lib/utils'
 import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
@@ -235,10 +236,7 @@ export default function OnboardingPage() {
         <div className="w-full max-w-xl">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
-              </div>
-              <span className="font-bold text-foreground text-lg">Showcase</span>
+              <Logo size="lg" />
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">Upload your resume</h1>
             <p className="text-muted-foreground text-sm">We extract everything — role, skills, experience, projects, links — and use it to build your portfolio. No forms to fill out.</p>

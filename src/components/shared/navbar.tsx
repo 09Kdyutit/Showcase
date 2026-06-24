@@ -7,6 +7,7 @@ import { Menu, X, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { tryCreateClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/shared/logo'
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -52,24 +53,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center transition-all duration-300 group-hover:scale-105">
-              <span className="text-white text-xs font-bold">S</span>
-            </div>
-            {/* Ambient glow */}
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 blur-md opacity-40 group-hover:opacity-75 transition-opacity duration-300" />
-            {/* Hover border ring */}
-            <div className="absolute -inset-0.5 rounded-[10px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background: 'linear-gradient(135deg, oklch(63% 0.2 264), oklch(70% 0.18 295))',
-                padding: '1px',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-              }}
-            />
-          </div>
-          <span className="font-bold text-foreground tracking-tight">Showcase</span>
+          <Logo className="transition-transform duration-300 group-hover:scale-105" />
         </Link>
 
         {/* Desktop nav */}

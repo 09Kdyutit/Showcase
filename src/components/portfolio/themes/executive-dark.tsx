@@ -1,6 +1,7 @@
 import { Globe, Mail, ArrowRight, ExternalLink, Calendar } from 'lucide-react'
 import { cn, safeHref } from '@/lib/utils'
 import { Reveal } from '@/components/shared/reveal'
+import { Logo } from '@/components/shared/logo'
 import {
   type ThemeProps,
   normalizePortfolioContent,
@@ -418,9 +419,7 @@ export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
       <footer className="py-8 px-6 border-t border-white/[0.05]">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <a href="https://showcase.app" className="flex items-center gap-2 group">
-            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center transition-transform group-hover:scale-105">
-              <span className="text-white text-[9px] font-bold">S</span>
-            </div>
+            <Logo size="sm" showWordmark={false} className="transition-transform group-hover:scale-105" />
             <span className="text-xs text-muted-foreground/65 group-hover:text-muted-foreground/80 transition-colors">Built with Showcase</span>
           </a>
           {!hasContent && <p className="text-xs text-muted-foreground/65">Portfolio coming soon</p>}

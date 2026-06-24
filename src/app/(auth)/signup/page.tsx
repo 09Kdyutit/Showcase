@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/shared/logo'
 
 const BENEFITS = [
   'Free ProofScore preview — see where you stand',
@@ -60,13 +61,7 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-2 group w-fit">
-            <div className="relative">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
-              </div>
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 blur-md opacity-30 group-hover:opacity-60 transition-opacity" />
-            </div>
-            <span className="font-bold text-foreground text-lg">Showcase</span>
+            <Logo size="lg" />
           </Link>
         </div>
 
@@ -119,10 +114,7 @@ export default function SignupPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">S</span>
-            </div>
-            <span className="font-bold text-foreground">Showcase</span>
+            <Logo />
           </Link>
 
           <div className="mb-8">

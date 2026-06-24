@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/shared/logo'
 
 const EXPERIENCE_LEVELS = [
   { value: 'student', label: 'Student', desc: 'Currently in school or bootcamp' },
@@ -31,10 +32,7 @@ export default function DemoOnboardingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-bold text-foreground text-lg">Showcase</span>
+            <Logo size="lg" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Set up your profile</h1>
           <p className="text-muted-foreground text-sm">This takes 2 minutes. We use this to personalize your portfolio and ProofScore.</p>

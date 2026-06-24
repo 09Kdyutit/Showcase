@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { tryCreateClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { Profile, Subscription } from '@/types/database'
+import { Logo } from '@/components/shared/logo'
 
 const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -51,13 +52,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       {/* Logo */}
       <div className="px-4 pt-5 pb-4 border-b border-border/60">
         <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
-          <div className="relative">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <span className="text-white text-xs font-bold">S</span>
-            </div>
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 blur-md opacity-30 group-hover:opacity-60 transition-opacity duration-200" />
-          </div>
-          <span className="font-bold text-foreground tracking-tight">Showcase</span>
+          <Logo />
           {isPro && <Badge variant="pro" className="ml-auto">Pro</Badge>}
         </Link>
       </div>
@@ -151,10 +146,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 bg-surface-50/95 backdrop-blur-xl border-b border-border/60">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">S</span>
-          </div>
-          <span className="font-bold text-foreground text-sm">Showcase</span>
+          <Logo size="sm" />
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
