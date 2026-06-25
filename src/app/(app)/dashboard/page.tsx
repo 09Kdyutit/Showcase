@@ -272,7 +272,7 @@ export default async function DashboardPage() {
                       />
                     </div>
                     <span className={`text-xs font-medium w-6 text-right ${cat.score >= 80 ? 'text-emerald-400' : cat.score >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
-                      {cat.score}
+                      {Math.round(cat.score)}
                     </span>
                     {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
                     {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400/60 shrink-0" />}
@@ -334,7 +334,7 @@ export default async function DashboardPage() {
                             style={{ width: `${p.proof_score}%` }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-muted-foreground">{p.proof_score}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{Math.round(p.proof_score)}</span>
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground/50 mt-3">

@@ -74,7 +74,7 @@ function tokenize(text: string): string[] {
 }
 
 function clamp(n: number, lo = 0, hi = 100): number {
-  return Math.max(lo, Math.min(hi, n))
+  return Math.round(Math.max(lo, Math.min(hi, n)))
 }
 
 function severityFor(score: number | null): 'critical' | 'major' | 'minor' {

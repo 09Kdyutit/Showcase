@@ -72,7 +72,7 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
           <Badge variant={cat.severity === 'critical' ? 'danger' : cat.severity === 'major' ? 'warning' : 'success'}>
             {cat.severity}
           </Badge>
-          <span className={cn('text-lg font-bold', scoreColor(cat.score))}>{cat.score}</span>
+          <span className={cn('text-lg font-bold', scoreColor(cat.score))}>{Math.round(cat.score)}</span>
         </div>
       </div>
 
@@ -513,7 +513,7 @@ export default function AuditPage() {
                   .filter((c) => c.score !== null && c.score >= 80)
                   .map((c) => (
                     <Badge key={c.name} variant="success" className="text-xs">
-                      {c.name} · {c.score}
+                      {c.name} · {Math.round(c.score!)}
                     </Badge>
                   ))}
               </div>
