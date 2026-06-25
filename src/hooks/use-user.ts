@@ -19,9 +19,11 @@ export function useUser() {
       setUser(user)
 
       if (user) {
+        // maybeSingle, not single: a free user genuinely has zero subscription rows,
+        // and .single() 406s on zero rows instead of returning null.
         const [profileRes, subRes] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', user.id).single(),
-          supabase.from('subscriptions').select('*').eq('user_id', user.id).single(),
+          supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+          supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
         ])
         setProfile(profileRes.data)
         setSubscription(subRes.data)

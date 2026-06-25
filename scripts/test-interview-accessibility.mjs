@@ -87,6 +87,7 @@ async function main() {
   // Submit the New Interview form using only the keyboard, to prove the primary
   // action does not require a mouse.
   await page.goto(`${APP_URL}/interviews/new`, { waitUntil: 'networkidle' })
+  await page.getByText('Written', { exact: true }).click()
   await page.locator('#targetRole').focus()
   await page.keyboard.type('Keyboard Test Role')
   const continueButton = page.getByRole('button', { name: /continue to lobby/i })

@@ -51,7 +51,12 @@ async function main() {
   await page.waitForTimeout(2000)
 
   console.log('\n── Practice Next ──')
-  record('Practice Next section is shown with the honest "not personalized yet" note', (await page.textContent('body'))?.includes("aren't personalized to this session yet"))
+  {
+    const bodyText = await page.textContent('body')
+    const isPersonalized = bodyText?.includes('weakest scored dimensions')
+    const scoredWellAcrossBoard = bodyText?.includes('scored well across every dimension')
+    record('Practice Next reflects real per-dimension scores (gate is on), not the old "not enabled" fallback', isPersonalized || scoredWellAcrossBoard)
+  }
   const drillLinks = page.locator('a[href="/interviews/drills"]')
   record('At least one real drill recommendation links to the actual Drills page', await drillLinks.count() > 0)
 

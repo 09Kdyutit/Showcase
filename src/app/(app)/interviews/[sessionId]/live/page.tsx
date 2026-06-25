@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { Lock, Volume2, Mic, MicOff, Info } from 'lucide-react'
+import { Lock, Volume2, Mic, MicOff, Info, PhoneOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiErrorMessage } from '@/lib/utils'
 import { speakText, stopSpeaking, useBrowserDictation, useSpeechSynthesisSupport } from '@/lib/interviews/browser-voice'
+import { LiveInterviewEngine, type LiveTranscriptSegment } from '@/lib/interviews/live-voice-client'
+import { LIVE_INTERVIEW_COMPLETE_PHRASE } from '@/lib/interviews/gemini/live-prompt'
 
 interface Question {
   id: string
@@ -19,7 +21,7 @@ interface Question {
 }
 
 interface SessionDetail {
-  session: { id: string; status: string; planned_question_count: number; completed_question_count: number }
+  session: { id: string; status: string; delivery_mode: 'text' | 'voice'; planned_question_count: number; completed_question_count: number }
   questions: Question[]
 }
 
@@ -27,14 +29,7 @@ export default function InterviewLivePage() {
   const router = useRouter()
   const params = useParams<{ sessionId: string }>()
   const [detail, setDetail] = useState<SessionDetail | null>(null)
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
-  const [answerText, setAnswerText] = useState('')
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const speechSynthesisSupported = useSpeechSynthesisSupport()
-  const { dictationSupported, listening, toggleListening } = useBrowserDictation((segment) => {
-    setAnswerText((prev) => (prev.trim() ? `${prev.trim()} ${segment}` : segment))
-  })
 
   useEffect(() => {
     fetch(`/api/interviews/sessions/${params.sessionId}`)
@@ -45,12 +40,178 @@ export default function InterviewLivePage() {
           router.push('/interviews')
           return
         }
-        const data: SessionDetail = json.data
-        setDetail(data)
-        setCurrentQuestion(data.questions.find((q) => !q.answered_at) ?? null)
+        setDetail(json.data)
         setLoading(false)
       })
   }, [params.sessionId, router])
+
+  if (loading || !detail) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 lg:p-10 space-y-4">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    )
+  }
+
+  if (detail.session.delivery_mode === 'voice') {
+    return <LiveVoiceInterview sessionId={params.sessionId} questions={detail.questions} />
+  }
+
+  return <WrittenInterview sessionId={params.sessionId} initialDetail={detail} />
+}
+
+function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; questions: Question[] }) {
+  const router = useRouter()
+  const [status, setStatus] = useState<'idle' | 'connecting' | 'live' | 'ending' | 'ended'>('idle')
+  const [transcript, setTranscript] = useState<LiveTranscriptSegment[]>([])
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const engineRef = useRef<LiveInterviewEngine | null>(null)
+  const transcriptEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [transcript])
+
+  useEffect(() => {
+    return () => { engineRef.current?.close() }
+  }, [])
+
+  async function endInterview(engine: LiveInterviewEngine) {
+    setStatus('ending')
+    engine.close()
+    const segments = engine.getTranscript()
+    try {
+      if (segments.length > 0) {
+        await fetch(`/api/interviews/sessions/${sessionId}/live-transcript`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ segments }),
+        })
+      }
+      const completeRes = await fetch(`/api/interviews/sessions/${sessionId}/complete`, { method: 'POST' })
+      if (!completeRes.ok) {
+        const json = await completeRes.json()
+        toast.error(apiErrorMessage(json.error, 'Could not complete session.'))
+      }
+      setStatus('ended')
+      router.push(`/interviews/${sessionId}/results`)
+    } catch {
+      toast.error('Could not save the interview transcript. Please try again.')
+      setStatus('ended')
+    }
+  }
+
+  async function startCall() {
+    setStatus('connecting')
+    setErrorMessage(null)
+    try {
+      const tokenRes = await fetch(`/api/interviews/sessions/${sessionId}/live-token`, { method: 'POST' })
+      const tokenJson = await tokenRes.json()
+      if (!tokenRes.ok) {
+        toast.error(apiErrorMessage(tokenJson.error, 'Could not start the live interview.'))
+        setStatus('idle')
+        return
+      }
+      const { ephemeralToken, model } = tokenJson.data
+
+      const engine = new LiveInterviewEngine(
+        questions.map((q) => ({ id: q.id, questionText: q.question_text })),
+        LIVE_INTERVIEW_COMPLETE_PHRASE,
+        {
+          onConnected: () => setStatus('live'),
+          onTranscriptUpdate: (segments) => setTranscript([...segments]),
+          onInterviewComplete: () => { void endInterview(engine) },
+          onError: (message) => { setErrorMessage(message); toast.error('Live connection error: ' + message) },
+          onClosed: () => {},
+        }
+      )
+      engineRef.current = engine
+      await engine.connect(ephemeralToken, model)
+      await engine.startMicCapture()
+    } catch (err) {
+      console.error(err)
+      toast.error('Could not access your microphone, or the live connection failed. Please check mic permissions and try again.')
+      setStatus('idle')
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 lg:p-10 space-y-6">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Live voice interview · {questions.length} questions</span>
+        <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> Private session</span>
+      </div>
+
+      <div className="rounded-2xl border border-border/60 bg-card p-6 min-h-[320px] flex flex-col">
+        {status === 'idle' && (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+            <div className="h-16 w-16 rounded-full bg-brand-500/10 flex items-center justify-center">
+              <Mic className="h-7 w-7 text-brand-500" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Ready for your live interview?</p>
+              <p className="text-sm text-muted-foreground mt-1">Your AI interviewer will speak each question aloud and listen to your spoken answers in real time.</p>
+            </div>
+            <Button size="lg" onClick={startCall} className="gap-2"><Mic className="h-4 w-4" /> Start interview</Button>
+          </div>
+        )}
+
+        {status === 'connecting' && (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+            <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
+            <p className="text-sm text-muted-foreground">Connecting to your AI interviewer…</p>
+          </div>
+        )}
+
+        {(status === 'live' || status === 'ending') && (
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </span>
+              <span className="text-xs font-medium text-emerald-600">Live</span>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto max-h-[360px] pr-1">
+              {transcript.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">Listening… the interviewer will greet you shortly.</p>
+              )}
+              {transcript.map((seg, i) => (
+                <div key={i} className={seg.speaker === 'interviewer' ? 'text-left' : 'text-right'}>
+                  <span className={`inline-block rounded-xl px-3 py-2 text-sm max-w-[85%] ${seg.speaker === 'interviewer' ? 'bg-surface-100 text-foreground' : 'bg-brand-500 text-white'}`}>
+                    {seg.content}
+                  </span>
+                </div>
+              ))}
+              <div ref={transcriptEndRef} />
+            </div>
+            <Button
+              variant="outline" className="mt-4 gap-2 text-destructive"
+              disabled={status === 'ending'}
+              onClick={() => engineRef.current && endInterview(engineRef.current)}
+            >
+              {status === 'ending' ? <Loader2 className="h-4 w-4 animate-spin" /> : <PhoneOff className="h-4 w-4" />}
+              End interview
+            </Button>
+          </div>
+        )}
+
+        {errorMessage && <p className="text-xs text-destructive mt-2">{errorMessage}</p>}
+      </div>
+    </div>
+  )
+}
+
+function WrittenInterview({ sessionId, initialDetail }: { sessionId: string; initialDetail: SessionDetail }) {
+  const router = useRouter()
+  const [detail] = useState<SessionDetail>(initialDetail)
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(initialDetail.questions.find((q) => !q.answered_at) ?? null)
+  const [answerText, setAnswerText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const speechSynthesisSupported = useSpeechSynthesisSupport()
+  const { dictationSupported, listening, toggleListening } = useBrowserDictation((segment) => {
+    setAnswerText((prev) => (prev.trim() ? `${prev.trim()} ${segment}` : segment))
+  })
 
   useEffect(() => {
     return () => stopSpeaking()
@@ -63,7 +224,7 @@ export default function InterviewLivePage() {
     }
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/interviews/sessions/${params.sessionId}/transcript`, {
+      const res = await fetch(`/api/interviews/sessions/${sessionId}/transcript`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionId: currentQuestion.id, answerText: answerText.trim() }),
       })
@@ -79,28 +240,19 @@ export default function InterviewLivePage() {
         setCurrentQuestion(json.data.nextQuestion)
         setSubmitting(false)
       } else {
-        const completeRes = await fetch(`/api/interviews/sessions/${params.sessionId}/complete`, { method: 'POST' })
+        const completeRes = await fetch(`/api/interviews/sessions/${sessionId}/complete`, { method: 'POST' })
         if (!completeRes.ok) {
           const completeJson = await completeRes.json()
           toast.error(apiErrorMessage(completeJson.error, 'Could not complete session.'))
           setSubmitting(false)
           return
         }
-        router.push(`/interviews/${params.sessionId}/results`)
+        router.push(`/interviews/${sessionId}/results`)
       }
     } catch {
       toast.error('Something went wrong. Please try again.')
       setSubmitting(false)
     }
-  }
-
-  if (loading || !detail) {
-    return (
-      <div className="max-w-2xl mx-auto p-6 lg:p-10 space-y-4">
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    )
   }
 
   if (!currentQuestion) {

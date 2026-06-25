@@ -6,7 +6,9 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  // microphone=(self): Live voice interviews and Recorded Mode both need real mic
+  // access from the app's own pages. Camera/geolocation stay fully disabled — unused.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
   // Only takes effect on actual HTTPS connections — harmless to ship over local http dev.
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   {
@@ -21,10 +23,13 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      // api.openai.com/Anthropic intentionally absent: every AI call happens server-side
-      // in API routes, never from the browser, so the browser has no reason to connect
-      // to either provider directly.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
+      // api.openai.com/Anthropic intentionally absent: every AI call for those
+      // providers happens server-side in API routes. generativelanguage.googleapis.com
+      // is a deliberate exception: Gemini Live voice connects directly from the
+      // browser over a WebSocket, authenticated with a short-lived ephemeral token
+      // minted server-side (see src/lib/interviews/gemini/live.ts) — the real
+      // GEMINI_API_KEY and the interviewer's system instruction never reach the browser.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'self'",
       "object-src 'none'",

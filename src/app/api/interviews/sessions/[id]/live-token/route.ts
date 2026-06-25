@@ -6,15 +6,12 @@ import { createLiveEphemeralToken } from '@/lib/interviews/gemini/live'
 
 /**
  * Issues a short-lived Gemini Live ephemeral token for a voice session. Runs every
- * check the mission requires BEFORE reaching the point where a real implementation
- * would call Gemini — ownership, session state, entitlement — so that once Live is
- * actually enabled, this route does not need new security
- * plumbing, only the live.ts provider call itself. (Origin validation for all
- * /api/* state-changing requests already happens centrally in src/proxy.ts — see
- * security/release-gate.json P1-07 — so it is not repeated here.) As built,
- * isInterviewLiveEnabled() is false (see config.ts), so createLiveEphemeralToken()
- * always throws after all of those checks pass — proving the gate fails closed at the
- * LAST possible step, not by accident earlier for an unrelated reason.
+ * check — ownership, delivery mode, session state, entitlement — BEFORE the feature
+ * gate, then before calling Gemini, so the gate is proven to fail closed at the LAST
+ * possible step rather than accidentally earlier for an unrelated reason. The
+ * interviewer's system instruction (persona + exact question list) is built
+ * server-side from this session's real planned questions and locked into the token
+ * itself — the browser never sees the prompt, only the resulting token.
  */
 export async function POST(
   _request: NextRequest,
@@ -28,7 +25,7 @@ export async function POST(
 
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
-      .select('id, user_id, status, delivery_mode, max_duration_seconds')
+      .select('id, user_id, status, delivery_mode, max_duration_seconds, target_role')
       .eq('id', id)
       .eq('user_id', user.id) // ownership — a token can never be issued for another user's session
       .maybeSingle()
@@ -53,11 +50,20 @@ export async function POST(
       }, { status: 403 })
     }
 
-    // Unreachable today — isInterviewLiveEnabled() always returns false in this build,
-    // so the block above always returns first. Kept so the real call path exists and
-    // typechecks once the gate opens, rather than being written for the first time
-    // under pressure later.
-    const token = await createLiveEphemeralToken({ sessionId: id, userId: user.id, maxDurationSeconds: session.max_duration_seconds })
+    const { data: questions, error: questionsError } = await supabase
+      .from('interview_questions')
+      .select('question_text, competency')
+      .eq('session_id', id)
+      .order('order_index')
+    if (questionsError) throw questionsError
+    if (!questions || questions.length === 0) {
+      return NextResponse.json({ error: 'This session has no planned questions.', code: 'NO_QUESTIONS' }, { status: 409 })
+    }
+
+    const token = await createLiveEphemeralToken({
+      sessionId: id, userId: user.id, maxDurationSeconds: session.max_duration_seconds,
+      targetRole: session.target_role, questions: questions.map((q) => ({ questionText: q.question_text, competency: q.competency })),
+    })
     return NextResponse.json({ data: token })
   } catch (err) {
     console.error('[interviews/sessions/[id]/live-token POST]', err instanceof Error ? err.message : err)

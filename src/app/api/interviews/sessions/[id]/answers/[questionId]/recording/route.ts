@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { isInterviewRecordingEnabled } from '@/lib/interviews/config'
-import { validateAudioUpload, buildAudioStoragePath } from '@/lib/interviews/audio-validation'
+import { isInterviewRecordingEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
+import { validateAudioUpload, buildAudioStoragePath, CANONICAL_MIME_FOR_EXTENSION } from '@/lib/interviews/audio-validation'
+import { transcribeAudio } from '@/lib/interviews/gemini/transcription'
 
 /**
- * Recorded Mode answer upload. Gated on isInterviewRecordingEnabled() — false in
- * every environment today (see config.ts), so this route fails closed before ever
- * touching storage, exactly mirroring how /api/interviews/sessions/[id]/live-token
- * proves its own gate by running every other check first. The validation and storage
- * path below are real and fully wired so that opening the gate later requires no new
- * security plumbing — only flipping the flag once recording is actually approved for
- * real use.
+ * Recorded Mode answer upload + transcription. Ownership/session-state/question-
+ * existence are all checked BEFORE the feature gate, same ordering as live-token, so
+ * that gate-flip-later changes nothing about authorization. The recording is
+ * uploaded and persisted FIRST, independent of transcription succeeding — a
+ * transcription failure (provider timeout, etc.) never loses the candidate's actual
+ * recording, it just means the question isn't marked answered yet and the client
+ * should offer a retry or a fall back to typing. No transcript is ever fabricated:
+ * if Gemini fails, this route fails closed and says so.
  */
 export async function POST(
   request: NextRequest,
@@ -41,7 +43,7 @@ export async function POST(
 
     const { data: question, error: questionError } = await supabase
       .from('interview_questions')
-      .select('id')
+      .select('*')
       .eq('id', questionId)
       .eq('session_id', id)
       .eq('user_id', user.id)
@@ -85,17 +87,71 @@ export async function POST(
         user_id: user.id, session_id: id, question_id: questionId, attempt_number: attemptNumber,
         audio_storage_path: storagePath,
       })
-      .select('id, audio_storage_path, attempt_number')
+      .select('*')
       .single()
     if (answerError) throw answerError
 
-    // Transcription itself requires the Gemini analysis gate, which is also off in
-    // every environment today (isInterviewAnalysisEnabled()) — this route stores the
-    // validated recording and stops there. No fabricated transcript is ever created.
-    return NextResponse.json({
-      data: answer,
-      message: 'Recording saved. Transcription will run once AI analysis is enabled for this account.',
-    }, { status: 201 })
+    if (!isInterviewAnalysisEnabled()) {
+      return NextResponse.json({
+        data: answer,
+        message: 'Recording saved. Transcription will run once AI analysis is enabled for this account.',
+      }, { status: 201 })
+    }
+
+    // Transcribe now, synchronously, so the client gets a real answer (or a real
+    // failure) in this same response rather than polling for an async job. The
+    // recording above is already durably saved regardless of what happens next.
+    let transcript: string
+    try {
+      transcript = await transcribeAudio(buffer, CANONICAL_MIME_FOR_EXTENSION[validation.extension])
+    } catch (err) {
+      console.error('[interviews/sessions/[id]/answers/[questionId]/recording] transcription failed', err instanceof Error ? err.message : err)
+      return NextResponse.json({
+        data: answer,
+        error: 'Your recording was saved, but transcription failed. Try recording again, or switch to Text Mode for this question.',
+        code: 'TRANSCRIPTION_FAILED',
+      }, { status: 502 })
+    }
+
+    const elapsedMs = 0 // precise start/end timing isn't derivable from the audio file alone; text-mode segments are similarly a coarse estimate, not exact
+    const { data: segment, error: segmentError } = await supabase
+      .from('interview_transcript_segments')
+      .insert({
+        user_id: user.id, session_id: id, question_id: questionId,
+        speaker: 'candidate', start_ms: elapsedMs, end_ms: elapsedMs,
+        content: transcript, source_mode: 'voice_recorded',
+      })
+      .select('id')
+      .single()
+    if (segmentError) throw segmentError
+
+    const { data: updatedAnswer, error: updateError } = await supabase
+      .from('interview_answers')
+      .update({ answer_text: transcript, transcript_segment_ids: [segment.id] })
+      .eq('id', answer.id)
+      .select('*')
+      .single()
+    if (updateError) throw updateError
+
+    await supabase.from('interview_questions').update({ answered_at: new Date().toISOString() }).eq('id', questionId)
+
+    const { data: nextQuestion } = await supabase
+      .from('interview_questions')
+      .select('*')
+      .eq('session_id', id)
+      .gt('order_index', question.order_index)
+      .order('order_index')
+      .limit(1)
+      .maybeSingle()
+
+    const { count: answeredCount } = await supabase
+      .from('interview_questions')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', id)
+      .not('answered_at', 'is', null)
+    await supabase.from('interview_sessions').update({ completed_question_count: answeredCount ?? 0 }).eq('id', id)
+
+    return NextResponse.json({ data: { answer: updatedAnswer, nextQuestion: nextQuestion ?? null } }, { status: 201 })
   } catch (err) {
     console.error('[interviews/sessions/[id]/answers/[questionId]/recording POST]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Failed to upload recording.' }, { status: 500 })

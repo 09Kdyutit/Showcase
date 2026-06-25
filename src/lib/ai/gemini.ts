@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { ReviewMode, ReviewRequest, ReviewerOutput } from './review-types.ts'
 import { ReviewerOutputSchema } from './review-types.ts'
 import { buildReviewerPrompt } from './prompts/reviewer.ts'
+import { toGeminiJsonSchema } from './gemini-schema-utils.ts'
 
 // ── Configuration — every knob the mission's Phase 8/10/11 requires, all defaulting closed ──
 
@@ -127,7 +128,10 @@ function getClient(apiKey: string): GoogleGenAI {
   return cachedClient
 }
 
-const REVIEWER_JSON_SCHEMA = z.toJSONSchema(ReviewerOutputSchema)
+// Raw z.toJSONSchema() output is rejected outright by Gemini's responseJsonSchema —
+// see gemini-schema-utils.ts, found and fixed while wiring up Interview Lab's
+// analysis call against a real billed project for the first time.
+const REVIEWER_JSON_SCHEMA = toGeminiJsonSchema(z.toJSONSchema(ReviewerOutputSchema))
 
 function isRateLimitStatus(err: unknown): boolean {
   return typeof err === 'object' && err !== null && 'status' in err && (err as { status: unknown }).status === 429

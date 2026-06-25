@@ -39,6 +39,7 @@ interface SessionDetail {
   questions: Question[]
   transcript: TranscriptSegment[]
   latestEvaluation: Evaluation
+  dimensionScores: { dimension_id: string; score: number }[]
 }
 
 const BAND_LABELS: Record<string, string> = {
@@ -192,7 +193,10 @@ export default function InterviewResultsPage() {
     )
   }
 
-  const { session, questions, transcript, latestEvaluation } = detail
+  const { session, questions, transcript, latestEvaluation, dimensionScores } = detail
+  // "Weak" = below a passing bar, not just "lowest of whatever scores exist" — a
+  // session where every dimension scored well should recommend nothing extra.
+  const weakDimensionIds = dimensionScores.filter((d) => d.score < 70).sort((a, b) => a.score - b.score).map((d) => d.dimension_id)
 
   return (
     <div className="max-w-3xl mx-auto p-6 lg:p-10 space-y-6">
@@ -317,12 +321,14 @@ export default function InterviewResultsPage() {
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Practice Next</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              {latestEvaluation
+              {weakDimensionIds.length > 0
                 ? 'Drills targeted at your weakest scored dimensions from this session.'
-                : 'General practice recommendations — these aren\'t personalized to this session yet, since AI-powered scoring isn\'t enabled.'}
+                : latestEvaluation
+                  ? 'You scored well across every dimension this session — general practice recommendations below.'
+                  : 'General practice recommendations — these aren\'t personalized to this session yet, since AI-powered scoring isn\'t enabled.'}
             </p>
             <div className="grid sm:grid-cols-3 gap-2">
-              {recommendDrillsForDimensions([]).map((d) => (
+              {recommendDrillsForDimensions(weakDimensionIds).map((d) => (
                 <Link key={d.id} href="/interviews/drills" className="rounded-xl border border-border/60 p-3 hover:bg-surface-200 transition-colors">
                   <p className="text-sm font-medium text-foreground">{d.label}</p>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.objective}</p>

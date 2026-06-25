@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { Clock, FileText } from 'lucide-react'
+import { Clock, FileText, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiErrorMessage } from '@/lib/utils'
 
 interface SessionDetail {
-  session: { id: string; status: string; session_type: string; target_role: string; planned_question_count: number; max_duration_seconds: number }
+  session: { id: string; status: string; session_type: string; target_role: string; delivery_mode: 'voice' | 'text'; planned_question_count: number; max_duration_seconds: number }
 }
 
 export default function InterviewLobbyPage() {
@@ -72,11 +72,24 @@ export default function InterviewLobbyPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Before you start</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            {session.delivery_mode === 'voice' ? <Mic className="h-4 w-4" /> : <FileText className="h-4 w-4" />} Before you start
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {session.planned_question_count} questions, up to {minutes} minutes</div>
-          <p>Delivery mode: <span className="text-foreground">Text</span> — type your answers, no microphone needed.</p>
-          <p>Your transcript is stored privately and visible only to you. No audio is recorded in text mode.</p>
+          {session.delivery_mode === 'voice' ? (
+            <>
+              <p>Delivery mode: <span className="text-foreground">Live voice</span> — your AI interviewer speaks each question aloud and listens for your spoken answer. You&apos;ll need to allow microphone access.</p>
+              <p>A transcript of both sides of the conversation is stored privately and visible only to you. No raw audio recording is stored.</p>
+            </>
+          ) : (
+            <>
+              <p>Delivery mode: <span className="text-foreground">Text</span> — type your answers, no microphone needed.</p>
+              <p>Your transcript is stored privately and visible only to you. No audio is recorded in text mode.</p>
+            </>
+          )}
           <p>This is a private practice session. Showcase does not represent any real employer and never shares your results without your explicit consent.</p>
         </CardContent>
       </Card>

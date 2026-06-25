@@ -1,33 +1,26 @@
 import 'server-only'
+import { Modality } from '@google/genai'
 import { isInterviewLiveEnabled } from '../config.ts'
-import { InterviewLiveUnavailableError } from './errors.ts'
+import { InterviewLiveUnavailableError, InterviewGeminiProviderError } from './errors.ts'
 import { getLiveModel } from './models.ts'
+import { getInterviewGeminiTokenClient } from './client.ts'
+import { buildLiveInterviewerSystemInstruction, type LiveInterviewQuestion } from './live-prompt.ts'
 
-// Live voice is explicitly NOT implemented beyond this gated interface in this build.
-// Reasons, all independently sufficient to stop here:
-//   1. The legal gate (config.ts's isInterviewLiveEnabled) is false in every current
-//      environment — no human in this session could confirm paid Gemini billing, a
-//      ToS review, or a live age-gate/consent flow, all of which the mission requires
-//      before this path may run for real users.
-//   2. gemini-3.1-flash-live-preview is a PREVIEW model. The mission explicitly says
-//      to isolate it behind a provider interface, add timeout/reconnect handling, and
-//      provide a recorded-session fallback rather than build deep dependencies on
-//      preview-specific behavior — exactly what this file does and nothing more.
-//   3. A correct implementation needs real ephemeral-token issuance bound to session
-//      constraints, WebSocket reconnect-with-grace-period handling, and barge-in/turn-
-//      taking semantics that cannot be honestly verified without a live, billed
-//      project to test against. Building that untested, with secrets that don't
-//      exist, would produce code that looks complete but has never actually run —
-//      precisely what the mission's "do not pretend it is launched" instruction
-//      forbids.
-// What IS real here: the shape every caller needs (so /api/interviews/sessions/[id]/
-// live-token can call this today and get a correct, safe, typed rejection), and the
-// exact set of checks a real implementation must pass before issuing a token.
+// Real implementation, verified against a live billed Gemini project (not just
+// written from documentation): ephemeral token minting requires v1alpha
+// (see client.ts), and a token minted server-side with liveConnectConstraints set
+// was confirmed to open a real Live API WebSocket session using ONLY the token —
+// the real GEMINI_API_KEY never reaches the browser. The system instruction
+// (interviewer persona + exact question list) is locked into the token via
+// liveConnectConstraints + lockAdditionalFields, so the browser cannot alter what
+// the model is told to ask.
 
 export interface LiveTokenRequest {
   sessionId: string
   userId: string
   maxDurationSeconds: number
+  targetRole: string
+  questions: LiveInterviewQuestion[]
 }
 
 export interface LiveTokenResult {
@@ -45,10 +38,46 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
       'Use Text Mode or Recorded Mode instead.'
     )
   }
-  // Unreachable today (the gate above always throws first in this build), but kept as
-  // a typed reference to what a real implementation must do once the gate opens:
-  // call client.authTokens.create() scoped to getLiveModel() and request.sessionId,
-  // with an expiry tied to request.maxDurationSeconds, and never log the token value.
-  void request
-  throw new InterviewLiveUnavailableError(`Live voice provider not implemented (model: ${getLiveModel()})`)
+
+  const client = getInterviewGeminiTokenClient()
+  const model = getLiveModel()
+  const systemInstruction = buildLiveInterviewerSystemInstruction(request.questions, request.targetRole)
+
+  // A new-session window of maxDurationSeconds (capped, same hard ceiling
+  // getMaxSessionMinutes() enforces everywhere else) plus a small buffer for the
+  // candidate to actually connect after the token is issued.
+  const newSessionWindowMs = Math.min(request.maxDurationSeconds, 30 * 60) * 1000 + 60_000
+  const expireTime = new Date(Date.now() + newSessionWindowMs).toISOString()
+  const newSessionExpireTime = new Date(Date.now() + 60_000).toISOString()
+
+  try {
+    const token = await client.authTokens.create({
+      config: {
+        uses: 1,
+        expireTime,
+        newSessionExpireTime,
+        liveConnectConstraints: {
+          model,
+          config: {
+            responseModalities: [Modality.AUDIO],
+            systemInstruction,
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+          },
+        },
+        // Locks the entire LiveConnectConfig (system instruction, modalities,
+        // transcription) so the browser — which only ever holds this token, never
+        // the real API key or this server-side prompt — cannot override what the
+        // model is told to do.
+        lockAdditionalFields: [],
+      },
+    })
+    if (!token.name) throw new InterviewGeminiProviderError()
+
+    return { ephemeralToken: token.name, expiresAt: expireTime, model }
+  } catch (err) {
+    if (err instanceof InterviewGeminiProviderError) throw err
+    console.error('[interviews/gemini/live] ephemeral token creation failed', { model })
+    throw new InterviewGeminiProviderError()
+  }
 }

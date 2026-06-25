@@ -5,6 +5,7 @@ import { isInterviewAnalysisEnabled } from '../config.ts'
 import { getInterviewGeminiClient } from './client.ts'
 import { getAnalysisModel } from './models.ts'
 import { buildInterviewAnalysisPrompt, type AnalysisPromptInput } from './prompts.ts'
+import { toGeminiJsonSchema } from '../../ai/gemini-schema-utils.ts'
 import {
   InterviewGeminiDisabledError,
   InterviewGeminiSchemaError,
@@ -14,7 +15,12 @@ import {
 
 const ANALYSIS_TIMEOUT_MS = 30_000
 const MAX_OUTPUT_TOKENS = 8192
-const ANALYSIS_JSON_SCHEMA = z.toJSONSchema(InterviewAnalysisSchema)
+// z.toJSONSchema()'s raw output is rejected outright by Gemini's responseJsonSchema
+// (400 INVALID_ARGUMENT, no detail) -- it doesn't support $schema,
+// additionalProperties, min/maxItems, or min/maxLength, and needs `nullable: true`
+// instead of `anyOf` with a null branch. Confirmed by direct testing against a real
+// billed project before this fix existed. See schema-utils.ts.
+const ANALYSIS_JSON_SCHEMA = toGeminiJsonSchema(z.toJSONSchema(InterviewAnalysisSchema))
 
 export interface InterviewAnalysisResult {
   data: InterviewAnalysis

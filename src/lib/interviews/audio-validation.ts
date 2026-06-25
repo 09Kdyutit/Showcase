@@ -16,6 +16,13 @@ const EXTENSION_TO_MIME: Record<AllowedAudioExtension, string[]> = {
   ogg: ['audio/ogg'],
 }
 
+/** Canonical MIME type to send to Gemini for transcription — always derived from
+ *  the validated extension, never the client's raw declared Content-Type (which
+ *  EXTENSION_TO_MIME above allows several variants of, e.g. audio/x-wav). */
+export const CANONICAL_MIME_FOR_EXTENSION: Record<AllowedAudioExtension, string> = {
+  webm: 'audio/webm', wav: 'audio/wav', mp3: 'audio/mpeg', ogg: 'audio/ogg',
+}
+
 export interface AudioValidationResult {
   valid: boolean
   error: string | null

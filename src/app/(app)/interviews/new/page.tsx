@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Mic, Keyboard, ChevronLeft, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, apiErrorMessage } from '@/lib/utils'
+import { useUser } from '@/hooks/use-user'
 
 const SESSION_TYPES = [
   { value: 'recruiter_screen', label: 'Recruiter Screen', desc: 'Background, motivation, role fit, logistics.' },
@@ -29,14 +31,26 @@ const LENGTHS = [
   { value: 'full', label: 'Full', desc: 'maximum allowed' },
 ] as const
 
+type DeliveryMode = 'voice' | 'text'
+
 export default function NewInterviewPage() {
   const router = useRouter()
+  const { subscription } = useUser()
+  const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
+
+  const [step, setStep] = useState<'delivery' | 'details'>('delivery')
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('text')
   const [sessionType, setSessionType] = useState<typeof SESSION_TYPES[number]['value']>('behavioral')
   const [difficulty, setDifficulty] = useState<typeof DIFFICULTIES[number]>('standard')
   const [sessionLength, setSessionLength] = useState<typeof LENGTHS[number]['value']>('quick')
   const [targetRole, setTargetRole] = useState('')
   const [targetCompany, setTargetCompany] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  function chooseDelivery(mode: DeliveryMode) {
+    setDeliveryMode(mode)
+    setStep('details')
+  }
 
   async function handleSubmit() {
     if (!targetRole.trim()) {
@@ -51,7 +65,7 @@ export default function NewInterviewPage() {
         body: JSON.stringify({
           sessionType, difficulty, sessionLength, targetRole: targetRole.trim(),
           targetCompany: targetCompany.trim() || undefined,
-          deliveryMode: 'text', coachingMode: 'guided',
+          deliveryMode, coachingMode: 'guided',
         }),
       })
       const json = await res.json()
@@ -67,11 +81,62 @@ export default function NewInterviewPage() {
     }
   }
 
+  if (step === 'delivery') {
+    return (
+      <div className="max-w-3xl mx-auto p-6 lg:p-10 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">New Interview</h1>
+          <p className="text-sm text-muted-foreground mt-1">How do you want to practice?</p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => chooseDelivery('voice')}
+            className="text-left p-6 rounded-2xl border border-border/60 hover:border-brand-500/60 hover:bg-brand-500/5 transition-all"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
+                <Mic className="h-5 w-5 text-brand-500" />
+              </div>
+              {!isPro && (
+                <span className="text-[11px] font-medium uppercase tracking-wide text-brand-300 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" /> Pro
+                </span>
+              )}
+            </div>
+            <p className="font-semibold text-foreground">Live Interview</p>
+            <p className="text-sm text-muted-foreground mt-1">Your AI interviewer speaks each question aloud over a real-time voice call, and listens to your spoken answers — closest to a real interview.</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => chooseDelivery('text')}
+            className="text-left p-6 rounded-2xl border border-border/60 hover:border-brand-500/60 hover:bg-brand-500/5 transition-all"
+          >
+            <div className="h-10 w-10 rounded-xl bg-surface-200 flex items-center justify-center mb-3">
+              <Keyboard className="h-5 w-5 text-foreground" />
+            </div>
+            <p className="font-semibold text-foreground">Written</p>
+            <p className="text-sm text-muted-foreground mt-1">Type your answers at your own pace. Read questions aloud or dictate answers with your browser&apos;s built-in voice features, if you like.</p>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6 lg:p-10 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">New Interview</h1>
-        <p className="text-sm text-muted-foreground mt-1">Configure a realistic practice session — text mode, today.</p>
+        <button type="button" onClick={() => setStep('delivery')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-3">
+          <ChevronLeft className="h-3.5 w-3.5" /> Change interview type
+        </button>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          {deliveryMode === 'voice' ? 'Live Interview' : 'Written Interview'}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {deliveryMode === 'voice' ? 'Configure your real-time voice practice session.' : 'Configure a realistic text-mode practice session.'}
+        </p>
       </div>
 
       <Card>
@@ -89,7 +154,7 @@ export default function NewInterviewPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Interview format</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Question style</CardTitle></CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           {SESSION_TYPES.map((t) => (
             <button
@@ -148,8 +213,15 @@ export default function NewInterviewPage() {
       </Card>
 
       <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground space-y-1">
-        <p>Delivery mode: <span className="text-foreground">Text</span> (voice is not yet available)</p>
-        <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>
+        <p>Delivery mode: <span className="text-foreground">{deliveryMode === 'voice' ? 'Live voice' : 'Text'}</span></p>
+        {deliveryMode === 'voice' ? (
+          <>
+            <p>Your microphone is used only to send your spoken answers to the AI interviewer in real time. A transcript of both sides is saved privately for you; no raw audio recording is stored.</p>
+            {!isPro && <p className="text-brand-300">Live Interview requires Pro — you can pick it now and upgrade before you start.</p>}
+          </>
+        ) : (
+          <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>
+        )}
         <p>This is practice, not a real interview — Showcase never represents itself as an employer.</p>
       </div>
 

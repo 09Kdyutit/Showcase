@@ -129,13 +129,22 @@ async function main() {
     await anonContext.close()
   }
 
-  console.log('\n── Voice mode is rejected for everyone (Live gate is off) ──')
+  console.log('\n── Voice mode: session creation is allowed (Live gate is on), but Live tokens still require ownership + Pro ──')
   {
-    const res = await callApi(pageA, 'POST', '/api/interviews/sessions', {
+    const pageC = await signUpBrowser(browser, `interview-auth-c-${suffix}@example.com`)
+    const res = await callApi(pageC, 'POST', '/api/interviews/sessions', {
       sessionType: 'behavioral', deliveryMode: 'voice', coachingMode: 'guided',
       difficulty: 'standard', sessionLength: 'quick', targetRole: 'Voice Test',
     })
-    record('Voice delivery mode is rejected at session creation (VOICE_NOT_ENABLED)', res.status === 403 && res.body?.code === 'VOICE_NOT_ENABLED', JSON.stringify(res.body))
+    record('Voice delivery mode session creation succeeds for a fresh user (gate is genuinely on)', res.status === 201, JSON.stringify(res.body)?.slice(0, 200))
+
+    const voiceSessionId = res.body?.data?.id
+    await callApi(pageC, 'POST', `/api/interviews/sessions/${voiceSessionId}/start`)
+    const liveTokenAsOwner = await callApi(pageC, 'POST', `/api/interviews/sessions/${voiceSessionId}/live-token`)
+    record('Live token request from a non-Pro owner is rejected with PRO_REQUIRED, not a crash', liveTokenAsOwner.status === 403 && liveTokenAsOwner.body?.code === 'PRO_REQUIRED', JSON.stringify(liveTokenAsOwner.body))
+
+    const liveTokenAsStranger = await callApi(pageB, 'POST', `/api/interviews/sessions/${voiceSessionId}/live-token`)
+    record('User B cannot get a live token for User C\'s voice session', liveTokenAsStranger.status === 404, `got ${liveTokenAsStranger.status}`)
   }
 
   await browser.close()

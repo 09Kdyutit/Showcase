@@ -48,6 +48,7 @@ async function main() {
 
   // ── 2. New Interview config ──────────────────────────────────────────────
   await page.goto(`${APP_URL}/interviews/new`, { waitUntil: 'networkidle' })
+  await page.getByText('Written', { exact: true }).click()
   await page.fill('#targetRole', 'Product Designer')
   await page.getByText('Behavioral', { exact: true }).click()
   await page.getByText('Quick', { exact: true }).click()
@@ -75,12 +76,14 @@ async function main() {
   await page.waitForURL(/\/interviews\/[a-f0-9-]+\/results/, { timeout: 15000 })
   record('Completing all 3 questions navigates to Results', page.url().includes('/results'))
 
-  // ── 5. Results — honest disabled-analysis state + real transcript ──────
-  await page.waitForTimeout(3000) // allow the page's own analyze-on-load call to resolve
+  // ── 5. Results — real Gemini analysis (gate is on) + real transcript ──────
+  await page.waitForTimeout(8000) // allow the page's own real analyze-on-load call to resolve
   const bodyText = await page.textContent('body')
+  const overallScoreVisible = await page.locator('.text-4xl.font-bold').first().textContent().catch(() => null)
   record(
-    'Results page shows the honest "analysis not enabled" message (Gemini gate is off)',
-    bodyText?.includes('not yet enabled') || bodyText?.includes('not available yet'),
+    'Results page shows a real numeric overall score from real Gemini analysis (gate is on)',
+    !!overallScoreVisible && /^\d+$/.test(overallScoreVisible.trim()),
+    `score element: ${overallScoreVisible}`,
   )
   record('Results page shows "not a hiring prediction" disclosure', bodyText?.includes('not a hiring prediction'))
   record('Results page shows the real submitted answer text in the transcript', bodyText?.includes('test answer number 1'))

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { isProUser } from '@/lib/ai/rate-limit'
 import { PostgresRateLimiter } from '@/lib/rate-limit/postgres'
 import { buildInterviewPlan, type SessionLength } from '@/lib/interviews/plan'
+import { isInterviewLiveEnabled } from '@/lib/interviews/config'
 import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
 import { z } from 'zod'
 
@@ -39,10 +40,10 @@ export async function POST(request: NextRequest) {
     }
     const input = parsed.data
 
-    // Voice mode requires the Live-voice Gemini gate, which is off in every environment
-    // today (see src/lib/interviews/config.ts) — fail closed with a clear message
-    // rather than create a session the user can never actually start in voice mode.
-    if (input.deliveryMode === 'voice') {
+    // Voice mode requires the Live-voice Gemini gate. Previously this unconditionally
+    // 403'd regardless of the flag's actual value — a real bug that would have kept
+    // rejecting voice sessions even after isInterviewLiveEnabled() was flipped on.
+    if (input.deliveryMode === 'voice' && !isInterviewLiveEnabled()) {
       return NextResponse.json({
         error: 'Voice interviews are not yet available. Please use Text Mode.',
         code: 'VOICE_NOT_ENABLED',

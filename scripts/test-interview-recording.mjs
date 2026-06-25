@@ -86,10 +86,11 @@ async function main() {
     record('Uploading against a nonexistent question ID 404s', res.status === 404, `got ${res.status}`)
   }
 
-  console.log('\n── The feature gate itself, for the legitimate owner ──')
+  console.log('\n── The feature itself, for the legitimate owner (gate is on, real transcription) ──')
   {
     const res = await uploadRecording(pageA, sessionId, questionId)
-    record('A legitimate owner uploading a real, valid webm file gets RECORDING_NOT_ENABLED, not a crash', res.status === 403 && res.body?.code === 'RECORDING_NOT_ENABLED', `got ${res.status} ${JSON.stringify(res.body)}`)
+    record('A legitimate owner uploading a real, valid webm file gets a real transcribed answer back (201)', res.status === 201 && !!res.body?.data?.answer?.answer_text, `got ${res.status} ${JSON.stringify(res.body)}`)
+    record('The uploaded recording was genuinely persisted to storage', !!res.body?.data?.answer?.audio_storage_path)
   }
 
   await browser.close()
