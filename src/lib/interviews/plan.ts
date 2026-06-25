@@ -23,6 +23,9 @@ export interface BuildPlanInput {
   sessionLength: SessionLength
   evidence: PlanEvidenceInput
   deliveryMode?: 'voice' | 'text'
+  /** Pre-generated questions from AI (question-gen.ts). When provided, skips the
+   *  static bank lookup entirely and uses these instead. Safety filter still runs. */
+  aiGeneratedQuestions?: InterviewPlanQuestion[]
   /** Tier-derived hard ceilings (see entitlements/plans.ts). Omitted only by tests
    *  that don't go through the real session-creation route; every real caller must
    *  pass the caller's actual plan limits so Free/Pro question/follow-up counts are
@@ -72,34 +75,37 @@ function buildSourceReferences(sessionType: SessionType, evidence: PlanEvidenceI
 export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   const rubric = getRubricProfile(input.sessionType)
   const targetCount = Math.min(QUESTION_COUNT_BY_LENGTH[input.sessionLength], input.planLimits?.maxPrimaryQuestions ?? Infinity)
-  const available = getQuestionsForSessionType(input.sessionType)
 
-  if (available.length === 0) {
-    throw new Error(`No curated question templates exist yet for session type "${input.sessionType}" (question bank version ${QUESTION_BANK_VERSION})`)
+  let candidateQuestions: InterviewPlanQuestion[]
+
+  if (input.aiGeneratedQuestions && input.aiGeneratedQuestions.length > 0) {
+    // AI-generated path: use the pre-built questions, honour the target count ceiling
+    candidateQuestions = input.aiGeneratedQuestions.slice(0, targetCount)
+  } else {
+    // Static bank fallback
+    const available = getQuestionsForSessionType(input.sessionType)
+    if (available.length === 0) {
+      throw new Error(`No curated question templates exist yet for session type "${input.sessionType}" (question bank version ${QUESTION_BANK_VERSION})`)
+    }
+    const matching = available.filter((t) => t.difficulty === input.difficulty)
+    const rest = available.filter((t) => t.difficulty !== input.difficulty)
+    const selected = [...matching, ...rest].slice(0, targetCount)
+    candidateQuestions = selected.map((template, index) => ({
+      templateId: template.id,
+      orderIndex: index,
+      questionText: substitutePlaceholders(
+        (input.deliveryMode === 'voice' && template.voicePromptTemplate) ? template.voicePromptTemplate : template.promptTemplate,
+        input.targetRole,
+        input.targetCompany,
+      ),
+      competency: template.competency,
+      difficulty: template.difficulty,
+      selectionReason: template.difficulty === input.difficulty
+        ? `Matches requested difficulty (${input.difficulty}) for ${input.sessionType.replace(/_/g, ' ')}`
+        : `Filled from available bank — no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
+      sourceReferences: buildSourceReferences(input.sessionType, input.evidence),
+    }))
   }
-
-  // Prefer templates matching the requested difficulty first, then fill from the rest —
-  // never silently substitute a harder/easier question without it being a deliberate
-  // fallback when the bank doesn't have enough at the exact requested difficulty.
-  const matching = available.filter((t) => t.difficulty === input.difficulty)
-  const rest = available.filter((t) => t.difficulty !== input.difficulty)
-  const selected = [...matching, ...rest].slice(0, targetCount)
-
-  const candidateQuestions: InterviewPlanQuestion[] = selected.map((template, index) => ({
-    templateId: template.id,
-    orderIndex: index,
-    questionText: substitutePlaceholders(
-      (input.deliveryMode === 'voice' && template.voicePromptTemplate) ? template.voicePromptTemplate : template.promptTemplate,
-      input.targetRole,
-      input.targetCompany,
-    ),
-    competency: template.competency,
-    difficulty: template.difficulty,
-    selectionReason: template.difficulty === input.difficulty
-      ? `Matches requested difficulty (${input.difficulty}) for ${input.sessionType.replace(/_/g, ' ')}`
-      : `Filled from available bank — no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
-    sourceReferences: buildSourceReferences(input.sessionType, input.evidence),
-  }))
 
   // Defense in depth: every question — even from the already-vetted static bank — is
   // re-checked here, since this function is also the path Gemini-personalized wording

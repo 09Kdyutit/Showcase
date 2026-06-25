@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildInterviewPlan, type SessionLength } from '@/lib/interviews/plan'
-import { isInterviewLiveEnabled } from '@/lib/interviews/config'
+import { isInterviewLiveEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
 import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
 import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
+import { generatePersonalizedQuestions } from '@/lib/interviews/gemini/question-gen'
+import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@/lib/interviews/gemini/question-gen'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -82,14 +84,14 @@ export async function POST(request: NextRequest) {
       throw e
     }
 
-    // ── Gather real, already-verified evidence (never invented) ──────────────
-    // A resumeId/portfolioId that doesn't exist or doesn't belong to this user is
-    // treated as "none provided," not an error — silently dropping an invalid/foreign
-    // ID here is what prevents both a 500 (interview_sessions.resume_id has a real FK
-    // constraint, which a nonexistent ID would violate at insert time) and any
-    // possibility of the insert succeeding with a foreign owner's ID attached.
+    // ── Gather rich, verified user context ────────────────────────────────────
+    // Fetch as much detail as available — resume bullets, portfolio metrics, story
+    // bank — so the AI question generator can produce genuinely personalized questions.
+    // Any ID that doesn't exist or belongs to another user is treated as "none provided."
     let verifiedResumeId: string | null = null
+    let resumeContext: ResumeContext | null = null
     let resumeExperience: { id: string; company: string; role: string }[] = []
+
     if (input.resumeId) {
       const { data: resume } = await supabase
         .from('resumes')
@@ -99,24 +101,65 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
       if (resume) {
         verifiedResumeId = resume.id
-        const parsedExperience = (resume.parsed_json as { experience?: { company?: string; role?: string }[] } | null)?.experience ?? []
-        resumeExperience = parsedExperience
+        const pj = resume.parsed_json as {
+          experience?: { company?: string; role?: string; highlights?: string[]; description?: string; bullets?: string[] }[]
+          skills?: string[]
+          summary?: string
+        } | null
+
+        const experience = pj?.experience ?? []
+        resumeExperience = experience
           .filter((e) => e.company && e.role)
           .map((e, i) => ({ id: `${resume.id}-exp-${i}`, company: e.company!, role: e.role! }))
+
+        const allHighlights: string[] = []
+        for (const exp of experience.slice(0, 4)) {
+          const bullets = exp.highlights ?? exp.bullets ?? (exp.description ? [exp.description] : [])
+          allHighlights.push(...bullets.slice(0, 3))
+        }
+
+        resumeContext = {
+          currentRole: experience[0]?.role,
+          companies: experience.filter((e) => e.company).map((e) => e.company!).slice(0, 5),
+          skills: (pj?.skills ?? []).slice(0, 20),
+          highlights: allHighlights.slice(0, 10),
+        }
       }
     }
 
     let verifiedPortfolioId: string | null = null
     let portfolioProjects: { id: string; title: string }[] = []
+    let portfolioProjectsRich: PortfolioProjectContext[] = []
+
     if (input.portfolioId) {
       const { data: portfolio } = await supabase.from('portfolios').select('id').eq('id', input.portfolioId).eq('user_id', user.id).maybeSingle()
       if (portfolio) {
         verifiedPortfolioId = portfolio.id
-        let query = supabase.from('projects').select('id, title').eq('user_id', user.id).eq('portfolio_id', portfolio.id)
+        let query = supabase.from('projects')
+          .select('id, title, summary, problem, outcome, metrics')
+          .eq('user_id', user.id)
+          .eq('portfolio_id', portfolio.id)
         if (input.selectedProjectIds?.length) query = query.in('id', input.selectedProjectIds)
         const { data: projects } = await query.limit(10)
         portfolioProjects = (projects ?? []).map((p) => ({ id: p.id, title: p.title }))
+        portfolioProjectsRich = (projects ?? []).map((p) => ({
+          title: p.title,
+          summary: p.summary ?? undefined,
+          problem: p.problem ?? undefined,
+          outcome: p.outcome ?? undefined,
+          metrics: p.metrics ?? undefined,
+        }))
       }
+    }
+
+    // Story bank — which competencies does the user already have stories for?
+    const { data: storyBankRows } = await supabase
+      .from('story_bank_entries')
+      .select('competencies')
+      .eq('user_id', user.id)
+      .limit(20)
+    const storyBankContext: StoryBankContext = {
+      competencies: [...new Set((storyBankRows ?? []).flatMap((s) => (s.competencies as string[] | null) ?? []))],
     }
 
     let verifiedSavedJobId: string | null = null
@@ -125,14 +168,46 @@ export async function POST(request: NextRequest) {
       if (savedJob) verifiedSavedJobId = savedJob.id
     }
 
+    // ── Generate questions — AI first, static bank fallback ───────────────────
+    const questionCount = Math.min(
+      { quick: 3, standard: 5, full: 8 }[input.sessionLength as SessionLength],
+      limits.maxPrimaryQuestions,
+    )
+
+    let aiGeneratedQuestions = undefined
+    if (isInterviewAnalysisEnabled()) {
+      // isInterviewAnalysisEnabled() doubles as the gate for any Gemini API call here —
+      // same paid-project / key confirmation required.
+      try {
+        const genResult = await generatePersonalizedQuestions({
+          sessionType: input.sessionType,
+          targetRole: input.targetRole,
+          targetCompany: input.targetCompany ?? null,
+          difficulty: input.difficulty,
+          deliveryMode: input.deliveryMode as 'voice' | 'text',
+          questionCount,
+          maxFollowUps: limits.maxAdaptiveFollowUps,
+          resume: resumeContext,
+          portfolioProjects: portfolioProjectsRich,
+          storyBank: storyBankContext,
+        })
+        aiGeneratedQuestions = genResult.questions
+        console.info(`[interviews/sessions] AI generated ${aiGeneratedQuestions.length} questions in ${genResult.latencyMs}ms`)
+      } catch (err) {
+        console.warn('[interviews/sessions] AI question generation failed, falling back to static bank', err instanceof Error ? err.message : err)
+        aiGeneratedQuestions = undefined
+      }
+    }
+
     const plan = buildInterviewPlan({
       sessionType: input.sessionType,
       targetRole: input.targetRole,
       targetCompany: input.targetCompany ?? null,
       difficulty: input.difficulty,
       sessionLength: input.sessionLength as SessionLength,
-      deliveryMode: input.deliveryMode,
+      deliveryMode: input.deliveryMode as 'voice' | 'text',
       evidence: { resumeExperience, portfolioProjects },
+      aiGeneratedQuestions,
       planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })
 
