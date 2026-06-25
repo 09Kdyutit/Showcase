@@ -12,18 +12,19 @@ import { cn, apiErrorMessage } from '@/lib/utils'
 import { useUser } from '@/hooks/use-user'
 
 const SESSION_TYPES = [
-  { value: 'recruiter_screen', label: 'Recruiter Screen', desc: 'Background, motivation, role fit, logistics.' },
-  { value: 'behavioral', label: 'Behavioral', desc: 'STAR-style stories: conflict, failure, ownership, ambiguity.' },
-  { value: 'hiring_manager', label: 'Hiring Manager', desc: 'Judgment, leadership, decisions you\'d defend.' },
-  { value: 'portfolio_walkthrough', label: 'Portfolio Walkthrough', desc: 'Walk through a real project from your portfolio.' },
-  { value: 'project_deep_dive', label: 'Project Deep Dive', desc: 'Architecture, tradeoffs, scaling, debugging.' },
-  { value: 'technical_concept', label: 'Technical Concept', desc: 'Explain and reason about core concepts in your field.' },
-  { value: 'case_problem_solving', label: 'Case / Problem Solving', desc: 'Structured reasoning through an ambiguous problem.' },
-  { value: 'presentation_defense', label: 'Presentation Defense', desc: 'Defend a recommendation under pushback.' },
-  { value: 'job_specific_full_loop', label: 'Job-Specific Full Loop', desc: 'Mapped to a specific role\'s real requirements.' },
-  { value: 'rapid_fire_drill', label: 'Rapid-Fire Drill', desc: 'Many short, quick questions — speed and clarity.' },
+  { value: 'recruiter_screen', label: 'Recruiter Screen', desc: 'Background, motivation, role fit, logistics.', pro: false },
+  { value: 'behavioral', label: 'Behavioral', desc: 'STAR-style stories: conflict, failure, ownership, ambiguity.', pro: false },
+  { value: 'hiring_manager', label: 'Hiring Manager', desc: 'Judgment, leadership, decisions you\'d defend.', pro: true },
+  { value: 'portfolio_walkthrough', label: 'Portfolio Walkthrough', desc: 'Walk through a real project from your portfolio.', pro: false },
+  { value: 'project_deep_dive', label: 'Project Deep Dive', desc: 'Architecture, tradeoffs, scaling, debugging.', pro: true },
+  { value: 'technical_concept', label: 'Technical Concept', desc: 'Explain and reason about core concepts in your field.', pro: true },
+  { value: 'case_problem_solving', label: 'Case / Problem Solving', desc: 'Structured reasoning through an ambiguous problem.', pro: true },
+  { value: 'presentation_defense', label: 'Presentation Defense', desc: 'Defend a recommendation under pushback.', pro: true },
+  { value: 'job_specific_full_loop', label: 'Job-Specific Full Loop', desc: 'Mapped to a specific role\'s real requirements.', pro: false },
+  { value: 'rapid_fire_drill', label: 'Rapid-Fire Drill', desc: 'Many short, quick questions — speed and clarity.', pro: true },
 ] as const
 
+const FREE_DIFFICULTIES = ['foundational', 'standard'] as const
 const DIFFICULTIES = ['foundational', 'standard', 'challenging'] as const
 const LENGTHS = [
   { value: 'quick', label: 'Quick', desc: '~5-7 min' },
@@ -65,6 +66,17 @@ export default function NewInterviewPage() {
       toast.error('Enter a target role to practice for.')
       return
     }
+    // Client-side Pro gate — catches edge cases like URL-prefilled Pro session types
+    // before hitting the server and getting a generic 403.
+    const selectedType = SESSION_TYPES.find(t => t.value === sessionType)
+    if (!isPro && selectedType?.pro) {
+      toast.error('This session type requires Pro.')
+      return
+    }
+    if (!isPro && !(FREE_DIFFICULTIES as readonly string[]).includes(difficulty)) {
+      toast.error('Challenging difficulty requires Pro.')
+      return
+    }
     setSubmitting(true)
     try {
       const res = await fetch('/api/interviews/sessions', {
@@ -79,7 +91,16 @@ export default function NewInterviewPage() {
       })
       const json = await res.json()
       if (!res.ok) {
-        toast.error(apiErrorMessage(json.error, 'Could not create session.'))
+        const code = json.code as string | undefined
+        if (code === 'SESSION_TYPE_REQUIRES_PRO' || code === 'DIFFICULTY_REQUIRES_PRO' || code === 'COACHING_MODE_REQUIRES_PRO' || code === 'QUESTION_COUNT_EXCEEDS_PLAN') {
+          toast.error('This option requires Pro. Upgrade to unlock it.')
+        } else if (code === 'SESSION_LIMIT_REACHED') {
+          toast.error(json.error ?? 'You\'ve used all your interviews for this period. Upgrade to Pro for more.')
+        } else if (code === 'VOICE_NOT_ENABLED') {
+          toast.error('Live voice interviews are coming soon. Use Written mode for now.')
+        } else {
+          toast.error(apiErrorMessage(json.error, 'Could not create session.'))
+        }
         setSubmitting(false)
         return
       }
@@ -165,39 +186,62 @@ export default function NewInterviewPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Question style</CardTitle></CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
-          {SESSION_TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setSessionType(t.value)}
-              className={cn(
-                'text-left p-4 rounded-xl border transition-all',
-                sessionType === t.value ? 'border-brand-500/60 bg-brand-500/10' : 'border-border/60 hover:bg-surface-200'
-              )}
-            >
-              <p className="text-sm font-medium text-foreground">{t.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
-            </button>
-          ))}
+          {SESSION_TYPES.map((t) => {
+            const locked = !isPro && t.pro
+            return (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => {
+                  if (locked) {
+                    toast.error('This session type requires Pro.')
+                    return
+                  }
+                  setSessionType(t.value)
+                }}
+                className={cn(
+                  'text-left p-4 rounded-xl border transition-all relative',
+                  locked ? 'opacity-60 cursor-default border-border/40' : sessionType === t.value ? 'border-brand-500/60 bg-brand-500/10' : 'border-border/60 hover:bg-surface-200'
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">{t.label}</p>
+                  {t.pro && (
+                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand-300 bg-brand-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                      <Sparkles className="h-2.5 w-2.5" /> Pro
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
+              </button>
+            )
+          })}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Difficulty</CardTitle></CardHeader>
         <CardContent className="flex gap-2">
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDifficulty(d)}
-              className={cn(
-                'flex-1 capitalize text-sm py-2 rounded-xl border transition-all',
-                difficulty === d ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
-              )}
-            >
-              {d}
-            </button>
-          ))}
+          {DIFFICULTIES.map((d) => {
+            const locked = !isPro && !(FREE_DIFFICULTIES as readonly string[]).includes(d)
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => {
+                  if (locked) { toast.error('Challenging difficulty requires Pro.'); return }
+                  setDifficulty(d)
+                }}
+                className={cn(
+                  'flex-1 text-sm py-2 rounded-xl border transition-all relative',
+                  locked ? 'opacity-55 cursor-default border-border/40 text-muted-foreground' : difficulty === d ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
+                )}
+              >
+                <span className="capitalize">{d}</span>
+                {locked && <span className="block text-[9px] text-brand-300 font-semibold uppercase">Pro</span>}
+              </button>
+            )
+          })}
         </CardContent>
       </Card>
 
