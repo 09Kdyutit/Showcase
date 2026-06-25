@@ -26,7 +26,7 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (cat.score === null) {
+  if (cat.gated) {
     return (
       <div className="glass-card p-5 opacity-60">
         <div className="flex items-center justify-between gap-3">
@@ -37,6 +37,20 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
           <Badge variant="outline" className="text-[10px]">Pro</Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-2">Upgrade to Pro to score this category.</p>
+      </div>
+    )
+  }
+
+  if (cat.score === null) {
+    return (
+      <div className="glass-card p-5 opacity-60">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
+            <h3 className="font-semibold text-sm text-foreground">{cat.name}</h3>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">{cat.explanation || 'No data available for this category yet.'}</p>
       </div>
     )
   }

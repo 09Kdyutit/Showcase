@@ -617,6 +617,7 @@ export interface AuditCategory {
   fix: string
   example: string
   priority: number
+  gated: boolean
 }
 
 export interface AuditResult {

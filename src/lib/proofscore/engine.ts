@@ -52,6 +52,7 @@ export interface CategoryScore {
   weight: number
   evidence: string[]
   severity: 'critical' | 'major' | 'minor'
+  gated: boolean  // true only when locked behind Pro tier, never when score is null due to missing data
 }
 
 export interface ProofScoreResult {
@@ -325,6 +326,7 @@ export function computeProofScore(
     const computed = byKey.get(def.key)!
     const visible = isPro || def.freeTier
     const score = visible ? computed.score : null
+    const gated = !visible
     return {
       key: def.key,
       name: def.name,
@@ -333,6 +335,7 @@ export function computeProofScore(
       weight: def.weight,
       evidence: visible ? computed.evidence : ['Available on Pro — upgrade to see this category.'],
       severity: severityFor(score),
+      gated,
     }
   })
 

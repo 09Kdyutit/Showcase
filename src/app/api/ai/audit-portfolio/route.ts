@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
         fix: exp?.fix ?? 'Upgrade to Pro to see a specific fix for this category.',
         example: exp?.example ?? '',
         priority,
+        gated: det.gated,
       }
     })
 
