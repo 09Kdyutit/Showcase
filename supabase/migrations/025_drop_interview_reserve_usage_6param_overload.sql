@@ -1,0 +1,11 @@
+-- Migration 022 created a 6-param interview_reserve_usage. Migration 023 added
+-- p_max_concurrent as a 7th param via CREATE OR REPLACE FUNCTION, but Postgres
+-- treats a different arity as a NEW OVERLOADED function, not a replacement.
+-- The 6-param version was never dropped, so PostgREST encounters two overloads
+-- whose 6-param prefix is ambiguous when p_max_concurrent is omitted from a call.
+--
+-- Workaround in reserve.ts: always pass p_max_concurrent: null so the extra named
+-- parameter exclusively matches the 7-param version and PostgREST never routes to
+-- the 6-param one. This migration then cleanly removes the orphaned overload so
+-- the ambiguity cannot resurface from other callers.
+drop function if exists public.interview_reserve_usage(uuid, text, uuid, timestamptz, timestamptz, integer);

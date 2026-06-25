@@ -41,6 +41,8 @@
     "test:interview-readiness": "node --experimental-strip-types scripts/test-interview-readiness.mjs",
     "test:interview-recommendations": "node --experimental-strip-types scripts/test-interview-recommendations.mjs",
     "test:interview-hub": "node --env-file=.env.local scripts/test-interview-hub.mjs",
+    "test:interview-entitlements": "node --experimental-strip-types scripts/test-interview-entitlements.mjs",
+    "test:interview-limits": "node --env-file=.env.local scripts/test-interview-limits.mjs",
     "test:generation-guard": "node --experimental-strip-types scripts/test-generation-guard.mjs",
     "test:truth-ledger": "node --experimental-strip-types scripts/test-truth-ledger.mjs",
     "test:ats": "node --experimental-strip-types scripts/test-ats-export.mjs",

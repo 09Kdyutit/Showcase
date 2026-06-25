@@ -8,6 +8,7 @@ import { EvidenceCoverage } from '@/components/interviews/hub/evidence-coverage'
 import { RecentSessions } from '@/components/interviews/hub/recent-sessions'
 import { PracticeResources } from '@/components/interviews/hub/practice-resources'
 import { PrivacySummary } from '@/components/interviews/hub/privacy-summary'
+import { UsageSummary } from '@/components/interviews/hub/usage-summary'
 import { NewUserState } from '@/components/interviews/hub/new-user-state'
 import { JobSpecificBanner } from '@/components/interviews/hub/job-specific-banner'
 
@@ -23,8 +24,9 @@ export default async function InterviewHubPage() {
 
   if (hub.isNewUser) {
     return (
-      <div className="max-w-5xl mx-auto p-6 lg:p-10">
+      <div className="max-w-5xl mx-auto p-6 lg:p-10 space-y-6">
         <NewUserState hasResume={hub.hasResume} hasPortfolio={hub.hasPortfolio} displayName={displayName} />
+        <UsageSummary usage={hub.usage} />
       </div>
     )
   }
@@ -51,6 +53,7 @@ export default async function InterviewHubPage() {
           <RecentSessions sessions={hub.recentSessions} />
         </div>
         <div className="space-y-6">
+          <UsageSummary usage={hub.usage} />
           <NextActions actions={hub.nextActions} />
           <PracticeResources drills={hub.recommendedDrills} storyCount={hub.storyCount} />
           <PrivacySummary

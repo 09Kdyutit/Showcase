@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { commitSessionUsage } from '@/lib/interviews/entitlements'
 import { z } from 'zod'
 
 const submitSchema = z.object({
@@ -88,6 +89,14 @@ export async function POST(
     if (answerError) throw answerError
 
     await supabase.from('interview_questions').update({ answered_at: new Date().toISOString() }).eq('id', question.id)
+
+    // The first real accepted answer is the exact moment a reservation becomes a
+    // genuine, non-refundable session — see entitlements/reconcile.ts. Idempotent on
+    // every later answer in the same session, so calling it unconditionally here is
+    // safe and simpler than tracking "was this the first answer" separately.
+    if (attemptNumber === 1) {
+      await commitSessionUsage(await createServiceClient(), id, user.id)
+    }
 
     const { data: nextQuestion } = await supabase
       .from('interview_questions')

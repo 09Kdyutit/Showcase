@@ -22,6 +22,11 @@ export interface BuildPlanInput {
   difficulty: Difficulty
   sessionLength: SessionLength
   evidence: PlanEvidenceInput
+  /** Tier-derived hard ceilings (see entitlements/plans.ts). Omitted only by tests
+   *  that don't go through the real session-creation route; every real caller must
+   *  pass the caller's actual plan limits so Free/Pro question/follow-up counts are
+   *  enforced where the plan is built, not just hoped for downstream. */
+  planLimits?: { maxPrimaryQuestions: number; maxAdaptiveFollowUps: number; maxSessionMinutes: number }
 }
 
 function substitutePlaceholders(template: string, targetRole: string, targetCompany: string | null): string {
@@ -65,7 +70,7 @@ function buildSourceReferences(sessionType: SessionType, evidence: PlanEvidenceI
  */
 export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   const rubric = getRubricProfile(input.sessionType)
-  const targetCount = QUESTION_COUNT_BY_LENGTH[input.sessionLength]
+  const targetCount = Math.min(QUESTION_COUNT_BY_LENGTH[input.sessionLength], input.planLimits?.maxPrimaryQuestions ?? Infinity)
   const available = getQuestionsForSessionType(input.sessionType)
 
   if (available.length === 0) {
@@ -104,9 +109,10 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
     throw new Error('All candidate questions were blocked by the safety filter — cannot build a plan')
   }
 
+  const tierCeilingMinutes = Math.min(getMaxSessionMinutes(), input.planLimits?.maxSessionMinutes ?? getMaxSessionMinutes())
   const maxDurationSeconds = Math.min(
-    getMaxSessionMinutes() * 60,
-    input.sessionLength === 'quick' ? 7 * 60 : input.sessionLength === 'standard' ? 15 * 60 : getMaxSessionMinutes() * 60
+    tierCeilingMinutes * 60,
+    input.sessionLength === 'quick' ? 7 * 60 : input.sessionLength === 'standard' ? 15 * 60 : tierCeilingMinutes * 60
   )
 
   const plan: InterviewPlan = {
@@ -115,7 +121,7 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
     targetCompany: input.targetCompany,
     competencies: [...new Set(safeQuestions.map((q) => q.competency))],
     questions: safeQuestions.map((q, i) => ({ ...q, orderIndex: i })),
-    maxFollowUps: 2,
+    maxFollowUps: input.planLimits?.maxAdaptiveFollowUps ?? 2,
     rubricId: rubric.id,
     rubricVersion: rubric.version,
     forbiddenTopics: ['age', 'race_ethnicity', 'religion', 'pregnancy_family_plans', 'marital_status', 'disability_medical', 'sexual_orientation', 'citizenship_beyond_work_authorization', 'genetic_information', 'political_union_status', 'salary_history'],

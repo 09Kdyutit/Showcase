@@ -7,6 +7,7 @@ import { recommendDrillsForDimensions, type DrillDefinition } from './drills.ts'
 import type { CanonicalCompetency } from './competencies.ts'
 import { isInterviewLiveEnabled } from './config.ts'
 import { isProUser } from '../ai/rate-limit.ts'
+import { getUsageSnapshot, type UsageSnapshot } from './entitlements/index.ts'
 import type { SessionType } from './schemas.ts'
 
 export interface HubSessionSummary {
@@ -47,6 +48,7 @@ export interface HubData {
   selectedJob: HubSelectedJob | null
   storyCount: number
   isPro: boolean
+  usage: UsageSnapshot
   liveVoiceAvailable: boolean
   privacy: { transcriptRetentionDays: number; rawAudioRetentionEnabled: boolean }
 }
@@ -57,7 +59,7 @@ function dimensionLabel(id: string): string {
 
 export async function loadHubData(supabase: SupabaseClient, userId: string, displayName: string): Promise<HubData> {
   const [
-    sessionsRes, evaluationsRes, storyBankRes, drillsRes, jobsRes, profileRes, proStatus, resumeCountRes, portfolioCountRes,
+    sessionsRes, evaluationsRes, storyBankRes, drillsRes, jobsRes, profileRes, proStatus, resumeCountRes, portfolioCountRes, usage,
   ] = await Promise.all([
     supabase.from('interview_sessions')
       .select('id, session_type, target_role, target_company, delivery_mode, coaching_mode, status, analysis_status, created_at, completed_at')
@@ -81,6 +83,7 @@ export async function loadHubData(supabase: SupabaseClient, userId: string, disp
     isProUser(userId),
     supabase.from('resumes').select('id', { count: 'exact', head: true }).eq('user_id', userId),
     supabase.from('portfolios').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    getUsageSnapshot(supabase, userId),
   ])
 
   const sessions = sessionsRes.data ?? []
@@ -179,6 +182,7 @@ export async function loadHubData(supabase: SupabaseClient, userId: string, disp
     selectedJob,
     storyCount: storyBank.length,
     isPro: proStatus,
+    usage,
     liveVoiceAvailable: isInterviewLiveEnabled(),
     privacy: {
       transcriptRetentionDays: profileRes.data?.transcript_retention_days ?? 30,

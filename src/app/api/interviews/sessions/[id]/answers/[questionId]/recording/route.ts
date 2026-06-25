@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { commitSessionUsage } from '@/lib/interviews/entitlements'
 import { isInterviewRecordingEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
 import { validateAudioUpload, buildAudioStoragePath, CANONICAL_MIME_FOR_EXTENSION } from '@/lib/interviews/audio-validation'
 import { transcribeAudio } from '@/lib/interviews/gemini/transcription'
@@ -134,6 +135,10 @@ export async function POST(
     if (updateError) throw updateError
 
     await supabase.from('interview_questions').update({ answered_at: new Date().toISOString() }).eq('id', questionId)
+
+    if (attemptNumber === 1) {
+      await commitSessionUsage(await createServiceClient(), id, user.id)
+    }
 
     const { data: nextQuestion } = await supabase
       .from('interview_questions')

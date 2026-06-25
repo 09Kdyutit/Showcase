@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { commitSessionUsage } from '@/lib/interviews/entitlements'
 import { z } from 'zod'
 
 const segmentSchema = z.object({
@@ -103,6 +104,7 @@ export async function POST(
     if (answerRows.length > 0) {
       const { error: answerError } = await supabase.from('interview_answers').insert(answerRows)
       if (answerError) throw answerError
+      await commitSessionUsage(await createServiceClient(), id, user.id)
     }
 
     const answeredQuestionIds = Array.from(candidateSegmentsByQuestion.keys())

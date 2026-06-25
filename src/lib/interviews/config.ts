@@ -18,12 +18,31 @@ export function isGeminiInterviewEnabled(): boolean {
   return process.env.GEMINI_INTERVIEW_ENABLED === 'true'
 }
 
-/** The master runtime gate. Both must be explicitly 'true' — set by a human who has
- *  confirmed paid billing and reviewed the current Gemini API terms (mission gate
- *  items 1-2). Individual sub-feature flags below are checked IN ADDITION to this,
- *  never instead of it. */
+/** Deliberately a SEPARATE attestation from isGeminiPaidProjectConfirmed() — "billing
+ *  is paid" and "we have reviewed Gemini's current terms for compatibility with this
+ *  product's audience/use case" are two different facts a human can independently
+ *  confirm or revoke; bundling them into one flag would let either one drift true
+ *  without the other ever having been deliberately checked. */
+export function isGeminiTermsCompatibilityConfirmed(): boolean {
+  return process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED === 'true'
+}
+
+/** A platform-wide emergency stop, independent of every other flag — flipping this
+ *  true disables Interview Lab's Gemini-calling features immediately without needing
+ *  to also unset the (slower-to-change, attestation-style) confirmation flags above.
+ *  Intended for "something is wrong right now, stop spending" operator response. */
+export function isInterviewKillSwitchActive(): boolean {
+  return process.env.INTERVIEW_KILL_SWITCH === 'true'
+}
+
+/** The master runtime gate. All three must be explicitly 'true'/'false' as required —
+ *  set by a human who has confirmed paid billing AND separately reviewed the current
+ *  Gemini API terms (mission gate items 1-2) — AND the kill switch must not be active.
+ *  Individual sub-feature flags below are checked IN ADDITION to this, never instead
+ *  of it. */
 export function isInterviewLabRuntimeEnabled(): boolean {
-  return isGeminiPaidProjectConfirmed() && isGeminiInterviewEnabled()
+  if (isInterviewKillSwitchActive()) return false
+  return isGeminiPaidProjectConfirmed() && isGeminiInterviewEnabled() && isGeminiTermsCompatibilityConfirmed()
 }
 
 export function isInterviewLiveEnabled(): boolean {
@@ -74,6 +93,28 @@ export function getUserMonthlyBudgetUsd(): number | null {
   if (!raw) return null
   const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : null
+}
+
+export function getGlobalMonthlyBudgetUsd(): number | null {
+  const raw = process.env.INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD
+  if (!raw) return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+/** Hard ceiling on Live reconnect attempts within one session — bounds the worst-case
+ *  cost of a flaky connection retrying indefinitely. */
+export function getMaxReconnects(): number {
+  const n = Number(process.env.INTERVIEW_MAX_RECONNECTS ?? '3')
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3
+}
+
+/** A global hard ceiling on adaptive follow-ups, independent of and in addition to
+ *  the per-plan-tier cap in entitlements/plans.ts — the tier cap can never exceed
+ *  this even if plans.ts is misconfigured in a future change. */
+export function getMaxFollowUpsCeiling(): number {
+  const n = Number(process.env.INTERVIEW_MAX_FOLLOW_UPS ?? '5')
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 8) : 5
 }
 
 export const USD_TO_MICROUNITS = 1_000_000

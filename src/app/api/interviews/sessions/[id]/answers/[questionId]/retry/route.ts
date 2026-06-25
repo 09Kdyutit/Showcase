@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { compareAttempts } from '@/lib/interviews/retry-comparison'
+import { reserveRetryUsage, releaseSpecificReservation, EntitlementError } from '@/lib/interviews/entitlements'
 import { z } from 'zod'
 
 const retrySchema = z.object({
@@ -62,6 +63,24 @@ export async function POST(
     const previous = previousAnswers?.[0]
     if (!previous) return NextResponse.json({ error: 'This question has no original answer to retry.' }, { status: 409 })
 
+    // "1 retry per completed session" (Free) / "30 retries per billing period" (Pro)
+    // is counted across the WHOLE session, not per question — a retry on question 2
+    // after already retrying question 1 in the same session is still the user's
+    // second retry of that session, and Free only gets one.
+    const { count: priorRetryCountForSession } = await supabase
+      .from('interview_answers')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', id)
+      .gt('attempt_number', 1)
+    let retryReservationId: string | null = null
+    try {
+      const reserved = await reserveRetryUsage(await createServiceClient(), user.id, id, priorRetryCountForSession ?? 0)
+      retryReservationId = reserved.reservationId
+    } catch (e) {
+      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.httpStatus })
+      throw e
+    }
+
     const attemptNumber = previous.attempt_number + 1
     // Retries happen after the session has already ended, so elapsed-session timing
     // is not meaningful here — unlike the live transcript route, which derives
@@ -85,7 +104,26 @@ export async function POST(
       })
       .select('*')
       .single()
-    if (retryError) throw retryError
+    if (retryError) {
+      await supabase.from('interview_transcript_segments').delete().eq('id', segment.id)
+      // The reservation taken above was for a retry that did NOT actually happen (lost
+      // the race below) — release exactly that one reservation (never every 'reserved'
+      // row for the session, which could include an earlier, genuinely successful
+      // retry) so a Pro user's pooled retry count isn't burned for nothing. Free
+      // retries have no pooled reservation to release (reservationId is always null
+      // for tier 'free' — see reserveRetryUsage).
+      if (retryReservationId) await releaseSpecificReservation(await createServiceClient(), retryReservationId, user.id)
+      if (retryError.code === '23505') {
+        // Two retries on the SAME answer raced past the priorRetryCount check above
+        // (a non-atomic SELECT, same class of race the entitlement RPCs were built to
+        // close — found via adversarial parallel testing, see test:interview-limits)
+        // and both tried to claim the same attempt_number. The database's own unique
+        // constraint is the real, final arbiter here; this just turns the resulting
+        // 500 into an honest, expected response instead of a raw error.
+        return NextResponse.json({ error: 'Another retry for this answer was submitted at the same moment. Please try again.', code: 'RETRY_RACE_LOST' }, { status: 409 })
+      }
+      throw retryError
+    }
 
     const comparison = compareAttempts(previous.answer_text ?? '', parsed.data.answerText)
 

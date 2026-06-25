@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { isProUser } from '@/lib/ai/rate-limit'
-import { PostgresRateLimiter } from '@/lib/rate-limit/postgres'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildInterviewPlan, type SessionLength } from '@/lib/interviews/plan'
 import { isInterviewLiveEnabled } from '@/lib/interviews/config'
 import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
+import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
 import { z } from 'zod'
-
-const SECONDS_PER_30_DAYS = 30 * 24 * 60 * 60
-const sessionCreateLimiter = new PostgresRateLimiter()
 
 const createSchema = z.object({
   sessionType: z.enum(SESSION_TYPES),
@@ -23,9 +19,6 @@ const createSchema = z.object({
   portfolioId: z.string().uuid().optional(),
   selectedProjectIds: z.array(z.string().uuid()).max(10).optional(),
 })
-
-const FREE_SESSIONS_PER_MONTH = 1
-const PRO_SESSIONS_PER_MONTH = 30 // generous; the real cost-bearing constraint is Gemini analysis, gated off entirely in this build
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,27 +44,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Age eligibility is intentionally NOT checked at creation time — the product
-    // flow is New Interview (configure) -> Lobby (privacy notice + age confirmation)
-    // -> Start, and the Lobby only exists after a session is created. Requiring
-    // confirmation here would make it impossible for any first-time user to ever
-    // reach the screen that collects it. /start (the actual transition into the live
-    // room) is the real gate — see sessions/[id]/start/route.ts.
+    // flow is New Interview (configure) -> Lobby (privacy notice) -> Start, and the
+    // Lobby only exists after a session is created. /start is the real downstream
+    // gate — see sessions/[id]/start/route.ts. (No age-eligibility check exists
+    // there either: the account owner explicitly removed Interview Lab's age gate in
+    // migration 019 and reconfirmed that decision when this entitlements system was
+    // built — see security/release-gate.json IL-10.)
 
-    const isPro = await isProUser(user.id)
-    const monthlyLimit = isPro ? PRO_SESSIONS_PER_MONTH : FREE_SESSIONS_PER_MONTH
+    const serviceSupabase = await createServiceClient()
+    const { tier } = await resolvePlanContext(supabase, user.id)
+    const limits = getPlanLimits(tier)
 
-    // Atomic, race-proof check via the same Postgres rate_limit_increment() RPC that
-    // backs the non-AI rate limiter — a non-atomic SELECT-COUNT-then-INSERT here would
-    // be exactly the class of bug already found and fixed once this session in the AI
-    // quota path (10 parallel requests all reading the same pre-insert count). A
-    // 30-day rolling window is an honest approximation of "per month," not perfectly
-    // calendar-aligned, but atomic, which matters more for correctness here.
-    const rl = await sessionCreateLimiter.check(`interview:session:${user.id}`, monthlyLimit, SECONDS_PER_30_DAYS)
-    if (!rl.allowed) {
-      return NextResponse.json({
-        error: `You've used your ${monthlyLimit} interview session${monthlyLimit === 1 ? '' : 's'} for this period. ${isPro ? 'Try again later.' : 'Upgrade to Pro for more sessions.'}`,
-        code: 'PRO_REQUIRED',
-      }, { status: 403 })
+    // Server-authoritative plan/tier gates — the browser's request body is never
+    // trusted for any of these, only re-derived facts (subscription status) decide.
+    if (!isSessionTypeAllowed(tier, input.sessionType)) {
+      return NextResponse.json({ error: `${input.sessionType.replace(/_/g, ' ')} requires Pro.`, code: 'SESSION_TYPE_REQUIRES_PRO' }, { status: 403 })
+    }
+    if (!(limits.difficulties as readonly string[]).includes(input.difficulty)) {
+      return NextResponse.json({ error: `${input.difficulty} difficulty requires Pro.`, code: 'DIFFICULTY_REQUIRES_PRO' }, { status: 403 })
+    }
+    if (!(limits.coachingModes as readonly string[]).includes(input.coachingMode)) {
+      return NextResponse.json({ error: `${input.coachingMode} coaching mode requires Pro.`, code: 'COACHING_MODE_REQUIRES_PRO' }, { status: 403 })
+    }
+    if (tier === 'free' && input.sessionLength === 'full') {
+      return NextResponse.json({ error: 'Full-length sessions require Pro. Try Quick or Standard.', code: 'QUESTION_COUNT_EXCEEDS_PLAN' }, { status: 403 })
+    }
+
+    // Atomic, race-proof, fail-closed reservation against the real ledger — see
+    // src/lib/interviews/entitlements/. Reserved BEFORE the session row exists (using
+    // a null session_id, attached right after insert below) so a denied reservation
+    // never leaves an orphaned session row behind.
+    let reservation
+    try {
+      reservation = await reserveSessionUsage(serviceSupabase, user.id, null, input.deliveryMode !== 'text')
+    } catch (e) {
+      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.httpStatus })
+      throw e
     }
 
     // ── Gather real, already-verified evidence (never invented) ──────────────
@@ -124,6 +132,7 @@ export async function POST(request: NextRequest) {
       difficulty: input.difficulty,
       sessionLength: input.sessionLength as SessionLength,
       evidence: { resumeExperience, portfolioProjects },
+      planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })
 
     const { data: session, error: sessionError } = await supabase
@@ -149,7 +158,19 @@ export async function POST(request: NextRequest) {
       })
       .select('*')
       .single()
-    if (sessionError) throw sessionError
+    if (sessionError) {
+      // The reservation already succeeded — release it so a session that was never
+      // actually created doesn't permanently consume a real, scarce quota slot.
+      const idsToRelease = [reservation.sessionReservationId, ...(reservation.audioReservationId ? [reservation.audioReservationId] : [])]
+      for (const id of idsToRelease) await serviceSupabase.rpc('interview_release_usage', { p_reservation_id: id, p_user_id: user.id })
+      throw sessionError
+    }
+
+    await attachSessionToReservations(
+      serviceSupabase,
+      [reservation.sessionReservationId, ...(reservation.audioReservationId ? [reservation.audioReservationId] : [])],
+      session.id, user.id,
+    )
 
     const questionRows = plan.questions.map((q) => ({
       user_id: user.id,
