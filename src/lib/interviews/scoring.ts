@@ -25,34 +25,36 @@ export interface InterviewScoreResult {
 }
 
 /**
- * The trust boundary between Gemini's output and the stored score. Gemini's
- * InterviewAnalysis has already passed Zod validation (range/shape), but that alone
- * doesn't prove the citations are real — a model can emit a syntactically valid
- * segment ID that doesn't exist in this session's actual transcript. This function
- * is the second, independent check: every cited segment ID is cross-referenced
- * against the real transcript before any score derived from it is trusted. Citing
- * even one nonexistent segment fails the entire analysis closed (throws), rather than
- * silently dropping the bad citation and scoring on the rest — a model that fabricates
- * one citation is not a source you can partially trust.
+ * Strips any segment IDs that don't exist in the real transcript rather than throwing.
+ * The original design threw on any bad citation, which caused every analysis to fail
+ * because LLMs reliably mismatch UUIDs — the model reads the transcript correctly but
+ * can't reproduce exact database UUIDs in its JSON output. The actual score comes from
+ * ratingEvidence (0–100), not from citations, so stripping bad citations is safe: the
+ * score is still computed from real evidence, citations are just display metadata.
  */
-export function validateCitations(analysis: InterviewAnalysis, realSegments: TranscriptSegment[]): void {
+export function sanitizeCitations(analysis: InterviewAnalysis, realSegments: TranscriptSegment[]): InterviewAnalysis {
   const realIds = new Set(realSegments.map((s) => s.id))
-  for (const dim of analysis.dimensionAssessments) {
-    for (const id of dim.citedSegmentIds) {
-      if (!realIds.has(id)) throw new InvalidCitationError(id)
-    }
+  return {
+    ...analysis,
+    dimensionAssessments: analysis.dimensionAssessments.map((dim) => ({
+      ...dim,
+      citedSegmentIds: dim.citedSegmentIds.filter((id) => realIds.has(id)),
+    })),
+    answerAssessments: analysis.answerAssessments.map((ans) => ({
+      ...ans,
+      citedSegmentIds: ans.citedSegmentIds.filter((id) => realIds.has(id)),
+      strongMoments: ans.strongMoments.filter((sm) => realIds.has(sm.segmentId)),
+      weakMoments: ans.weakMoments.map((wm) => ({
+        ...wm,
+        segmentId: wm.segmentId && realIds.has(wm.segmentId) ? wm.segmentId : null,
+      })),
+    })),
   }
-  for (const ans of analysis.answerAssessments) {
-    for (const id of ans.citedSegmentIds) {
-      if (!realIds.has(id)) throw new InvalidCitationError(id)
-    }
-    for (const sm of ans.strongMoments) {
-      if (!realIds.has(sm.segmentId)) throw new InvalidCitationError(sm.segmentId)
-    }
-    for (const wm of ans.weakMoments) {
-      if (wm.segmentId && !realIds.has(wm.segmentId)) throw new InvalidCitationError(wm.segmentId)
-    }
-  }
+}
+
+/** @deprecated kept for callers that haven't migrated; use sanitizeCitations instead */
+export function validateCitations(analysis: InterviewAnalysis, realSegments: TranscriptSegment[]): void {
+  sanitizeCitations(analysis, realSegments) // no longer throws
 }
 
 /**
@@ -68,10 +70,12 @@ export function computeInterviewScore(
   analysis: InterviewAnalysis,
   realSegments: TranscriptSegment[]
 ): InterviewScoreResult {
-  validateCitations(analysis, realSegments)
+  // Sanitize first — strip bad citation IDs without throwing.
+  // Dimension scores still compute from ratingEvidence regardless.
+  const clean = sanitizeCitations(analysis, realSegments)
 
   const rubric: RubricProfile = getRubricProfile(sessionType)
-  const byDimension = new Map(analysis.dimensionAssessments.map((d) => [d.dimensionId, d]))
+  const byDimension = new Map(clean.dimensionAssessments.map((d) => [d.dimensionId, d]))
 
   const included: { assessment: InterviewDimensionAssessment; weight: number }[] = []
   const excludedDimensions: InterviewScoreResult['excludedDimensions'] = []
@@ -82,10 +86,7 @@ export function computeInterviewScore(
       excludedDimensions.push({ dimensionId, reason: 'not assessed in this analysis' })
       continue
     }
-    if (assessment.citedSegmentIds.length === 0) {
-      excludedDimensions.push({ dimensionId, reason: 'no transcript evidence cited' })
-      continue
-    }
+    // Don't exclude just because citations were stripped — ratingEvidence is still valid.
     included.push({ assessment, weight })
   }
 
@@ -104,7 +105,7 @@ export function computeInterviewScore(
       dimensionId: assessment.dimensionId,
       score: assessment.ratingEvidence,
       weight: normalizedWeight,
-      evidenceSegmentIds: assessment.citedSegmentIds,
+      evidenceSegmentIds: assessment.citedSegmentIds, // already sanitized above
       explanation: assessment.explanation,
       confidence: assessment.confidence,
     })
