@@ -18,6 +18,8 @@ import {
   isInterviewLiveEnabled, isInterviewAnalysisEnabled, isInterviewRecordingEnabled,
   isRawAudioRetentionAllowedPlatformWide, getMaxSessionMinutes,
   getMaxConcurrentSessions, getGlobalDailyBudgetUsd, getUserMonthlyBudgetUsd,
+  isGeminiTermsCompatibilityConfirmed, isInterviewKillSwitchActive,
+  getGlobalMonthlyBudgetUsd, getMaxReconnects, getMaxFollowUpsCeiling,
 } from '../src/lib/interviews/config.ts'
 import { readFileSync } from 'node:fs'
 
@@ -39,6 +41,11 @@ record('getMaxSessionMinutes() defaults to 20', getMaxSessionMinutes() === 20)
 record('getMaxConcurrentSessions() defaults to 1', getMaxConcurrentSessions() === 1)
 record('getGlobalDailyBudgetUsd() is null (not 0, not Infinity) when unconfigured', getGlobalDailyBudgetUsd() === null)
 record('getUserMonthlyBudgetUsd() is null when unconfigured', getUserMonthlyBudgetUsd() === null)
+record('getGlobalMonthlyBudgetUsd() is null when unconfigured', getGlobalMonthlyBudgetUsd() === null)
+record('isGeminiTermsCompatibilityConfirmed() is false by default', isGeminiTermsCompatibilityConfirmed() === false)
+record('isInterviewKillSwitchActive() is false by default', isInterviewKillSwitchActive() === false)
+record('getMaxReconnects() defaults to 3', getMaxReconnects() === 3)
+record('getMaxFollowUpsCeiling() defaults to 5', getMaxFollowUpsCeiling() === 5)
 
 // ── Sub-flags require the master gate even if individually set ─────────────
 process.env.INTERVIEW_LIVE_ENABLED = 'true'
@@ -53,15 +60,25 @@ process.env.GEMINI_PAID_PROJECT_CONFIRMED = 'true'
 record('GEMINI_PAID_PROJECT_CONFIRMED=true alone (without interview-enabled) still does NOT enable the runtime', isInterviewLabRuntimeEnabled() === false)
 delete process.env.GEMINI_PAID_PROJECT_CONFIRMED
 
-// ── Both master flags true → runtime enabled, but sub-flags still independently gate ─
+// ── All three master flags true → runtime enabled, but sub-flags still independently gate ─
 process.env.GEMINI_PAID_PROJECT_CONFIRMED = 'true'
 process.env.GEMINI_INTERVIEW_ENABLED = 'true'
-record('Both master flags true → isInterviewLabRuntimeEnabled() is true', isInterviewLabRuntimeEnabled() === true)
+record('Only 2 of 3 master flags true (terms-compatibility still unset) → runtime stays false', isInterviewLabRuntimeEnabled() === false)
+process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED = 'true'
+record('All 3 master flags true → isInterviewLabRuntimeEnabled() is true', isInterviewLabRuntimeEnabled() === true)
 record('...but isInterviewLiveEnabled() is still false without INTERVIEW_LIVE_ENABLED', isInterviewLiveEnabled() === false)
 process.env.INTERVIEW_LIVE_ENABLED = 'true'
 record('...and becomes true only once INTERVIEW_LIVE_ENABLED is also set', isInterviewLiveEnabled() === true)
+
+// ── The kill switch overrides everything else, even with all flags otherwise true ──
+process.env.INTERVIEW_KILL_SWITCH = 'true'
+record('INTERVIEW_KILL_SWITCH=true disables the runtime even with every other flag true', isInterviewLabRuntimeEnabled() === false)
+record('...and isInterviewLiveEnabled() too, transitively', isInterviewLiveEnabled() === false)
+delete process.env.INTERVIEW_KILL_SWITCH
+
 delete process.env.GEMINI_PAID_PROJECT_CONFIRMED
 delete process.env.GEMINI_INTERVIEW_ENABLED
+delete process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED
 delete process.env.INTERVIEW_LIVE_ENABLED
 
 // ── Max session minutes has a hard ceiling no env can exceed ────────────────
@@ -73,9 +90,11 @@ delete process.env.INTERVIEW_MAX_SESSION_MINUTES
 const example = readFileSync(new URL('../.env.example', import.meta.url), 'utf8')
 const expectedVars = [
   'GEMINI_ANALYSIS_MODEL', 'GEMINI_LIVE_MODEL', 'GEMINI_PAID_PROJECT_CONFIRMED', 'GEMINI_INTERVIEW_ENABLED',
+  'GEMINI_TERMS_COMPATIBILITY_CONFIRMED', 'INTERVIEW_KILL_SWITCH',
   'INTERVIEW_LIVE_ENABLED', 'INTERVIEW_ANALYSIS_ENABLED', 'INTERVIEW_RECORDING_ENABLED',
   'INTERVIEW_RAW_AUDIO_RETENTION', 'INTERVIEW_MAX_SESSION_MINUTES', 'INTERVIEW_MAX_CONCURRENT_SESSIONS',
-  'INTERVIEW_GLOBAL_DAILY_BUDGET_USD', 'INTERVIEW_USER_MONTHLY_BUDGET_USD',
+  'INTERVIEW_MAX_RECONNECTS', 'INTERVIEW_MAX_FOLLOW_UPS',
+  'INTERVIEW_GLOBAL_DAILY_BUDGET_USD', 'INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD', 'INTERVIEW_USER_MONTHLY_BUDGET_USD',
 ]
 for (const v of expectedVars) {
   record(`.env.example documents ${v}`, example.includes(v))
