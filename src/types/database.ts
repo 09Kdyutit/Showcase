@@ -568,7 +568,12 @@ export interface PortfolioContent {
     headline: string
     subheadline: string
     tagline: string
+    headshotUrl?: string | null
+    heroImageUrl?: string | null
   }
+  accentColor?: string | null
+  recruiterSummary?: string | null
+  featuredResult?: string | null
   about: {
     bio: string
     values: string[]
@@ -591,6 +596,7 @@ export interface PortfolioContent {
     metrics: string[]
     links: { label: string; url: string }[]
     tags: string[]
+    imageUrl?: string | null
   }>
   proof: Array<{ label: string; value: string }>
   contact: {

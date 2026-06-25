@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2 } from 'lucide-react'
+import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { portfolioGoalLabel } from '@/lib/constants'
 import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
 import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
+import { ImageUploader } from '@/components/portfolio/image-uploader'
 
 interface BuilderPageProps {
   params: Promise<{ portfolioId: string }>
@@ -373,6 +374,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 )}
               </TabsTrigger>
               <TabsTrigger value="experience">Experience</TabsTrigger>
+              <TabsTrigger value="photos">
+                <ImageIcon className="h-3 w-3 mr-1.5" />
+                Photos
+              </TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -795,6 +800,79 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
               </div>
             </TabsContent>
 
+            <TabsContent value="photos">
+              <div className="max-w-2xl space-y-6">
+                <div className="glass-card p-5 space-y-5">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Profile photo</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Appears in your hero section and navigation. Square works best.</p>
+                  </div>
+                  <ImageUploader
+                    label="Headshot"
+                    slot="headshot"
+                    value={content?.hero?.headshotUrl}
+                    aspectRatio="square"
+                    hint="JPG, PNG, WebP — max 5 MB"
+                    onUpload={(url) => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', headshotUrl: url } }))}
+                    onRemove={() => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', headshotUrl: undefined } }))}
+                  />
+                </div>
+
+                <div className="glass-card p-5 space-y-5">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">Hero background image</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Optional full-width background for your hero section. Some themes display this, some don&apos;t.</p>
+                  </div>
+                  <ImageUploader
+                    label="Hero background"
+                    slot="hero-bg"
+                    value={content?.hero?.heroImageUrl}
+                    aspectRatio="wide"
+                    hint="Landscape orientation recommended — min 1200×600px"
+                    onUpload={(url) => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', heroImageUrl: url } }))}
+                    onRemove={() => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', heroImageUrl: undefined } }))}
+                  />
+                </div>
+
+                {projects.length > 0 && (
+                  <div className="glass-card p-5 space-y-5">
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">Project images</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Add a cover image to each project. Displayed at the top of the project card.</p>
+                    </div>
+                    {projects.map((proj, i) => (
+                      <div key={i} className="space-y-2 pt-4 border-t border-border first:border-0 first:pt-0">
+                        <p className="text-xs font-medium text-foreground">{proj.title || `Project ${i + 1}`}</p>
+                        <ImageUploader
+                          label="Cover image"
+                          slot={`project-${i}`}
+                          value={proj.imageUrl}
+                          aspectRatio="wide"
+                          hint="16:9 landscape recommended"
+                          onUpload={(url) => {
+                            const updated = [...projects]
+                            updated[i] = { ...updated[i], imageUrl: url }
+                            updateContent(c => ({ ...c, projects: updated }))
+                          }}
+                          onRemove={() => {
+                            const updated = [...projects]
+                            updated[i] = { ...updated[i], imageUrl: undefined }
+                            updateContent(c => ({ ...c, projects: updated }))
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {projects.length === 0 && (
+                  <div className="glass-card p-8 text-center">
+                    <p className="text-xs text-muted-foreground">Add projects first to upload project cover images.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="experience">
               <div className="space-y-4">
                 {experience.length === 0 ? (
@@ -893,7 +971,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     <h3 className="text-sm font-semibold text-foreground">Theme</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Changes the live preview instantly. Won&apos;t publish until you click Publish.</p>
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-3">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {THEME_LIST.map((t) => (
                       <button
                         key={t.id}
@@ -904,10 +982,11 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                           theme === t.id ? 'border-brand-500/60 bg-brand-500/5 ring-1 ring-brand-500/30' : 'border-border bg-surface-100 hover:border-border/80'
                         )}
                       >
-                        <div
-                          className="h-16 rounded-lg mb-3 overflow-hidden flex flex-col gap-1 p-2"
-                          style={{ background: t.swatch.bg }}
-                        >
+                        <div className="relative h-16 rounded-lg mb-3 overflow-hidden flex flex-col gap-1 p-2" style={{ background: t.swatch.bg }}>
+                          {t.badge && (
+                            <span className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                              style={{ background: t.badge === 'Popular' ? '#f97316' : '#818cf8', color: '#fff' }}>{t.badge}</span>
+                          )}
                           <div className="h-1.5 w-1/2 rounded-full" style={{ background: t.swatch.accent }} />
                           <div className="h-1 w-3/4 rounded-full opacity-60" style={{ background: t.swatch.text }} />
                           <div className="h-1 w-2/3 rounded-full opacity-40" style={{ background: t.swatch.text }} />
@@ -920,14 +999,35 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                           <p className="text-xs font-semibold text-foreground">{t.name}</p>
                           {theme === t.id && <CheckCircle2 className="h-3.5 w-3.5 text-brand-400 shrink-0" />}
                         </div>
-                        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-2">{t.description}</p>
+                        <p className="text-[10px] text-muted-foreground/70 leading-relaxed mb-2 line-clamp-2">{t.description}</p>
                         <div className="flex flex-wrap gap-1">
-                          {t.recommendedRoles.slice(0, 3).map((r) => (
+                          {t.recommendedRoles.slice(0, 2).map((r) => (
                             <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-surface-300 text-muted-foreground/70">{r}</span>
                           ))}
                         </div>
                       </button>
                     ))}
+                  </div>
+
+                  {/* Accent color picker */}
+                  <div className="pt-4 border-t border-border space-y-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Accent color</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Customizes highlights, buttons, and glows across all themes.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {['#818cf8', '#00f5ff', '#f72585', '#06d6a0', '#fb8500', '#0066ff', '#bf00ff', '#ff006e'].map((color) => (
+                        <button key={color} type="button" onClick={() => updateContent(c => ({ ...c, accentColor: color }))}
+                          className={cn('w-7 h-7 rounded-full border-2 transition-all hover:scale-110', (content as { accentColor?: string }).accentColor === color ? 'border-white scale-110' : 'border-transparent')}
+                          style={{ background: color }} title={color} />
+                      ))}
+                      <input type="color" value={(content as { accentColor?: string }).accentColor ?? '#818cf8'}
+                        onChange={(e) => updateContent(c => ({ ...c, accentColor: e.target.value }))}
+                        className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent p-0" title="Custom color" />
+                      {(content as { accentColor?: string }).accentColor && (
+                        <button onClick={() => updateContent(c => ({ ...c, accentColor: undefined }))} className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">Reset</button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

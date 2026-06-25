@@ -3,7 +3,15 @@
 // wrong. Every read goes through coerceThemeId() so an invalid value always degrades to a
 // real theme instead of crashing the page or silently rendering nothing.
 
-export const THEME_IDS = ['executive-dark', 'clean-editorial', 'creative-case-study'] as const
+export const THEME_IDS = [
+  'executive-dark',
+  'clean-editorial',
+  'creative-case-study',
+  'glassmorphism',
+  'neon-night',
+  'gradient-studio',
+  'minimal-3d',
+] as const
 
 export type ThemeId = (typeof THEME_IDS)[number]
 
@@ -16,6 +24,7 @@ export interface ThemeMeta {
   recommendedRoles: string[]
   /** Small swatch colors used by the builder's theme picker cards — not used in the real render. */
   swatch: { bg: string; accent: string; text: string }
+  badge?: string
 }
 
 export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
@@ -39,6 +48,38 @@ export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
     description: 'Highly visual, project-forward layout with bold navigation and rich case-study composition.',
     recommendedRoles: ['Design', 'Branding', 'Creative Development', 'Product Design'],
     swatch: { bg: '#0c0a14', accent: '#f97316', text: '#fafaf9' },
+  },
+  'glassmorphism': {
+    id: 'glassmorphism',
+    name: 'Glassmorphism',
+    description: 'Frosted glass panels, floating orbs, and 3D tilt cards over a deep dark background. Ultra-modern.',
+    recommendedRoles: ['Engineering', 'Product', 'Tech Leadership', 'AI/ML', 'Startup'],
+    swatch: { bg: '#080810', accent: '#818cf8', text: '#ffffff' },
+    badge: 'Popular',
+  },
+  'neon-night': {
+    id: 'neon-night',
+    name: 'Neon Night',
+    description: 'Cyberpunk-inspired monochrome grid with glowing skill bars and neon accent highlights.',
+    recommendedRoles: ['Engineering', 'DevOps', 'Security', 'Game Dev', 'Fullstack'],
+    swatch: { bg: '#03020a', accent: '#00f5ff', text: '#ffffff' },
+    badge: 'New',
+  },
+  'gradient-studio': {
+    id: 'gradient-studio',
+    name: 'Gradient Studio',
+    description: 'Bold colorful gradients, tabbed project spotlight, and a fresh light aesthetic with real personality.',
+    recommendedRoles: ['Design', 'Creative', 'Marketing', 'Brand', 'Growth'],
+    swatch: { bg: '#fafafa', accent: '#f72585', text: '#0a0a0a' },
+    badge: 'New',
+  },
+  'minimal-3d': {
+    id: 'minimal-3d',
+    name: 'Minimal 3D',
+    description: 'Surgical white space with 3D parallax project cards and a floating sticky sidebar on scroll.',
+    recommendedRoles: ['Product', 'Consulting', 'General Professional', 'Research', 'Finance'],
+    swatch: { bg: '#ffffff', accent: '#0066ff', text: '#0a0a0a' },
+    badge: 'New',
   },
 }
 

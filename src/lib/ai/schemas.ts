@@ -125,9 +125,13 @@ export const PortfolioContentSchema = z.object({
     headline: z.string(),
     subheadline: z.string(),
     tagline: z.string(),
+    headshotUrl: z.string().nullable().optional(),
+    heroImageUrl: z.string().nullable().optional(),
   }),
   recruiterSummary: z.string().nullable().optional(),
   featuredResult: z.string().nullable().optional(),
+  // Theme customization — stored alongside content so it travels with the portfolio
+  accentColor: z.string().nullable().optional(),
   about: z.object({
     bio: z.string(),
     values: z.array(z.string()),
@@ -154,6 +158,7 @@ export const PortfolioContentSchema = z.object({
     metrics: z.array(z.string()),
     links: z.array(z.object({ label: z.string(), url: z.string() })),
     tags: z.array(z.string()).nullable().optional(),
+    imageUrl: z.string().nullable().optional(),
   })),
   proof: z.array(z.object({
     label: z.string(),

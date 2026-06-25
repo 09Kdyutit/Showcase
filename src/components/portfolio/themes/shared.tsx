@@ -8,8 +8,8 @@ export interface ThemePortfolio {
 }
 
 export interface ThemeContent extends Partial<PortfolioContent> {
-  recruiterSummary?: string
-  featuredResult?: string
+  recruiterSummary?: string | null
+  featuredResult?: string | null
 }
 
 export interface ThemeProps {
