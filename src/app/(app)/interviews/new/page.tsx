@@ -56,8 +56,10 @@ export default function NewInterviewPage() {
   const [targetCompany, setTargetCompany] = useState(searchParams.get('targetCompany') ?? '')
   const [submitting, setSubmitting] = useState(false)
 
+  const voiceAvailable = process.env.NEXT_PUBLIC_INTERVIEW_VOICE_AVAILABLE === 'true'
+
   function chooseDelivery(mode: DeliveryMode) {
-    if (mode === 'voice') {
+    if (mode === 'voice' && !voiceAvailable) {
       toast.info('Live voice interviews are coming soon. Try Written mode for now.')
       return
     }
@@ -70,8 +72,7 @@ export default function NewInterviewPage() {
       toast.error('Enter a target role to practice for.')
       return
     }
-    // Voice is not yet live — block before hitting the API.
-    if (deliveryMode === 'voice') {
+    if (deliveryMode === 'voice' && !voiceAvailable) {
       toast.info('Live voice interviews are coming soon. Use Written mode for now.')
       return
     }
@@ -132,15 +133,28 @@ export default function NewInterviewPage() {
           <button
             type="button"
             onClick={() => chooseDelivery('voice')}
-            className="text-left p-6 rounded-2xl border border-border/40 opacity-60 cursor-default transition-all relative overflow-hidden"
+            className={cn(
+              'text-left p-6 rounded-2xl border transition-all relative overflow-hidden',
+              voiceAvailable
+                ? 'border-border/60 hover:border-brand-500/60 hover:bg-brand-500/5'
+                : 'border-border/40 opacity-60 cursor-default'
+            )}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="h-10 w-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
                 <Mic className="h-5 w-5 text-brand-500" />
               </div>
-              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-surface-200 px-2 py-0.5 rounded-full">
-                Coming Soon
-              </span>
+              {voiceAvailable ? (
+                !isPro && (
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-brand-300 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Pro
+                  </span>
+                )
+              ) : (
+                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-surface-200 px-2 py-0.5 rounded-full">
+                  Coming Soon
+                </span>
+              )}
             </div>
             <p className="font-semibold text-foreground">Live Interview</p>
             <p className="text-sm text-muted-foreground mt-1">Your AI interviewer speaks each question aloud over a real-time voice call, and listens to your spoken answers — closest to a real interview.</p>
