@@ -105,15 +105,11 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
     setStatus('connecting')
     setErrorMessage(null)
     try {
-      const tokenRes = await fetch(`/api/interviews/sessions/${sessionId}/live-token`, { method: 'POST' })
-      const tokenJson = await tokenRes.json()
-      if (!tokenRes.ok) {
-        toast.error(apiErrorMessage(tokenJson.error, 'Could not start the live interview.'))
-        setStatus('idle')
-        return
-      }
-      const { ephemeralToken, model } = tokenJson.data
-
+      // Create engine and pre-init AudioContext NOW, while still in the synchronous
+      // user-gesture handler — before any await. Browsers block audio playback created
+      // outside a user gesture chain (especially Safari and Chrome on mobile). Doing
+      // this before the fetch call ensures both AudioContexts are unlocked for the
+      // full session lifetime, not just until the first await.
       const engine = new LiveInterviewEngine(
         questions.map((q) => ({ id: q.id, questionText: q.question_text })),
         LIVE_INTERVIEW_COMPLETE_PHRASE,
@@ -125,9 +121,23 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
           onClosed: () => {},
         }
       )
+      engine.preInitAudio()   // <-- synchronous, must be before any await
       engineRef.current = engine
+
+      const tokenRes = await fetch(`/api/interviews/sessions/${sessionId}/live-token`, { method: 'POST' })
+      const tokenJson = await tokenRes.json()
+      if (!tokenRes.ok) {
+        toast.error(apiErrorMessage(tokenJson.error, 'Could not start the live interview.'))
+        setStatus('idle')
+        return
+      }
+      const { ephemeralToken, model } = tokenJson.data
+
       await engine.connect(ephemeralToken, model)
       await engine.startMicCapture()
+      // Kickoff AFTER mic is ready so the model's greeting doesn't arrive while
+      // capture is still initialising and get interrupted mid-sentence.
+      engine.sendKickoff()
     } catch (err) {
       console.error(err)
       toast.error('Could not access your microphone, or the live connection failed. Please check mic permissions and try again.')

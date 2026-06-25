@@ -4,15 +4,13 @@
 // Gemini using only the short-lived ephemeral token from /live-token — the real
 // GEMINI_API_KEY never reaches the browser, and the interviewer's system
 // instruction (persona + question list) is locked into the token server-side, not
-// sent from here. Verified against a real billed Gemini project before this file
-// existed: token minting requires apiVersion 'v1alpha' (see gemini/client.ts), and
-// connecting with ONLY the resulting token (no API key) successfully opens a real
-// Live session.
+// sent from here.
 //
-// Mic capture uses a ScriptProcessorNode rather than the more modern AudioWorklet —
-// simpler to wire up without a separate static worklet file, broadly supported
-// despite being a deprecated API. A future iteration could migrate to
-// AudioWorkletNode without changing this module's public interface.
+// AudioContext lifecycle: the caller MUST call preInitAudio() synchronously in the
+// user-gesture handler (before any await) to unlock the Web Audio API. Browsers
+// block audio playback created outside a user gesture chain; the
+// ScriptProcessorNode also requires the capture context to be unlocked. Without
+// this, the interviewer is connected but silent and no transcript appears.
 
 import { GoogleGenAI, type Session, type LiveServerMessage } from '@google/genai'
 
@@ -30,6 +28,7 @@ export interface LiveTranscriptSegment {
   startMs: number
   endMs: number
   questionId: string | null
+  pending?: boolean // true while the turn is still streaming — replaced on flush
 }
 
 export interface LiveInterviewCallbacks {
@@ -72,8 +71,8 @@ function downsample(input: Float32Array, inputRate: number, outputRate: number):
 
 export class LiveInterviewEngine {
   private session: Session | null = null
-  private audioContext: AudioContext | null = null
   private playbackContext: AudioContext | null = null
+  private captureContext: AudioContext | null = null
   private micStream: MediaStream | null = null
   private processorNode: ScriptProcessorNode | null = null
   private nextPlaybackTime = 0
@@ -90,8 +89,27 @@ export class LiveInterviewEngine {
     private readonly callbacks: LiveInterviewCallbacks
   ) {}
 
+  // Call this SYNCHRONOUSLY inside the button click handler, before any await.
+  // Creates and resumes both audio contexts while the browser considers us "in a
+  // user gesture", unlocking audio playback for the session's lifetime.
+  preInitAudio(): void {
+    if (!this.playbackContext) {
+      this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
+    }
+    if (this.playbackContext.state === 'suspended') {
+      void this.playbackContext.resume()
+    }
+    if (!this.captureContext) {
+      this.captureContext = new AudioContext()
+    }
+    if (this.captureContext.state === 'suspended') {
+      void this.captureContext.resume()
+    }
+  }
+
   getTranscript(): LiveTranscriptSegment[] {
-    return this.segments
+    // Return committed segments only (no pending ones)
+    return this.segments.filter((s) => !s.pending)
   }
 
   private elapsedMs(): number {
@@ -102,10 +120,6 @@ export class LiveInterviewEngine {
     return this.questions[this.currentQuestionIndex]?.id ?? null
   }
 
-  /** Advances the "currently active question" pointer when the interviewer's own
-   *  speech starts matching the next question in the script — a deterministic
-   *  heuristic (not a guess at the candidate's intent) since the model is
-   *  instructed to ask questions close to verbatim from a known, fixed list. */
   private maybeAdvanceQuestion(interviewerText: string) {
     const next = this.questions[this.currentQuestionIndex + 1]
     if (!next) return
@@ -116,6 +130,11 @@ export class LiveInterviewEngine {
   }
 
   async connect(ephemeralToken: string, model: string): Promise<void> {
+    if (!this.playbackContext) {
+      // Fallback if preInitAudio() wasn't called — less reliable on Safari/mobile
+      this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
+    }
+
     const client = new GoogleGenAI({ apiKey: ephemeralToken, httpOptions: { apiVersion: 'v1alpha' } })
     this.startedAt = Date.now()
 
@@ -127,16 +146,23 @@ export class LiveInterviewEngine {
         onerror: (e) => this.callbacks.onError?.(e instanceof Error ? e.message : 'Live connection error'),
         onclose: () => this.callbacks.onClosed?.(),
       },
-      // config is intentionally omitted here — it's already locked into the
-      // ephemeral token server-side (liveConnectConstraints), so this client
-      // cannot alter the interviewer's persona or question list even if compromised.
+      // config is intentionally omitted — it's locked into the ephemeral token
+      // server-side (liveConnectConstraints), so the browser cannot alter it.
     })
+  }
 
-    // With automatic activity detection (the default), the model only generates a
-    // turn in response to client input — it will never speak first on its own just
-    // because the system instruction says to "greet the candidate." This explicit
-    // kickoff turn is what actually starts the interviewer talking.
-    this.session.sendClientContent({ turns: 'Please begin the interview now.', turnComplete: true })
+  // Call AFTER connect() and startMicCapture() are both done.
+  // Sending the kickoff BEFORE mic is ready can cause the model's greeting audio
+  // to overlap with mic initialization and get interrupted or dropped.
+  sendKickoff(): void {
+    if (!this.session) return
+    this.session.sendClientContent({
+      turns: [{
+        role: 'user',
+        parts: [{ text: 'Please begin the interview now. Introduce yourself briefly as the interviewer and ask the first question.' }],
+      }],
+      turnComplete: true,
+    })
   }
 
   private handleMessage(message: LiveServerMessage) {
@@ -151,24 +177,23 @@ export class LiveInterviewEngine {
         }))
       }
     }
+
     if (message.data) this.playAudioChunk(message.data)
 
     const serverContent = message.serverContent
     if (!serverContent) return
 
     if (serverContent.interrupted) {
-      this.nextPlaybackTime = 0 // candidate interrupted the model — drop queued audio
+      this.nextPlaybackTime = 0
     }
 
-    // Verified empirically against the real Live API: Transcription.finished never
-    // actually arrives as true for this model, despite being documented as the
-    // segment boundary. The real, observed boundaries are: serverContent.turnComplete
-    // for the interviewer's side, and "a new output chunk has started" for the
-    // candidate's side (proof their turn ended and the model began responding).
     if (serverContent.outputTranscription?.text) {
       if (this.pendingCandidateText) this.flushCandidate()
       this.pendingInterviewerText += serverContent.outputTranscription.text
       this.maybeAdvanceQuestion(this.pendingInterviewerText)
+      // Push a live-preview pending segment so the UI updates while the
+      // interviewer is still speaking — replaced by the committed version on flush.
+      this.emitLivePreview()
     }
 
     if (serverContent.inputTranscription?.text) {
@@ -178,6 +203,22 @@ export class LiveInterviewEngine {
     if (serverContent.turnComplete) {
       this.flushInterviewer()
     }
+  }
+
+  // Emits the current in-progress interviewer text as a temporary pending segment
+  // so the UI can show text as it streams, not just after the full turn ends.
+  private emitLivePreview() {
+    if (!this.pendingInterviewerText) return
+    const withoutPending = this.segments.filter((s) => !s.pending)
+    const preview: LiveTranscriptSegment = {
+      speaker: 'interviewer',
+      content: this.pendingInterviewerText.trim(),
+      startMs: this.elapsedMs(),
+      endMs: this.elapsedMs(),
+      questionId: this.currentQuestionId(),
+      pending: true,
+    }
+    this.callbacks.onTranscriptUpdate?.([...withoutPending, preview])
   }
 
   private flushInterviewer() {
@@ -199,15 +240,22 @@ export class LiveInterviewEngine {
     const trimmed = content.trim()
     if (!trimmed) return
     const endMs = this.elapsedMs()
-    this.segments.push({ speaker, content: trimmed, startMs: endMs, endMs, questionId: this.currentQuestionId() })
+    // Remove any pending preview for this speaker before committing the final
+    const withoutPending = this.segments.filter((s) => !s.pending)
+    withoutPending.push({ speaker, content: trimmed, startMs: endMs, endMs, questionId: this.currentQuestionId() })
+    this.segments = withoutPending
     this.callbacks.onTranscriptUpdate?.(this.segments)
   }
 
   private playAudioChunk(base64Data: string) {
-    if (!this.playbackContext) {
-      this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
-    }
+    if (!this.playbackContext) return
     const ctx = this.playbackContext
+
+    // Resume if suspended (autoplay policy may have suspended after creation)
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
+
     const int16 = base64ToInt16Array(base64Data)
     const float32 = new Float32Array(int16.length)
     for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 0x8000
@@ -226,19 +274,25 @@ export class LiveInterviewEngine {
 
   async startMicCapture(): Promise<void> {
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    this.audioContext = new AudioContext()
-    const source = this.audioContext.createMediaStreamSource(this.micStream)
-    // 4096-sample buffer: small enough for reasonably low latency, large enough to
-    // avoid excessive message overhead at typical capture sample rates.
-    this.processorNode = this.audioContext.createScriptProcessor(4096, 1, 1)
+    if (!this.captureContext) {
+      this.captureContext = new AudioContext()
+    }
+    if (this.captureContext.state === 'suspended') {
+      await this.captureContext.resume()
+    }
+    const source = this.captureContext.createMediaStreamSource(this.micStream)
+    this.processorNode = this.captureContext.createScriptProcessor(4096, 1, 1)
     this.processorNode.onaudioprocess = (event) => {
       const input = event.inputBuffer.getChannelData(0)
-      const downsampled = downsample(input, this.audioContext!.sampleRate, CAPTURE_SAMPLE_RATE)
+      const downsampled = downsample(input, this.captureContext!.sampleRate, CAPTURE_SAMPLE_RATE)
       const base64 = float32ToBase64Pcm16(downsampled)
       this.session?.sendRealtimeInput({ audio: { data: base64, mimeType: `audio/pcm;rate=${CAPTURE_SAMPLE_RATE}` } })
     }
     source.connect(this.processorNode)
-    this.processorNode.connect(this.audioContext.destination)
+    // ScriptProcessorNode must be connected to destination to fire onaudioprocess.
+    // The actual audio routed here is the mic signal, not the playback — it does
+    // create a faint echo path but ScriptProcessorNode offers no alternative.
+    this.processorNode.connect(this.captureContext.destination)
   }
 
   stopMicCapture() {
@@ -246,8 +300,8 @@ export class LiveInterviewEngine {
     this.processorNode = null
     this.micStream?.getTracks().forEach((t) => t.stop())
     this.micStream = null
-    this.audioContext?.close()
-    this.audioContext = null
+    this.captureContext?.close()
+    this.captureContext = null
   }
 
   close() {

@@ -15,22 +15,22 @@ export interface InterviewPlanLimits {
 }
 
 export const FREE_PLAN_LIMITS: InterviewPlanLimits = {
-  sessionsPerPeriod: 2,
+  sessionsPerPeriod: 3,
   audioSessionsPerPeriod: 0,
-  maxPrimaryQuestions: 6,
+  maxPrimaryQuestions: 8,
   maxAdaptiveFollowUps: 2,
-  maxSessionMinutes: 15,
+  maxSessionMinutes: 25,
   retriesPerPeriod: 'per_session_one',
   difficulties: ['foundational', 'standard'],
   coachingModes: ['guided', 'realistic'],
 }
 
 export const PRO_PLAN_LIMITS: InterviewPlanLimits = {
-  sessionsPerPeriod: 15,
-  audioSessionsPerPeriod: 8,
-  maxPrimaryQuestions: 12,
+  sessionsPerPeriod: 30,
+  audioSessionsPerPeriod: 15,
+  maxPrimaryQuestions: 15,
   maxAdaptiveFollowUps: 5,
-  maxSessionMinutes: 20,
+  maxSessionMinutes: 45,
   retriesPerPeriod: 30,
   difficulties: ['foundational', 'standard', 'challenging'],
   // 'pressure' coaching mode does not exist in this codebase (schemas.ts COACHING_MODES

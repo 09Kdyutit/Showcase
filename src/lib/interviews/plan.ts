@@ -6,7 +6,7 @@ import { getMaxSessionMinutes } from './config.ts'
 
 export type SessionLength = 'quick' | 'standard' | 'full'
 
-const QUESTION_COUNT_BY_LENGTH: Record<SessionLength, number> = { quick: 3, standard: 5, full: 8 }
+const QUESTION_COUNT_BY_LENGTH: Record<SessionLength, number> = { quick: 5, standard: 8, full: 12 }
 
 export interface PlanEvidenceInput {
   portfolioProjects?: { id: string; title: string }[]
@@ -123,7 +123,7 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   const tierCeilingMinutes = Math.min(getMaxSessionMinutes(), input.planLimits?.maxSessionMinutes ?? getMaxSessionMinutes())
   const maxDurationSeconds = Math.min(
     tierCeilingMinutes * 60,
-    input.sessionLength === 'quick' ? 7 * 60 : input.sessionLength === 'standard' ? 15 * 60 : tierCeilingMinutes * 60
+    input.sessionLength === 'quick' ? 12 * 60 : input.sessionLength === 'standard' ? 25 * 60 : tierCeilingMinutes * 60
   )
 
   const plan: InterviewPlan = {
