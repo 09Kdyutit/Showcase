@@ -141,7 +141,12 @@ export default function StoryBankPage() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">Story Bank</h1>
-            <p className="text-sm text-muted-foreground mt-1">Reusable, evidence-grounded stories you can draw on across interviews.</p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xl">
+              Your personal library of career stories. Interviewers constantly ask &ldquo;Tell me about a time you…&rdquo; — having
+              your best moments pre-structured in STAR format (Situation, Task, Action, Result) means you answer faster,
+              with more detail, and under less pressure. Save strong answers from your interviews here, or write new ones
+              from your resume and portfolio.
+            </p>
           </div>
           <Button onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> New Story</Button>
         </div>

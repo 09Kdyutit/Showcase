@@ -82,6 +82,11 @@ export async function POST(
       result = await runInterviewAnalysis({
         plan, transcript, verifiedResumeEvidence, verifiedPortfolioEvidence,
         targetJobRequirements: [], dimensionIds,
+        questions: (questions ?? []).map((q) => ({
+          id: q.id as string,
+          questionText: q.question_text as string,
+          orderIndex: q.order_index as number,
+        })),
       })
     } catch (err) {
       await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
