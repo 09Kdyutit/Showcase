@@ -35,6 +35,17 @@ export function LivePreviewFrame({ themeId, portfolio, content, height = 640 }: 
     return () => ro.disconnect()
   }, [])
 
+  // Load premium portfolio fonts so the builder preview matches the published output
+  useEffect(() => {
+    const id = 'portfolio-fonts-preload'
+    if (document.getElementById(id)) return
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap'
+    document.head.appendChild(link)
+  }, [])
+
   const ThemeComponent = THEME_COMPONENTS[themeId]
   const zoomStyle: CSSProperties & { zoom?: number } = { width: DESIGN_WIDTH, zoom: scale }
 

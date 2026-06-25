@@ -58,14 +58,22 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
   const ThemeComponent = THEME_COMPONENTS[coerceThemeId(portfolio.theme)]
 
   return (
-    <ThemeComponent
-      portfolio={{
-        title: portfolio.title,
-        slug: portfolio.slug,
-        target_role: portfolio.target_role,
-        status: portfolio.status,
-      }}
-      content={content}
-    />
+    <>
+      {/* Premium display fonts for portfolio themes */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet" />
+      <ThemeComponent
+        portfolio={{
+          title: portfolio.title,
+          slug: portfolio.slug,
+          target_role: portfolio.target_role,
+          status: portfolio.status,
+        }}
+        content={content}
+      />
+    </>
   )
 }

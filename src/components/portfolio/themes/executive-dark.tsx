@@ -1,429 +1,424 @@
-import { Globe, Mail, ArrowRight, ExternalLink, Calendar } from 'lucide-react'
+'use client'
+
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
+import { Mail, ExternalLink, ArrowUpRight, Calendar } from 'lucide-react'
 import { cn, safeHref } from '@/lib/utils'
-import { Reveal } from '@/components/shared/reveal'
-import { Logo } from '@/components/shared/logo'
 import {
   type ThemeProps,
   normalizePortfolioContent,
   getLevelDot,
   PROJECT_ACCENT_COLORS,
-  GRADIENT_TEXT_STYLE,
 } from './shared'
 
-/**
- * Executive Dark — restrained premium dark design for engineering, product, finance,
- * consulting, and leadership roles. Strong role positioning, compact proof metrics, serious
- * project presentation (Problem/Process/Outcome cards, not visual flourish).
- */
+const FONT = "'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif"
+
+const stagger = (i: number) => ({ initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.55, delay: i * 0.09 } })
+
 export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
   const {
     hero, about, skills, experience, projects, proof, contact, cta,
-    recruiterSummary, featuredResult, initials, skillsByCategory, categoryOrder, hasContent, bioParagraphs,
+    initials, skillsByCategory, categoryOrder, bioParagraphs,
   } = normalizePortfolioContent(portfolio, content)
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: containerRef })
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, -40])
+  const accentColor = (content as { accentColor?: string }).accentColor ?? '#818cf8'
+
+  // Split the portfolio name into words for staggered reveal
+  const nameWords = portfolio.title.trim().split(/\s+/)
+
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl" />
-        <div className="absolute top-[20%] right-[-10%] w-[500px] h-[400px] bg-violet-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-[50%] left-[-10%] w-[550px] h-[450px] bg-emerald-500/4 rounded-full blur-3xl" />
-        <div className="absolute top-[78%] right-[5%] w-[480px] h-[420px] bg-amber-500/[0.035] rounded-full blur-3xl" />
-        <div className="absolute bottom-[-5%] left-1/3 w-[600px] h-[400px] bg-brand-500/4 rounded-full blur-3xl" />
+    <div ref={containerRef} className="relative min-h-screen text-white overflow-x-hidden" style={{ fontFamily: FONT, background: '#080810' }}>
+
+      {/* Background: radial glow + subtle grid */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute inset-0" style={{ background: '#080810' }} />
+        <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(ellipse 80% 50% at 50% -10%, ${accentColor}18, transparent)` }} />
+        <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '72px 72px' }} />
       </div>
 
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.4)]">
-              <span className="text-white text-[11px] font-bold">{initials}</span>
-            </div>
-            <span className="font-semibold text-sm text-foreground truncate">{portfolio.title}</span>
-            {portfolio.target_role && (
-              <span className="text-xs text-foreground/65 hidden sm:inline truncate">
-                · {portfolio.target_role}
-              </span>
-            )}
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center border-b border-white/[0.05] backdrop-blur-2xl" style={{ background: 'rgba(8,8,16,0.8)' }}>
+        <div className="max-w-6xl mx-auto px-6 w-full flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            {hero?.headshotUrl
+              ? <img src={hero.headshotUrl} alt={portfolio.title} className="w-7 h-7 rounded-full object-cover ring-1 ring-white/20" />
+              : <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: accentColor }}>{initials}</div>
+            }
+            <span className="text-sm font-semibold text-white/80 truncate max-w-[180px]">{portfolio.title}</span>
+            {portfolio.target_role && <span className="text-xs text-white/30 hidden sm:inline">· {portfolio.target_role}</span>}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {safeHref(contact?.linkedin) && (
-              <a
-                href={safeHref(contact?.linkedin)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:border-border transition-all"
-              >
-                <ExternalLink className="h-3 w-3" />
-                LinkedIn
+              <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/50 hover:text-white border border-white/[0.06] hover:border-white/20 transition-all">
+                <ExternalLink className="h-3 w-3" /> LinkedIn
               </a>
             )}
             {contact?.email && (
-              <a
-                href={`mailto:${contact.email}`}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-violet-500 text-white text-xs font-semibold shrink-0 hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.3)]"
-              >
-                <Mail className="h-3 w-3" />
-                Get in touch
+              <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ background: accentColor }}>
+                <Mail className="h-3 w-3" /> Contact
               </a>
             )}
           </div>
         </div>
       </nav>
 
-      <main>
+      {/* ── HERO ── */}
+      <motion.section style={{ opacity: heroOpacity, y: heroY }} className="relative min-h-[100svh] flex items-center pt-14">
+        <div className="max-w-6xl mx-auto px-6 py-24 w-full">
+          <div className="grid lg:grid-cols-[1fr_380px] gap-12 items-center">
 
-      <section className="relative overflow-hidden">
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24">
-          <div className="relative mb-8 inline-block">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.35)]">
-              <span className="text-white text-3xl font-black">{initials}</span>
-            </div>
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 blur-2xl opacity-25 -z-10" />
-          </div>
-
-          {hero?.tagline && (
-            <p className="text-xs font-bold text-brand-400 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse inline-block" />
-              {hero.tagline}
-            </p>
-          )}
-
-          <h1 className="text-[clamp(2.25rem,5vw,3.75rem)] font-black tracking-tight leading-[1.04] text-balance max-w-4xl mb-6">
-            {hero?.headline ?? portfolio.title}
-          </h1>
-
-          {hero?.subheadline && (
-            <p className="text-xl text-foreground/60 leading-relaxed max-w-2xl mb-8 font-light">
-              {hero.subheadline}
-            </p>
-          )}
-
-          {featuredResult && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-300 font-medium mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              {featuredResult}
-            </div>
-          )}
-
-          {contact && Object.values(contact).some(Boolean) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {contact.email && (
-                <a
-                  href={`mailto:${contact.email}`}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(99,102,241,0.3)]"
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  {contact.email}
-                  <ArrowRight className="h-3 w-3" />
-                </a>
+            {/* Left: name + context */}
+            <div>
+              {/* Role badge */}
+              {(portfolio.target_role || hero?.tagline) && (
+                <motion.div {...stagger(0)} className="flex items-center gap-2 mb-8">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accentColor }} />
+                  <span className="text-xs font-semibold tracking-[0.18em] uppercase text-white/50">
+                    {hero?.tagline ?? portfolio.target_role}
+                  </span>
+                </motion.div>
               )}
-              {safeHref(contact.linkedin) && (
-                <a
-                  href={safeHref(contact.linkedin)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  LinkedIn
-                </a>
-              )}
-              {safeHref(contact.github) && (
-                <a
-                  href={safeHref(contact.github)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  GitHub
-                </a>
-              )}
-              {safeHref(contact.website) && (
-                <a
-                  href={safeHref(contact.website)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  Website
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
 
-      {proof.length > 0 && (
-        <section className="relative border-y border-white/[0.06]">
-          <div className="max-w-5xl mx-auto px-6 py-16">
-            <div className={cn(
-              'grid gap-0',
-              proof.length === 2 ? 'grid-cols-2' :
-              proof.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4',
-            )}>
-              {proof.slice(0, 4).map((p, i) => (
-                <div
-                  key={p.label}
-                  className={cn(
-                    'text-center px-6 py-2',
-                    i < proof.slice(0, 4).length - 1 && 'border-r border-white/[0.06]',
-                  )}
-                >
-                  <p className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight mb-2 leading-none" style={GRADIENT_TEXT_STYLE}>
-                    {p.value}
-                  </p>
-                  <p className="text-xs text-foreground/70 font-medium leading-snug max-w-[120px] mx-auto">{p.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {recruiterSummary && (
-        <section className="py-8 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-              <Globe className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-foreground/70 leading-relaxed">{recruiterSummary}</p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {bioParagraphs.length > 0 && (
-        <section className="relative py-24 px-6 overflow-hidden">
-          <p aria-hidden className="absolute -top-4 -left-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums">00</p>
-          <Reveal className="max-w-5xl mx-auto relative">
-            <h2 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mb-12">About</h2>
-            <div className="grid lg:grid-cols-[1fr_260px] gap-16 items-start">
-              <div className="space-y-6">
-                {bioParagraphs.map((para, i) => (
-                  <p key={i} className={cn('leading-[1.85]', i === 0 ? 'text-xl text-foreground/90 font-light' : 'text-base text-foreground/65')}>
-                    {para}
-                  </p>
+              {/* NAME — the centerpiece */}
+              <div className="mb-8 overflow-hidden">
+                {nameWords.map((word, wi) => (
+                  <div key={wi} className="overflow-hidden leading-[0.9]">
+                    <motion.div
+                      initial={{ y: '110%', opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.75, delay: 0.1 + wi * 0.12 }}
+                      className="font-bold tracking-tight"
+                      style={{
+                        fontFamily: "'Syne', 'Space Grotesk', system-ui, sans-serif",
+                        fontSize: 'clamp(3.5rem, 9vw, 7rem)',
+                        lineHeight: 0.92,
+                        letterSpacing: '-0.03em',
+                        color: wi === nameWords.length - 1 && nameWords.length > 1 ? 'transparent' : 'white',
+                        background: wi === nameWords.length - 1 && nameWords.length > 1
+                          ? `linear-gradient(135deg, ${accentColor}, #c4b5fd)`
+                          : undefined,
+                        WebkitBackgroundClip: wi === nameWords.length - 1 && nameWords.length > 1 ? 'text' : undefined,
+                        backgroundClip: wi === nameWords.length - 1 && nameWords.length > 1 ? 'text' : undefined,
+                      }}>
+                      {word}
+                    </motion.div>
+                  </div>
                 ))}
               </div>
-              {about?.values && about.values.length > 0 && (
-                <div className="space-y-1 pt-1">
-                  <h3 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mb-5">Working principles</h3>
-                  {about.values.map((v) => (
-                    <div key={v} className="flex items-start gap-3 py-2.5 border-b border-white/[0.05] last:border-0">
-                      <div className="w-1 h-1 rounded-full bg-brand-500/50 shrink-0 mt-2" />
-                      <p className="text-sm text-foreground/60 leading-relaxed">{v}</p>
+
+              {/* Positioning headline */}
+              {hero?.headline && (
+                <motion.p {...stagger(3)} className="text-lg sm:text-xl text-white/50 font-light leading-relaxed max-w-xl mb-8" style={{ fontFamily: FONT }}>
+                  {hero.headline}
+                </motion.p>
+              )}
+
+              {/* CTAs */}
+              <motion.div {...stagger(4)} className="flex flex-wrap items-center gap-3">
+                {contact?.email && (
+                  <a href={`mailto:${contact.email}`} className="group flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]" style={{ background: accentColor }}>
+                    <Mail className="h-3.5 w-3.5" />
+                    {contact.email}
+                    <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
+                )}
+                {safeHref(contact?.linkedin) && (
+                  <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm border border-white/10 text-white/60 hover:text-white hover:border-white/25 transition-all">
+                    <ExternalLink className="h-3.5 w-3.5" /> LinkedIn
+                  </a>
+                )}
+                {safeHref(contact?.github) && (
+                  <a href={safeHref(contact?.github)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm border border-white/10 text-white/60 hover:text-white hover:border-white/25 transition-all">
+                    <ExternalLink className="h-3.5 w-3.5" /> GitHub
+                  </a>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Right: headshot OR proof metrics */}
+            <div className="flex flex-col gap-6">
+              {hero?.headshotUrl ? (
+                <motion.div initial={{ opacity: 0, scale: 0.9, rotate: 2 }} animate={{ opacity: 1, scale: 1, rotate: 2 }} transition={{ delay: 0.4, duration: 0.8 }}
+                  className="relative w-full max-w-[340px] mx-auto lg:mx-0">
+                  <div className="rounded-2xl overflow-hidden aspect-[4/5]" style={{ boxShadow: `0 30px 80px ${accentColor}25, 0 0 0 1px ${accentColor}20` }}>
+                    <img src={hero.headshotUrl} alt={portfolio.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${accentColor}25 0%, transparent 40%)` }} />
+                  </div>
+                  {/* Floating proof metric */}
+                  {proof[0] && (
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 }}
+                      className="absolute -left-6 bottom-12 px-4 py-3 rounded-xl border border-white/10 backdrop-blur-xl text-center" style={{ background: 'rgba(8,8,16,0.85)' }}>
+                      <div className="text-2xl font-black" style={{ color: accentColor }}>{proof[0].value}</div>
+                      <div className="text-xs text-white/40 mt-0.5 max-w-[100px]">{proof[0].label}</div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ) : proof.length > 0 ? (
+                <motion.div {...stagger(2)} className="grid grid-cols-2 gap-3">
+                  {proof.slice(0, 4).map((p, i) => (
+                    <div key={i} className="px-5 py-5 rounded-2xl border border-white/[0.07] text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                      <div className="text-3xl font-black mb-1" style={{ color: accentColor }}>{p.value}</div>
+                      <div className="text-xs text-white/40 leading-snug">{p.label}</div>
                     </div>
                   ))}
-                </div>
-              )}
+                </motion.div>
+              ) : null}
             </div>
-          </Reveal>
-        </section>
-      )}
+          </div>
 
+          {/* Proof strip (when headshot shown, show metrics below) */}
+          {hero?.headshotUrl && proof.length > 0 && (
+            <motion.div {...stagger(5)} className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-0 border border-white/[0.06] rounded-2xl overflow-hidden">
+              {proof.slice(0, 4).map((p, i) => (
+                <div key={i} className={cn('text-center px-6 py-6', i < proof.slice(0, 4).length - 1 && 'border-r border-white/[0.06]')}>
+                  <div className="text-3xl font-black mb-1" style={{ color: accentColor }}>{p.value}</div>
+                  <div className="text-xs text-white/40">{p.label}</div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+
+        {/* Scroll hint */}
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2.5 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/20">
+          <div className="w-5 h-8 rounded-full border border-white/15 flex items-start justify-center pt-1.5">
+            <div className="w-1 h-2 rounded-full bg-white/30" />
+          </div>
+          <span className="text-[10px] tracking-widest uppercase">Scroll</span>
+        </motion.div>
+      </motion.section>
+
+      {/* ── PROJECTS ── */}
       {projects.length > 0 && (
-        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
-          <p aria-hidden className="absolute -top-4 right-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums">01</p>
-          <div className="max-w-5xl mx-auto relative">
-            <h2 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mb-12">Selected work</h2>
-            <div className="space-y-6">
-              {projects.slice(0, 5).map((proj, i) => (
-                <Reveal key={i} className={cn(i > 0 && 'delay-100')}>
-                  <article className={cn(
-                    'rounded-2xl border p-8 lg:p-10 transition-all duration-300 hover:shadow-[0_0_40px_rgba(99,102,241,0.06)] hover:-translate-y-0.5',
-                    PROJECT_ACCENT_COLORS[i % PROJECT_ACCENT_COLORS.length]
-                  )}>
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
-                      <div className="flex-1 min-w-0">
+        <section className="py-32 px-6">
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex items-end justify-between mb-16">
+              <div>
+                <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: accentColor }}>Selected Work</p>
+                <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-none" style={{ fontFamily: "'Syne', system-ui" }}>Projects</h2>
+              </div>
+              <div className="text-xs text-white/20 hidden sm:block">{projects.length} case {projects.length === 1 ? 'study' : 'studies'}</div>
+            </motion.div>
+
+            <div className="space-y-5">
+              {projects.map((proj, i) => (
+                <motion.article key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+                  className="group relative rounded-2xl border border-white/[0.07] overflow-hidden transition-all duration-300 hover:border-white/15 hover:-translate-y-0.5"
+                  style={{ background: 'rgba(255,255,255,0.02)' }}>
+
+                  {proj.imageUrl && (
+                    <div className="h-52 overflow-hidden">
+                      <motion.img whileHover={{ scale: 1.03 }} transition={{ duration: 0.5 }} src={proj.imageUrl} alt={proj.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 top-0 h-52" style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(8,8,16,1))' }} />
+                    </div>
+                  )}
+
+                  <div className="p-8 sm:p-10">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+                      <div>
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-[10px] font-black text-muted-foreground/25 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
-                          <h3 className="text-2xl font-black text-foreground tracking-tight">{proj.title}</h3>
+                          <span className="text-xs font-black text-white/15 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                          <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white" style={{ fontFamily: "'Syne', system-ui" }}>{proj.title}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground/80">
-                          {[proj.role, (proj as Record<string, unknown>).company as string, (proj as Record<string, unknown>).year as string].filter(Boolean).join(' · ')}
-                        </p>
-                        {proj.summary && <p className="text-sm text-foreground/55 mt-2 leading-relaxed max-w-2xl">{proj.summary}</p>}
+                        <p className="text-sm text-white/40 font-medium">{proj.role}</p>
+                        {proj.summary && <p className="text-sm text-white/50 mt-2 leading-relaxed max-w-xl">{proj.summary}</p>}
                       </div>
-                      {proj.metrics && proj.metrics.length > 0 && (
-                        <div className="flex flex-wrap gap-2 shrink-0 pt-1">
-                          {proj.metrics.slice(0, 3).map((m, mi) => (
-                            <span key={mi} className={cn(
-                              'px-3 py-1.5 rounded-lg border text-xs font-bold',
-                              i === 0 ? 'bg-brand-500/10 border-brand-500/20 text-brand-300' :
-                              i === 1 ? 'bg-violet-500/10 border-violet-500/20 text-violet-300' :
-                              'bg-emerald-500/10 border-emerald-500/20 text-emerald-300',
-                            )}>
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex flex-col items-end gap-3 shrink-0">
+                        {proj.metrics.slice(0, 2).map((m, mi) => (
+                          <span key={mi} className="text-xs font-bold px-3 py-1.5 rounded-lg" style={{ background: `${accentColor}15`, color: accentColor }}>{m}</span>
+                        ))}
+                      </div>
                     </div>
 
                     {proj.tags && proj.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-8">
-                        {proj.tags.slice(0, 6).map((t) => (
-                          <span key={t} className="px-2.5 py-0.5 bg-white/[0.04] border border-white/[0.07] rounded-full text-[11px] text-muted-foreground/70">{t}</span>
-                        ))}
+                        {proj.tags.map((t, ti) => <span key={ti} className="text-[11px] px-2.5 py-1 rounded-full border border-white/[0.07] text-white/40">{t}</span>)}
                       </div>
                     )}
 
                     {(proj.problem || proj.process || proj.outcome) && (
-                      <div className="grid sm:grid-cols-3 gap-6">
+                      <div className="grid sm:grid-cols-3 gap-5">
                         {proj.problem && (
-                          <div>
-                            <p className="text-[9px] font-black text-muted-foreground/65 uppercase tracking-[0.2em] mb-3">Problem</p>
-                            <p className="text-sm text-foreground/55 leading-relaxed">{proj.problem}</p>
+                          <div className="rounded-xl p-5 border border-white/[0.05]" style={{ background: 'rgba(255,255,255,0.015)' }}>
+                            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/30 mb-3">Problem</p>
+                            <p className="text-sm text-white/55 leading-relaxed">{proj.problem}</p>
                           </div>
                         )}
                         {proj.process && (
-                          <div>
-                            <p className="text-[9px] font-black text-muted-foreground/65 uppercase tracking-[0.2em] mb-3">Process</p>
-                            <p className="text-sm text-foreground/55 leading-relaxed">{proj.process}</p>
+                          <div className="rounded-xl p-5 border border-white/[0.05]" style={{ background: 'rgba(255,255,255,0.015)' }}>
+                            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/30 mb-3">Process</p>
+                            <p className="text-sm text-white/55 leading-relaxed">{proj.process}</p>
                           </div>
                         )}
                         {proj.outcome && (
-                          <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.18] p-5">
-                            <p className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
-                            <p className="text-sm text-foreground/90 leading-relaxed font-medium">{proj.outcome}</p>
+                          <div className="rounded-xl p-5 border" style={{ background: `${accentColor}08`, borderColor: `${accentColor}25` }}>
+                            <p className="text-[9px] font-black uppercase tracking-[0.18em] mb-3" style={{ color: `${accentColor}80` }}>Outcome</p>
+                            <p className="text-sm leading-relaxed font-medium text-white/80">{proj.outcome}</p>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {proj.links && proj.links.filter((l) => safeHref(l.url)).length > 0 && (
-                      <div className="flex gap-3 mt-8 pt-6 border-t border-white/[0.05]">
-                        {proj.links.filter((l) => safeHref(l.url)).map((link, li) => (
-                          <a key={li} href={safeHref(link.url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors font-semibold">
-                            <ExternalLink className="h-3 w-3" />
-                            {link.label || 'View project'}
+                    {proj.links.filter(l => safeHref(l.url)).length > 0 && (
+                      <div className="flex gap-4 mt-8 pt-6 border-t border-white/[0.05]">
+                        {proj.links.filter(l => safeHref(l.url)).map((link, li) => (
+                          <a key={li} href={safeHref(link.url)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold hover:opacity-80 transition-opacity" style={{ color: accentColor }}>
+                            <ExternalLink className="h-3 w-3" /> {link.label || 'View project'}
                           </a>
                         ))}
                       </div>
                     )}
-                  </article>
-                </Reveal>
+                  </div>
+                </motion.article>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {skills.length > 0 && (
-        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
-          <p aria-hidden className="absolute -top-4 -left-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums">02</p>
-          <Reveal className="max-w-5xl mx-auto relative">
-            <h2 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mb-12">Skills & expertise</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-              {categoryOrder.map((cat) => (
-                <div key={cat}>
-                  <p className="text-[10px] font-bold text-muted-foreground/65 uppercase tracking-[0.15em] mb-4">{cat}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {skillsByCategory[cat].map((s) => (
-                      <span key={s.name} className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-colors',
-                        s.level === 'Expert' ? 'bg-brand-500/10 border-brand-500/25 text-foreground/90' :
-                        s.level === 'Advanced' ? 'bg-violet-500/8 border-violet-500/20 text-foreground/80' :
-                        s.level === 'Proficient' ? 'bg-emerald-500/8 border-emerald-500/20 text-foreground/75' :
-                        'bg-white/[0.03] border-white/[0.08] text-foreground/60',
-                      )}>
+      {/* ── ABOUT ── */}
+      {bioParagraphs.length > 0 && (
+        <section className="py-32 px-6 border-t border-white/[0.05]">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-[1fr_300px] gap-16 items-start">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: accentColor }}>About</p>
+              <h2 className="text-4xl font-black tracking-tight mb-10 leading-none" style={{ fontFamily: "'Syne', system-ui" }}>Background</h2>
+              <div className="space-y-5">
+                {bioParagraphs.map((p, i) => (
+                  <motion.p key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+                    className={cn('leading-[1.8]', i === 0 ? 'text-lg text-white/80' : 'text-base text-white/50')}>
+                    {p}
+                  </motion.p>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="lg:sticky lg:top-24 space-y-8">
+              {about?.values && about.values.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/30 mb-4">Principles</p>
+                  <div className="space-y-0">
+                    {about.values.map((v, i) => (
+                      <div key={i} className="flex items-start gap-3 py-3 border-b border-white/[0.05] last:border-0">
+                        <span className="mt-2 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accentColor }} />
+                        <p className="text-sm text-white/55 leading-relaxed">{v}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {skills.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/30 mb-4">Top Skills</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {skills.slice(0, 12).map((s, i) => (
+                      <span key={i} className="text-xs px-2.5 py-1 rounded-full border" style={{ background: s.level === 'Expert' ? `${accentColor}12` : 'rgba(255,255,255,0.03)', borderColor: s.level === 'Expert' ? `${accentColor}30` : 'rgba(255,255,255,0.07)', color: s.level === 'Expert' ? accentColor : 'rgba(255,255,255,0.5)' }}>{s.name}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* ── EXPERIENCE ── */}
+      {experience.length > 0 && (
+        <section className="py-32 px-6 border-t border-white/[0.05]">
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
+              <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: accentColor }}>Career</p>
+              <h2 className="text-4xl font-black tracking-tight leading-none" style={{ fontFamily: "'Syne', system-ui" }}>Experience</h2>
+            </motion.div>
+            <div className="space-y-0">
+              {experience.map((exp, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+                  className="grid sm:grid-cols-[200px_1fr] gap-6 sm:gap-12 py-10 border-b border-white/[0.05] last:border-0">
+                  <div className="sm:text-right">
+                    <div className="text-sm font-bold text-white/80 mb-1" style={{ color: accentColor }}>{exp.company}</div>
+                    <div className="text-xs text-white/30 flex items-center gap-1.5 sm:justify-end"><Calendar className="h-3 w-3" />{exp.period}</div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-4">{exp.role}</h3>
+                    <ul className="space-y-2.5">
+                      {exp.bullets.slice(0, 4).map((b, bi) => (
+                        <li key={bi} className="flex gap-3 text-sm text-white/50 leading-relaxed">
+                          <span className="mt-2 w-1 h-1 rounded-full shrink-0" style={{ background: `${accentColor}60` }} />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── SKILLS GRID ── */}
+      {categoryOrder.length > 0 && (
+        <section className="py-32 px-6 border-t border-white/[0.05]">
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
+              <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: accentColor }}>Expertise</p>
+              <h2 className="text-4xl font-black tracking-tight leading-none" style={{ fontFamily: "'Syne', system-ui" }}>Skills</h2>
+            </motion.div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {categoryOrder.map((cat, ci) => (
+                <motion.div key={cat} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: ci * 0.06 }}>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30 mb-4">{cat}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {skillsByCategory[cat].map((s, si) => (
+                      <span key={si} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs" style={{ background: s.level === 'Expert' ? `${accentColor}12` : 'rgba(255,255,255,0.03)', borderColor: s.level === 'Expert' ? `${accentColor}30` : 'rgba(255,255,255,0.07)', color: s.level === 'Expert' ? accentColor : 'rgba(255,255,255,0.55)' }}>
                         <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', getLevelDot(s.level))} />
                         {s.name}
                       </span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </Reveal>
+          </div>
         </section>
       )}
 
-      {experience.length > 0 && (
-        <section className="relative py-24 px-6 border-t border-white/[0.05] overflow-hidden">
-          <p aria-hidden className="absolute -top-4 right-2 text-[180px] font-black text-white/[0.025] leading-none select-none pointer-events-none tabular-nums">03</p>
-          <Reveal className="max-w-5xl mx-auto relative">
-            <h2 className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mb-12">Experience</h2>
-            <div className="space-y-0">
-              {experience.map((exp, i) => (
-                <div key={i} className="flex gap-8">
-                  <div className="hidden sm:flex flex-col items-center pt-1.5">
-                    <div className="w-2 h-2 rounded-full bg-brand-500/50 ring-4 ring-brand-500/10 shrink-0" />
-                    {i < experience.length - 1 && <div className="w-px flex-1 bg-gradient-to-b from-brand-500/15 to-transparent min-h-[56px] mt-1" />}
-                  </div>
-                  <div className={cn('flex-1 pb-12', i === experience.length - 1 && 'pb-0')}>
-                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 mb-4">
-                      <div>
-                        <h3 className="font-bold text-foreground text-lg leading-tight">{exp.role}</h3>
-                        <span className="text-sm text-muted-foreground/80 font-medium">{exp.company}</span>
-                      </div>
-                      {exp.period && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70 shrink-0 font-medium tabular-nums">
-                          <Calendar className="h-3 w-3" />
-                          {exp.period}
-                        </div>
-                      )}
-                    </div>
-                    {exp.bullets && exp.bullets.length > 0 && (
-                      <ul className="space-y-2.5 mb-4">
-                        {exp.bullets.map((b, bi) => (
-                          <li key={bi} className="flex items-start gap-3 text-sm text-foreground/60 leading-relaxed">
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/20 shrink-0 mt-2.5" />
-                            {b}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {exp.metrics && exp.metrics.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {exp.metrics.map((m, mi) => (
-                          <span key={mi} className="text-xs text-emerald-400 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold">{m}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </section>
-      )}
-
+      {/* ── CTA ── */}
       {(cta || contact?.email) && (
         <section className="py-32 px-6 border-t border-white/[0.05]">
-          <Reveal className="max-w-5xl mx-auto">
-            <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.07),transparent)]" />
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="relative rounded-3xl overflow-hidden border border-white/[0.07] p-12 sm:p-20 text-center"
+              style={{ background: 'rgba(255,255,255,0.015)' }}>
+              <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 60% 60% at 50% 0%, ${accentColor}10, transparent)` }} />
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${accentColor}50, transparent)` }} />
               <div className="relative z-10">
-                <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-5 tracking-tight">{cta?.headline ?? "Let's work together"}</h2>
-                <p className="text-foreground/50 text-lg mb-10 max-w-md mx-auto font-light">
-                  Open to the right conversations. Send a note and I&apos;ll respond within 24 hours.
-                </p>
+                <h2 className="text-4xl sm:text-6xl font-black tracking-tight mb-4 leading-none" style={{ fontFamily: "'Syne', system-ui" }}>
+                  {cta?.headline ?? "Let's work together"}
+                </h2>
+                <p className="text-white/40 text-lg mb-10 max-w-sm mx-auto font-light">Open to the right opportunity. I respond within 24 hours.</p>
                 {contact?.email && (
-                  <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-[0_0_40px_rgba(99,102,241,0.35)]">
+                  <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-white transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]" style={{ background: accentColor }}>
                     <Mail className="h-4 w-4" />
-                    {cta?.buttonLabel ?? 'Get in touch'}
-                    <ArrowRight className="h-4 w-4" />
+                    {cta?.buttonLabel ?? contact.email}
+                    <ArrowUpRight className="h-4 w-4" />
                   </a>
                 )}
               </div>
-            </div>
-          </Reveal>
+            </motion.div>
+          </div>
         </section>
       )}
 
-      </main>
-
-      <footer className="py-8 px-6 border-t border-white/[0.05]">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <a href="https://showcase.app" className="flex items-center gap-2 group">
-            <Logo size="sm" showWordmark={false} className="transition-transform group-hover:scale-105" />
-            <span className="text-xs text-muted-foreground/65 group-hover:text-muted-foreground/80 transition-colors">Built with Showcase</span>
-          </a>
-          {!hasContent && <p className="text-xs text-muted-foreground/65">Portfolio coming soon</p>}
-          <a href="#" className="text-xs text-muted-foreground/65 hover:text-muted-foreground/80 transition-colors">Back to top ↑</a>
+      <footer className="py-8 px-6 border-t border-white/[0.04]">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 text-xs text-white/20">
+          <span>{portfolio.title}</span>
+          <span>Built with Showcase</span>
         </div>
       </footer>
     </div>
