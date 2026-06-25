@@ -132,10 +132,11 @@ export const InterviewDimensionAssessmentSchema = z.object({
 export type InterviewDimensionAssessment = z.infer<typeof InterviewDimensionAssessmentSchema>
 
 export const InterviewAnalysisSchema = z.object({
+  summaryParagraph: z.string().min(40).max(2000),
   answerAssessments: z.array(AnswerEvidenceAssessmentSchema).max(30),
   dimensionAssessments: z.array(InterviewDimensionAssessmentSchema).min(1).max(DIMENSION_IDS.length),
-  topFixes: z.array(z.string().max(300)).min(1).max(5),
-  strengths: z.array(z.string().max(300)).max(5),
+  topFixes: z.array(z.string().max(500)).min(1).max(5),
+  strengths: z.array(z.string().max(500)).max(5),
 })
 export type InterviewAnalysis = z.infer<typeof InterviewAnalysisSchema>
 

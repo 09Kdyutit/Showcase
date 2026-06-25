@@ -123,13 +123,26 @@ For each question answered, produce one answerAssessment using the questionId fr
   actual example answer, not advice or a list of what to do. Show them, don't tell them.
   Base it on what they actually said, but strengthen it with what was missing.
 
-TOP FIXES & STRENGTHS:
-- topFixes (1-5): Each fix must be SPECIFIC to what this candidate actually said or didn't say.
-  Format: name the pattern across questions or reference a specific answer, quote what was weak,
-  then say exactly what to do instead. NOT generic advice like "add more metrics." Specific: "In
-  your conflict question, you described what happened but never said what you personally chose to
-  do or why — next time, start with 'I decided to...' after setting up the situation."
-- strengths (up to 5): Specific things they did well, with reference to actual content.
+SUMMARY PARAGRAPH:
+Write a 3-5 sentence summaryParagraph giving the candidate an honest, personalized narrative
+overview of their performance in this session. Reference the target role and session type.
+Name 1-2 specific things they did exceptionally well AND 1-2 specific things that held them back —
+use real content from their answers (specific topics they covered, specific gaps you noticed).
+Write in second-person, warmly but directly, as a senior interviewer would in feedback.
+This is NOT a generic evaluation — it must describe this specific session's actual content.
+
+NEXT STEPS (topFixes — shown as "Next Steps" to the candidate):
+Write 3-5 highly specific, actionable next steps. Each one must:
+- Reference exactly what this candidate said or failed to say in this session
+- Explain WHY it matters to interviewers (not just "add metrics" but "metrics signal you can prove
+  your work had real impact — without them, interviewers assume the work wasn't measurable")
+- Be concrete enough that the candidate knows exactly what to practice next
+- NOT be generic advice that applies to any candidate
+
+STRENGTHS (shown as "What you did well"):
+Write up to 5 specific strengths referencing actual content from their answers. Don't say
+"demonstrated strong technical knowledge" — say WHAT technical knowledge, WHAT they explained,
+and WHY it was effective in an interview context.
 
 Return JSON matching the InterviewAnalysis schema contract exactly.`
 }

@@ -49,13 +49,13 @@ export default async function InterviewHubPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ReadinessOverview groups={hub.readinessGroups} primary={hub.primaryReadiness} />
-          <EvidenceCoverage coverage={hub.evidenceCoverage} storyCount={hub.storyCount} />
+          <EvidenceCoverage coverage={hub.evidenceCoverage} />
           <RecentSessions sessions={hub.recentSessions} />
         </div>
         <div className="space-y-6">
           <UsageSummary usage={hub.usage} />
           <NextActions actions={hub.nextActions} />
-          <PracticeResources drills={hub.recommendedDrills} storyCount={hub.storyCount} />
+          <PracticeResources drills={hub.recommendedDrills} />
           <PrivacySummary
             transcriptRetentionDays={hub.privacy.transcriptRetentionDays}
             rawAudioRetentionEnabled={hub.privacy.rawAudioRetentionEnabled}
