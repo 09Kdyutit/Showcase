@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
       targetCompany: input.targetCompany ?? null,
       difficulty: input.difficulty,
       sessionLength: input.sessionLength as SessionLength,
+      deliveryMode: input.deliveryMode,
       evidence: { resumeExperience, portfolioProjects },
       planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })

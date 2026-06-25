@@ -216,6 +216,33 @@ export default function InterviewResultsPage() {
         <CardContent>
           {analyzing ? (
             <p className="text-sm text-muted-foreground">Analyzing your session…</p>
+          ) : session.analysis_status === 'failed' || session.analysis_status === 'skipped' ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                {session.analysis_status === 'failed'
+                  ? 'AI scoring ran into an error on this session. Your transcript is saved — you can retry below.'
+                  : 'AI scoring wasn\'t available when this session completed. You can run it now.'}
+              </p>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  setAnalyzing(true)
+                  const analyzeRes = await fetch(`/api/interviews/sessions/${params.sessionId}/analyze`, { method: 'POST' })
+                  const analyzeJson = await analyzeRes.json()
+                  if (analyzeRes.ok) {
+                    if (analyzeJson.message) setAnalysisMessage(analyzeJson.message)
+                    const refreshed = await fetch(`/api/interviews/sessions/${params.sessionId}`)
+                    const refreshedJson = await refreshed.json()
+                    if (refreshed.ok) setDetail(refreshedJson.data)
+                  } else {
+                    toast.error(apiErrorMessage(analyzeJson.error, 'Scoring failed. Try again.'))
+                  }
+                  setAnalyzing(false)
+                }}
+              >
+                Retry AI Scoring
+              </Button>
+            </div>
           ) : latestEvaluation ? (
             <>
               <div className="flex items-center gap-6 flex-wrap">

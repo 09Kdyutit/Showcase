@@ -22,6 +22,7 @@ export interface BuildPlanInput {
   difficulty: Difficulty
   sessionLength: SessionLength
   evidence: PlanEvidenceInput
+  deliveryMode?: 'voice' | 'text'
   /** Tier-derived hard ceilings (see entitlements/plans.ts). Omitted only by tests
    *  that don't go through the real session-creation route; every real caller must
    *  pass the caller's actual plan limits so Free/Pro question/follow-up counts are
@@ -87,7 +88,11 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   const candidateQuestions: InterviewPlanQuestion[] = selected.map((template, index) => ({
     templateId: template.id,
     orderIndex: index,
-    questionText: substitutePlaceholders(template.promptTemplate, input.targetRole, input.targetCompany),
+    questionText: substitutePlaceholders(
+      (input.deliveryMode === 'voice' && template.voicePromptTemplate) ? template.voicePromptTemplate : template.promptTemplate,
+      input.targetRole,
+      input.targetCompany,
+    ),
     competency: template.competency,
     difficulty: template.difficulty,
     selectionReason: template.difficulty === input.difficulty
