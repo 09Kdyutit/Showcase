@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Mic, Keyboard, ChevronLeft, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -35,16 +35,24 @@ type DeliveryMode = 'voice' | 'text'
 
 export default function NewInterviewPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { subscription } = useUser()
   const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
 
+  const savedJobId = searchParams.get('savedJobId')
+  const prefillSessionType = searchParams.get('sessionType')
+  const isValidSessionType = (v: string | null): v is typeof SESSION_TYPES[number]['value'] =>
+    !!v && SESSION_TYPES.some((t) => t.value === v)
+
   const [step, setStep] = useState<'delivery' | 'details'>('delivery')
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('text')
-  const [sessionType, setSessionType] = useState<typeof SESSION_TYPES[number]['value']>('behavioral')
+  const [sessionType, setSessionType] = useState<typeof SESSION_TYPES[number]['value']>(
+    isValidSessionType(prefillSessionType) ? prefillSessionType : 'behavioral'
+  )
   const [difficulty, setDifficulty] = useState<typeof DIFFICULTIES[number]>('standard')
   const [sessionLength, setSessionLength] = useState<typeof LENGTHS[number]['value']>('quick')
-  const [targetRole, setTargetRole] = useState('')
-  const [targetCompany, setTargetCompany] = useState('')
+  const [targetRole, setTargetRole] = useState(searchParams.get('targetRole') ?? '')
+  const [targetCompany, setTargetCompany] = useState(searchParams.get('targetCompany') ?? '')
   const [submitting, setSubmitting] = useState(false)
 
   function chooseDelivery(mode: DeliveryMode) {
@@ -66,6 +74,7 @@ export default function NewInterviewPage() {
           sessionType, difficulty, sessionLength, targetRole: targetRole.trim(),
           targetCompany: targetCompany.trim() || undefined,
           deliveryMode, coachingMode: 'guided',
+          savedJobId: savedJobId ?? undefined,
         }),
       })
       const json = await res.json()

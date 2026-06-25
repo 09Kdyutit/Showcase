@@ -43,7 +43,7 @@ async function main() {
   record('Hub page loads with no console errors', consoleErrors.length === 0, consoleErrors.join('; '))
   const hubHeading = await page.textContent('h1')
   record('Hub shows the Interview Lab heading', hubHeading?.includes('Interview Lab'), hubHeading)
-  const startButton = await page.getByRole('link', { name: /start an interview/i }).first()
+  const startButton = await page.getByRole('link', { name: /start your baseline interview/i }).first()
   record('Hub has a Start Interview action', await startButton.isVisible().catch(() => false))
 
   // ── 2. New Interview config ──────────────────────────────────────────────

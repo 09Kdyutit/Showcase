@@ -73,6 +73,8 @@ async function main() {
   }
   await callApi(page, 'POST', `/api/interviews/sessions/${sessionId}/complete`)
   await scanPage(page, `/interviews/${sessionId}/results`)
+  await callApi(page, 'POST', `/api/interviews/sessions/${sessionId}/analyze`)
+  await scanPage(page, '/interviews') // returning-user Hub state: readiness breakdown, evidence coverage, next actions
 
   console.log('\n── Mission-specific manual checks ──')
   await page.goto(`${APP_URL}/interviews/${sessionId}/lobby`, { waitUntil: 'networkidle' })

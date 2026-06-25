@@ -15,15 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { cn, apiErrorMessage } from '@/lib/utils'
-
-// The mission's canonical competency set — shown as a coverage strip so a user can see
-// at a glance which interview competencies they have at least one real story for. A
-// story may use other freeform tags too; this list only drives the coverage display,
-// never a hard restriction on what a user can type.
-const CANONICAL_COMPETENCIES = [
-  'leadership', 'conflict', 'failure', 'ownership', 'ambiguity',
-  'collaboration', 'prioritization', 'learning', 'technical_judgment', 'customer_focus',
-] as const
+import { CANONICAL_COMPETENCIES } from '@/lib/interviews/competencies'
 
 interface Story {
   id: string
