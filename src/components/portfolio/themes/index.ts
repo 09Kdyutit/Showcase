@@ -8,6 +8,8 @@ import { GlassmorphismTheme } from './glassmorphism'
 import { NeonNightTheme } from './neon-night'
 import { GradientStudioTheme } from './gradient-studio'
 import { Minimal3DTheme } from './minimal-3d'
+import { BentoTheme } from './bento'
+import { MagazineTheme } from './magazine'
 
 export const THEME_COMPONENTS: Record<ThemeId, ComponentType<ThemeProps>> = {
   'executive-dark': ExecutiveDarkTheme,
@@ -17,6 +19,8 @@ export const THEME_COMPONENTS: Record<ThemeId, ComponentType<ThemeProps>> = {
   'neon-night': NeonNightTheme,
   'gradient-studio': GradientStudioTheme,
   'minimal-3d': Minimal3DTheme,
+  'bento': BentoTheme,
+  'magazine': MagazineTheme,
 }
 
 export type { ThemeProps, ThemePortfolio, ThemeContent } from './shared'
@@ -28,4 +32,6 @@ export {
   NeonNightTheme,
   GradientStudioTheme,
   Minimal3DTheme,
+  BentoTheme,
+  MagazineTheme,
 }

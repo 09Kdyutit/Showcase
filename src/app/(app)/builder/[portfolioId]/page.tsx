@@ -985,7 +985,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         <div className="relative h-16 rounded-lg mb-3 overflow-hidden flex flex-col gap-1 p-2" style={{ background: t.swatch.bg }}>
                           {t.badge && (
                             <span className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                              style={{ background: t.badge === 'Popular' ? '#f97316' : '#818cf8', color: '#fff' }}>{t.badge}</span>
+                              style={{ background: t.badge === 'Hot' ? '#ef4444' : t.badge === 'Popular' ? '#f97316' : '#818cf8', color: '#fff' }}>{t.badge}</span>
                           )}
                           <div className="h-1.5 w-1/2 rounded-full" style={{ background: t.swatch.accent }} />
                           <div className="h-1 w-3/4 rounded-full opacity-60" style={{ background: t.swatch.text }} />

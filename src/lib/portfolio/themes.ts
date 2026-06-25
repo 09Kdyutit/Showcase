@@ -11,6 +11,8 @@ export const THEME_IDS = [
   'neon-night',
   'gradient-studio',
   'minimal-3d',
+  'bento',
+  'magazine',
 ] as const
 
 export type ThemeId = (typeof THEME_IDS)[number]
@@ -80,6 +82,22 @@ export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
     recommendedRoles: ['Product', 'Consulting', 'General Professional', 'Research', 'Finance'],
     swatch: { bg: '#ffffff', accent: '#0066ff', text: '#0a0a0a' },
     badge: 'New',
+  },
+  'bento': {
+    id: 'bento',
+    name: 'Bento',
+    description: 'Asymmetric bento grid hero with marquee skill ticker and large-format project spreads. Ultra modern.',
+    recommendedRoles: ['Engineering', 'Product', 'Design', 'Startup', 'Tech Leadership'],
+    swatch: { bg: '#080c08', accent: '#a3e635', text: '#ffffff' },
+    badge: 'Hot',
+  },
+  'magazine': {
+    id: 'magazine',
+    name: 'Magazine',
+    description: 'Editorial magazine spread with full-bleed photography, serif typography and alternating project layouts.',
+    recommendedRoles: ['Design', 'Creative', 'Marketing', 'Brand', 'Writing', 'UX'],
+    swatch: { bg: '#f7f3ee', accent: '#e85d2a', text: '#0a0a0a' },
+    badge: 'Hot',
   },
 }
 

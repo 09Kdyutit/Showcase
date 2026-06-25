@@ -100,14 +100,38 @@ export function GlassmorphismTheme({ portfolio, content }: ThemeProps) {
               {hero.tagline}
             </motion.div>
           )}
+          {/* NAME — the centrepiece */}
+          <div className="mb-6">
+            {portfolio.title.trim().split(/\s+/).map((word, wi, arr) => (
+              <div key={wi} className="overflow-hidden leading-[0.88]">
+                <motion.div
+                  initial={{ y: '110%' }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.75, delay: 0.15 + wi * 0.12 }}
+                  style={{
+                    fontFamily: "'Syne', system-ui, sans-serif",
+                    fontSize: 'clamp(3.5rem, 9vw, 7rem)',
+                    fontWeight: 800,
+                    lineHeight: 0.88,
+                    letterSpacing: '-0.03em',
+                    background: wi === arr.length - 1 && arr.length > 1
+                      ? `linear-gradient(135deg, ${accentColor}, #c4b5fd)`
+                      : undefined,
+                    WebkitBackgroundClip: wi === arr.length - 1 && arr.length > 1 ? 'text' : undefined,
+                    WebkitTextFillColor: wi === arr.length - 1 && arr.length > 1 ? 'transparent' : undefined,
+                    backgroundClip: wi === arr.length - 1 && arr.length > 1 ? 'text' : undefined,
+                    color: wi === arr.length - 1 && arr.length > 1 ? undefined : 'white',
+                  }}>
+                  {word}
+                </motion.div>
+              </div>
+            ))}
+          </div>
           {hero?.headline && (
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
-              className="text-5xl sm:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
-              <span className="text-white">{hero.headline.split(' ').slice(0, -2).join(' ')} </span>
-              <span style={{ background: `linear-gradient(135deg, ${accentColor}, #c4b5fd)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                {hero.headline.split(' ').slice(-2).join(' ')}
-              </span>
-            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+              className="text-base sm:text-lg text-white/50 max-w-lg mx-auto mb-6 leading-relaxed">
+              {hero.headline}
+            </motion.p>
           )}
           {hero?.subheadline && (
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}

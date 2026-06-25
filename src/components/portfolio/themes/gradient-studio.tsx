@@ -64,16 +64,38 @@ export function GradientStudioTheme({ portfolio, content }: ThemeProps) {
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               {hero?.tagline ?? 'Available for work'}
             </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, type: 'spring', stiffness: 80 }}
-              className="text-6xl sm:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
-              {hero?.headline?.split(' ').map((word, i, arr) => (
-                <span key={i}>
-                  {i === arr.length - 1 ? (
-                    <span style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentEnd})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{word}</span>
-                  ) : <>{word} </>}
-                </span>
-              )) ?? portfolio.title}
-            </motion.h1>
+            {/* NAME — full-size, gradient on last word */}
+            <div className="mb-8">
+              {portfolio.title.trim().split(/\s+/).map((word, wi, arr) => (
+                <div key={wi} className="overflow-hidden leading-[0.88]">
+                  <motion.div
+                    initial={{ y: '110%' }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.75, delay: 0.1 + wi * 0.1 }}
+                    className="font-black tracking-tighter"
+                    style={{
+                      fontFamily: "'Syne', system-ui",
+                      fontSize: 'clamp(4rem, 10vw, 8rem)',
+                      lineHeight: 0.88,
+                      background: wi === arr.length - 1 && arr.length > 1
+                        ? `linear-gradient(135deg, ${accentColor}, ${accentEnd})`
+                        : undefined,
+                      WebkitBackgroundClip: wi === arr.length - 1 && arr.length > 1 ? 'text' : undefined,
+                      WebkitTextFillColor: wi === arr.length - 1 && arr.length > 1 ? 'transparent' : undefined,
+                      backgroundClip: wi === arr.length - 1 && arr.length > 1 ? 'text' : undefined,
+                      color: wi === arr.length - 1 && arr.length > 1 ? undefined : '#0a0a0a',
+                    }}>
+                    {word}
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+            {hero?.headline && (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                className="text-lg text-black/50 max-w-xl leading-relaxed mb-4 font-medium">
+                {hero.headline}
+              </motion.p>
+            )}
             {hero?.subheadline && (
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-xl text-black/50 max-w-xl leading-relaxed mb-10">
                 {hero.subheadline}
