@@ -19,8 +19,31 @@ export async function POST(
       .maybeSingle()
     if (fetchError) throw fetchError
     if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    // Already in_progress → idempotent resume. The client landed here after a
+    // drop/refresh and just needs the session + first unanswered question back.
+    if (session.status === 'in_progress') {
+      const { data: fullSession } = await supabase
+        .from('interview_sessions')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const { data: firstUnanswered } = await supabase
+        .from('interview_questions')
+        .select('*')
+        .eq('session_id', id)
+        .is('answered_at', null)
+        .order('order_index')
+        .limit(1)
+        .maybeSingle()
+
+      return NextResponse.json({ data: { session: fullSession, firstQuestion: firstUnanswered, resumed: true } })
+    }
+
     if (session.status !== 'planned') {
-      return NextResponse.json({ error: `Session is already ${session.status}, cannot start again.`, code: 'INVALID_STATE' }, { status: 409 })
+      return NextResponse.json({ error: `Session is ${session.status} and cannot be started.`, code: 'INVALID_STATE' }, { status: 409 })
     }
 
     const startedAt = new Date()
