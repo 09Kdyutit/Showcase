@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getRateLimiter } from '@/lib/rate-limit'
+import { Resend } from 'resend'
+import { waitlistConfirmationEmail } from '@/lib/email/waitlist-email'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email address').toLowerCase(),
@@ -157,11 +161,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Send confirmation email — fire and forget, never block the response
+    const { subject, html, text } = waitlistConfirmationEmail(data.full_name)
+    resend.emails.send({
+      from: 'Showcase <hello@showcase.app>',
+      to: data.email,
+      subject,
+      html,
+      text,
+      tags: [{ name: 'type', value: 'waitlist_confirmation' }],
+    }).catch(err => console.error('Resend error:', err))
+
     return NextResponse.json({
       success: true,
       already_joined: false,
       referral_code: referralCode,
-      message: "You're on the Showcase beta list!",
+      message: "You're on the Showcase waitlist!",
     })
   } catch (err) {
     console.error('Waitlist join error:', err)
