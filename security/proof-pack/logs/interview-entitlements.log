@@ -1,0 +1,40 @@
+
+> casefile@0.1.0 test:interview-entitlements
+> node --experimental-strip-types scripts/test-interview-entitlements.mjs
+
+── Plan limits match the published Free/Pro policy ──
+  ❌ Free: 2 sessions/period
+  ✅ Free: 0 audio sessions (text-only)
+  ❌ Free: 6 primary questions max
+  ✅ Free: 2 adaptive follow-ups max
+  ✅ Free: 1 retry per session (not a period pool)
+  ❌ Pro: 15 sessions/period
+  ❌ Pro: 8 audio sessions/period
+  ❌ Pro: 12 primary questions max
+  ✅ Pro: 5 adaptive follow-ups max
+  ✅ Pro: 30 retries/period (a real number, not "unlimited")
+  ✅ Pro audio allowance is NOT advertised as unlimited
+
+── Session-type gating ──
+  ✅ Free can access recruiter_screen
+  ✅ Free can access behavioral
+  ✅ Free CANNOT access case_problem_solving
+  ✅ Free CANNOT access rapid_fire_drill
+  ✅ Pro can access every session type
+
+── Global env ceilings clamp plan constants, never the other way ──
+  ✅ A tighter global follow-up ceiling clamps Pro's 5 down to 1
+  ✅ With no override, Pro keeps its real 5 follow-ups
+
+── Free period is a real calendar month ──
+  ✅ Starts on the 1st of the month
+  ✅ Ends on the 1st of the NEXT month (exclusive)
+  ✅ December correctly rolls into January of the next year
+
+── Pro period is derived from the real Stripe billing interval ──
+  ✅ Monthly price -> period start is ~1 month before period end
+  ✅ Annual price -> period start is ~1 year before period end
+  ✅ Unrecognized price ID falls back to a conservative ~30-day window, not "unlimited"
+
+  Interview entitlements test: 19 passed, 5 failed
+

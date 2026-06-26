@@ -1,0 +1,23 @@
+
+> casefile@0.1.0 test:uploads
+> node scripts/test-uploads.mjs
+
+  ✅ Unauthenticated upload is rejected (401) — got 401
+
+── Magic-byte spoofing (authenticated) ──
+  ✅ Renamed .exe claiming to be .pdf is rejected by magic-byte check — got 400 {"error":"This file is not a valid PDF."}
+  ✅ HTML file renamed as .pdf is rejected by magic-byte check — got 400
+  ✅ Real %PDF-signed but unparseable PDF fails gracefully (no crash) — got 422 {"error":"extraction_too_short","message":"This PDF appears to have no readable text or image content (it may be empty or corrupted) — try pasting the text manually instead."}
+
+── Oversized payload (authenticated) ──
+  ✅ 5MB file (over 4MB cap) is rejected — got 400
+
+── Zero-byte / corrupted files (authenticated) ──
+  ✅ Zero-byte file is rejected, not crashing the server — got 400
+  ✅ Truncated/corrupted DOCX is rejected gracefully — got 500
+
+── Path-traversal-style filename (authenticated) ──
+  ✅ Path-traversal-style filename does not crash the route — got 200
+
+  Upload abuse test: 8 passed, 0 failed
+

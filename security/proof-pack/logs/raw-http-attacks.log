@@ -1,0 +1,16 @@
+
+Raw HTTP attacks against http://localhost:3000
+
+  ✅ Unauthenticated POST /api/portfolio/save is rejected — got 401
+  ✅ Unauthenticated account deletion is rejected — got 401
+  ✅ Checkout with injected priceId is not honored unauthenticated — got 401
+  ✅ Forged webhook signature rejected (400) — got 400
+  ✅ Webhook with missing signature rejected (400) — got 400
+  ✅ Malformed JSON does not 500-crash the route — got 401
+  ✅ 5MB JSON body handled without 500 — got 401
+  ✅ Wrong content-type handled (no 500) — got 401
+  ✅ Null-byte/unicode payload handled (no 500) — got 401
+  ✅ Health endpoint leaks no secret-shaped strings — status 200
+
+  Raw HTTP attack suite: 10 passed, 0 failed
+

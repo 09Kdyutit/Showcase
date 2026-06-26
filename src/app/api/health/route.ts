@@ -18,9 +18,19 @@ export async function GET() {
   checks.stripe_configured = !!process.env.STRIPE_SECRET_KEY
   checks.openai_configured = !!process.env.OPENAI_API_KEY
 
+  // Source/deployed parity signals. These are NOT secrets: a short commit hash and the
+  // build environment let an operator (or a deployment-parity test) confirm the running
+  // server matches the reviewed commit. Vercel exposes VERCEL_GIT_COMMIT_SHA at build time.
+  const commit = (
+    process.env.VERCEL_GIT_COMMIT_SHA ||
+    process.env.GIT_COMMIT_SHA ||
+    'unknown'
+  ).slice(0, 12)
+  const environment = process.env.VERCEL_ENV || process.env.NODE_ENV || 'unknown'
+
   const healthy = checks.database === true
   return NextResponse.json(
-    { status: healthy ? 'ok' : 'degraded', checks, timestamp: new Date().toISOString() },
+    { status: healthy ? 'ok' : 'degraded', checks, commit, environment, timestamp: new Date().toISOString() },
     { status: healthy ? 200 : 503 }
   )
 }

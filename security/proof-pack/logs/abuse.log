@@ -1,0 +1,10 @@
+
+> casefile@0.1.0 test:abuse
+> node --env-file=.env.local scripts/test-abuse.mjs
+
+  ✅ Sequential requests: exactly 5 succeed, 6th is rate-limited — statuses: 200,200,200,200,200,429
+  ✅ A different IP is not affected by ip1 hitting its limit — got 200
+  ✅ Concurrency: 10 simultaneous requests, atomic counter allows exactly 5 (no race past the limit) — successes: 5/10, statuses: 200,200,200,429,429,200,200,429,429,429
+
+  Abuse/rate-limit test: 3 passed, 0 failed
+

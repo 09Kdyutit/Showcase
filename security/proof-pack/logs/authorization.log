@@ -1,0 +1,49 @@
+
+> casefile@0.1.0 test:authorization
+> node --env-file=.env.local scripts/test-api-authorization.mjs
+
+Seeded resources for User A: {
+  resumeA: '29a086fb-1dd7-44f0-9142-87572e76a7cc',
+  portfolioA: '6102c855-ccae-413b-8188-c2a244d86003',
+  savedJobA: 'bd5b5a33-4373-4a19-b98d-eb6c16613a21',
+  applicationA: 'cf337b77-96c5-4b5d-be08-dad24ff56302',
+  tailoredA: '39feaf18-78fb-4088-8b00-34da0133b1a6'
+}
+
+── portfolio/publish ──
+  ✅ User B cannot publish User A's portfolio — got 404 {"error":"Portfolio not found"}
+  ✅ User A's portfolio is still draft (not published by B)
+
+── portfolio/save ──
+  ✅ User B cannot rewrite User A's portfolio title — actual title: A Portfolio
+
+── resume/export ──
+  ✅ User B cannot export User A's resume — got 404 {"error":"Resume not found or access denied"}
+  ✅ User B cannot export User A's tailored asset — got 404 {"error":"Tailored asset not found or access denied"}
+
+── jobs/save (PATCH/DELETE) ──
+  ✅ User B cannot PATCH User A's saved job — got 404
+  ✅ User A's saved job status is unchanged
+  ✅ DELETE on User A's saved job returns success=true but affects 0 rows (no ownership leak)
+  ✅ User A's saved job still exists after User B's delete attempt
+
+── applications (PATCH) ──
+  ✅ User B cannot PATCH User A's application — got 404
+
+── ai/generate-portfolio ──
+  ✅ User B cannot generate content into User A's portfolio — got 403 {"error":"Pro subscription required","code":"PRO_REQUIRED"}
+
+── ai/audit-portfolio ──
+  ✅ User B cannot audit User A's portfolio content (no leak, no false success) — got 400 {"error":"Provide a resume or a portfolio to audit"}
+
+── jobs/[id]/tailor with another user's saved_job_id ──
+  ✅ User B cannot tailor against User A's saved job (blocked by Pro gate or ownership check) — got 403 {"error":"Tailor Studio requires a Pro subscription.","code":"PRO_REQUIRED"}
+
+── stripe/create-portal-session ──
+  ✅ User B gets their own (404, no account) result, never User A's portal — got 404 {"error":"No billing account found"}
+
+── mass assignment: insert with another user_id via jobs/save snapshot ──
+  ✅ Saved job created is owned by User B (the actual caller), not spoofable — owner: 047ba7a8-13d4-4d27-b077-cc05f33b747f
+
+  API authorization test: 15 passed, 0 failed
+

@@ -52,6 +52,8 @@
     "test:prompt-injection": "node scripts/test-prompt-injection.mjs",
     "test:xss": "node --env-file=.env.local scripts/test-xss.mjs",
     "release:gate": "node scripts/release-gate.mjs",
+    "test:raw-http": "node scripts/security/raw-http-attacks.mjs",
+    "test:steel-security": "npm run test:secrets && npm run test:rls && npm run test:authorization && npm run test:abuse && npm run test:csrf && npm run test:stripe && npm run test:uploads && npm run test:prompt-injection && EXPECT_PROD=1 npm run test:headers && npm run test:deletion && npm run test:interview-rls && npm run test:interview-authorization && npm run test:interview-deletion && npm run test:kill-switches && npm run test:raw-http",
     "test:authorization": "node --env-file=.env.local scripts/test-api-authorization.mjs",
     "test:deletion": "node --env-file=.env.local scripts/test-account-deletion.mjs",
     "test:secrets": "gitleaks detect --source . --no-banner --config .gitleaks.toml",

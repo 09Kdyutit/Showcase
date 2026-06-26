@@ -1,0 +1,11 @@
+
+> casefile@0.1.0 test:kill-switches
+> node --env-file=.env.local scripts/test-kill-switches.mjs
+
+  ✅ Health endpoint returns 200 ok with no secrets in the body — {"status":"ok","checks":{"database":true,"stripe_configured":true,"openai_configured":true},"timestamp":"2026-06-26T12:21:07.438Z"}
+  ✅ Baseline (no kill switch): checkout route does not return the kill-switch 503 — got 401
+  ✅ KILL_SWITCH_CHECKOUT=true blocks checkout with a real 503 from a live server — got 503 {"error":"This feature is temporarily unavailable. Please try again shortly."}
+  ✅ KILL_SWITCH_JOBS_PROVIDER=true: jobs/search still responds (falls back to fixture data, not an error) — got 401
+
+  Kill switch test: 4 passed, 0 failed
+
