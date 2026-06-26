@@ -1,0 +1,20 @@
+
+> casefile@0.1.0 test:headers
+> node scripts/test-headers.mjs
+
+  ✅ X-Content-Type-Options: nosniff present
+  ✅ X-Frame-Options: SAMEORIGIN present
+  ✅ Referrer-Policy present
+  ✅ Permissions-Policy present
+  ✅ Strict-Transport-Security present
+  ✅ CSP present
+  ✅ CSP default-src is self (not wildcard)
+  ✅ CSP object-src none (blocks plugin-based XSS vectors)
+  ✅ CSP frame-ancestors self (modern clickjacking protection)
+  ✅ CSP script-src does NOT include unsafe-eval (production)
+  ✅ CSP does not reference an unused/incorrect AI provider domain
+  ✅ Waitlist page renders without CSP console violations (production)
+  ✅ Page has real rendered content (client JS executed, hydration succeeded) — Your résumé lists claims. Showcase turns them into evidence.
+
+  Headers test: 13 passed, 0 failed
+

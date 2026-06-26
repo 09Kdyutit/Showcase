@@ -1,0 +1,30 @@
+
+> casefile@0.1.0 test:deletion
+> node --env-file=.env.local scripts/test-account-deletion.mjs
+
+Created user: 35f14392-2a6d-4fa7-a4e4-38cfb8cf981a
+Row counts before deletion: {
+  resumes: 1,
+  portfolios: 1,
+  saved_jobs: 1,
+  usage_events: 1,
+  profiles: 1,
+  subscriptions: 0
+}
+  ✅ Seed data actually exists before deletion (sanity check)
+Deletion API result: 200 {"success":true}
+  ✅ Deletion API returns success
+  ✅ resumes has zero rows for deleted user (cascade worked) — count: 0
+  ✅ portfolios has zero rows for deleted user (cascade worked) — count: 0
+  ✅ saved_jobs has zero rows for deleted user (cascade worked) — count: 0
+  ✅ usage_events has zero rows for deleted user (cascade worked) — count: 0
+  ✅ subscriptions has zero rows for deleted user (cascade worked) — count: 0
+  ✅ profile row is gone
+  ✅ storage files are gone — remaining: 0
+  ✅ Deleted user cannot log in anymore — Invalid login credentials
+  ✅ Wrong confirmation text is rejected (400, account NOT deleted)
+  ✅ Account with wrong confirmation text still exists
+  ✅ Unauthenticated deletion request is rejected (401) — got 401
+
+  Account deletion test: 13 passed, 0 failed
+

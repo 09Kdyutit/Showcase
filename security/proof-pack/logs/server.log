@@ -1,0 +1,182 @@
+
+> casefile@0.1.0 start
+> next start
+
+▲ Next.js 16.2.9
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.90:3000
+✓ Ready in 66ms
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/kumardyutit/package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /Users/kumardyutit/Showcase/casefile/package-lock.json
+
+[webhook] Signature verification failed: Error: No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? 
+ If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.
+
+Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature
+
+    at a (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:191680)
+    at Object.verifyHeader (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:189664)
+    at Object.constructEvent (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:188146)
+    at g (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:2158)
+    at async d (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:8612)
+    at async o (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:9653) {
+  type: 'StripeSignatureVerificationError',
+  raw: {
+    message: 'No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+      ' If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.\n' +
+      '\n' +
+      'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature\n'
+  },
+  rawType: undefined,
+  code: undefined,
+  doc_url: undefined,
+  param: undefined,
+  detail: undefined,
+  headers: undefined,
+  requestId: undefined,
+  statusCode: undefined,
+  userMessage: undefined,
+  charge: undefined,
+  decline_code: undefined,
+  payment_intent: undefined,
+  payment_method: undefined,
+  payment_method_type: undefined,
+  setup_intent: undefined,
+  source: undefined,
+  header: 't=1,v1=forged_signature_not_real',
+  payload: '{"id":"evt_1782476311884_bad","object":"event","type":"customer.subscription.updated","created":1782476312,"data":{"object":{"id":"sub_fake_1782476311884","object":"subscription","customer":"cus_fake_1782476311884","status":"active","cancel_at_period_end":false,"metadata":{"user_id":"24bee261-94af-4abe-896c-2db7309ed815"},"items":{"data":[{"price":{"id":"price_fake_test"},"current_period_end":1785068312}]}}}}'
+}
+[webhook] Duplicate/replayed event ignored: evt_1782476311884_1 customer.subscription.updated
+[resume/extract-text] pdf-parse threw, will try vision fallback: Invalid PDF structure.
+[resume/extract-text] vision fallback also failed: 400 The file you uploaded is badly formatted or corrupted. Please fix the file and try again.
+[resume/extract-text] Corrupted zip: can't find end of central directory
+[interviews/sessions] AI generated 3 questions in 6477ms
+[interviews/sessions] AI generated 3 questions in 7861ms
+[interviews/sessions] AI generated 3 questions in 5180ms
+[interviews/sessions] AI generated 3 questions in 6649ms
+[webhook] Signature verification failed: Error: No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? 
+ If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.
+
+Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature
+
+    at a (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:191680)
+    at Object.verifyHeader (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:189664)
+    at Object.constructEvent (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:188146)
+    at g (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:2158)
+    at async d (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:8612)
+    at async o (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:9653)
+    at async Module.O [as handler] (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:10760) {
+  type: 'StripeSignatureVerificationError',
+  raw: {
+    message: 'No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+      ' If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.\n' +
+      '\n' +
+      'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature\n'
+  },
+  rawType: undefined,
+  code: undefined,
+  doc_url: undefined,
+  param: undefined,
+  detail: undefined,
+  headers: undefined,
+  requestId: undefined,
+  statusCode: undefined,
+  userMessage: undefined,
+  charge: undefined,
+  decline_code: undefined,
+  payment_intent: undefined,
+  payment_method: undefined,
+  payment_method_type: undefined,
+  setup_intent: undefined,
+  source: undefined,
+  header: 't=1,v1=deadbeef',
+  payload: '{"type":"customer.subscription.updated","data":{"object":{"id":"sub_x","status":"active"}}}'
+}
+[webhook] Signature verification failed: Error: No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? 
+ If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.
+
+Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature
+
+    at a (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:191680)
+    at Object.verifyHeader (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:189664)
+    at Object.constructEvent (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:188146)
+    at g (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:2158)
+    at async d (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:8612)
+    at async o (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:9653)
+    at async Module.O [as handler] (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:10760) {
+  type: 'StripeSignatureVerificationError',
+  raw: {
+    message: 'No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+      ' If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.\n' +
+      '\n' +
+      'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature\n'
+  },
+  rawType: undefined,
+  code: undefined,
+  doc_url: undefined,
+  param: undefined,
+  detail: undefined,
+  headers: undefined,
+  requestId: undefined,
+  statusCode: undefined,
+  userMessage: undefined,
+  charge: undefined,
+  decline_code: undefined,
+  payment_intent: undefined,
+  payment_method: undefined,
+  payment_method_type: undefined,
+  setup_intent: undefined,
+  source: undefined,
+  header: 't=1,v1=forged_signature_not_real',
+  payload: '{"id":"evt_1782476829494_bad","object":"event","type":"customer.subscription.updated","created":1782476829,"data":{"object":{"id":"sub_fake_1782476829494","object":"subscription","customer":"cus_fake_1782476829494","status":"active","cancel_at_period_end":false,"metadata":{"user_id":"203955fa-c7fd-44a7-aa26-009ac9cc11f5"},"items":{"data":[{"price":{"id":"price_fake_test"},"current_period_end":1785068829}]}}}}'
+}
+[webhook] Duplicate/replayed event ignored: evt_1782476829494_1 customer.subscription.updated
+[resume/extract-text] pdf-parse threw, will try vision fallback: Invalid PDF structure.
+[resume/extract-text] vision fallback also failed: 400 The file you uploaded is badly formatted or corrupted. Please fix the file and try again.
+[resume/extract-text] Corrupted zip: can't find end of central directory
+[interviews/sessions] AI question generation failed, falling back to static bank Interview analysis response failed schema validation: questions.0.rationale: Too big: expected string to have <=200 characters; questions.1.rationale: Too big: expected string to have <=200 characters; questions.2.rationale: Too big: expected string to have <=200 characters
+[interviews/sessions] AI generated 3 questions in 5898ms
+[interviews/sessions] AI generated 3 questions in 5896ms
+[interviews/sessions] AI generated 3 questions in 5978ms
+[webhook] Signature verification failed: Error: No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? 
+ If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.
+
+Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature
+
+    at a (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:191680)
+    at Object.verifyHeader (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:189664)
+    at Object.constructEvent (.next/server/chunks/Showcase_casefile_src_lib_stripe_client_ts_0--0d6-._.js:2:188146)
+    at g (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:2158)
+    at async d (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:8612)
+    at async o (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:9653)
+    at async Module.O [as handler] (.next/server/chunks/[root-of-the-server]__0v4_8ez._.js:1:10760) {
+  type: 'StripeSignatureVerificationError',
+  raw: {
+    message: 'No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+      ' If a webhook request is being forwarded by a third-party tool, ensure that the exact request body, including JSON formatting and new line style, is preserved.\n' +
+      '\n' +
+      'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://docs.stripe.com/webhooks/signature\n'
+  },
+  rawType: undefined,
+  code: undefined,
+  doc_url: undefined,
+  param: undefined,
+  detail: undefined,
+  headers: undefined,
+  requestId: undefined,
+  statusCode: undefined,
+  userMessage: undefined,
+  charge: undefined,
+  decline_code: undefined,
+  payment_intent: undefined,
+  payment_method: undefined,
+  payment_method_type: undefined,
+  setup_intent: undefined,
+  source: undefined,
+  header: 't=1,v1=deadbeef',
+  payload: '{"type":"customer.subscription.updated","data":{"object":{"id":"sub_x","status":"active"}}}'
+}

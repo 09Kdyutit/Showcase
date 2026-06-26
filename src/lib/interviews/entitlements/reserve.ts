@@ -91,33 +91,49 @@ export async function reserveSessionUsage(
   return { sessionReservationId: sessionRes.reservation_id!, audioReservationId, tier }
 }
 
-// Retry has its own independent pool. Free: exactly one retry per completed session
-// (checked directly against prior retries for that answer's session, not the ledger —
-// simpler and exactly matches the product rule). Pro: a real period pool of 30.
+// Retry has its own independent pool, enforced ATOMICALLY for both tiers through the
+// interview_reserve_retry RPC (migration 027). The browser never decides retry
+// allowance and the route never pre-counts retries with a non-atomic SELECT — the RPC
+// serializes concurrent callers per (user_id, session_id) under a Postgres advisory
+// transaction lock, so simultaneous retries on DIFFERENT questions of the same session
+// (the IL-17 gap (b) bypass) collide and only the allowed number commit.
+//
+//   * Free: exactly one retry per completed session (per-session ceiling = 1).
+//   * Pro:  a real period pool of 30 retries, counted across the whole period.
+//
+// A denial inserts no row, so a request that loses the race burns nothing. The returned
+// reservationId is always non-null on success (Free included) so the route can release
+// exactly the reservation it took if the subsequent answer insert loses a different
+// race (e.g. the same-answer unique-constraint 23505).
 export async function reserveRetryUsage(
   supabase: SupabaseClient,
   userId: string,
   sessionId: string,
-  priorRetryCountForSession: number,
 ): Promise<{ reservationId: string | null }> {
   const { tier, period } = await resolvePlanContext(supabase, userId)
   const limits = getPlanLimits(tier)
 
-  if (tier === 'free') {
-    if (priorRetryCountForSession >= 1) {
-      throw new EntitlementError('RETRY_LIMIT_REACHED', 'Free includes 1 retry per completed session. Upgrade to Pro for more.')
-    }
-    return { reservationId: null } // Free retries aren't pooled — nothing to reconcile later.
+  const isPro = tier === 'pro'
+  const { data, error } = await supabase.rpc('interview_reserve_retry', {
+    p_user_id: userId,
+    p_session_id: sessionId,
+    p_period_start: period.start.toISOString(),
+    p_period_end: period.end.toISOString(),
+    p_session_limit: isPro ? null : 1,
+    p_period_limit: isPro ? (limits.retriesPerPeriod as number) : 0,
+    p_count_period: isPro,
+  }).single() as { data: { allowed: boolean; session_count: number; period_count: number; reservation_id: string | null } | null, error: { message: string } | null }
+
+  // Fail CLOSED — an outage in the retry ledger must not silently grant unlimited
+  // retries, the same posture as session/audio reservation above.
+  if (error || !data) {
+    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Could not verify your retry usage right now. Please try again in a moment.', 503)
   }
-
-  const { data, error } = await supabase.rpc('interview_reserve_usage', {
-    p_user_id: userId, p_kind: 'retry', p_session_id: sessionId,
-    p_period_start: period.start.toISOString(), p_period_end: period.end.toISOString(),
-    p_limit: limits.retriesPerPeriod as number,
-    p_max_concurrent: null, // explicit null to route unambiguously to the 7-param function
-  }).single() as { data: { allowed: boolean; current_count: number; reservation_id: string | null; denial_reason: string | null } | null, error: { message: string } | null }
-
-  if (error || !data) throw new EntitlementError('RETRY_LIMIT_REACHED', 'Could not verify your retry usage right now. Please try again in a moment.', 503)
-  if (!data.allowed) throw new EntitlementError('RETRY_LIMIT_REACHED', `You've used your ${limits.retriesPerPeriod} retries for this billing period.`)
+  if (!data.allowed) {
+    if (isPro) {
+      throw new EntitlementError('RETRY_LIMIT_REACHED', `You've used your ${limits.retriesPerPeriod} retries for this billing period.`)
+    }
+    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Free includes 1 retry per completed session. Upgrade to Pro for more.')
+  }
   return { reservationId: data.reservation_id }
 }

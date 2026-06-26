@@ -1,5 +1,15 @@
 import type { NextConfig } from 'next'
 
+// Fail-safe dev gate for 'unsafe-eval': default to the SECURE value (no unsafe-eval)
+// unless we are unambiguously in development. `next dev` sets NODE_ENV=development;
+// `next start` and Vercel set it to 'production'. The previous gate keyed off
+// `=== 'development'` directly inside the CSP string, which is correct, but relied on
+// NODE_ENV being set. If anyone ever launches `next start` without NODE_ENV set
+// (it then loads this config as undefined), the ternary still resolves to the secure
+// branch — so production never ships 'unsafe-eval'. Centralizing it here makes that
+// guarantee explicit and testable, and documents the single source of truth.
+const isDev = process.env.NODE_ENV === 'development'
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-XSS-Protection', value: '1; mode=block' },
@@ -19,7 +29,7 @@ const securityHeaders = [
       // (incl. client hydration, Stripe.js, and Supabase realtime) work without it.
       // React's dev mode (Fast Refresh, dev-time stack traces) does call eval() and
       // React's own docs say it never does in production, so this is dev-only.
-      `script-src 'self' 'unsafe-inline' https://js.stripe.com${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
+      `script-src 'self' 'unsafe-inline' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",

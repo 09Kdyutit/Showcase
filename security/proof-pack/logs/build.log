@@ -1,0 +1,126 @@
+
+> casefile@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/kumardyutit/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/kumardyutit/Showcase/casefile/package-lock.json
+
+▲ Next.js 16.2.9 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.1s
+  Running TypeScript ...
+  Finished TypeScript in 5.7s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/70) ...
+  Generating static pages using 9 workers (17/70) 
+  Generating static pages using 9 workers (34/70) 
+  Generating static pages using 9 workers (52/70) 
+✓ Generating static pages using 9 workers (70/70) in 470ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/account/delete
+├ ƒ /api/ai/analyze-resume
+├ ƒ /api/ai/audit-portfolio
+├ ƒ /api/ai/generate-portfolio
+├ ƒ /api/ai/improve-resume
+├ ƒ /api/ai/role-match
+├ ƒ /api/applications
+├ ƒ /api/ats/check
+├ ƒ /api/beta/feedback
+├ ƒ /api/health
+├ ƒ /api/interviews/drills
+├ ƒ /api/interviews/drills/[id]/attempt
+├ ƒ /api/interviews/profile
+├ ƒ /api/interviews/readiness
+├ ƒ /api/interviews/reports/[token]
+├ ƒ /api/interviews/sessions
+├ ƒ /api/interviews/sessions/[id]
+├ ƒ /api/interviews/sessions/[id]/analyze
+├ ƒ /api/interviews/sessions/[id]/answers/[questionId]/recording
+├ ƒ /api/interviews/sessions/[id]/answers/[questionId]/retry
+├ ƒ /api/interviews/sessions/[id]/complete
+├ ƒ /api/interviews/sessions/[id]/live-token
+├ ƒ /api/interviews/sessions/[id]/live-transcript
+├ ƒ /api/interviews/sessions/[id]/share
+├ ƒ /api/interviews/sessions/[id]/start
+├ ƒ /api/interviews/sessions/[id]/transcript
+├ ƒ /api/interviews/shares/[id]
+├ ƒ /api/interviews/story-bank
+├ ƒ /api/interviews/story-bank/[id]
+├ ƒ /api/interviews/usage
+├ ƒ /api/jobs/[id]/tailor
+├ ƒ /api/jobs/import
+├ ƒ /api/jobs/match
+├ ƒ /api/jobs/recommendations
+├ ƒ /api/jobs/save
+├ ƒ /api/jobs/search
+├ ƒ /api/marketing/track
+├ ƒ /api/portfolio/publish
+├ ƒ /api/portfolio/save
+├ ƒ /api/portfolio/upload-image
+├ ƒ /api/resume/export
+├ ƒ /api/resume/extract-text
+├ ƒ /api/stripe/create-checkout-session
+├ ƒ /api/stripe/create-portal-session
+├ ƒ /api/stripe/webhook
+├ ƒ /api/waitlist/join
+├ ○ /apple-icon.png
+├ ƒ /audit
+├ ○ /beta/feedback
+├ ƒ /billing
+├ ƒ /builder
+├ ƒ /builder/[portfolioId]
+├ ƒ /callback
+├ ƒ /dashboard
+├ ○ /demo/audit
+├ ○ /demo/billing
+├ ○ /demo/builder
+├ ○ /demo/dashboard
+├ ○ /demo/jobs
+├ ○ /demo/jobs/tailor
+├ ○ /demo/onboarding
+├ ○ /demo/portfolio
+├ ○ /demo/resume
+├ ○ /for-career-services
+├ ○ /icon.png
+├ ƒ /interviews
+├ ƒ /interviews/[sessionId]/live
+├ ƒ /interviews/[sessionId]/lobby
+├ ƒ /interviews/[sessionId]/results
+├ ƒ /interviews/drills
+├ ƒ /interviews/new
+├ ƒ /interviews/story-bank
+├ ƒ /jobs
+├ ƒ /jobs/[savedJobId]/tailor
+├ ○ /login
+├ ƒ /onboarding
+├ ○ /opengraph-image
+├ ƒ /p/[slug]
+├ ○ /pricing
+├ ○ /privacy
+├ ○ /proofscore
+├ ○ /refund
+├ ƒ /resume
+├ ƒ /settings
+├ ƒ /shared/[token]
+├ ○ /signup
+├ ○ /terms
+└ ○ /waitlist
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

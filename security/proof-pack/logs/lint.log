@@ -1,0 +1,108 @@
+
+> casefile@0.1.0 lint
+> eslint
+
+
+/Users/kumardyutit/Showcase/casefile/src/app/(app)/interviews/[sessionId]/live/page.tsx
+  70:10  warning  'debugLog' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/kumardyutit/Showcase/casefile/src/app/p/[slug]/page.tsx
+  63:8  warning  Unused eslint-disable directive (no problems were reported from '@next/next/no-page-custom-font')
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/image-uploader.tsx
+  73:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/bento.tsx
+   45:17   warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   66:17   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   73:236  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  127:17   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  289:22   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/clean-editorial.tsx
+   18:75   warning  'categoryOrder' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   18:90   warning  'skillsByCategory' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   30:17   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   86:17   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+   86:33   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  107:15   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  259:85   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  259:109  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/creative-case-study.tsx
+   15:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   15:24  warning  'skills' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   36:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  107:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/effects.tsx
+  108:19  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/effects.tsx:108:19
+  106 |     // Extract leading number, preserve suffix (e.g. "3.2x" → num=3.2, suffix="x")
+  107 |     const match = rawValue.match(/^([\d.]+)(.*)$/)
+> 108 |     if (!match) { setDisplayed(rawValue); return }
+      |                   ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  109 |     const end = parseFloat(match[1])
+  110 |     const suffix = match[2] ?? ''
+  111 |     const decimals = (match[1].split('.')[1] ?? '').length  react-hooks/set-state-in-effect
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/executive-dark.tsx
+   11:3   warning  'PROJECT_ACCENT_COLORS' is defined but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   48:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  148:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/glassmorphism.tsx
+    3:43  warning  'useSpring' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    3:54  warning  'useMotionValue' is defined but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+    3:70  warning  'useAnimationFrame' is defined but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    5:10  warning  'Globe' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    5:37  warning  'ArrowRight' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    7:54  warning  'PROJECT_ACCENT_COLORS' is defined but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   47:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   47:24  warning  'skills' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   47:95  warning  'hasContent' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   71:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   92:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  176:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/gradient-studio.tsx
+    7:54  warning  'getInitials' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   17:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   17:95  warning  'skillsByCategory' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   39:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  118:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  149:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/magazine.tsx
+   33:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   48:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   72:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  302:24  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/minimal-3d.tsx
+   35:10  warning  'ParallaxLayer' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   41:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   41:95  warning  'skillsByCategory' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   58:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   87:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  230:58  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+
+/Users/kumardyutit/Showcase/casefile/src/components/portfolio/themes/neon-night.tsx
+    3:29  warning  'useTransform' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   19:17  warning  'about' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   19:24  warning  'skills' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   19:70  warning  'initials' is assigned a value but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   21:11  warning  'scrollYProgress' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   57:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  105:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 59 problems (9 errors, 50 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

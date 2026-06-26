@@ -70,7 +70,7 @@ export function BentoTheme({ portfolio, content }: ThemeProps) {
           </div>
           <div className="flex items-center gap-2">
             {safeHref(contact?.linkedin) && <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="text-xs text-white/40 hover:text-white transition-colors hidden sm:block">LinkedIn</a>}
-            {contact?.email && <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105" style={{ background: accentColor, color: '#000' }}>Let's talk</a>}
+            {contact?.email && <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105" style={{ background: accentColor, color: '#000' }}>Let&apos;s talk</a>}
           </div>
         </div>
       </nav>
@@ -286,7 +286,7 @@ export function BentoTheme({ portfolio, content }: ThemeProps) {
               <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 80% 100% at 50% 100%, ${accentColor}15, transparent)` }} />
               <div className="relative z-10 text-center">
                 <h2 className="font-black tracking-tight mb-4 leading-none" style={{ fontFamily: "'Syne', system-ui", fontSize: 'clamp(3rem, 7vw, 6rem)' }}>
-                  Let's build<br /><span style={{ color: accentColor }}>something.</span>
+                  Let&apos;s build<br /><span style={{ color: accentColor }}>something.</span>
                 </h2>
                 <p className="text-white/40 text-lg mb-10">Open to the right opportunity.</p>
                 <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full text-base font-black transition-all hover:scale-105 active:scale-95" style={{ background: accentColor, color: '#000' }}>

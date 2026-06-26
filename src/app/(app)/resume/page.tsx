@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Upload, FileText, Zap, Copy, Check, AlertCircle, Lock, BarChart3, Download, Loader2 } from 'lucide-react'
+import { Upload, FileText, Zap, Copy, Check, AlertCircle, Lock, BarChart3, Download, Loader2, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -21,20 +21,24 @@ export default function ResumePage() {
   const [saving, setSaving] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [exportingPdf, setExportingPdf] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [portfolios, setPortfolios] = useState<Array<{ id: string; title: string }>>([])
 
   async function loadResumes() {
     const supabase = createClient()
-    const { data } = await supabase
-      .from('resumes')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setResumes(data ?? [])
-    if (data?.[0]) {
-      setActiveResume(data[0])
-      setText(data[0].raw_text ?? '')
-      setParsed((data[0].parsed_json as unknown as ParsedResume) ?? null)
+    const [resumeRes, portfolioRes] = await Promise.all([
+      supabase.from('resumes').select('*').order('created_at', { ascending: false }),
+      supabase.from('portfolios').select('id, title').order('created_at', { ascending: false }).limit(10),
+    ])
+    setResumes(resumeRes.data ?? [])
+    setPortfolios(portfolioRes.data ?? [])
+    if (resumeRes.data?.[0]) {
+      setActiveResume(resumeRes.data[0])
+      setText(resumeRes.data[0].raw_text ?? '')
+      setParsed((resumeRes.data[0].parsed_json as unknown as ParsedResume) ?? null)
     }
     setLoading(false)
   }
@@ -150,6 +154,56 @@ export default function ResumePage() {
     }
   }
 
+  async function generateFromPortfolio(portfolioId: string) {
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/resume/generate-from-portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portfolioId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Generation failed')
+      toast.success('Resume generated from your portfolio!')
+      await loadResumes()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Generation failed')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  async function exportPdf() {
+    if (!activeResume) { toast.error('Save or generate your resume first'); return }
+    setExportingPdf(true)
+    try {
+      const res = await fetch('/api/resume/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume_id: activeResume.id }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        toast.error(body?.message ?? 'PDF export failed')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${(activeResume.title || 'resume').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      toast.success('PDF exported')
+    } catch {
+      toast.error('PDF export failed')
+    } finally {
+      setExportingPdf(false)
+    }
+  }
+
   async function copyText(value: string, field: string) {
     await navigator.clipboard.writeText(value)
     setCopiedField(field)
@@ -174,10 +228,37 @@ export default function ResumePage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Resume</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Upload or paste your resume. AI extracts everything from it.
+            Upload, paste, or generate from your portfolio. AI extracts and formats everything.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {portfolios.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => generateFromPortfolio(portfolios[0].id)}
+                loading={generating}
+                className="gap-1.5"
+                title={portfolios.length > 1 ? `Generate from: ${portfolios[0].title}` : undefined}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {generating ? 'Generating…' : 'Generate from Portfolio'}
+              </Button>
+              {portfolios.length > 1 && (
+                <select
+                  className="text-xs border border-border rounded-lg px-2 py-1.5 bg-surface-100 text-foreground h-8"
+                  onChange={(e) => e.target.value && generateFromPortfolio(e.target.value)}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Pick portfolio…</option>
+                  {portfolios.map(p => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
           <Button variant="secondary" size="sm" onClick={saveResume} loading={saving}>
             Save
           </Button>
@@ -376,16 +457,28 @@ export default function ResumePage() {
                   </Link>
                 </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5 mt-2"
-                onClick={exportDocx}
-                disabled={exporting}
-              >
-                {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                Export DOCX
-              </Button>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={exportDocx}
+                  disabled={exporting}
+                >
+                  {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Export DOCX
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={exportPdf}
+                  disabled={exportingPdf}
+                >
+                  {exportingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+                  Export PDF
+                </Button>
+              </div>
             </div>
           )}
         </div>

@@ -1,0 +1,35 @@
+{
+  "review": "steel-mode-2026-06-26",
+  "branch": "security/review-2026-06-26",
+  "base_commit": "231f800",
+  "environment": "production build (NODE_ENV=production next build + next start) on http://localhost:3000",
+  "node": "v22.20.0",
+  "next": "16.2.9",
+  "attacks": [
+    { "id": "A01", "name": "Become Pro via body isPro/plan", "attacker": "free user", "target": "all /api routes", "method": "grep audit + isProUser source", "expected": "rejected/ignored", "actual": "no route reads privileged fields from body; isProUser is DB-only", "result": "BLOCKED", "evidence": "STEEL_MODE_GAP_ANALYSIS.md row 1" },
+    { "id": "A02", "name": "Self-upgrade via success URL", "attacker": "free user", "target": "stripe success path", "method": "source review", "expected": "no state change", "actual": "subscription mutated only by signed webhook", "result": "BLOCKED", "evidence": "webhook/route.ts" },
+    { "id": "A03", "name": "Replay Stripe webhook", "attacker": "anon", "target": "/api/stripe/webhook", "method": "test:stripe", "expected": "idempotent", "actual": "6/6 pass", "result": "BLOCKED", "evidence": "logs/stripe.log" },
+    { "id": "A04", "name": "Forged webhook signature", "attacker": "anon", "target": "/api/stripe/webhook", "method": "raw-http-attacks.mjs", "expected": "400 before DB write", "actual": "400 (forged) + 400 (missing)", "result": "BLOCKED", "evidence": "logs/raw-http-attacks.log" },
+    { "id": "A05", "name": "Out-of-order webhook regression", "attacker": "anon", "target": "/api/stripe/webhook", "method": "test:stripe", "expected": "no regress", "actual": "stays past_due", "result": "BLOCKED", "evidence": "logs/stripe.log" },
+    { "id": "A06", "name": "Inject arbitrary priceId at checkout", "attacker": "user", "target": "/api/stripe/create-checkout-session", "method": "source + raw-http", "expected": "ignored", "actual": "priceId from env only; body priceId ignored", "result": "BLOCKED", "evidence": "create-checkout-session/route.ts:32-34" },
+    { "id": "A07", "name": "Parallel-call rate-limit bypass", "attacker": "free user", "target": "AI quota route", "method": "test:abuse (10 concurrent)", "expected": "exactly 5 pass", "actual": "5 x 200, 5 x 429", "result": "BLOCKED", "evidence": "logs/abuse.log; migration 011" },
+    { "id": "A08", "name": "Read another user's data (RLS/IDOR)", "attacker": "user B", "target": "user-owned tables/routes", "method": "test:rls + test:authorization", "expected": "denied", "actual": "13/13 + 15/15", "result": "BLOCKED", "evidence": "logs/rls.log, logs/authorization.log" },
+    { "id": "A09", "name": "Read another user's interview transcript", "attacker": "user B", "target": "interview_sessions / transcript", "method": "test:interview-rls + interview-authorization", "expected": "denied", "actual": "24/24 + 16/16", "result": "BLOCKED", "evidence": "logs/interview-rls.log, logs/interview-authorization.log" },
+    { "id": "A10", "name": "Gemini Live token for another user / non-voice session", "attacker": "user B / free user", "target": "/api/interviews/sessions/[id]/live-token", "method": "source review", "expected": "404 cross-user; 409 non-voice; 403 non-pro; key never returned", "actual": "all gates present; returns only {model,systemInstruction}", "result": "BLOCKED", "evidence": "live-token/route.ts:28-71" },
+    { "id": "A11", "name": "Secret in browser bundle", "attacker": "anon", "target": ".next/static + public", "method": "grep secret shapes", "expected": "no matches", "actual": "0 matches; gitleaks clean", "result": "BLOCKED", "evidence": "logs/secrets.log" },
+    { "id": "A12", "name": "Prompt injection / AI control override", "attacker": "user content", "target": "AI parse/audit", "method": "test:prompt-injection", "expected": "deterministic sanitizer wins", "actual": "15/15", "result": "BLOCKED", "evidence": "logs/prompt-injection.log" },
+    { "id": "A13", "name": "CSRF / cross-origin state change", "attacker": "cross-origin", "target": "state-changing routes", "method": "test:csrf", "expected": "403", "actual": "6/6", "result": "BLOCKED", "evidence": "logs/csrf.log" },
+    { "id": "A14", "name": "XSS via portfolio links", "attacker": "user", "target": "portfolio render", "method": "test:xss", "expected": "no js:/data:/script exec", "actual": "3 security assertions pass; 1 non-security stale assertion fails", "result": "BLOCKED (security)", "evidence": "logs/xss.log" },
+    { "id": "A15", "name": "Cross-user file access / upload abuse", "attacker": "user B", "target": "storage buckets", "method": "test:uploads", "expected": "denied/handled", "actual": "8/8", "result": "BLOCKED", "evidence": "logs/uploads.log" },
+    { "id": "A16", "name": "Account deletion cascade", "attacker": "user", "target": "/api/account/delete", "method": "test:deletion + interview-deletion", "expected": "full purge + login disabled", "actual": "13/13 + 10/10", "result": "WORKS", "evidence": "logs/deletion.log, logs/interview-deletion.log" },
+    { "id": "A17", "name": "Kill switches halt spend", "attacker": "operator", "target": "checkout/AI/jobs/interview", "method": "test:kill-switches", "expected": "503/refuse", "actual": "4/4", "result": "WORKS", "evidence": "logs/kill-switches.log" },
+    { "id": "A18", "name": "Prod CSP unsafe-eval present", "attacker": "anon", "target": "/ CSP header + chunks", "method": "test:headers EXPECT_PROD + live curl", "expected": "absent", "actual": "absent: script-src 'self' 'unsafe-inline' https://js.stripe.com", "result": "BLOCKED", "evidence": "logs/headers.log" },
+    { "id": "A19", "name": "Unauthenticated mutation / mass-assignment", "attacker": "anon", "target": "portfolio/save, account/delete, checkout", "method": "raw-http-attacks.mjs", "expected": "401/4xx, never 200/500", "actual": "10/10 (401 / 400 / no-500)", "result": "BLOCKED", "evidence": "logs/raw-http-attacks.log" }
+  ],
+  "open_items": [
+    { "id": "G-3", "name": "IL-17 retry-race", "severity": "LOW", "status": "release-blocking, deferred in code", "detail": "non-atomic priorRetryCount; <=1 extra retry/session" },
+    { "id": "G-4", "name": "migration 025 not applied to live DB", "severity": "INFO", "status": "non-blocking; code workaround active" },
+    { "id": "G-1", "name": "interview-entitlements stale test constants", "severity": "INFO", "status": "test drift, not a vuln" },
+    { "id": "G-2", "name": "lint 9 cosmetic errors", "severity": "INFO", "status": "no security impact" }
+  ]
+}

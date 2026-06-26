@@ -66,15 +66,15 @@ export async function POST(
     // "1 retry per completed session" (Free) / "30 retries per billing period" (Pro)
     // is counted across the WHOLE session, not per question — a retry on question 2
     // after already retrying question 1 in the same session is still the user's
-    // second retry of that session, and Free only gets one.
-    const { count: priorRetryCountForSession } = await supabase
-      .from('interview_answers')
-      .select('id', { count: 'exact', head: true })
-      .eq('session_id', id)
-      .gt('attempt_number', 1)
+    // second retry of that session, and Free only gets one. This decision is made
+    // ATOMICALLY inside the interview_reserve_retry RPC (migration 027), serialized
+    // per (user_id, session_id), so two simultaneous retries on different questions of
+    // the same session can no longer both read a stale count and both slip through —
+    // the IL-17 gap (b) bypass. The non-atomic priorRetryCount SELECT that used to live
+    // here is gone; the browser never decides retry allowance.
     let retryReservationId: string | null = null
     try {
-      const reserved = await reserveRetryUsage(await createServiceClient(), user.id, id, priorRetryCountForSession ?? 0)
+      const reserved = await reserveRetryUsage(await createServiceClient(), user.id, id)
       retryReservationId = reserved.reservationId
     } catch (e) {
       if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.httpStatus })
@@ -109,9 +109,10 @@ export async function POST(
       // The reservation taken above was for a retry that did NOT actually happen (lost
       // the race below) — release exactly that one reservation (never every 'reserved'
       // row for the session, which could include an earlier, genuinely successful
-      // retry) so a Pro user's pooled retry count isn't burned for nothing. Free
-      // retries have no pooled reservation to release (reservationId is always null
-      // for tier 'free' — see reserveRetryUsage).
+      // retry) so neither a Free user's one-per-session slot nor a Pro user's pooled
+      // retry count is burned for nothing. Every successful reserveRetryUsage now
+      // returns a real reservation id (Free included — migration 027), so this releases
+      // it for both tiers.
       if (retryReservationId) await releaseSpecificReservation(await createServiceClient(), retryReservationId, user.id)
       if (retryError.code === '23505') {
         // Two retries on the SAME answer raced past the priorRetryCount check above

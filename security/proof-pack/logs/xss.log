@@ -1,0 +1,12 @@
+
+> casefile@0.1.0 test:xss
+> node --env-file=.env.local scripts/test-xss.mjs
+
+All hrefs found on rendered page: ["mailto:test@example.com","mailto:test@example.com","mailto:test@example.com"]
+  ✅ No javascript: URI present in any rendered href
+  ✅ No data: URI present in any rendered href
+  ❌ Safe https:// website link still renders correctly
+  ✅ Script tag in headline did not execute / inject raw HTML
+
+  XSS test: 3 passed, 1 failed
+

@@ -1,0 +1,13 @@
+
+> casefile@0.1.0 test:csrf
+> node --env-file=.env.local scripts/test-csrf.mjs
+
+  ✅ Same-origin POST from a real authenticated browser session succeeds — got 201
+  ✅ Forged cross-origin Origin header on a state-changing request is rejected (403) — got 403
+  ✅ GET requests are not blocked by the Origin/CSRF check (no side effects to forge) — got 200
+  ✅ Stripe webhook route is exempt from Origin check (fails on signature, not Origin) — got 400
+  ✅ Auth callback never redirects to an attacker-controlled external host
+  ✅ Signed-out session token is no longer valid for getUser() — Auth session missing!
+
+  CSRF/session test: 6 passed, 0 failed
+

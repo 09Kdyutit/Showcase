@@ -1,0 +1,45 @@
+
+> casefile@0.1.0 test:interview-rls
+> node --env-file=.env.local scripts/test-interview-rls.mjs
+
+User A: 8e9a4346-d0e0-40a0-85ef-04f50f6cce20
+User B: d26af7e4-551b-4ed3-8e84-b3352619ef5e
+
+── Cross-user SELECT ──
+  ✅ User B cannot SELECT User A's session by known ID
+  ✅ User B's unfiltered session list does not include User A's session
+  ✅ User B cannot SELECT User A's question
+  ✅ User B cannot SELECT User A's answer
+  ✅ User B cannot SELECT User A's transcript segment
+  ✅ User B cannot SELECT User A's evaluation
+  ✅ User B cannot SELECT User A's dimension score
+  ✅ User B cannot SELECT User A's story bank entry
+  ✅ User B cannot SELECT User A's drill
+  ✅ User B cannot SELECT User A's interview profile
+
+── Cross-user UPDATE ──
+  ✅ User B cannot UPDATE User A's session
+  ✅ User A's session target_role is unchanged after attempted hijack
+  ✅ User B cannot UPDATE User A's story bank entry
+
+── Cross-user DELETE ──
+  ✅ User B cannot DELETE User A's session
+  ✅ User A's session still exists after attempted deletion
+
+── Impersonation / mass-assignment (INSERT as someone else) ──
+  ✅ User B cannot INSERT a session with User A's user_id
+  ✅ User B cannot INSERT a story bank entry with User A's user_id
+
+── interview_usage: zero client write access, server-only accounting ──
+  ✅ User A CAN read their own usage row (read-only policy works)
+  ✅ User A (their OWN user_id) still cannot INSERT into interview_usage — zero client write policy
+  ✅ User A cannot UPDATE their own usage row directly — only the atomic RPC may write it
+  ✅ Authenticated client cannot call reserve_interview_usage() directly — no EXECUTE grant — permission denied for function reserve_interview_usage
+  ✅ Anonymous client cannot call reserve_interview_usage() either — permission denied for function reserve_interview_usage
+
+── Anonymous client: zero access to any interview table ──
+  ✅ Anonymous client cannot SELECT a real interview session
+  ✅ Anonymous client cannot list any story bank entries
+
+  Interview RLS adversarial test: 24 passed, 0 failed
+

@@ -8,6 +8,13 @@
 import { chromium } from 'playwright'
 import { createClient } from '@supabase/supabase-js'
 
+// Canonical Free/Pro limits mirrored from src/lib/interviews/entitlements/plans.ts.
+// This script runs under plain `node` (no --experimental-strip-types), so it cannot
+// import the .ts source directly; these MUST be kept in lockstep with plans.ts. The
+// deterministic test:interview-entitlements asserts the source numbers themselves.
+const FREE_PLAN_LIMITS = { sessionsPerPeriod: 3, audioSessionsPerPeriod: 0 }
+const PRO_PLAN_LIMITS = { sessionsPerPeriod: 30, audioSessionsPerPeriod: 15, retriesPerPeriod: 30 }
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -58,18 +65,20 @@ async function main() {
     const succeeded = results.filter((r) => r.status === 201)
     const validCodes = new Set(['SESSION_LIMIT_REACHED', 'CONCURRENT_SESSION_LIMIT'])
     const cleanlyRejected = results.filter((r) => r.status === 403 && validCodes.has(r.body?.code))
-    record('10 parallel Free session creations: never more than 2 succeed (the real Free limit)', succeeded.length <= 2 && succeeded.length >= 1, `got ${succeeded.length}`)
+    record('10 parallel Free session creations: never more than the canonical Free session limit succeed', succeeded.length <= FREE_PLAN_LIMITS.sessionsPerPeriod && succeeded.length >= 1, `got ${succeeded.length}, limit ${FREE_PLAN_LIMITS.sessionsPerPeriod}`)
     record('Every other request is cleanly rejected (period quota or concurrency), never a 500 or extra success', cleanlyRejected.length === results.length - succeeded.length, `statuses: ${results.map((r) => r.status).join(',')}, codes: ${results.map((r) => r.body?.code).join(',')}`)
   }
 
-  // ── Pro audio sub-quota (8/period), tested at the real boundary — NOT as 10 blind
-  // parallel creates, which would just collide with the separate, equally-real "1
-  // concurrent session" rule (you cannot have 8 concurrent interviews open at once,
-  // by design). Sessions are completed sequentially up to 7 (freeing the concurrency
-  // slot each time, exactly like real usage), then a final parallel burst of 3
-  // requests races for the single remaining 8th slot — that race is the genuine,
-  // adversarial thing worth proving atomic.
+  // ── Pro audio sub-quota, tested at the real boundary — NOT as N blind parallel
+  // creates, which would just collide with the separate, equally-real "1 concurrent
+  // session" rule (you cannot have the whole audio pool concurrently open, by design).
+  // Sessions are completed sequentially up to (limit - 1), freeing the concurrency slot
+  // each time exactly like real usage, then a final parallel burst of 3 requests races
+  // for the single remaining last slot — that race is the genuine, adversarial thing
+  // worth proving atomic. Limit is the CANONICAL plans.ts audioSessionsPerPeriod.
   {
+    const audioLimit = PRO_PLAN_LIMITS.audioSessionsPerPeriod
+    const fillTo = audioLimit - 1
     const email = `limits-pro-audio-${suffix}@example.com`
     const page = await signUp(browser, email)
     const { data: { users } } = await service.auth.admin.listUsers()
@@ -80,7 +89,7 @@ async function main() {
       current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
     })
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < fillTo; i++) {
       const create = await createSession(page, { deliveryMode: 'voice', sessionType: 'behavioral' })
       const sessionId = create.body?.data?.id
       const startRes = await page.evaluate(async (id) => (await (await fetch(`/api/interviews/sessions/${id}/start`, { method: 'POST' })).json()), sessionId)
@@ -90,18 +99,18 @@ async function main() {
       }), { id: sessionId, q })
       await page.evaluate(async (id) => fetch(`/api/interviews/sessions/${id}/complete`, { method: 'POST' }), sessionId)
     }
-    const usageAfter7 = await page.evaluate(async () => (await (await fetch('/api/interviews/usage')).json()))
-    record('After 7 sequential completed voice sessions, usage correctly shows 7 of 8', usageAfter7.data?.audioSessions?.used === 7, `got ${usageAfter7.data?.audioSessions?.used}`)
+    const usageAfterFill = await page.evaluate(async () => (await (await fetch('/api/interviews/usage')).json()))
+    record(`After ${fillTo} sequential completed voice sessions, usage correctly shows ${fillTo} of ${audioLimit}`, usageAfterFill.data?.audioSessions?.used === fillTo, `got ${usageAfterFill.data?.audioSessions?.used}`)
 
     const burst = await Promise.all(Array.from({ length: 3 }, () => createSession(page, { deliveryMode: 'voice', sessionType: 'behavioral' })))
     const succeeded = burst.filter((r) => r.status === 201)
     const rejected = burst.filter((r) => r.status === 403 && r.body?.code === 'AUDIO_LIMIT_REACHED')
-    record('3 parallel requests racing for the last (8th) audio slot: exactly 1 succeeds', succeeded.length === 1, `got ${succeeded.length}, statuses: ${burst.map((r) => r.status).join(',')}`)
+    record(`3 parallel requests racing for the last (${audioLimit}th) audio slot: exactly 1 succeeds`, succeeded.length === 1, `got ${succeeded.length}, statuses: ${burst.map((r) => r.status).join(',')}`)
     record('The other 2 are cleanly rejected with AUDIO_LIMIT_REACHED', rejected.length === 2, `got ${rejected.length}`)
 
     const { count: sessionReservations } = await service.from('interview_usage_reservations').select('id', { count: 'exact', head: true })
       .eq('user_id', userId).eq('kind', 'session').in('status', ['reserved', 'committed'])
-    record('Each successful voice session also consumed exactly one regular session slot (8 total)', sessionReservations === 8, `got ${sessionReservations}`)
+    record(`Each successful voice session also consumed exactly one regular session slot (${audioLimit} total)`, sessionReservations === audioLimit, `got ${sessionReservations}`)
   }
 
   // ── Concurrent session creation never leaves an orphaned reservation behind ──
@@ -127,7 +136,9 @@ async function main() {
     const startRes = await page.evaluate(async (id) => (await (await fetch(`/api/interviews/sessions/${id}/start`, { method: 'POST' })).json()), sessionId)
     let nextQ = startRes.data?.firstQuestion
     const firstQuestionId = nextQ?.id
+    const allQuestionIds = []
     while (nextQ) {
+      allQuestionIds.push(nextQ.id)
       const ansRes = await page.evaluate(async ({ id, q }) => (await (await fetch(`/api/interviews/sessions/${id}/transcript`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questionId: q, answerText: 'A real, specific concurrency-test answer with a clear personal action and outcome.' }),
       })).json()), { id: sessionId, q: nextQ.id })
@@ -153,6 +164,57 @@ async function main() {
     const retryCleanlyRejected = retryResults.filter((r) => (r.status === 403 || r.status === 409) && validRetryDenialCodes.has(r.body?.code))
     record('5 simultaneous retries on a Free session: exactly 1 succeeds', retrySucceeded.length === 1, `got ${retrySucceeded.length}, statuses: ${retryResults.map((r) => r.status).join(',')}`)
     record('The other 4 are cleanly rejected (quota or race-lost), never a raw 500', retryCleanlyRejected.length === 4, `got ${retryCleanlyRejected.length}, codes: ${retryResults.map((r) => r.body?.code).join(',')}`)
+
+    // ── IL-17 gap (b): the real bypass was NOT same-answer retries (the unique
+    // attempt_number constraint already caught those) — it was simultaneous retries on
+    // DIFFERENT questions of the same completed session, each reading priorRetryCount=0
+    // via a non-atomic SELECT and each slipping past the "1 retry per Free session"
+    // gate. A fresh Free session (the one above already spent its single retry) proves
+    // the per-session ceiling now holds atomically ACROSS questions, via migration 027's
+    // interview_reserve_retry RPC. Needs >= 2 distinct questions to be meaningful.
+    if (allQuestionIds.length >= 2) {
+      const email2 = `limits-retry-xq-${suffix}@example.com`
+      const page2 = await signUp(browser, email2)
+      const create2 = await createSession(page2, { sessionType: 'behavioral' })
+      const sessionId2 = create2.body?.data?.id
+      const startRes2 = await page2.evaluate(async (id) => (await (await fetch(`/api/interviews/sessions/${id}/start`, { method: 'POST' })).json()), sessionId2)
+      let nq = startRes2.data?.firstQuestion
+      const qIds2 = []
+      while (nq) {
+        qIds2.push(nq.id)
+        const ar = await page2.evaluate(async ({ id, q }) => (await (await fetch(`/api/interviews/sessions/${id}/transcript`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questionId: q, answerText: 'A real, specific concurrency-test answer with a clear personal action and outcome.' }),
+        })).json()), { id: sessionId2, q: nq.id })
+        nq = ar.data?.nextQuestion
+      }
+      await page2.evaluate(async (id) => fetch(`/api/interviews/sessions/${id}/complete`, { method: 'POST' }), sessionId2)
+
+      // One parallel retry per DISTINCT question, fired simultaneously. Pre-fix, two of
+      // these on different questions could both succeed (the bypass). Post-fix, exactly
+      // one may succeed; the rest are cleanly rejected as RETRY_LIMIT_REACHED.
+      const xqResults = await Promise.all(qIds2.map((qid) => page2.evaluate(async ({ id, q }) => {
+        const res = await fetch(`/api/interviews/sessions/${id}/answers/${q}/retry`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answerText: 'A cross-question concurrent retry attempt.' }),
+        })
+        let json = null
+        try { json = await res.json() } catch {}
+        return { status: res.status, body: json }
+      }, { id: sessionId2, q: qid })))
+      const xqSucceeded = xqResults.filter((r) => r.status === 201)
+      const xqValidCodes = new Set(['RETRY_LIMIT_REACHED', 'RETRY_RACE_LOST'])
+      const xqRejected = xqResults.filter((r) => (r.status === 403 || r.status === 409) && xqValidCodes.has(r.body?.code))
+      record('IL-17: parallel retries across DIFFERENT questions of one Free session — exactly 1 succeeds (no cross-question bypass)', xqSucceeded.length === 1, `got ${xqSucceeded.length} over ${qIds2.length} questions, statuses: ${xqResults.map((r) => r.status).join(',')}`)
+      record('IL-17: every other cross-question retry cleanly rejected, never a raw 500', xqRejected.length === xqResults.length - xqSucceeded.length, `got ${xqRejected.length}, codes: ${xqResults.map((r) => r.body?.code).join(',')}`)
+
+      // No orphaned / negative-counter fallout: the per-session retry ledger must hold
+      // exactly ONE reserved retry row (the single winner), never more, never negative.
+      const { data: { users: users2 } } = await service.auth.admin.listUsers()
+      const userId2 = users2.find((u) => u.email === email2)?.id
+      const { count: retryRows } = await service.from('interview_usage_reservations').select('id', { count: 'exact', head: true })
+        .eq('user_id', userId2).eq('session_id', sessionId2).eq('kind', 'retry').in('status', ['reserved', 'committed'])
+      record('IL-17: exactly one retry reservation persists for the session (no orphaned or double-counted reservations)', retryRows === 1, `got ${retryRows}`)
+      await page2.close()
+    }
   }
 
   // ── Abandoning a session before any answer refunds the slot ────────────────
@@ -161,7 +223,7 @@ async function main() {
     const page = await signUp(browser, email)
     const create = await createSession(page)
     const sessionId = create.body?.data?.id
-    record('Session created (1 of 2 Free slots used)', create.status === 201)
+    record(`Session created (1 of ${FREE_PLAN_LIMITS.sessionsPerPeriod} Free slots used)`, create.status === 201)
 
     await page.evaluate(async (id) => fetch(`/api/interviews/sessions/${id}`, { method: 'DELETE' }), sessionId)
     const usageRes = await page.evaluate(async () => (await (await fetch('/api/interviews/usage')).json()))

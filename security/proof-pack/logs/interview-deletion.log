@@ -1,0 +1,17 @@
+
+> casefile@0.1.0 test:interview-deletion
+> node --env-file=.env.local scripts/test-interview-deletion.mjs
+
+  ✅ Setup: session/story/drill attempt created
+  ✅ Setup: a recording file genuinely exists in storage before deletion
+  ✅ Setup: real rows exist in interview_sessions/story_bank/shared_reports — 1/1/1
+  ✅ Account deletion succeeds — {"success":true}
+  ✅ interview_sessions is empty for the deleted user (FK cascade) — count: 0
+  ✅ interview_questions is empty (cascaded via session) — count: 0
+  ✅ interview_story_bank is empty — count: 0
+  ✅ interview_drills is empty — count: 0
+  ✅ interview_shared_reports is empty — count: 0
+  ✅ The nested recording file is genuinely gone from storage after deletion — remaining: 0
+
+  Interview Lab account-deletion test: 10 passed, 0 failed
+

@@ -1,0 +1,33 @@
+
+> casefile@0.1.0 test:stripe
+> npm run test:stripe-config && npm run test:stripe-webhook
+
+
+> casefile@0.1.0 test:stripe-config
+> node --env-file=.env.local scripts/test-stripe-config.mjs
+
+  ✅ Secret key is a recognized format (sk_test_ or sk_live_) — mode: test
+  ✅ Publishable key is a recognized format (pk_test_ or pk_live_) — mode: test
+  ✅ Secret and publishable keys are in the SAME mode (no test/live mismatch) — secret=test, publishable=test
+  ✅ Webhook secret has the correct whsec_ prefix — length: 70
+  ✅ Webhook secret has no embedded whitespace (known prior corruption mode)
+  ✅ Monthly Price ID exists and is active — price_1Tk7KRRrWPEIfq2Mv7Ye4kYd, active=true, $15
+  ✅ Annual Price ID exists and is active — price_1Tk7KRRrWPEIfq2MgalU2tno, active=true, $150
+  ✅ Secret key successfully authenticates against the Stripe API
+
+  Stripe config test: 8 passed, 0 failed
+
+
+> casefile@0.1.0 test:stripe-webhook
+> node --env-file=.env.local scripts/test-stripe-webhook.mjs
+
+Test user: 24bee261-94af-4abe-896c-2db7309ed815
+  ✅ Invalid signature is rejected (400) — got 400
+  ✅ First delivery of a real signed event is accepted — got 200 {"received":true}
+  ✅ Subscription status applied correctly — got active
+  ✅ Duplicate delivery of the same event id is recognized and short-circuited — got 200 {"received":true,"duplicate":true}
+  ✅ Newer event (t1, past_due) applied correctly — got past_due
+  ✅ Out-of-order older event does NOT regress newer status (still past_due) — got past_due
+
+  Stripe webhook test: 6 passed, 0 failed
+

@@ -1,0 +1,87 @@
+
+> casefile@0.1.0 release:gate
+> node scripts/release-gate.mjs
+
+
+  Release gate — target: controlled production beta
+
+  ✅ P0-RACE [BLOCKING] cost-abuse — AI-quota rate limiter is atomic under real concurrency (PASS)
+  ✅ P1-SECRET-GUARD [non-blocking] secrets — Build-time server-only enforcement on every secret-holding module (PASS)
+  ✅ P1-GLOBAL-CEILING [non-blocking] cost-abuse — Global AI-spend ceiling independent of per-user limits (PASS)
+  ✅ P1-STRIPE-PRICEID [BLOCKING] stripe — Arbitrary client-supplied Price ID cannot redirect checkout to an unintended price (PASS)
+  ✅ P1-SSRF-RECHECK [BLOCKING] ssrf — Independent re-verification of zero server-side user-URL fetches (PASS)
+  ✅ P1-DOCS [non-blocking] documentation — Cost controls, incident response, credential rotation docs exist (PASS)
+  ✅ P2-NPM-AUDIT [BLOCKING] supply-chain — npm audit reviewed, no critical/high vulnerabilities (PASS)
+  ✅ P0-01 [BLOCKING] authorization — API ownership matrix complete, no missing ownership checks (PASS)
+  ✅ P0-02 [BLOCKING] authorization — Adversarial cross-user API test suite passes (PASS)
+  ✅ P0-03 [BLOCKING] authorization — Stripe portal session ownership enforced (PASS)
+  ✅ P0-04 [BLOCKING] authorization — Cannot publish/export another user's resume or portfolio (PASS)
+  ✅ P0-05 [BLOCKING] secrets — Credentials exposed in chat/terminal this session rotated (PASS)
+  ✅ P0-06 [BLOCKING] secrets — gitleaks scan clean (PASS)
+  ✅ P0-07 [BLOCKING] ai-truth — Truth Ledger fails closed under expanded adversarial set (PASS)
+  ✅ P0-08 [BLOCKING] data-integrity — Account deletion cascades correctly, no orphaned private data (PASS)
+  ✅ P0-RLS [BLOCKING] authorization — Two-user adversarial RLS isolation (PASS)
+  ✅ P0-UPLOAD [BLOCKING] file-security — Magic-byte verification, size/MIME bucket enforcement (PASS)
+  ✅ P0-XSS [BLOCKING] xss — javascript:/data: URI rejection on public portfolio (PASS)
+  ✅ P0-INJECTION [BLOCKING] ai-security — Prompt injection resisted on live AI route (PASS)
+  ✅ P0-STRIPE-ENTITLEMENT [BLOCKING] payments — Real checkout -> webhook -> DB entitlement activation works end to end (PASS)
+  ✅ P1-01 [BLOCKING] stripe — Webhook event idempotency (PASS)
+  ✅ P1-02 [BLOCKING] stripe — Invalid signature / wrong price / spoof rejection tests (PASS)
+  ✅ P1-03 [BLOCKING] stripe — Production webhook endpoint registered (PASS)
+  ✅ P1-04 [BLOCKING] rate-limiting — Distributed rate limiter abstraction with local-dev fallback (PASS)
+  🚧 P1-05 [non-blocking] rate-limiting — Upstash Redis wired for production (BLOCKED)
+      blocker: Requires Upstash account creation
+  ✅ P1-06 [BLOCKING] auth — Session/cookie/redirect hardening verified via real browser tests (PASS)
+  ✅ P1-07 [BLOCKING] csrf — Origin/Host validation on cookie-authenticated state-changing routes (PASS)
+  ✅ P1-08 [BLOCKING] ssrf — Zero server-side user-URL fetches, regression-tested (PASS)
+  ✅ P1-09 [non-blocking] monitoring — Provider-neutral observability layer (PASS)
+  ✅ P1-10 [non-blocking] monitoring — Error-monitoring adapter wired, app works without it (PASS)
+  ✅ P1-11 [non-blocking] reliability — Emergency kill switches for AI/checkout/jobs/publishing (PASS)
+  ✅ P1-12 [non-blocking] reliability — Health check endpoints (PASS)
+  ✅ P1-13 [BLOCKING] backup — Backup/restore documented, PITR confirmed (PASS)
+  ✅ P1-14 [BLOCKING] deployment — Staging config + deployment docs (PASS)
+  ✅ P1-15 [BLOCKING] deployment — Actual staging deployment exists (PASS)
+  ✅ P1-16 [non-blocking] email — Production SMTP/email readiness (PASS)
+  ✅ P1-17 [non-blocking] ci — CI security workflow file exists (PASS)
+  ✅ P1-18 [BLOCKING] headers — Security headers tightened + tested (PASS)
+  ✅ P1-19 [BLOCKING] privacy — Account deletion route exists and works (PASS)
+  ✅ P1-20 [non-blocking] privacy — Privacy/retention documentation (PASS)
+  ✅ P2-01 [non-blocking] load — Load test scripts against local dev (PASS)
+  ✅ P2-02 [non-blocking] e2e — Full 25-step paid-path E2E run (PASS)
+  ✅ P2-03 [non-blocking] accessibility — Axe/Lighthouse pass (PASS)
+  ✅ P2-04 [non-blocking] visual-qa — Desktop+mobile screenshot review (PASS)
+  ✅ IL-00 [BLOCKING] interview-lab — Interview Lab master switch — now genuinely flipped on in local/dev, NOT yet deployed to production (PASS)
+  ✅ IL-01 [non-blocking] interview-lab — Full question-bank coverage across all 10 advertised session types (PASS)
+  ✅ IL-02 [non-blocking] interview-lab — Story Bank: real UI on top of existing schema/API (PASS)
+  ✅ IL-03 [non-blocking] interview-lab — Drills: deterministic (non-AI) scoring, real UI (PASS)
+  ✅ IL-04 [BLOCKING] interview-lab-security — Private report sharing: zero-anon-RLS-policy + hashed-token pattern, no transcript leak (PASS)
+  ✅ IL-05 [non-blocking] interview-lab — Recorded Mode: now fully wired end-to-end with real Gemini audio transcription (PASS)
+  ✅ IL-06 [BLOCKING] interview-lab-privacy — Account deletion fully cascades Interview Lab data, including nested-path storage (PASS)
+  ✅ IL-07 [non-blocking] interview-lab — Answer Retry: real attempts preserved, comparison is deterministic only (PASS)
+  ✅ IL-08 [non-blocking] interview-lab — Results page: Save-as-Story is honest; Practice-Next personalization is now real, not just claimed (PASS)
+  ✅ IL-09 [BLOCKING] accessibility — WCAG AA color-contrast: Interview Lab pages + a pre-existing app-wide Sidebar bug (PASS)
+  ✅ IL-10 [non-blocking] compliance — Age-eligibility gate removed at the user's explicit, confirmed instruction (PASS)
+  ✅ IL-11 [BLOCKING] interview-lab — Real Gemini analysis wired end-to-end; critical schema-rejection bug found and fixed (PASS)
+  ✅ IL-12 [BLOCKING] interview-lab — Live voice mode (Gemini Live API) actually wired and tested end to end with real audio (PASS)
+  ✅ IL-13 [non-blocking] interview-lab — Two real pre-existing/incidental bugs found while wiring voice mode end-to-end (PASS)
+  ✅ IL-14 [non-blocking] interview-lab — New Interview UI restructured: Live Interview vs Written as 2 top-level types, 10 subcategories nested under each (PASS)
+  ⬜ IL-NOT-STARTED-EVAL [non-blocking] interview-lab — Prompt-evaluation harness, scoring constitution document, golden dataset (NOT_STARTED)
+      blocker: Not yet built. Now meaningful since Gemini analysis is genuinely enabled and producing real scored evaluations, but still not built this session.
+  ✅ IL-15 [non-blocking] interview-lab — Interview Hub redesigned into a readiness-led command center: deterministic role+type-aware readiness model, server-controlled recommendation engine, evidence coverage, job-specific mode (PASS)
+  ✅ IL-16 [BLOCKING] interview-lab — Full existing Interview Lab regression suite re-run after the Hub rewrite, two real stale-assertion bugs found and fixed (PASS)
+  ⬜ IL-NOT-STARTED-VISUALQA [non-blocking] visual-qa — Visual QA screenshot review across Interview Lab's ~25 UI states (PARTIAL)
+      blocker: Acceptable for this Hub-scoped pass; a full-app visual sweep was out of scope for this change and was not claimed.
+  ⬜ IL-NOT-STARTED-DEPLOY [BLOCKING] deployment — Gemini Interview Lab env vars deployed to Vercel production (NOT_STARTED)
+      blocker: GEMINI_PAID_PROJECT_CONFIRMED/GEMINI_INTERVIEW_ENABLED/INTERVIEW_LIVE_ENABLED/INTERVIEW_ANALYSIS_ENABLED/INTERVIEW_RECORDING_ENABLED and the new real GEMINI_API_KEY exist only in .env.local; not pushed to Vercel and not deployed. Interview Lab — including this Hub redesign — remains fully disabled in production until a human does this deliberately.
+  ✅ IL-17 [BLOCKING] interview-lab — Server-side entitlement system: atomic quota enforcement for Free (2 sessions) / Pro (15 sessions, 8 audio) / retries, with real adversarial concurrency proof (PASS)
+  ⬜ IL-NOT-STARTED-COST-MODEL [non-blocking] cost-control — Interview Lab cost-model document (growth/interviews/cost-model.md) (NOT_STARTED)
+      blocker: The mission required a cost-model document with per-action Gemini cost estimates, average Free/Pro monthly costs, margin risk at $15/mo, and daily/monthly global exposure. Not yet written. The per-user entitlement limits now enforce hard session/audio/retry ceilings which bound per-user exposure, but the aggregate cost model and daily/monthly global budget circuit-breaker math are not documented.
+  ⬜ IL-NOT-STARTED-ATOMIC-FREE-RETRY [non-blocking] interview-lab — Atomic Free-tier retry enforcement across different questions in the same session (NOT_STARTED)
+      blocker: See IL-17 known gap (b): non-atomic priorRetryCount check allows a bypass when simultaneously retrying different questions in the same completed session. Requires a new per-session-scoped atomic RPC (similar to interview_reserve_usage but counting by session_id instead of period_start). Low severity: requires unusual simultaneous multi-question retry behavior and Free users cannot retry beyond their session limit anyway (so the impact is at most one extra retry per session, not unbounded). Deferred.
+  ⬜ IL-NOT-STARTED-MIG025-APPLY [non-blocking] database — Apply migration 025 (DROP 6-param overload) to live Supabase DB (NOT_STARTED)
+      blocker: Migration 025 exists locally at supabase/migrations/025_drop_interview_reserve_usage_6param_overload.sql but has not been applied to the live project (yogwhfrjhcbnvoxitcay) because MCP was unavailable at commit time. The code workaround (always passing p_max_concurrent: null) provides complete protection against PostgREST ambiguity — but the orphaned 6-param overload remains in the live DB until this is applied. Apply with: supabase db push, or via the Supabase dashboard SQL editor, or wait for MCP reconnection.
+
+  1 release-blocking requirement(s) not PASS, 6 non-blocking open.
+
+  ❌ RELEASE GATE: NOT READY
+

@@ -1,0 +1,32 @@
+
+> casefile@0.1.0 test:rls
+> node --env-file=.env.local scripts/test-rls.mjs
+
+User A: 242f2ce9-b1c2-4adc-9dcd-f70b2bd24d28
+User B: 3e9596e5-26f5-454d-ae74-fc828c764c3b
+
+── Cross-user SELECT ──
+  ✅ User B cannot SELECT User A's resume by known ID — {"rows":0}
+  ✅ User B's unfiltered resume list does not include User A's resume
+  ✅ User B cannot SELECT User A's saved job by known ID
+  ✅ User B cannot SELECT User A's unpublished draft portfolio
+  ✅ User B cannot SELECT User A's ProofScore audit
+  ✅ User B cannot SELECT User A's tailored application kit
+
+── Cross-user UPDATE ──
+  ✅ User B cannot UPDATE User A's resume
+  ✅ User A's resume title is unchanged after attempted hijack
+
+── Cross-user DELETE ──
+  ✅ User B cannot DELETE User A's saved job
+  ✅ User A's saved job still exists after attempted deletion
+
+── Impersonation / mass-assignment (INSERT as someone else) ──
+  ✅ User B cannot INSERT a row with User A's user_id — new row violates row-level security policy for table "resumes"
+
+── Published portfolio (intended public surface) ──
+  ✅ Anonymous client CAN read a portfolio explicitly marked published (intended)
+  ✅ Anonymous client loses access once portfolio is reverted to draft
+
+  RLS adversarial test: 13 passed, 0 failed
+
