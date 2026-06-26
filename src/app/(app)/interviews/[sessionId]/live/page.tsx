@@ -66,8 +66,12 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
   const [status, setStatus] = useState<'idle' | 'connecting' | 'live' | 'ending' | 'ended'>('idle')
   const [transcript, setTranscript] = useState<LiveTranscriptSegment[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [debugLog, setDebugLog] = useState<string[]>([])
   const engineRef = useRef<LiveInterviewEngine | null>(null)
   const transcriptEndRef = useRef<HTMLDivElement>(null)
+  const statusRef = useRef(status)
+
+  useEffect(() => { statusRef.current = status }, [status])
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,6 +82,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
   }, [])
 
   async function endInterview(engine: LiveInterviewEngine) {
+    statusRef.current = 'ending'  // prevent onClosed from firing false "connection lost" error
     setStatus('ending')
     engine.close()
     const segments = engine.getTranscript()
@@ -101,9 +106,14 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
     }
   }
 
+  function addDebug(event: string) {
+    setDebugLog((prev) => [...prev.slice(-19), `${new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${event}`])
+  }
+
   async function startCall() {
     setStatus('connecting')
     setErrorMessage(null)
+    setDebugLog([])
     try {
       // Create engine and pre-init AudioContext NOW, while still in the synchronous
       // user-gesture handler — before any await. Browsers block audio playback created
@@ -114,11 +124,24 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
         questions.map((q) => ({ id: q.id, questionText: q.question_text })),
         LIVE_INTERVIEW_COMPLETE_PHRASE,
         {
-          onConnected: () => setStatus('live'),
+          onConnected: () => { addDebug('connected'); setStatus('live') },
           onTranscriptUpdate: (segments) => setTranscript([...segments]),
           onInterviewComplete: () => { void endInterview(engine) },
-          onError: (message) => { setErrorMessage(message); toast.error('Live connection error: ' + message) },
-          onClosed: () => {},
+          onError: (message) => {
+            addDebug(`error: ${message}`)
+            setErrorMessage(message)
+            toast.error('Live connection error: ' + message)
+          },
+          onClosed: (wasError) => {
+            addDebug(`closed wasError=${wasError}`)
+            // Only treat as a problem if we were in an active state
+            if (statusRef.current === 'live' || statusRef.current === 'connecting') {
+              setErrorMessage('The live connection closed unexpectedly. Please try again.')
+              toast.error('Live connection closed. Please try again.')
+              setStatus('idle')
+            }
+          },
+          onDebugEvent: addDebug,
         }
       )
       engine.preInitAudio()   // <-- synchronous, must be before any await
@@ -128,18 +151,27 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
       const tokenJson = await tokenRes.json()
       if (!tokenRes.ok) {
         toast.error(apiErrorMessage(tokenJson.error, 'Could not start the live interview.'))
+        addDebug(`token error: ${tokenJson.error}`)
         setStatus('idle')
         return
       }
-      const { ephemeralToken, model } = tokenJson.data
+      const { ephemeralToken, model, systemInstruction } = tokenJson.data
+      addDebug(`token ok model=${model} tok=${String(ephemeralToken).slice(0,20)}...`)
 
-      await engine.connect(ephemeralToken, model)
+      // Start mic capture BEFORE connecting — mic is ready before setupComplete fires,
+      // and any permission dialog happens before the WebSocket even opens. The engine's
+      // ScriptProcessorNode safely drops audio when this.session is null.
       await engine.startMicCapture()
-      // Kickoff AFTER mic is ready so the model's greeting doesn't arrive while
-      // capture is still initialising and get interrupted mid-sentence.
-      engine.sendKickoff()
+      addDebug('mic:ready')
+
+      // connect() sends the setup message and returns immediately after WebSocket open.
+      // The server will then send setupComplete; the engine detects it in handleMessage
+      // and fires the kickoff turn automatically — no explicit call needed here.
+      await engine.connect(ephemeralToken, model, systemInstruction)
     } catch (err) {
       console.error(err)
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      addDebug(`catch: ${msg}`)
       toast.error('Could not access your microphone, or the live connection failed. Please check mic permissions and try again.')
       setStatus('idle')
     }
@@ -170,6 +202,13 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
             <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
             <p className="text-sm text-muted-foreground">Connecting to your AI interviewer…</p>
+            {debugLog.length > 0 && (
+              <div className="w-full rounded-lg bg-surface-100 border border-border/40 p-2 text-left">
+                {debugLog.map((line, i) => (
+                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -182,7 +221,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
               </span>
               <span className="text-xs font-medium text-emerald-600">Live</span>
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto max-h-[360px] pr-1">
+            <div className="flex-1 space-y-3 overflow-y-auto max-h-[300px] pr-1">
               {transcript.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-8">Listening… the interviewer will greet you shortly.</p>
               )}
@@ -195,6 +234,16 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
               ))}
               <div ref={transcriptEndRef} />
             </div>
+
+            {debugLog.length > 0 && (
+              <div className="mt-3 rounded-lg bg-surface-100 border border-border/40 p-2 max-h-[120px] overflow-y-auto">
+                <p className="text-[10px] font-mono font-medium text-muted-foreground mb-1">Connection log</p>
+                {debugLog.map((line, i) => (
+                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
+                ))}
+              </div>
+            )}
+
             <Button
               variant="outline" className="mt-4 gap-2 text-destructive"
               disabled={status === 'ending'}

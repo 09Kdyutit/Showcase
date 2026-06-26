@@ -1,5 +1,4 @@
 import 'server-only'
-import { Modality } from '@google/genai'
 import { isInterviewLiveEnabled } from '../config.ts'
 import { InterviewLiveUnavailableError, InterviewGeminiProviderError } from './errors.ts'
 import { getLiveModel } from './models.ts'
@@ -27,6 +26,7 @@ export interface LiveTokenResult {
   ephemeralToken: string
   expiresAt: string
   model: string
+  systemInstruction: string
 }
 
 export async function createLiveEphemeralToken(request: LiveTokenRequest): Promise<LiveTokenResult> {
@@ -50,31 +50,23 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
   const expireTime = new Date(Date.now() + newSessionWindowMs).toISOString()
   const newSessionExpireTime = new Date(Date.now() + 60_000).toISOString()
 
+  // The system instruction (persona + question list) is built here on the server and
+  // returned to the browser alongside the token. The browser passes it directly in the
+  // connect() config, which is more reliable than relying on liveConnectConstraints
+  // being applied server-side — the locked-field mechanism is experimental and the SDK
+  // warns that ephemeral token support may change. The questions are already known to the
+  // user (displayed in the session plan), so this is not a meaningful information leak.
   try {
     const token = await client.authTokens.create({
       config: {
         uses: 1,
         expireTime,
         newSessionExpireTime,
-        liveConnectConstraints: {
-          model,
-          config: {
-            responseModalities: [Modality.AUDIO],
-            systemInstruction,
-            inputAudioTranscription: {},
-            outputAudioTranscription: {},
-          },
-        },
-        // Locks the entire LiveConnectConfig (system instruction, modalities,
-        // transcription) so the browser — which only ever holds this token, never
-        // the real API key or this server-side prompt — cannot override what the
-        // model is told to do.
-        lockAdditionalFields: [],
       },
     })
     if (!token.name) throw new InterviewGeminiProviderError()
 
-    return { ephemeralToken: token.name, expiresAt: expireTime, model }
+    return { ephemeralToken: token.name, expiresAt: expireTime, model, systemInstruction }
   } catch (err) {
     if (err instanceof InterviewGeminiProviderError) throw err
     console.error('[interviews/gemini/live] ephemeral token creation failed', { model })

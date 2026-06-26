@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Search, MapPin, Briefcase, X, ChevronRight,
   Bookmark, BookmarkCheck, Zap, Building2, Clock, DollarSign,
-  Wifi, Users, Target, AlertCircle, CheckCircle2, ArrowRight,
+  Wifi, Users, Target, AlertCircle, CheckCircle2,
   Star, TrendingUp, Send,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -270,9 +270,9 @@ function JobDetailPanel({
               {isSaved ? 'Saved' : 'Save'}
             </Button>
             {job.source_url && (
-              <Button variant="ghost" size="icon" asChild>
+              <Button variant="outline" asChild>
                 <a href={job.source_url} target="_blank" rel="noopener noreferrer">
-                  <ArrowRight className="h-4 w-4" />
+                  Apply
                 </a>
               </Button>
             )}
