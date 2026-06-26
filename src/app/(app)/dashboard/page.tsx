@@ -60,7 +60,7 @@ export default async function DashboardPage() {
       {/* Ambient background — top-left purple blob */}
       <div
         className="pointer-events-none absolute top-0 left-0 right-0 h-96 opacity-40"
-        style={{ background: 'radial-gradient(ellipse 70% 50% at 20% 0%, color-mix(in oklch, oklch(54% 0.22 264) 15%, transparent), transparent)' }}
+        style={{ background: 'radial-gradient(ellipse 70% 50% at 20% 0%, color-mix(in oklch, var(--color-brand-500) 15%, transparent), transparent)' }}
       />
       <div className="relative p-6 max-w-6xl mx-auto space-y-8">
       {/* Header */}
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
 
       {/* Setup checklist - shown until user has resume + portfolio + audit */}
       {isNewUser && (
-        <div className="glass-card p-6 relative overflow-hidden" style={{ borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 15%, transparent)' }}>
+        <div className="glass-card p-6 relative overflow-hidden" style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 15%, transparent)' }}>
           <div className="pointer-events-none absolute inset-0 dot-grid opacity-30" />
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -144,14 +144,14 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* ProofScore */}
         <div className="col-span-2 lg:col-span-1 glass-card p-6 flex flex-col items-center gap-2 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, color-mix(in oklch, oklch(13% 0.012 264) 90%, transparent), color-mix(in oklch, oklch(39% 0.2 264) 6%, transparent))' }}>
+          style={{ background: 'linear-gradient(135deg, color-mix(in oklch, var(--color-surface-100) 90%, transparent), color-mix(in oklch, var(--color-brand-700) 6%, transparent))' }}>
           <div className="pointer-events-none absolute inset-0 opacity-20 dot-grid" />
           {proofScore !== null ? (
             <ProofScoreRing score={proofScore} size="md" animate />
           ) : (
             <div className="flex flex-col items-center gap-3 py-2">
               <div className="w-24 h-24 rounded-full border-2 border-surface-300 flex items-center justify-center"
-                style={{ background: 'color-mix(in oklch, oklch(54% 0.22 264) 4%, transparent)' }}>
+                style={{ background: 'color-mix(in oklch, var(--color-brand-500) 4%, transparent)' }}>
                 <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
               </div>
               <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
@@ -199,10 +199,10 @@ export default async function DashboardPage() {
 
         {/* Subscription */}
         <div className="glass-card p-6 relative overflow-hidden"
-          style={isPro ? { borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 25%, transparent)' } : {}}>
+          style={isPro ? { borderColor: 'color-mix(in oklch, var(--color-brand-500) 25%, transparent)' } : {}}>
           {isPro && (
             <div className="pointer-events-none absolute inset-0 opacity-30"
-              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent), transparent)' }} />
+              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-500) 20%, transparent), transparent)' }} />
           )}
           <div className="flex items-start justify-between mb-3">
             <p className="text-xs text-muted-foreground/70 font-medium uppercase tracking-widest">Plan</p>
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
           </div>
           {isPro ? (
             <>
-              <Badge variant="pro" className="mb-2" style={{ boxShadow: '0 0 10px color-mix(in oklch, oklch(54% 0.22 264) 35%, transparent)' }}>Pro</Badge>
+              <Badge variant="pro" className="mb-2" style={{ boxShadow: '0 0 10px color-mix(in oklch, var(--color-brand-500) 35%, transparent)' }}>Pro</Badge>
               <p className="text-xs text-muted-foreground">
                 {subscription?.current_period_end
                   ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
@@ -230,20 +230,20 @@ export default async function DashboardPage() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Next action */}
-        <div className="lg:col-span-1 glass-card overflow-hidden relative" style={{ borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent)' }}>
+        <div className="lg:col-span-1 glass-card overflow-hidden relative" style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
           <div className="h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
           <div className="p-6">
             <p className="text-[10px] font-semibold text-brand-400 uppercase tracking-widest mb-4">Next best action</p>
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: 'color-mix(in oklch, oklch(54% 0.22 264) 12%, transparent)', border: '1px solid color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent)' }}>
+                style={{ background: 'color-mix(in oklch, var(--color-brand-500) 12%, transparent)', border: '1px solid color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
                 <nextAction.icon className="h-5 w-5 text-brand-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-foreground mb-1">{nextAction.label}</p>
                 <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{nextAction.desc}</p>
                 <Button asChild variant="gradient" size="sm" className="gap-1.5"
-                  style={{ boxShadow: '0 0 16px color-mix(in oklch, oklch(54% 0.22 264) 30%, transparent)' }}>
+                  style={{ boxShadow: '0 0 16px color-mix(in oklch, var(--color-brand-500) 30%, transparent)' }}>
                   <Link href={nextAction.href}>
                     Start
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -321,7 +321,7 @@ export default async function DashboardPage() {
             {portfolios.map((p) => (
               <Link key={p.id} href={`/builder/${p.id}`} className="block group">
                 <div className="glass-card p-5 transition-all duration-200 group-hover:shadow-glow-sm"
-                  style={{ '--hover-border': 'color-mix(in oklch, oklch(54% 0.22 264) 25%, transparent)' } as React.CSSProperties}>
+                  style={{ '--hover-border': 'color-mix(in oklch, var(--color-brand-500) 25%, transparent)' } as React.CSSProperties}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-foreground truncate group-hover:text-brand-200 transition-colors">{p.title}</p>

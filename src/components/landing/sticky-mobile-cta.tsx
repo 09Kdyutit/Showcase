@@ -25,7 +25,7 @@ export function StickyMobileCTA() {
         <Link
           href="/waitlist"
           className="flex items-center justify-center gap-2 w-full h-12 rounded-xl font-semibold text-sm text-white"
-          style={{ background: 'linear-gradient(135deg, oklch(54% 0.22 264), oklch(58% 0.2 295))' }}
+          style={{ background: 'linear-gradient(135deg, var(--color-brand-500), var(--color-brand-500))' }}
         >
           Join the Showcase beta
           <ArrowRight className="h-4 w-4" />

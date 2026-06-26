@@ -46,7 +46,7 @@ export function Navbar() {
           scrolled ? 'opacity-100' : 'opacity-0'
         )}
         style={{
-          background: 'linear-gradient(90deg, transparent 0%, oklch(54% 0.22 264 / 0.6) 30%, oklch(70% 0.18 295 / 0.6) 70%, transparent 100%)',
+          background: 'linear-gradient(90deg, transparent 0%, color-mix(in oklch, var(--color-brand-500) 60%, transparent) 30%, color-mix(in oklch, var(--color-brand-400) 60%, transparent) 70%, transparent 100%)',
         }}
       />
 

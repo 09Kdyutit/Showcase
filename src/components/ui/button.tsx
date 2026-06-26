@@ -13,7 +13,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variants = {
   primary: 'bg-brand-500 hover:bg-brand-600 text-white shadow-glow-sm hover:shadow-glow transition-all duration-200 active:scale-[0.98]',
-  gradient: 'bg-gradient-to-r from-brand-500 to-violet-500 hover:from-brand-600 hover:to-violet-600 text-white shadow-glow-sm hover:shadow-glow transition-all duration-200 active:scale-[0.98]',
+  gradient: 'bg-gradient-to-r from-brand-600 to-brand-400 hover:from-brand-700 hover:to-brand-500 text-white shadow-glow-sm hover:shadow-glow transition-all duration-200 active:scale-[0.98]',
   secondary: 'bg-surface-200 hover:bg-surface-300 text-foreground border border-border hover:border-white/20 transition-all duration-200',
   ghost: 'hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200',
   outline: 'border border-border hover:border-brand-500/50 hover:bg-brand-500/5 text-foreground transition-all duration-200',
