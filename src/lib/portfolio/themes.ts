@@ -4,6 +4,7 @@
 // real theme instead of crashing the page or silently rendering nothing.
 
 export const THEME_IDS = [
+  'cinematic-dark',
   'executive-dark',
   'clean-editorial',
   'creative-case-study',
@@ -30,6 +31,14 @@ export interface ThemeMeta {
 }
 
 export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
+  'cinematic-dark': {
+    id: 'cinematic-dark',
+    name: 'Cinematic Dark',
+    description: 'Immersive full-screen experience with loading reveal, oversized bold typography, marquee skill ticker, and scroll-triggered animations.',
+    recommendedRoles: ['Engineering', 'Product', 'Design', 'Research', 'Robotics', 'Startup', 'Tech Leadership'],
+    swatch: { bg: '#050508', accent: '#e91e8c', text: '#ffffff' },
+    badge: '✦ New',
+  },
   'executive-dark': {
     id: 'executive-dark',
     name: 'Executive Dark',

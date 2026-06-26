@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import type { ThemeId } from '@/lib/portfolio/themes'
 import type { ThemeProps } from './shared'
+import { CinematicDarkTheme } from './cinematic-dark'
 import { ExecutiveDarkTheme } from './executive-dark'
 import { CleanEditorialTheme } from './clean-editorial'
 import { CreativeCaseStudyTheme } from './creative-case-study'
@@ -12,6 +13,7 @@ import { BentoTheme } from './bento'
 import { MagazineTheme } from './magazine'
 
 export const THEME_COMPONENTS: Record<ThemeId, ComponentType<ThemeProps>> = {
+  'cinematic-dark': CinematicDarkTheme,
   'executive-dark': ExecutiveDarkTheme,
   'clean-editorial': CleanEditorialTheme,
   'creative-case-study': CreativeCaseStudyTheme,
@@ -25,6 +27,7 @@ export const THEME_COMPONENTS: Record<ThemeId, ComponentType<ThemeProps>> = {
 
 export type { ThemeProps, ThemePortfolio, ThemeContent } from './shared'
 export {
+  CinematicDarkTheme,
   ExecutiveDarkTheme,
   CleanEditorialTheme,
   CreativeCaseStudyTheme,

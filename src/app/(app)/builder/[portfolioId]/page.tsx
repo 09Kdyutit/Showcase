@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon } from 'lucide-react'
+import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const [generating, setGenerating] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const [resumeText, setResumeText] = useState('')
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
@@ -244,6 +245,31 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     }
   }
 
+  async function exportHtml() {
+    if (!portfolioId) return
+    setExporting(true)
+    try {
+      const res = await fetch('/api/portfolio/export-html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portfolioId }),
+      })
+      if (!res.ok) { toast.error('Export failed'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'portfolio.html'
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Portfolio exported as HTML')
+    } catch {
+      toast.error('Export failed')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-6 max-w-6xl mx-auto space-y-4">
@@ -335,6 +361,17 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
               <BarChart3 className="h-3 w-3" />
               Audit
             </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={exportHtml}
+            loading={exporting}
+            className="gap-1.5 text-xs hidden sm:flex"
+            title="Export as standalone HTML file"
+          >
+            <Download className="h-3 w-3" />
+            Export
           </Button>
           <Button
             variant="secondary"
@@ -1087,6 +1124,26 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       </div>
                     </div>
                   )}
+                </div>
+
+                <div className="glass-card p-5 space-y-4 max-w-lg">
+                  <h3 className="text-sm font-semibold text-foreground">Export</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Download your portfolio as a standalone HTML file. Host it anywhere — GitHub Pages, Netlify, your own server, or point a custom domain at it.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportHtml}
+                    loading={exporting}
+                    className="gap-1.5"
+                  >
+                    <Download className="h-3 w-3" />
+                    Download HTML
+                  </Button>
+                  <p className="text-xs text-muted-foreground/50">
+                    The exported file includes all fonts and styles. No build tools needed — open it in any browser or deploy to any static host.
+                  </p>
                 </div>
               </div>
             </TabsContent>
