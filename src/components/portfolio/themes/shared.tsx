@@ -25,7 +25,7 @@ export function getInitials(name: string): string {
 }
 
 /**
- * Every theme needs the same null-safe shape out of `content` — the AI output, a
+ * Every theme needs the same null-safe shape out of `content`  -  the AI output, a
  * hand-edited draft, or a half-filled-in record can each be missing any field. Themes share
  * this normalization so "what counts as present" can't drift between them, while the actual
  * layout each one builds from this data stays theme-specific.

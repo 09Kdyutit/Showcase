@@ -100,7 +100,7 @@ export function GlassmorphismTheme({ portfolio, content }: ThemeProps) {
               {hero.tagline}
             </motion.div>
           )}
-          {/* NAME — the centrepiece */}
+          {/* NAME  -  the centrepiece */}
           <div className="mb-6">
             {portfolio.title.trim().split(/\s+/).map((word, wi, arr) => (
               <div key={wi} className="overflow-hidden leading-[0.88]">

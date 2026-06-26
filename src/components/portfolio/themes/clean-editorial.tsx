@@ -52,7 +52,7 @@ export function CleanEditorialTheme({ portfolio, content }: ThemeProps) {
               </motion.div>
             )}
 
-            {/* NAME — big editorial serif */}
+            {/* NAME  -  big editorial serif */}
             <div className="mb-8">
               {nameWords.map((word, wi) => (
                 <div key={wi} className="overflow-hidden">
@@ -256,7 +256,7 @@ export function CleanEditorialTheme({ portfolio, content }: ThemeProps) {
             <h2 className="text-5xl sm:text-7xl font-medium mb-6 leading-none" style={{ fontFamily: DISPLAY, fontStyle: 'italic' }}>
               {cta?.headline ?? "Let's talk."}
             </h2>
-            <p className="text-black/40 text-lg mb-10">Open to new opportunities — I&apos;d love to hear what you&apos;re building.</p>
+            <p className="text-black/40 text-lg mb-10">Open to new opportunities  -  I&apos;d love to hear what you&apos;re building.</p>
             {contact?.email && (
               <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-black text-white text-base font-semibold hover:bg-black/80 transition-all hover:scale-[1.02]">
                 <Mail className="h-4 w-4" /> {cta?.buttonLabel ?? contact.email} <ArrowUpRight className="h-4 w-4" />

@@ -11,7 +11,7 @@ const TAGLINE = 'Lead Designer · B2B SaaS'
 const HERO_HEADLINE =
   "The Designer Who Shipped Stripe’s Checkout Redesign (+24% Completion)"
 const HERO_SUBHEADLINE =
-  'I design B2B checkout flows that convert — specializing in the final 20% of the funnel where most revenue is abandoned.'
+  'I design B2B checkout flows that convert  -  specializing in the final 20% of the funnel where most revenue is abandoned.'
 const FEATURED_RESULT = '$180k/month recovered from abandoned Stripe checkouts'
 
 const PROOF = [
@@ -22,18 +22,18 @@ const PROOF = [
 ]
 
 const RECRUITER_SUMMARY =
-  'Available for Senior IC, Staff Designer, and Design Lead roles at Series B–D B2B SaaS companies. Prefers remote or SF/NYC hybrid.'
+  'Available for Senior IC, Staff Designer, and Design Lead roles at Series B-D B2B SaaS companies. Prefers remote or SF/NYC hybrid.'
 
 const ABOUT_PARAS = [
-  'I design checkout and conversion flows for B2B SaaS. The most-cited project on my resume is Stripe Checkout — a redesign that recovered $180k/month in abandoned merchant revenue by collapsing a 4-step flow into one progressive screen.',
-  'My approach is evidence before aesthetics. Every design decision I make is tied to a measurable outcome: conversion, retention, adoption, speed. I work best in environments where design is a first-class partner to product and engineering — not a layer applied at the end.',
+  'I design checkout and conversion flows for B2B SaaS. The most-cited project on my resume is Stripe Checkout  -  a redesign that recovered $180k/month in abandoned merchant revenue by collapsing a 4-step flow into one progressive screen.',
+  'My approach is evidence before aesthetics. Every design decision I make is tied to a measurable outcome: conversion, retention, adoption, speed. I work best in environments where design is a first-class partner to product and engineering  -  not a layer applied at the end.',
   'Currently at Figma, where I lead the editor design system. Previously Stripe, Adobe. Open to senior IC, staff, and lead roles at growth-stage B2B SaaS.',
 ]
 
 const WORKING_PRINCIPLES = [
-  'Evidence before aesthetics — every decision tied to a conversion or retention metric',
+  'Evidence before aesthetics  -  every decision tied to a conversion or retention metric',
   'Design systems as product infrastructure, not just Figma libraries',
-  'The best copy is no copy — reduce cognitive load by removing, not adding',
+  'The best copy is no copy  -  reduce cognitive load by removing, not adding',
 ]
 
 const PROJECTS = [
@@ -44,7 +44,7 @@ const PROJECTS = [
     role: 'Lead Designer',
     year: '2021',
     company: 'Stripe',
-    summary: 'End-to-end redesign of Stripe\'s merchant checkout flow — the most revenue-critical surface in the product.',
+    summary: 'End-to-end redesign of Stripe\'s merchant checkout flow  -  the most revenue-critical surface in the product.',
     problem:
       '67% drop-off at the payment screen in a 4-step checkout flow. Fragmented UX was costing Stripe an estimated $180k/month in abandoned orders from SMB merchants who couldn\'t complete onboarding.',
     process:
@@ -101,9 +101,9 @@ const EXPERIENCE = [
   {
     company: 'Figma',
     role: 'Lead Product Designer',
-    period: '2022 — Present',
+    period: '2022  -  Present',
     bullets: [
-      'Led design for core editor features including comments, multiplayer, and the new properties panel — shipped to 10M+ users.',
+      'Led design for core editor features including comments, multiplayer, and the new properties panel  -  shipped to 10M+ users.',
       'Rebuilt the Figma internal design system from 60 to 120+ components across a 6-week migration.',
       'Managed a team of 4 designers across 2 product areas; ran quarterly design reviews with the CPO.',
     ],
@@ -112,7 +112,7 @@ const EXPERIENCE = [
   {
     company: 'Stripe',
     role: 'Product Designer',
-    period: '2020 — 2022',
+    period: '2020  -  2022',
     bullets: [
       'Redesigned Stripe Checkout end-to-end, increasing merchant completion rate by 24% and recovering $180k/month in abandoned revenue.',
       'Built Stripe\'s first internal design system, adopted by 6 product teams within 3 months of launch.',
@@ -122,10 +122,10 @@ const EXPERIENCE = [
   {
     company: 'Adobe',
     role: 'UX Designer',
-    period: '2019 — 2020',
+    period: '2019  -  2020',
     bullets: [
       'Designed mobile experiences for Adobe Creative Cloud on iOS and Android.',
-      'Shipped Lightroom Mobile v3 UI redesign — 40M+ active users.',
+      'Shipped Lightroom Mobile v3 UI redesign  -  40M+ active users.',
     ],
     metrics: ['40M+ users'],
   },

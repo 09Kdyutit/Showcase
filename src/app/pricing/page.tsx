@@ -37,15 +37,15 @@ const FREE_LOCKED = [
 const PRO_FEATURES = [
   'Everything in Free',
   'Full AI portfolio generation from resume',
-  'Complete ProofScore audit — all 11 categories',
+  'Complete ProofScore audit  -  all 11 categories',
   'AI resume bullet improvement',
   'Public portfolio at showcase.app/p/your-name',
   'PDF and recruiter summary export',
   'Role-specific portfolio versions',
   'Unlimited portfolios',
   'Personalized job feed with explainable match scores',
-  'Tailor Studio — role-specific resume in one click',
-  'Truth Ledger — every change traced to your real experience',
+  'Tailor Studio  -  role-specific resume in one click',
+  'Truth Ledger  -  every change traced to your real experience',
   'Interview evidence brief with STAR story mapping',
   'ATS readiness check and export validation',
   'Full application pipeline with stage tracking',
@@ -68,7 +68,7 @@ export default function PricingPage() {
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Free gets you the transformation: a real portfolio draft and your first ProofScore.
-            Pro takes it from draft to shareable — publish it, tailor it per role, and fix every
+            Pro takes it from draft to shareable  -  publish it, tailor it per role, and fix every
             evidence gap.
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function PricingPage() {
                       <span className="text-muted-foreground">/month</span>
                     </div>
                     <p className="text-sm text-emerald-400 font-medium mb-1">
-                      $150 billed annually — save $30 vs monthly
+                      $150 billed annually  -  save $30 vs monthly
                     </p>
                     <p className="text-sm text-muted-foreground line-through opacity-50">$180/year if monthly</p>
                   </>
@@ -185,7 +185,7 @@ export default function PricingPage() {
                 </Button>
                 <div className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                  <p className="text-xs text-emerald-400/90 text-center">7-day refund policy — no questions asked</p>
+                  <p className="text-xs text-emerald-400/90 text-center">7-day refund policy  -  no questions asked</p>
                 </div>
                 <p className="text-xs text-muted-foreground/60 text-center">Secure payment via Stripe</p>
               </div>
@@ -198,12 +198,12 @@ export default function PricingPage() {
           <h2 className="text-xl font-bold text-foreground text-center mb-8">Common questions</h2>
           <div className="space-y-4">
             {[
-              { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data — portfolio content, ProofScore history, and uploaded materials — is preserved.' },
+              { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data  -  portfolio content, ProofScore history, and uploaded materials  -  is preserved.' },
               { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can explore the product and see its value before upgrading. Most people upgrade after seeing their first ProofScore audit.' },
-              { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward — not guarantee outcomes.' },
-              { q: 'Can I get a refund?', a: 'Yes. If you are not satisfied within the first 7 days of your Showcase Pro subscription, we will refund you in full — no questions asked. Just reach out to our support team.' },
+              { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward  -  not guarantee outcomes.' },
+              { q: 'Can I get a refund?', a: 'Yes. If you are not satisfied within the first 7 days of your Showcase Pro subscription, we will refund you in full  -  no questions asked. Just reach out to our support team.' },
               { q: 'Will Showcase invent experience I do not have?', a: 'Never. Our AI only works with what you provide. It will rewrite and improve how your real experience is presented, but it will not fabricate metrics, employers, projects, or certifications. It will tell you what evidence is missing and suggest where to add proof.' },
-              { q: 'Can I have multiple portfolios?', a: 'Yes, Showcase Pro supports unlimited portfolios. This is useful for targeting different roles or industries — for example, a separate portfolio for product management roles and one for consulting roles.' },
+              { q: 'Can I have multiple portfolios?', a: 'Yes, Showcase Pro supports unlimited portfolios. This is useful for targeting different roles or industries  -  for example, a separate portfolio for product management roles and one for consulting roles.' },
               { q: 'What file formats can I import?', a: 'You can paste your resume as plain text, or upload a PDF or DOCX file. Showcase parses it automatically and uses it as the foundation for your portfolio content.' },
               { q: 'Who can see my public portfolio?', a: 'Only you can see your draft portfolio. When you publish it as a Showcase Pro user, your portfolio becomes publicly accessible at showcase.app/p/your-name. You can unpublish it at any time.' },
             ].map(({ q, a }) => (

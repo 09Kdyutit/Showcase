@@ -23,26 +23,26 @@ export const metadata: Metadata = {
       ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://showcase-app-three.vercel.app')
   ),
   title: {
-    default: 'Showcase — Your résumé lists claims. Showcase turns them into evidence.',
+    default: 'Showcase  -  Your résumé lists claims. Showcase turns them into evidence.',
     template: '%s · Showcase',
   },
   description:
-    'Built for students, new grads, and early-career professionals. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve — without inventing a thing.',
+    'Built for students, new grads, and early-career professionals. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve  -  without inventing a thing.',
   keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'ProofScore', 'professional portfolio', 'early career job search'],
   authors: [{ name: 'Showcase' }],
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'Showcase — Turn your experience into evidence',
-    description: 'Your résumé lists claims. Showcase turns them into evidence — without inventing a thing.',
+    title: 'Showcase  -  Turn your experience into evidence',
+    description: 'Your résumé lists claims. Showcase turns them into evidence  -  without inventing a thing.',
     siteName: 'Showcase',
     url: '/',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Showcase — Turn your experience into evidence',
-    description: 'Your résumé lists claims. Showcase turns them into evidence — without inventing a thing.',
+    title: 'Showcase  -  Turn your experience into evidence',
+    description: 'Your résumé lists claims. Showcase turns them into evidence  -  without inventing a thing.',
   },
   robots: {
     index: true,

@@ -1,4 +1,4 @@
-// Mirrors src/lib/ai/gemini.ts's error taxonomy — distinct, typed errors so a caller
+// Mirrors src/lib/ai/gemini.ts's error taxonomy  -  distinct, typed errors so a caller
 // (and a route's error handler) can tell "not configured" from "model refused" from
 // "provider is down" without parsing message strings, and so a raw provider error
 // (which can embed request internals) never reaches a route's JSON response.

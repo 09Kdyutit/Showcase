@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/shared/logo'
 
 const BENEFITS = [
-  'Free ProofScore preview — see where you stand',
+  'Free ProofScore preview  -  see where you stand',
   'AI-powered resume parsing in seconds',
   'Draft portfolio with no design required',
   'No credit card needed to start',
@@ -65,12 +65,12 @@ export default function SignupPage() {
           </Link>
         </div>
 
-        {/* Center visual — 3-step process */}
+        {/* Center visual  -  3-step process */}
         <div className="flex-1 flex flex-col items-center justify-center py-10">
           <div className="relative z-10 w-72 space-y-3">
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-5">How it works</p>
             {([
-              { step: '01', title: 'Upload your resume', desc: 'PDF or DOCX — we parse everything instantly', color: 'text-brand-400', dot: 'bg-brand-500' },
+              { step: '01', title: 'Upload your resume', desc: 'PDF or DOCX  -  we parse everything instantly', color: 'text-brand-400', dot: 'bg-brand-500' },
               { step: '02', title: 'Get your ProofScore', desc: '11 categories scored, gaps identified', color: 'text-violet-400', dot: 'bg-violet-500' },
               { step: '03', title: 'Publish your portfolio', desc: 'A link that proves your work, not just lists it', color: 'text-emerald-400', dot: 'bg-emerald-500' },
             ]).map(({ step, title, desc, color, dot }) => (

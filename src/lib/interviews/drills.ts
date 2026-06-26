@@ -1,4 +1,4 @@
-// Deterministic drill catalog + scoring. No Gemini call — "deterministic success
+// Deterministic drill catalog + scoring. No Gemini call  -  "deterministic success
 // criteria" per the mission, scored by objective textual checks (word count, sentence
 // structure, presence of required markers), never by a model's judgment of quality.
 // This is intentionally structural: it confirms an answer's mechanical shape and
@@ -13,7 +13,7 @@ export type DrillType =
 
 export interface DrillCheckResult {
   passed: boolean
-  score: number // 0-100, deterministic — never AI-assigned
+  score: number // 0-100, deterministic  -  never AI-assigned
   checks: { label: string; passed: boolean }[]
 }
 
@@ -46,7 +46,7 @@ function has(text: string, pattern: RegExp): boolean {
 
 function wordCountCheck(text: string, min: number, max: number): { label: string; passed: boolean } {
   const n = wordCount(text)
-  return { label: `Length within target range (${min}–${max} words) — currently ${n}`, passed: n >= min && n <= max }
+  return { label: `Length within target range (${min}-${max} words)  -  currently ${n}`, passed: n >= min && n <= max }
 }
 
 function buildResult(checks: { label: string; passed: boolean }[]): DrillCheckResult {
@@ -81,12 +81,12 @@ export const DRILL_CATALOG: DrillDefinition[] = [
     id: 'intro_60s',
     label: '60-Second Introduction',
     competency: 'self_presentation',
-    objective: 'Deliver a structured, role-relevant introduction with a clear present, past, and "why this role" thread — not a résumé summary.',
-    instructions: `Write a 60-second spoken introduction (100–165 words) as you would open a real interview.
+    objective: 'Deliver a structured, role-relevant introduction with a clear present, past, and "why this role" thread  -  not a résumé summary.',
+    instructions: `Write a 60-second spoken introduction (100-165 words) as you would open a real interview.
 A strong intro has three parts:
-1. Present — what you do or your current area (one sentence max)
-2. Past — one or two specific highlights that make you interesting (NOT a chronological CV walkthrough)
-3. Why here — why you're interviewing for this type of role now
+1. Present  -  what you do or your current area (one sentence max)
+2. Past  -  one or two specific highlights that make you interesting (NOT a chronological CV walkthrough)
+3. Why here  -  why you're interviewing for this type of role now
 
 Do NOT: open with "My name is…", list every job title, end without a forward-looking statement, or use the word "passionate" or "enthusiastic" as a crutch.`,
     prompt: 'Introduce yourself as you would to open an interview.',
@@ -108,7 +108,7 @@ Do NOT: open with "My name is…", list every job title, end without a forward-l
           passed: has(text, FORWARD_LOOKING),
         },
         {
-          label: 'Does not open with "My name is" (interviewers already know — start with what you do)',
+          label: 'Does not open with "My name is" (interviewers already know  -  start with what you do)',
           passed: !/^\s*my name is/i.test(text.trim()),
         },
         {
@@ -123,11 +123,11 @@ Do NOT: open with "My name is…", list every job title, end without a forward-l
     id: 'tell_me_about_yourself',
     label: 'Tell Me About Yourself',
     competency: 'self_presentation',
-    objective: 'Answer the most common opener with a past → present → future arc. Show narrative control — not a résumé read-out.',
-    instructions: `Write 150–260 words as a TMAY answer. Strong answers follow this exact arc:
-• Past — one specific thing from your background that is directly relevant (a role, decision, or project — not a list)
-• Present — what you're doing or focused on right now
-• Future / why here — why you're talking to this company/role today
+    objective: 'Answer the most common opener with a past → present → future arc. Show narrative control  -  not a résumé read-out.',
+    instructions: `Write 150-260 words as a TMAY answer. Strong answers follow this exact arc:
+• Past  -  one specific thing from your background that is directly relevant (a role, decision, or project  -  not a list)
+• Present  -  what you're doing or focused on right now
+• Future / why here  -  why you're talking to this company/role today
 
 Rules:
 - Every sentence must advance the story. Cut anything that could be copy-pasted from a résumé.
@@ -149,7 +149,7 @@ Rules:
           passed: has(text, TIME_MARKER),
         },
         {
-          label: 'Includes a concrete detail — a number, named technology, scope, or team size',
+          label: 'Includes a concrete detail  -  a number, named technology, scope, or team size',
           passed: has(text, /\d/) || has(lower, /\b(team of|worked with|stack|codebase|product|users?|customers?|startup|enterprise|scale|millions?|thousands?|[a-z]+js|python|react|sql|api|ml|ai)\b/),
         },
         {
@@ -173,13 +173,13 @@ Rules:
     label: 'STAR Structure',
     competency: 'answer_structure',
     objective: 'Tell a complete Situation → Task → Action → Result story with all four beats clearly present.',
-    instructions: `Answer in 100–230 words with a complete STAR structure. Every beat must be explicit:
+    instructions: `Answer in 100-230 words with a complete STAR structure. Every beat must be explicit:
 
-S — Situation: one sentence of context. When, where, what was happening.
-T — Task: what needed to happen, or what you were responsible for.
-A — Action: what YOU personally did. Use first-person verbs (I decided, I built, I reached out).
+S  -  Situation: one sentence of context. When, where, what was happening.
+T  -  Task: what needed to happen, or what you were responsible for.
+A  -  Action: what YOU personally did. Use first-person verbs (I decided, I built, I reached out).
    The action section should be the longest. At least 2 specific actions.
-R — Result: a concrete outcome. Numbers are best, but a named change is acceptable.
+R  -  Result: a concrete outcome. Numbers are best, but a named change is acceptable.
 
 Common failures this drill is designed to catch:
 - Opening with what you built instead of the situation
@@ -197,7 +197,7 @@ Common failures this drill is designed to catch:
           passed: count(text, /\bI\b/g) >= 4,
         },
         {
-          label: 'Contains a situation marker (when/where/context — the S in STAR)',
+          label: 'Contains a situation marker (when/where/context  -  the S in STAR)',
           passed: has(lower, /\b(was working|at the time|at that point|the project|the team was|we were|I was|when I|there was|context was|background)\b/),
         },
         {
@@ -209,7 +209,7 @@ Common failures this drill is designed to catch:
           passed: has(lower, /\b(result|resulted in|the outcome|which meant|we ended up|in the end|ultimately|this led to|saved|reduced|increased|improved|launched|shipped|resolved)\b/),
         },
         {
-          label: 'Includes a specific detail — a number, named tool, person, or timeline',
+          label: 'Includes a specific detail  -  a number, named tool, person, or timeline',
           passed: has(text, /\d/) || has(lower, /\b(team|stakeholder|ceo|cto|pm|product manager|customer|client|sprint|deadline|days?|weeks?|months?)\b/),
         },
       ])
@@ -220,8 +220,8 @@ Common failures this drill is designed to catch:
     id: 'context_no_rambling',
     label: 'Context Without Rambling',
     competency: 'concision',
-    objective: 'Set up a situation in exactly enough words — not more. Practice cutting filler, repeated phrases, and over-explanation.',
-    instructions: `Write a 35–100 word context-setter for a project or situation. Think of this as the S+T of a STAR — just enough for a stranger to understand the stakes, nothing more.
+    objective: 'Set up a situation in exactly enough words  -  not more. Practice cutting filler, repeated phrases, and over-explanation.',
+    instructions: `Write a 35-100 word context-setter for a project or situation. Think of this as the S+T of a STAR  -  just enough for a stranger to understand the stakes, nothing more.
 
 What strong context looks like:
 "At [Company], I was leading [X]. The challenge was [specific constraint or problem]. [What was at stake or why it mattered]."
@@ -262,8 +262,8 @@ What fails:
     id: 'personal_ownership',
     label: 'Personal Ownership',
     competency: 'personal_ownership',
-    objective: 'Make your individual contribution unmistakably clear — what you personally decided, built, or changed, separate from what the team did.',
-    instructions: `Write 70–200 words describing a specific contribution. The test: if you removed your name from this answer, would it be obvious this was you specifically, not just "someone on the team"?
+    objective: 'Make your individual contribution unmistakably clear  -  what you personally decided, built, or changed, separate from what the team did.',
+    instructions: `Write 70-200 words describing a specific contribution. The test: if you removed your name from this answer, would it be obvious this was you specifically, not just "someone on the team"?
 
 Requirements:
 - Name at least 2 things you personally did (I + past-action verb)
@@ -300,8 +300,8 @@ Requirements:
     id: 'quantify_impact',
     label: 'Quantifying Impact',
     competency: 'outcome_and_impact',
-    objective: 'State a result with a real, meaningful number — not a year, not an age, not a count of meetings. A metric that shows actual change.',
-    instructions: `Write 40–150 words describing a result from your work that includes a genuine impact metric.
+    objective: 'State a result with a real, meaningful number  -  not a year, not an age, not a count of meetings. A metric that shows actual change.',
+    instructions: `Write 40-150 words describing a result from your work that includes a genuine impact metric.
 
 What counts:
 - A percentage or ratio showing before/after change ("reduced churn by 18%")
@@ -314,8 +314,8 @@ What does NOT count:
 - A date or version number
 - A team size that wasn't your result
 
-After stating the number, explain WHY it mattered — context makes numbers meaningful.`,
-    prompt: 'Describe a result from your work that you can put a real number on — and explain why that number mattered.',
+After stating the number, explain WHY it mattered  -  context makes numbers meaningful.`,
+    prompt: 'Describe a result from your work that you can put a real number on  -  and explain why that number mattered.',
     timeLimitSeconds: 60, minWords: 40, maxWords: 150,
     check: (text) => {
       const lower = text.toLowerCase()
@@ -330,7 +330,7 @@ After stating the number, explain WHY it mattered — context makes numbers mean
           passed: has(lower, /\b(reduced|increased|improved|cut|grew|saved|generated|eliminated|shortened|sped up|halved|doubled|tripled|scaled|onboarded|retained|launched)\b/),
         },
         {
-          label: 'Uses first-person ownership — this is YOUR result, not the team\'s',
+          label: 'Uses first-person ownership  -  this is YOUR result, not the team\'s',
           passed: has(text, /\bI\b/),
         },
         {
@@ -345,8 +345,8 @@ After stating the number, explain WHY it mattered — context makes numbers mean
     id: 'explain_tradeoffs',
     label: 'Explaining Tradeoffs',
     competency: 'problem_solving_process',
-    objective: 'Name both sides of a real tradeoff, show you understood what you were giving up, and explain the reasoning — not just the conclusion.',
-    instructions: `Write 60–200 words describing a decision where you weighed two real options.
+    objective: 'Name both sides of a real tradeoff, show you understood what you were giving up, and explain the reasoning  -  not just the conclusion.',
+    instructions: `Write 60-200 words describing a decision where you weighed two real options.
 
 A strong tradeoff answer has:
 1. Option A and what it offered
@@ -386,17 +386,17 @@ Strong answers: "We chose X, which gave us [thing]. We gave up [thing Y would ha
     id: 'clarify_question',
     label: 'Clarifying the Question',
     competency: 'problem_solving_process',
-    objective: 'Before jumping to a solution, ask a specific, genuine clarifying question — and explain why you need that information.',
-    instructions: `Write 30–150 words responding to the prompt below. Do NOT start with a solution.
+    objective: 'Before jumping to a solution, ask a specific, genuine clarifying question  -  and explain why you need that information.',
+    instructions: `Write 30-150 words responding to the prompt below. Do NOT start with a solution.
 
 Requirements:
 1. Ask at least one clarifying question (ending in ?)
-2. The question must be specific — it should reference something in the prompt, not be a generic "can you tell me more?"
+2. The question must be specific  -  it should reference something in the prompt, not be a generic "can you tell me more?"
 3. Briefly explain WHY you need that information before jumping in
-4. If you want to briefly outline what your answer might look like with different assumptions, that's fine — but a clarifying question must come first
+4. If you want to briefly outline what your answer might look like with different assumptions, that's fine  -  but a clarifying question must come first
 
 Weak: "Can you tell me more about what you mean?"
-Strong: "Before I dive in — by 'faster', do you mean page load time, API response time, or something users perceive as slow? The fix would be completely different for each."`,
+Strong: "Before I dive in  -  by 'faster', do you mean page load time, API response time, or something users perceive as slow? The fix would be completely different for each."`,
     prompt: 'A stakeholder messages you: "The product feels slow. Can you look into it and fix it this week?" How do you respond?',
     timeLimitSeconds: 60, minWords: 30, maxWords: 150,
     check: (text) => {
@@ -427,8 +427,8 @@ Strong: "Before I dive in — by 'faster', do you mean page load time, API respo
     id: 'follow_up_handling',
     label: 'Handling Direct Pushback',
     competency: 'follow_up_handling',
-    objective: 'Respond to a challenge directly — acknowledge the concern, hold your position with reasoning, or update your view if the challenge is valid.',
-    instructions: `Write 40–180 words responding to a direct pushback on something you said.
+    objective: 'Respond to a challenge directly  -  acknowledge the concern, hold your position with reasoning, or update your view if the challenge is valid.',
+    instructions: `Write 40-180 words responding to a direct pushback on something you said.
 
 A strong response:
 1. Does NOT open with "That's a great question" or "I understand where you're coming from" as an empty opener
@@ -436,7 +436,7 @@ A strong response:
 3. Either defends your position with new reasoning/evidence OR genuinely updates your view
 4. Never deflects ("it depends"), never just restates the original point
 
-Strong openings: "The concern is fair — here's why I still think…" / "That's actually something I considered. The reason I went with X is…" / "You're right that Y is a risk. What I didn't mention is…"`,
+Strong openings: "The concern is fair  -  here's why I still think…" / "That's actually something I considered. The reason I went with X is…" / "You're right that Y is a risk. What I didn't mention is…"`,
     prompt: 'You just described a technical decision you made. The interviewer pushes back: "That approach sounds overengineered for the problem size. Why not just use a simpler solution?" Respond.',
     timeLimitSeconds: 60, minWords: 40, maxWords: 180,
     check: (text) => {
@@ -467,18 +467,18 @@ Strong openings: "The concern is fair — here's why I still think…" / "That's
     id: 'technical_explanation',
     label: 'Technical Concept Explanation',
     competency: 'role_technical_depth',
-    objective: 'Explain a technical concept in plain terms — leading with what it does and why it matters, not how it works internally.',
-    instructions: `Write 60–220 words explaining a technical concept from your field to a smart non-technical person.
+    objective: 'Explain a technical concept in plain terms  -  leading with what it does and why it matters, not how it works internally.',
+    instructions: `Write 60-220 words explaining a technical concept from your field to a smart non-technical person.
 
 Rules for this drill:
-1. Lead with WHAT it is and WHY it exists (problem it solves) — not HOW it works
+1. Lead with WHAT it is and WHY it exists (problem it solves)  -  not HOW it works
 2. Use at least one analogy or real-world comparison
-3. Avoid unexplained jargon — if you use a technical term, define it inline
+3. Avoid unexplained jargon  -  if you use a technical term, define it inline
 4. End with why someone who doesn't know this concept should care
 
 Wrong order: "X is implemented using Y and Z protocol, which enables A and B…"
 Right order: "X solves the problem of [thing]. Think of it like [analogy]. In practice, it means [consequence a real person would notice]."`,
-    prompt: 'Explain a core technical concept from your field — something you use regularly — to a smart colleague from a non-technical department.',
+    prompt: 'Explain a core technical concept from your field  -  something you use regularly  -  to a smart colleague from a non-technical department.',
     timeLimitSeconds: 90, minWords: 60, maxWords: 220,
     check: (text) => {
       const lower = text.toLowerCase()
@@ -508,8 +508,8 @@ Right order: "X solves the problem of [thing]. Think of it like [analogy]. In pr
     id: 'portfolio_opening',
     label: 'Portfolio Project Opening',
     competency: 'context_clarity',
-    objective: 'Open a project walkthrough by establishing the PROBLEM and who had it — before mentioning any solution or technology.',
-    instructions: `Write 35–150 words as the opening of a portfolio project walkthrough. You are setting up what problem you solved and for whom.
+    objective: 'Open a project walkthrough by establishing the PROBLEM and who had it  -  before mentioning any solution or technology.',
+    instructions: `Write 35-150 words as the opening of a portfolio project walkthrough. You are setting up what problem you solved and for whom.
 
 This is the frame that makes everything else in your walkthrough meaningful. Without a strong opening, your solution is just a list of features.
 
@@ -517,10 +517,10 @@ Strong opening structure:
 "[Audience/user] was facing [specific problem]. [Why it mattered / what was at stake]. That's what [project] was built to solve."
 
 What fails:
-- Opening with "I built a [tech] app that…" — leads with solution, not problem
-- "This project was for [company]" — context, not problem
+- Opening with "I built a [tech] app that…"  -  leads with solution, not problem
+- "This project was for [company]"  -  context, not problem
 - Mentioning the tech stack before the problem`,
-    prompt: 'Open your walkthrough of a portfolio project — what problem were you solving, and for whom?',
+    prompt: 'Open your walkthrough of a portfolio project  -  what problem were you solving, and for whom?',
     timeLimitSeconds: 60, minWords: 35, maxWords: 150,
     check: (text) => {
       const lower = text.toLowerCase()
@@ -532,7 +532,7 @@ What fails:
           passed: has(lower, /\b(problem|pain point|challenge|gap|struggle|friction|inefficiency|difficult|hard to|couldn'?t|no way to|lacked|missing|frustrated|tedious|manual|broken|slow)\b/),
         },
         {
-          label: 'Names who had the problem (a specific audience — users, customers, team, role)',
+          label: 'Names who had the problem (a specific audience  -  users, customers, team, role)',
           passed: has(lower, /\b(users?|customers?|team|clients?|companies|businesses|developers?|designers?|managers?|students?|patients?|freelancers?|founders?|people (who|that))\b/),
         },
         {
@@ -551,18 +551,18 @@ What fails:
     id: 'failure_reflection',
     label: 'Failure and Reflection',
     competency: 'outcome_and_impact',
-    objective: 'Describe a real setback with genuine personal ownership and a specific, earned lesson — not a deflection or a humble-brag.',
-    instructions: `Write 60–220 words about something that didn't go as planned.
+    objective: 'Describe a real setback with genuine personal ownership and a specific, earned lesson  -  not a deflection or a humble-brag.',
+    instructions: `Write 60-220 words about something that didn't go as planned.
 
 What separates strong answers from weak ones:
-- Strong: you are the subject — "I misjudged", "I didn't push back early enough", "I underestimated"
-- Weak: circumstance is the subject — "The project ran into issues", "Things didn't work out"
+- Strong: you are the subject  -  "I misjudged", "I didn't push back early enough", "I underestimated"
+- Weak: circumstance is the subject  -  "The project ran into issues", "Things didn't work out"
 
 Requirements:
 1. Name what specifically went wrong (not "things didn't go as planned")
-2. Own your role in it — use first person in the failure, not passive voice
+2. Own your role in it  -  use first person in the failure, not passive voice
 3. State a concrete, specific lesson (not "I learned the importance of communication")
-4. Mention something you did differently after — not just something you'd do differently`,
+4. Mention something you did differently after  -  not just something you'd do differently`,
     prompt: 'Tell me about something that went wrong on a project and what you personally took from it.',
     timeLimitSeconds: 90, minWords: 60, maxWords: 220,
     check: (text) => {
@@ -582,7 +582,7 @@ Requirements:
           passed: has(lower, /\b(since then|after that|going forward|now I|I (now|always|make sure to|started|began|stopped|ask|check|flag|test|verify|communicate|surface|push back)|next time|changed how|do differently)\b/),
         },
         {
-          label: 'Mentions something you ACTUALLY changed or did differently — not just in theory',
+          label: 'Mentions something you ACTUALLY changed or did differently  -  not just in theory',
           passed: has(lower, /\b(since then|after that|from then on|now I|started doing|changed (my|how|the)|began|the (next|following)|stopped|made it a habit|put in place|implemented)\b/),
         },
       ])
@@ -593,8 +593,8 @@ Requirements:
     id: 'conflict_no_blame',
     label: 'Conflict Without Blame',
     competency: 'personal_ownership',
-    objective: 'Describe a disagreement without making the other person the villain — show you understood their perspective and focused on resolution.',
-    instructions: `Write 60–220 words about a disagreement with a colleague. This drill specifically tests whether you can describe conflict without framing the other person as wrong.
+    objective: 'Describe a disagreement without making the other person the villain  -  show you understood their perspective and focused on resolution.',
+    instructions: `Write 60-220 words about a disagreement with a colleague. This drill specifically tests whether you can describe conflict without framing the other person as wrong.
 
 Structure for strong answers:
 1. What the disagreement was about (topic, not personality)
@@ -606,7 +606,7 @@ Red flags that will fail this drill:
 - Describing the other person's character negatively ("they were stubborn", "they refused to listen")
 - Blaming the outcome on them ("if they had just listened", "they were wrong and eventually agreed")
 - A resolution where you simply won and they came around`,
-    prompt: 'Tell me about a disagreement with a colleague or stakeholder — what it was about, how you handled it, and how it was resolved.',
+    prompt: 'Tell me about a disagreement with a colleague or stakeholder  -  what it was about, how you handled it, and how it was resolved.',
     timeLimitSeconds: 90, minWords: 60, maxWords: 220,
     check: (text) => {
       const lower = text.toLowerCase()
@@ -625,7 +625,7 @@ Red flags that will fail this drill:
           passed: has(text, FIRST_PERSON_PAST_VERB) || has(lower, /\bI\s+(suggested|proposed|asked|listened|scheduled|set up|reached out|initiated|brought|offered|tried|worked)\b/),
         },
         {
-          label: 'States a resolution — even a partial one',
+          label: 'States a resolution  -  even a partial one',
           passed: has(text, RESOLUTION_SIGNAL),
         },
       ])
@@ -636,8 +636,8 @@ Red flags that will fail this drill:
     id: 'closing_questions',
     label: 'Meaningful Closing Questions',
     competency: 'answer_relevance',
-    objective: 'Ask a specific, substantive question that reveals curiosity and preparation — not a generic or salary-related question.',
-    instructions: `Write 15–120 words containing one or more genuine closing questions you would ask at the end of this type of interview.
+    objective: 'Ask a specific, substantive question that reveals curiosity and preparation  -  not a generic or salary-related question.',
+    instructions: `Write 15-120 words containing one or more genuine closing questions you would ask at the end of this type of interview.
 
 Strong closing questions:
 - Are specific to the role, team, or company (not Google-able)
@@ -661,7 +661,7 @@ Weak closing questions:
           passed: has(text, /\?/),
         },
         {
-          label: 'Question is substantive — more than 10 words before the question mark',
+          label: 'Question is substantive  -  more than 10 words before the question mark',
           passed: has(text, /\b.{10,}\?/),
         },
         {
@@ -680,7 +680,7 @@ Weak closing questions:
     id: 'time_boxed_answer',
     label: 'Time-Boxed Answer',
     competency: 'concision',
-    objective: 'Make a compelling, specific case in 100 words or fewer — no padding, every sentence earns its place.',
+    objective: 'Make a compelling, specific case in 100 words or fewer  -  no padding, every sentence earns its place.',
     instructions: `Answer in exactly 100 words or fewer. Every word must count.
 
 What fails this drill:
@@ -690,7 +690,7 @@ What fails this drill:
 
 What passes:
 - A specific claim about what you bring, with one concrete example to back it up
-- "Because" — you need to tell them why, not just what
+- "Because"  -  you need to tell them why, not just what
 - A clear, direct close that shows you know what you're asking for`,
     prompt: 'In 100 words or fewer: why should this company hire you specifically?',
     timeLimitSeconds: 45, minWords: 20, maxWords: 100,
@@ -724,7 +724,7 @@ export function getDrillDefinition(id: string): DrillDefinition | undefined {
 }
 
 /** Recommends drills tied to a user's actual observed weaknesses (low-scoring
- *  dimensions from recent evaluations), never to inflate engagement — mission's
+ *  dimensions from recent evaluations), never to inflate engagement  -  mission's
  *  explicit "recommended from actual session weaknesses" requirement. Falls back to
  *  foundational drills only when there is no real weakness data yet. */
 export function recommendDrillsForDimensions(weakDimensionIds: string[], limit = 3): DrillDefinition[] {

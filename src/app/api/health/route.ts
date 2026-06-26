@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
-// No secrets, no stack traces, no internal hostnames — this endpoint is meant to be
+// No secrets, no stack traces, no internal hostnames  -  this endpoint is meant to be
 // hit by uptime monitors and load balancers, which may be unauthenticated and
 // internet-facing.
 export async function GET() {

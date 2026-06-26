@@ -1,5 +1,5 @@
 // Hard role-family filter for the "For You" feed. Skill-keyword overlap alone (computeMatchScore)
-// is a soft signal — two unrelated roles can share generic keywords ("communication",
+// is a soft signal  -  two unrelated roles can share generic keywords ("communication",
 // "leadership") and still score reasonably. This module answers a different, prior question:
 // is this job even in the right *family* of work at all? A Wastewater Process Engineer and a
 // Software Engineer both have "Engineer" in the title but are not the same job family, and a
@@ -91,7 +91,7 @@ const FAMILY_KEYWORDS: Array<{ family: RoleFamily; keywords: string[] }> = [
   },
 ]
 
-// Sparse and conservative on purpose — most families have no adjacents. A Software Engineer
+// Sparse and conservative on purpose  -  most families have no adjacents. A Software Engineer
 // and a Product Manager are not automatically interchangeable even though they collaborate daily.
 const ADJACENT_FAMILIES: Partial<Record<RoleFamily, RoleFamily[]>> = {
   engineering: ['data'],
@@ -115,7 +115,7 @@ export function classifyRoleFamily(title: string | null | undefined): RoleFamily
 }
 
 export function isSameOrAdjacentFamily(a: RoleFamily | null, b: RoleFamily | null, allowAdjacent: boolean): boolean {
-  if (!a || !b) return true // can't classify — don't hard-exclude on uncertain data
+  if (!a || !b) return true // can't classify  -  don't hard-exclude on uncertain data
   if (a === b) return true
   if (!allowAdjacent) return false
   return (ADJACENT_FAMILIES[a] ?? []).includes(b)

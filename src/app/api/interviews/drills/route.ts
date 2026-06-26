@@ -4,7 +4,7 @@ import { DRILL_CATALOG } from '@/lib/interviews/drills'
 
 /**
  * Merges the static drill catalog with this user's real records (attempt count, best
- * score, status) so the UI can show the full catalog even for drills never attempted —
+ * score, status) so the UI can show the full catalog even for drills never attempted  - 
  * "recommend or allow manual selection" (mission) requires showing what's available,
  * not just what the user has already touched.
  */

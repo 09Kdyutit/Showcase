@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-/** Revokes a share immediately — the link stops working on the very next access
+/** Revokes a share immediately  -  the link stops working on the very next access
  *  attempt, checked by the public report route before it returns anything. */
 export async function DELETE(
   _request: NextRequest,

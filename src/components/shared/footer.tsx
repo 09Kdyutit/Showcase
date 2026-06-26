@@ -14,7 +14,7 @@ export function Footer() {
               Turn your experience into evidence.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Build a proof-of-work portfolio that shows recruiters exactly what you can do — not just what you claim.
+              Build a proof-of-work portfolio that shows recruiters exactly what you can do  -  not just what you claim.
             </p>
           </div>
           <div>

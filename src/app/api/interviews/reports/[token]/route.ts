@@ -5,7 +5,7 @@ import { resolveSharedReport } from '@/lib/interviews/report-sharing'
  * Public, unauthenticated lookup of a shared report by its raw token, for non-page
  * (e.g. client-side refetch) consumers. The actual /shared/[token] page resolves the
  * token directly server-side via the same resolveSharedReport() helper rather than
- * calling this route over HTTP — this route exists for API-style access only.
+ * calling this route over HTTP  -  this route exists for API-style access only.
  */
 export async function GET(
   _request: NextRequest,

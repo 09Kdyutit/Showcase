@@ -64,7 +64,7 @@ export function GradientStudioTheme({ portfolio, content }: ThemeProps) {
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               {hero?.tagline ?? 'Available for work'}
             </motion.div>
-            {/* NAME — full-size, gradient on last word */}
+            {/* NAME  -  full-size, gradient on last word */}
             <div className="mb-8">
               {portfolio.title.trim().split(/\s+/).map((word, wi, arr) => (
                 <div key={wi} className="overflow-hidden leading-[0.88]">
@@ -122,7 +122,7 @@ export function GradientStudioTheme({ portfolio, content }: ThemeProps) {
         </div>
       </section>
 
-      {/* Projects — Tabbed spotlight */}
+      {/* Projects  -  Tabbed spotlight */}
       {projects.length > 0 && (
         <section className="max-w-6xl mx-auto px-6 py-24">
           <div className="flex items-end justify-between mb-8">

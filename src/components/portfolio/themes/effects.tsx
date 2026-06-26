@@ -106,7 +106,7 @@ export function useCountUp(rawValue: string) {
     // Extract leading number, preserve suffix (e.g. "3.2x" → num=3.2, suffix="x")
     const match = rawValue.match(/^([\d.]+)(.*)$/)
     if (!match) {
-      // No leading number to count up — just show the raw value. Defer through a frame
+      // No leading number to count up  -  just show the raw value. Defer through a frame
       // so the state update never happens synchronously inside the effect (which would
       // risk a cascading re-render), exactly like the animated path below.
       const raf = requestAnimationFrame(() => setDisplayed(rawValue))

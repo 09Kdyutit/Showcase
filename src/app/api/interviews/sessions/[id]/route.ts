@@ -63,7 +63,7 @@ export async function DELETE(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Refund any still-'reserved' (never-answered) usage slot before deleting — a
+    // Refund any still-'reserved' (never-answered) usage slot before deleting  -  a
     // session abandoned before the first real answer must not permanently cost the
     // user one of their scarce monthly/period sessions. A session that was already
     // 'committed' (genuinely answered) is intentionally left alone here: deleting a
@@ -72,7 +72,7 @@ export async function DELETE(
     await releaseAbandonedSessionUsage(await createServiceClient(), id, user.id)
 
     // Ownership re-checked explicitly via .eq('user_id', ...) even though RLS already
-    // enforces it — defense in depth, same pattern as every other delete route in
+    // enforces it  -  defense in depth, same pattern as every other delete route in
     // this codebase. Child rows (questions/answers/transcript/evaluations/dimension
     // scores) cascade via their FK ON DELETE CASCADE to interview_sessions (migration 017).
     const { error, count } = await supabase

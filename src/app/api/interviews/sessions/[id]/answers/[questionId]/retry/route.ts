@@ -10,7 +10,7 @@ const retrySchema = z.object({
 
 /**
  * Retries an already-answered question after the session has ended. Stores the
- * retry as a NEW attempt (never overwrites the original — mission's explicit
+ * retry as a NEW attempt (never overwrites the original  -  mission's explicit
  * requirement), and returns a deterministic, non-AI comparison against the most
  * recent prior attempt. Works on a completed session deliberately: retry is a
  * results-page action, not a mid-interview one.
@@ -64,12 +64,12 @@ export async function POST(
     if (!previous) return NextResponse.json({ error: 'This question has no original answer to retry.' }, { status: 409 })
 
     // "1 retry per completed session" (Free) / "30 retries per billing period" (Pro)
-    // is counted across the WHOLE session, not per question — a retry on question 2
+    // is counted across the WHOLE session, not per question  -  a retry on question 2
     // after already retrying question 1 in the same session is still the user's
     // second retry of that session, and Free only gets one. This decision is made
     // ATOMICALLY inside the interview_reserve_retry RPC (migration 027), serialized
     // per (user_id, session_id), so two simultaneous retries on different questions of
-    // the same session can no longer both read a stale count and both slip through —
+    // the same session can no longer both read a stale count and both slip through  - 
     // the IL-17 gap (b) bypass. The non-atomic priorRetryCount SELECT that used to live
     // here is gone; the browser never decides retry allowance.
     let retryReservationId: string | null = null
@@ -83,7 +83,7 @@ export async function POST(
 
     const attemptNumber = previous.attempt_number + 1
     // Retries happen after the session has already ended, so elapsed-session timing
-    // is not meaningful here — unlike the live transcript route, which derives
+    // is not meaningful here  -  unlike the live transcript route, which derives
     // start_ms/end_ms from the in-progress session's clock.
     const { data: segment, error: segmentError } = await supabase
       .from('interview_transcript_segments')
@@ -107,17 +107,17 @@ export async function POST(
     if (retryError) {
       await supabase.from('interview_transcript_segments').delete().eq('id', segment.id)
       // The reservation taken above was for a retry that did NOT actually happen (lost
-      // the race below) — release exactly that one reservation (never every 'reserved'
+      // the race below)  -  release exactly that one reservation (never every 'reserved'
       // row for the session, which could include an earlier, genuinely successful
       // retry) so neither a Free user's one-per-session slot nor a Pro user's pooled
       // retry count is burned for nothing. Every successful reserveRetryUsage now
-      // returns a real reservation id (Free included — migration 027), so this releases
+      // returns a real reservation id (Free included  -  migration 027), so this releases
       // it for both tiers.
       if (retryReservationId) await releaseSpecificReservation(await createServiceClient(), retryReservationId, user.id)
       if (retryError.code === '23505') {
         // Two retries on the SAME answer raced past the priorRetryCount check above
         // (a non-atomic SELECT, same class of race the entitlement RPCs were built to
-        // close — found via adversarial parallel testing, see test:interview-limits)
+        // close  -  found via adversarial parallel testing, see test:interview-limits)
         // and both tried to claim the same attempt_number. The database's own unique
         // constraint is the real, final arbiter here; this just turns the resulting
         // 500 into an honest, expected response instead of a raw error.

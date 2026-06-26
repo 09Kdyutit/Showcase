@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react'
+import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp, Briefcase } from 'lucide-react'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { scoreLabel } from '@/lib/utils'
 import type { Profile, Subscription, Portfolio, Audit, Resume } from '@/types/database'
 
@@ -57,16 +56,23 @@ export default async function DashboardPage() {
   const isNewUser = setupDone < 3
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <div className="relative min-h-full">
+      {/* Ambient background — top-left purple blob */}
+      <div
+        className="pointer-events-none absolute top-0 left-0 right-0 h-96 opacity-40"
+        style={{ background: 'radial-gradient(ellipse 70% 50% at 20% 0%, color-mix(in oklch, oklch(54% 0.22 264) 15%, transparent), transparent)' }}
+      />
+      <div className="relative p-6 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {profile?.full_name ? `Good to see you, ${profile.full_name.split(' ')[0]}.` : 'Dashboard'}
+          <p className="text-xs font-semibold text-brand-400 uppercase tracking-widest mb-1.5">Dashboard</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
+            {profile?.full_name ? `Hey, ${profile.full_name.split(' ')[0]}.` : 'Welcome back.'}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1.5">
             {proofScore
-              ? `Your ProofScore is ${proofScore} — ${scoreLabel(proofScore).toLowerCase()}.`
+              ? `Your ProofScore is ${proofScore} - ${scoreLabel(proofScore).toLowerCase()}.`
               : 'Build your portfolio and get your ProofScore.'}
           </p>
         </div>
@@ -88,9 +94,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Setup checklist — shown until user has resume + portfolio + audit */}
+      {/* Setup checklist - shown until user has resume + portfolio + audit */}
       {isNewUser && (
-        <div className="glass-card p-6 border-brand-500/15 bg-brand-500/[0.02]">
+        <div className="glass-card p-6 relative overflow-hidden" style={{ borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 15%, transparent)' }}>
+          <div className="pointer-events-none absolute inset-0 dot-grid opacity-30" />
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="text-sm font-semibold text-foreground">Getting started</p>
@@ -136,107 +143,107 @@ export default async function DashboardPage() {
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* ProofScore */}
-        <Card className="col-span-2 lg:col-span-1 bg-surface-100 border-border">
-          <CardContent className="p-6 flex flex-col items-center gap-2">
-            {proofScore !== null ? (
-              <ProofScoreRing score={proofScore} size="md" animate />
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-2">
-                <div className="w-24 h-24 rounded-full border-4 border-surface-300 flex items-center justify-center">
-                  <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
-                </div>
-                <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/audit">Get ProofScore</Link>
-                </Button>
+        <div className="col-span-2 lg:col-span-1 glass-card p-6 flex flex-col items-center gap-2 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, color-mix(in oklch, oklch(13% 0.012 264) 90%, transparent), color-mix(in oklch, oklch(39% 0.2 264) 6%, transparent))' }}>
+          <div className="pointer-events-none absolute inset-0 opacity-20 dot-grid" />
+          {proofScore !== null ? (
+            <ProofScoreRing score={proofScore} size="md" animate />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-2">
+              <div className="w-24 h-24 rounded-full border-2 border-surface-300 flex items-center justify-center"
+                style={{ background: 'color-mix(in oklch, oklch(54% 0.22 264) 4%, transparent)' }}>
+                <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/audit">Get ProofScore</Link>
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* Portfolios */}
-        <Card className="bg-surface-100 border-border">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Portfolios</p>
-              <FileText className="h-4 w-4 text-muted-foreground/40" />
-            </div>
-            <p className="text-3xl font-bold text-foreground">{portfolios.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {portfolios.filter(p => p.status === 'published').length} published
-            </p>
-          </CardContent>
-        </Card>
+        <div className="glass-card p-6 relative overflow-hidden">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-xs text-muted-foreground/70 font-medium uppercase tracking-widest">Portfolios</p>
+            <Briefcase className="h-3.5 w-3.5 text-muted-foreground/30" />
+          </div>
+          <p className="text-4xl font-bold stat-number text-foreground">{portfolios.length}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            <span className="text-emerald-400">{portfolios.filter(p => p.status === 'published').length}</span> published
+          </p>
+        </div>
 
         {/* Resume */}
-        <Card className="bg-surface-100 border-border">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Resume</p>
-              <FileText className="h-4 w-4 text-muted-foreground/40" />
-            </div>
-            {latestResume ? (
-              <>
-                <p className="text-sm font-semibold text-foreground truncate">{latestResume.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(latestResume.created_at).toLocaleDateString()}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-muted-foreground">No resume yet</p>
-                <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs">
-                  <Link href="/resume">Upload one →</Link>
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass-card p-6 relative overflow-hidden">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-xs text-muted-foreground/70 font-medium uppercase tracking-widest">Resume</p>
+            <FileText className="h-3.5 w-3.5 text-muted-foreground/30" />
+          </div>
+          {latestResume ? (
+            <>
+              <p className="text-sm font-semibold text-foreground truncate leading-snug">{latestResume.title}</p>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                {new Date(latestResume.created_at).toLocaleDateString()}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-2xl font-bold stat-number text-muted-foreground/30">0</p>
+              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-400">
+                <Link href="/resume">Upload one →</Link>
+              </Button>
+            </>
+          )}
+        </div>
 
         {/* Subscription */}
-        <Card className="bg-surface-100 border-border">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Plan</p>
-              <Zap className="h-4 w-4 text-muted-foreground/40" />
-            </div>
-            {isPro ? (
-              <>
-                <Badge variant="pro" className="mb-2">Pro</Badge>
-                <p className="text-xs text-muted-foreground">
-                  {subscription?.current_period_end
-                    ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
-                    : 'Active'}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-foreground">Free</p>
-                <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs">
-                  <Link href="/billing">Upgrade →</Link>
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass-card p-6 relative overflow-hidden"
+          style={isPro ? { borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 25%, transparent)' } : {}}>
+          {isPro && (
+            <div className="pointer-events-none absolute inset-0 opacity-30"
+              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent), transparent)' }} />
+          )}
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-xs text-muted-foreground/70 font-medium uppercase tracking-widest">Plan</p>
+            <Zap className="h-3.5 w-3.5 text-muted-foreground/30" />
+          </div>
+          {isPro ? (
+            <>
+              <Badge variant="pro" className="mb-2" style={{ boxShadow: '0 0 10px color-mix(in oklch, oklch(54% 0.22 264) 35%, transparent)' }}>Pro</Badge>
+              <p className="text-xs text-muted-foreground">
+                {subscription?.current_period_end
+                  ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
+                  : 'Active'}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-foreground">Free</p>
+              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-400">
+                <Link href="/billing">Upgrade →</Link>
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Next action */}
-        <Card className="lg:col-span-1 bg-surface-100 border-border border-brand-500/10 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-brand-500 to-violet-500" />
-          <CardHeader>
-            <CardTitle className="text-sm">Next best action</CardTitle>
-          </CardHeader>
-          <CardContent className="pb-6">
+        <div className="lg:col-span-1 glass-card overflow-hidden relative" style={{ borderColor: 'color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent)' }}>
+          <div className="h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
+          <div className="p-6">
+            <p className="text-[10px] font-semibold text-brand-400 uppercase tracking-widest mb-4">Next best action</p>
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: 'color-mix(in oklch, oklch(54% 0.22 264) 12%, transparent)', border: '1px solid color-mix(in oklch, oklch(54% 0.22 264) 20%, transparent)' }}>
                 <nextAction.icon className="h-5 w-5 text-brand-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-foreground mb-1">{nextAction.label}</p>
                 <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{nextAction.desc}</p>
-                <Button asChild variant="gradient" size="sm" className="gap-1.5">
+                <Button asChild variant="gradient" size="sm" className="gap-1.5"
+                  style={{ boxShadow: '0 0 16px color-mix(in oklch, oklch(54% 0.22 264) 30%, transparent)' }}>
                   <Link href={nextAction.href}>
                     Start
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -244,22 +251,22 @@ export default async function DashboardPage() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* ProofScore breakdown or missing evidence */}
-        <Card className="lg:col-span-2 bg-surface-100 border-border">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">
+        <div className="lg:col-span-2 glass-card overflow-hidden">
+          <div className="px-6 pt-6 pb-4 flex items-center justify-between">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
               {latestAudit ? 'ProofScore breakdown' : 'What ProofScore measures'}
-            </CardTitle>
+            </p>
             {latestAudit && (
-              <Button asChild variant="ghost" size="sm" className="text-xs">
+              <Button asChild variant="ghost" size="sm" className="text-xs text-brand-400 hover:text-brand-300">
                 <Link href="/audit">View full audit →</Link>
               </Button>
             )}
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="px-6 pb-6">
             {latestAudit && categories.length > 0 ? (
               <div className="space-y-3">
                 {categories.slice(0, 6).map((cat) => (
@@ -297,56 +304,56 @@ export default async function DashboardPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Portfolios */}
       {portfolios.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-foreground">Your portfolios</h2>
-            <Button asChild variant="ghost" size="sm" className="text-xs">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Your portfolios</p>
+            <Button asChild variant="ghost" size="sm" className="text-xs text-brand-400 hover:text-brand-300">
               <Link href="/builder">View all →</Link>
             </Button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {portfolios.map((p) => (
               <Link key={p.id} href={`/builder/${p.id}`} className="block group">
-                <Card className="bg-surface-100 border-border hover:border-brand-500/20 transition-all duration-200 hover:shadow-glow-sm">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{p.title}</p>
-                        {p.target_role && (
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.target_role}</p>
-                        )}
-                      </div>
-                      <Badge variant={p.status === 'published' ? 'success' : 'default'} className="ml-2 shrink-0">
-                        {p.status}
-                      </Badge>
+                <div className="glass-card p-5 transition-all duration-200 group-hover:shadow-glow-sm"
+                  style={{ '--hover-border': 'color-mix(in oklch, oklch(54% 0.22 264) 25%, transparent)' } as React.CSSProperties}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-foreground truncate group-hover:text-brand-200 transition-colors">{p.title}</p>
+                      {p.target_role && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{p.target_role}</p>
+                      )}
                     </div>
-                    {p.proof_score !== null && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1 bg-surface-300 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${p.proof_score >= 80 ? 'bg-emerald-500' : p.proof_score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
-                            style={{ width: `${p.proof_score}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">{Math.round(p.proof_score)}</span>
+                    <Badge variant={p.status === 'published' ? 'success' : 'default'} className="ml-2 shrink-0 text-[10px]">
+                      {p.status}
+                    </Badge>
+                  </div>
+                  {p.proof_score !== null && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="flex-1 h-1 bg-surface-300 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${p.proof_score >= 80 ? 'bg-emerald-500' : p.proof_score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
+                          style={{ width: `${p.proof_score}%` }}
+                        />
                       </div>
-                    )}
-                    <p className="text-xs text-muted-foreground/50 mt-3">
-                      Updated {new Date(p.updated_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
+                      <span className="text-xs font-semibold stat-number text-muted-foreground">{Math.round(p.proof_score)}</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground/40 mt-3">
+                    Updated {new Date(p.updated_at).toLocaleDateString()}
+                  </p>
+                </div>
               </Link>
             ))}
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

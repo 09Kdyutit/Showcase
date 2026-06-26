@@ -40,7 +40,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
         {/* Demo mode banner */}
         <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2 text-xs text-amber-400 font-medium flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-          Demo mode — static sample data for visual QA only
+          Demo mode  -  static sample data for visual QA only
         </div>
         {children}
       </main>

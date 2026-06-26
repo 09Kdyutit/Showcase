@@ -41,7 +41,7 @@ function substitutePlaceholders(template: string, targetRole: string, targetComp
 
 /** Maps a question template's competency/sessionType to whatever evidence the server
  *  already has on file. This is what makes a question "traceable to its reason for
- *  inclusion" (mission requirement) — every question's sourceReferences points at real,
+ *  inclusion" (mission requirement)  -  every question's sourceReferences points at real,
  *  already-verified data, never at something invented for the occasion. Portfolio
  *  walkthrough questions reference every listed project so a downstream consumer (the
  *  live interviewer prompt, or the results page) can show "this question relates to
@@ -66,7 +66,7 @@ function buildSourceReferences(sessionType: SessionType, evidence: PlanEvidenceI
 
 /**
  * Builds the deterministic Interview Plan that governs a session before it starts.
- * This is server-authored end to end — no Gemini call happens here. Gemini may later
+ * This is server-authored end to end  -  no Gemini call happens here. Gemini may later
  * personalize question WORDING and propose follow-ups, but never touches session type,
  * competencies, question count, rubric, weights, or duration limits (mission's "Gemini
  * must not redefine" list); those are all fixed by this function and stored in
@@ -102,12 +102,12 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
       difficulty: template.difficulty,
       selectionReason: template.difficulty === input.difficulty
         ? `Matches requested difficulty (${input.difficulty}) for ${input.sessionType.replace(/_/g, ' ')}`
-        : `Filled from available bank — no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
+        : `Filled from available bank  -  no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
       sourceReferences: buildSourceReferences(input.sessionType, input.evidence),
     }))
   }
 
-  // Defense in depth: every question — even from the already-vetted static bank — is
+  // Defense in depth: every question  -  even from the already-vetted static bank  -  is
   // re-checked here, since this function is also the path Gemini-personalized wording
   // would flow through in a future iteration. A question failing this is dropped, not
   // shown with a warning; the mission's filter is "deterministic prohibited-question
@@ -117,7 +117,7 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
     console.error('[interviews/plan] blocked unsafe question(s) at plan-build time', blocked.map((b) => ({ templateId: b.question.templateId, category: b.result.category })))
   }
   if (safeQuestions.length === 0) {
-    throw new Error('All candidate questions were blocked by the safety filter — cannot build a plan')
+    throw new Error('All candidate questions were blocked by the safety filter  -  cannot build a plan')
   }
 
   const tierCeilingMinutes = Math.min(getMaxSessionMinutes(), input.planLimits?.maxSessionMinutes ?? getMaxSessionMinutes())
@@ -139,7 +139,7 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
     maxDurationSeconds,
   }
 
-  // Fail closed rather than store a malformed plan — this is the same discipline as
+  // Fail closed rather than store a malformed plan  -  this is the same discipline as
   // the analysis-output validation in scoring.ts, applied to the server's own output.
   return InterviewPlanSchema.parse(plan)
 }

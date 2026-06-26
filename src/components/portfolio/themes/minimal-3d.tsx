@@ -70,7 +70,7 @@ export function Minimal3DTheme({ portfolio, content }: ThemeProps) {
         </div>
       </nav>
 
-      {/* Hero — full viewport with 3D card */}
+      {/* Hero  -  full viewport with 3D card */}
       <section className="min-h-screen flex items-center justify-center pt-16 px-6 relative overflow-hidden">
         {/* Floating accent shapes */}
         <motion.div animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -124,7 +124,7 @@ export function Minimal3DTheme({ portfolio, content }: ThemeProps) {
         </div>
       </section>
 
-      {/* Projects — 3D tilt cards */}
+      {/* Projects  -  3D tilt cards */}
       {projects.length > 0 && (
         <section className="max-w-5xl mx-auto px-6 py-24">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-14">

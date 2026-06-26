@@ -5,7 +5,7 @@ import {
 import type { ParsedResume, TailoredContent } from '@/types/database'
 
 // Single-column clean ATS-safe PDF resume layout.
-// Uses only system-safe fonts (Helvetica) — no external font fetching at render time.
+// Uses only system-safe fonts (Helvetica)  -  no external font fetching at render time.
 
 const ACCENT = '#1a1a2e'
 const MUTED = '#555555'
@@ -162,7 +162,7 @@ function buildFromParsed(p: ParsedResume) {
             <Text style={styles.sectionTitle}>Education</Text>
             {p.education.map((edu, i) => (
               <View key={i} style={{ marginBottom: 6 }}>
-                <Text style={styles.eduLine}>{edu.degree} — {edu.institution}{edu.year ? ` (${edu.year})` : ''}</Text>
+                <Text style={styles.eduLine}>{edu.degree}  -  {edu.institution}{edu.year ? ` (${edu.year})` : ''}</Text>
               </View>
             ))}
           </View>

@@ -11,10 +11,10 @@ export interface PlanContext {
 
 // Resolves the user's real, server-verified tier and the matching usage period in one
 // place, so every caller (session creation, retry, the Hub usage display, the Lobby)
-// derives the exact same answer from the exact same source — never a tier string
+// derives the exact same answer from the exact same source  -  never a tier string
 // trusted from the request body or a client-held value.
 //
-// Tier itself is delegated to isProUser() — the SAME canonical Pro check every other
+// Tier itself is delegated to isProUser()  -  the SAME canonical Pro check every other
 // Showcase module uses (it also rejects an 'active' row whose current_period_end has
 // already passed, which a naive `status === 'active'` check here would have missed).
 // Entitlements only adds period-boundary math on top of that shared answer; it must
@@ -42,10 +42,10 @@ export interface UsageSnapshot {
   periodResetsAt: string
 }
 
-// Real counts from the reservation ledger — 'reserved' and 'committed' both count
+// Real counts from the reservation ledger  -  'reserved' and 'committed' both count
 // (a reservation that's still pending answer acceptance already holds a real slot),
 // 'released' rows never count. This is the single source of truth the Hub, New
-// Interview, Lobby, and limit-reached state all read from — never a separate,
+// Interview, Lobby, and limit-reached state all read from  -  never a separate,
 // possibly-drifted client-side counter.
 export async function getUsageSnapshot(supabase: SupabaseClient, userId: string): Promise<UsageSnapshot> {
   const { tier, period } = await resolvePlanContext(supabase, userId)

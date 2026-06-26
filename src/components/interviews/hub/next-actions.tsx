@@ -17,7 +17,7 @@ export function NextActions({ actions }: { actions: RecommendedAction[] }) {
     return (
       <Card>
         <CardHeader><CardTitle className="text-base">Your Next Moves</CardTitle></CardHeader>
-        <CardContent><p className="text-sm text-muted-foreground">You&apos;re all caught up — no urgent next steps right now.</p></CardContent>
+        <CardContent><p className="text-sm text-muted-foreground">You&apos;re all caught up  -  no urgent next steps right now.</p></CardContent>
       </Card>
     )
   }

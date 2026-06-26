@@ -5,7 +5,7 @@ import { coerceThemeId } from '@/lib/portfolio/themes'
 
 // POST /api/portfolio/export-html
 // Body: { portfolioId: string }
-// Returns: standalone .html file download — no build tools, no JS frameworks required.
+// Returns: standalone .html file download  -  no build tools, no JS frameworks required.
 // The exported file uses Tailwind CDN + vanilla JS for a portable, hostable snapshot.
 
 export async function POST(req: NextRequest) {

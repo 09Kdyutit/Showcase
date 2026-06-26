@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!portfolio) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
 
     // A draft that already has real content is either (a) untouched since the last AI
-    // generation — safe to regenerate over — or (b) edited by the user since then, in which
+    // generation  -  safe to regenerate over  -  or (b) edited by the user since then, in which
     // case silently overwriting their edits would be the exact kind of data loss this whole
     // generation pipeline needs to avoid. ai_generated_at vs updated_at is the only signal
     // available to tell those two cases apart without a separate edit-history table.
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       status: 'completed',
     })
 
-    // Gemini shadow review hook — a strict no-op today. isGeminiReviewEnabled() checks
+    // Gemini shadow review hook  -  a strict no-op today. isGeminiReviewEnabled() checks
     // AI_REVIEW_MODE (default 'off'), a configured key, per-task eligibility, and the
     // privacy/legal gate in src/lib/ai/gemini.ts, all of which must be true before this does
     // anything; even then callGeminiReviewer() is not wired to a live call yet (see its own
@@ -125,11 +125,11 @@ export async function POST(request: NextRequest) {
 }
 
 async function runShadowReview(promptId: string, output: unknown, targetRole: string) {
-  // dataClassification: 'user' here is honest, not a placeholder — this route handles real
+  // dataClassification: 'user' here is honest, not a placeholder  -  this route handles real
   // user-generated portfolios. callGeminiReviewer()'s synthetic-only guard (Phase 3 of the
   // Gemini mission) rejects anything but 'synthetic' unconditionally, so this call is
   // structurally guaranteed to fail closed even if isGeminiReviewEnabled() were ever
-  // misconfigured to return true — two independent gates, not one.
+  // misconfigured to return true  -  two independent gates, not one.
   const { data: review, meta } = await callGeminiReviewer({
     promptId,
     output,
@@ -137,7 +137,7 @@ async function runShadowReview(promptId: string, output: unknown, targetRole: st
     targetRole,
     dataClassification: 'user',
   })
-  // Shadow mode: record aggregate metrics only, never raw content — Phase 8/10. No table
+  // Shadow mode: record aggregate metrics only, never raw content  -  Phase 8/10. No table
   // exists for this yet because no review has ever actually run; add one alongside the first
   // real Gemini call rather than now, to avoid an empty, unused metrics table.
   console.log('[gemini-shadow-review]', { promptId, verdict: review.verdict, confidence: review.confidence, latencyMs: meta.latencyMs })

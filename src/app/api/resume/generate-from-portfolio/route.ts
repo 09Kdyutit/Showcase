@@ -85,9 +85,9 @@ export async function POST(req: NextRequest) {
     },
   }
 
-  const resumeTitle = `${portfolio.title} — ${portfolio.target_role ?? 'Resume'}`
+  const resumeTitle = `${portfolio.title}  -  ${portfolio.target_role ?? 'Resume'}`
 
-  // Check if a resume with this title already exists for user — upsert-style
+  // Check if a resume with this title already exists for user  -  upsert-style
   const { data: existing } = await supabase
     .from('resumes')
     .select('id')

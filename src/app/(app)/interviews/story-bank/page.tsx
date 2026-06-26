@@ -142,7 +142,7 @@ export default function StoryBankPage() {
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">Story Bank</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Your personal library of career stories. Interviewers constantly ask &ldquo;Tell me about a time you…&rdquo; — having
+              Your personal library of career stories. Interviewers constantly ask &ldquo;Tell me about a time you…&rdquo;  -  having
               your best moments pre-structured in STAR format (Situation, Task, Action, Result) means you answer faster,
               with more detail, and under less pressure. Save strong answers from your interviews here, or write new ones
               from your resume and portfolio.
@@ -217,7 +217,7 @@ export default function StoryBankPage() {
 
       <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-        <p>Stories are private to you. Showcase never invents facts to complete a story — only what you write here, or evidence you&apos;ve verified from your resume or portfolio, is ever used.</p>
+        <p>Stories are private to you. Showcase never invents facts to complete a story  -  only what you write here, or evidence you&apos;ve verified from your resume or portfolio, is ever used.</p>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

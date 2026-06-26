@@ -29,10 +29,10 @@ export interface InterviewAnalysisResult {
 
 /**
  * The only function in this codebase that calls Gemini for interview analysis. The
- * legal/cost gate (isInterviewAnalysisEnabled — see config.ts) is checked FIRST and
+ * legal/cost gate (isInterviewAnalysisEnabled  -  see config.ts) is checked FIRST and
  * unconditionally: as built, GEMINI_PAID_PROJECT_CONFIRMED and GEMINI_INTERVIEW_ENABLED
  * are unset everywhere, so this throws InterviewGeminiDisabledError before any network
- * call in every current environment. That is intentional, not a bug to fix — the
+ * call in every current environment. That is intentional, not a bug to fix  -  the
  * mission's own gate requires a human to confirm paid billing and ToS review before
  * this path may run for real, and no human confirmation happened in this session.
  */
@@ -40,7 +40,7 @@ export async function runInterviewAnalysis(input: AnalysisPromptInput): Promise<
   if (!isInterviewAnalysisEnabled()) {
     throw new InterviewGeminiDisabledError(
       'GEMINI_PAID_PROJECT_CONFIRMED and/or GEMINI_INTERVIEW_ENABLED and/or INTERVIEW_ANALYSIS_ENABLED is not true. ' +
-      'This requires a human decision (paid Gemini billing confirmed, ToS reviewed, age gate live) — see security/INTERVIEW_LAB_GATE.md.'
+      'This requires a human decision (paid Gemini billing confirmed, ToS reviewed, age gate live)  -  see security/INTERVIEW_LAB_GATE.md.'
     )
   }
 

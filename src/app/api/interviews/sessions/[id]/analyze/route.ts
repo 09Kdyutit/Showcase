@@ -9,12 +9,12 @@ import type { InterviewPlan, TranscriptSegment, SessionType, DimensionId } from 
 
 /**
  * Runs (or, in this build, honestly declines to run) post-session analysis. As built,
- * isInterviewAnalysisEnabled() is false in every environment (see config.ts) — no
+ * isInterviewAnalysisEnabled() is false in every environment (see config.ts)  -  no
  * human has confirmed paid Gemini billing or reviewed ToS. This route's job in that
  * state is to mark the session analysis_status='skipped' and tell the user truthfully
  * that AI evidence analysis isn't available yet, rather than fabricate a score or
  * silently leave the session in 'pending' forever. The enabled branch below is real,
- * complete code — it has simply never executed against a live Gemini call in this
+ * complete code  -  it has simply never executed against a live Gemini call in this
  * session, for the reasons documented in src/lib/interviews/gemini/live.ts and
  * analysis.ts.
  */

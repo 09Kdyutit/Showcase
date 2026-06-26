@@ -1,4 +1,4 @@
-// Pure computation connecting Story Bank entries to the canonical competency set —
+// Pure computation connecting Story Bank entries to the canonical competency set  - 
 // "how prepared am I to answer using my actual stories" per competency, not a
 // decorative chart. Every connection here maps to a real interview_story_bank row;
 // nothing is inferred or invented.

@@ -1,4 +1,4 @@
-// The canonical, story-tellable competency set — distinct from the 12 scoring
+// The canonical, story-tellable competency set  -  distinct from the 12 scoring
 // DIMENSION_IDS (rubrics.ts) and from the ~40 narrow per-question competency tags
 // (question-bank). Those two are for scoring and question selection; this one is for
 // "what kind of story can a user actually tell," and is what Story Bank entries are

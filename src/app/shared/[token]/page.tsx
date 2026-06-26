@@ -8,7 +8,7 @@ interface SharedReportPageProps {
   params: Promise<{ token: string }>
 }
 
-// noindex/no-store at the page level, not just the API route — a shared report must
+// noindex/no-store at the page level, not just the API route  -  a shared report must
 // never be crawlable or cached, regardless of how it's requested.
 export async function generateMetadata(): Promise<Metadata> {
   return { title: 'Shared Interview Report · Showcase', robots: { index: false, follow: false } }
@@ -73,7 +73,7 @@ export default async function SharedReportPage({ params }: SharedReportPageProps
 
         <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground flex items-start gap-2">
           <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-          <p>This is a private practice summary the candidate chose to share. It does not include their transcript or audio. Interview Readiness is a structured practice diagnostic — it is not a hiring prediction.</p>
+          <p>This is a private practice summary the candidate chose to share. It does not include their transcript or audio. Interview Readiness is a structured practice diagnostic  -  it is not a hiring prediction.</p>
         </div>
       </div>
     </div>

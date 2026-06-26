@@ -8,9 +8,9 @@ export interface QuestionTemplate {
   competency: string
   /** May contain {{targetRole}} / {{targetCompany}} placeholders, substituted by the
    *  plan builder. Gemini may further personalize wording around this template but
-   *  must preserve the question's actual intent — see src/lib/interviews/prompts. */
+   *  must preserve the question's actual intent  -  see src/lib/interviews/prompts. */
   promptTemplate: string
-  /** Spoken version for live voice sessions — shorter, natural verbal phrasing.
+  /** Spoken version for live voice sessions  -  shorter, natural verbal phrasing.
    *  Falls back to promptTemplate if absent. */
   voicePromptTemplate?: string
   applicableRoles: 'any' | string[]
@@ -18,7 +18,7 @@ export interface QuestionTemplate {
   expectedEvidence: string
 }
 
-// Deliberately a curated, versioned set rather than an exhaustive one — the mission is
+// Deliberately a curated, versioned set rather than an exhaustive one  -  the mission is
 // explicit that quality matters more than count ("do not fill the bank with low-quality
 // repetitive questions merely to claim a high count"). Covers all 10 session types
 // modeled in the schema/rubric layers (see rubrics.ts's RUBRIC_PROFILES, which already
@@ -28,7 +28,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'rs-001', sessionType: 'recruiter_screen', competency: 'background_summary',
     promptTemplate: 'Walk me through your background and what brought you to apply for {{targetRole}} roles.',
-    voicePromptTemplate: 'So to start — walk me through your background and what drew you to {{targetRole}} roles.',
+    voicePromptTemplate: 'So to start  -  walk me through your background and what drew you to {{targetRole}} roles.',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A coherent narrative connecting past experience to the target role, not a verbatim resume readout.',
   },
@@ -42,7 +42,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'rs-003', sessionType: 'recruiter_screen', competency: 'role_fit',
     promptTemplate: 'Which parts of the {{targetRole}} role do you think will come most naturally to you, and which will stretch you?',
-    voicePromptTemplate: 'Which parts of a {{targetRole}} role come naturally to you — and where do you think you\'ll be stretched?',
+    voicePromptTemplate: 'Which parts of a {{targetRole}} role come naturally to you  -  and where do you think you\'ll be stretched?',
     applicableRoles: 'any', difficulty: 'standard',
     expectedEvidence: 'Honest self-assessment referencing concrete skills or experiences, not pure platitude.',
   },
@@ -51,7 +51,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Are you able to meet the role\'s stated schedule and any travel requirements?',
     voicePromptTemplate: 'Any concerns on your end about schedule or travel requirements?',
     applicableRoles: 'any', difficulty: 'foundational',
-    expectedEvidence: 'A direct yes/no/conditional answer — this is a logistics question, not a behavioral one.',
+    expectedEvidence: 'A direct yes/no/conditional answer  -  this is a logistics question, not a behavioral one.',
   },
   {
     id: 'rs-005', sessionType: 'recruiter_screen', competency: 'career_transition',
@@ -63,9 +63,9 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'rs-006', sessionType: 'recruiter_screen', competency: 'high_level_experience',
     promptTemplate: 'In two or three sentences, what is the work you are most known for in your current or most recent role?',
-    voicePromptTemplate: 'In two or three sentences — what are you most known for in your current or most recent role?',
+    voicePromptTemplate: 'In two or three sentences  -  what are you most known for in your current or most recent role?',
     applicableRoles: 'any', difficulty: 'foundational',
-    expectedEvidence: 'A concise, specific summary — tests concision and self-framing in a single short answer.',
+    expectedEvidence: 'A concise, specific summary  -  tests concision and self-framing in a single short answer.',
   },
 
   // ── Behavioral ────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Describe a situation where you had to make progress without complete information or clear direction.',
     voicePromptTemplate: 'Tell me about a time you had to keep moving without having all the information or direction you needed.',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'How the candidate structured their approach under uncertainty — assumptions made, how they validated them.',
+    expectedEvidence: 'How the candidate structured their approach under uncertainty  -  assumptions made, how they validated them.',
   },
   {
     id: 'be-005', sessionType: 'behavioral', competency: 'collaboration',
@@ -130,13 +130,13 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'pw-001', sessionType: 'portfolio_walkthrough', competency: 'project_selection',
     promptTemplate: 'Of the projects in your portfolio, which one are you most proud of, and why that one specifically?',
-    voicePromptTemplate: 'Looking at your portfolio — which project are you most proud of, and why that one?',
+    voicePromptTemplate: 'Looking at your portfolio  -  which project are you most proud of, and why that one?',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A specific project (matched against the candidate\'s real portfolio data) with a substantive reason, not just "it was fun."',
   },
   {
     id: 'pw-002', sessionType: 'portfolio_walkthrough', competency: 'problem_context',
-    promptTemplate: 'Walk me through the problem this project was solving — who had the problem, and why did it matter?',
+    promptTemplate: 'Walk me through the problem this project was solving  -  who had the problem, and why did it matter?',
     voicePromptTemplate: 'Walk me through the problem this project was solving. Who had it, and why did it matter?',
     applicableRoles: 'any', difficulty: 'standard',
     expectedEvidence: 'A clear problem statement grounded in a real user or business need from the portfolio project description.',
@@ -144,9 +144,9 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'pw-003', sessionType: 'portfolio_walkthrough', competency: 'personal_contribution',
     promptTemplate: 'What specifically did you personally do on this project, versus the rest of the team?',
-    voicePromptTemplate: 'What did you personally do on this project — as opposed to the rest of the team?',
+    voicePromptTemplate: 'What did you personally do on this project  -  as opposed to the rest of the team?',
     applicableRoles: 'any', difficulty: 'standard',
-    expectedEvidence: 'A clear delineation of individual contribution distinct from team output — directly checked against the project\'s stated role.',
+    expectedEvidence: 'A clear delineation of individual contribution distinct from team output  -  directly checked against the project\'s stated role.',
   },
   {
     id: 'pw-004', sessionType: 'portfolio_walkthrough', competency: 'decisions_constraints',
@@ -158,9 +158,9 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'pw-005', sessionType: 'portfolio_walkthrough', competency: 'outcome',
     promptTemplate: 'What was the actual outcome, and how do you know it worked?',
-    voicePromptTemplate: 'What was the actual result — and how do you know it worked?',
+    voicePromptTemplate: 'What was the actual result  -  and how do you know it worked?',
     applicableRoles: 'any', difficulty: 'standard',
-    expectedEvidence: 'A result tied to the project\'s stated metrics where they exist — do not require a number the candidate never claimed.',
+    expectedEvidence: 'A result tied to the project\'s stated metrics where they exist  -  do not require a number the candidate never claimed.',
   },
   {
     id: 'pw-006', sessionType: 'portfolio_walkthrough', competency: 'reflection',
@@ -174,7 +174,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'hm-001', sessionType: 'hiring_manager', competency: 'role_motivation',
     promptTemplate: 'Why this {{targetRole}} role specifically, and what makes you confident you\'d be effective in it?',
-    voicePromptTemplate: 'Why this {{targetRole}} role — and what makes you confident you\'d be effective in it?',
+    voicePromptTemplate: 'Why this {{targetRole}} role  -  and what makes you confident you\'d be effective in it?',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A reason grounded in the candidate\'s actual experience and the role\'s real demands, not a generic pitch.',
   },
@@ -190,7 +190,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Describe how you\'ve handled a direct report or teammate who was underperforming.',
     voicePromptTemplate: 'How have you handled a situation where someone on your team wasn\'t performing?',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'A concrete intervention, what was communicated, and the measurable result — not a platitude about "coaching."',
+    expectedEvidence: 'A concrete intervention, what was communicated, and the measurable result  -  not a platitude about "coaching."',
   },
   {
     id: 'hm-004', sessionType: 'hiring_manager', competency: 'conflict_resolution',
@@ -209,9 +209,9 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'hm-006', sessionType: 'hiring_manager', competency: 'growth_potential',
     promptTemplate: 'What is the biggest gap in your skills right now, and what are you actually doing about it?',
-    voicePromptTemplate: 'What\'s the biggest gap in your skills right now — and what are you actually doing about it?',
+    voicePromptTemplate: 'What\'s the biggest gap in your skills right now  -  and what are you actually doing about it?',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'Genuine self-awareness and a concrete, current action — not a rehearsed "weakness that\'s actually a strength."',
+    expectedEvidence: 'Genuine self-awareness and a concrete, current action  -  not a rehearsed "weakness that\'s actually a strength."',
   },
 
   // ── Project Deep Dive ─────────────────────────────────────────────────────
@@ -220,7 +220,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Pick a project you know deeply and walk me through how it was architected, end to end.',
     voicePromptTemplate: 'Pick a project you know really well and walk me through how it was built, end to end.',
     applicableRoles: 'any', difficulty: 'standard',
-    expectedEvidence: 'A coherent system-level explanation with real components and how they connected — checked against the candidate\'s actual project evidence where available.',
+    expectedEvidence: 'A coherent system-level explanation with real components and how they connected  -  checked against the candidate\'s actual project evidence where available.',
   },
   {
     id: 'pd-002', sessionType: 'project_deep_dive', competency: 'tradeoffs',
@@ -231,8 +231,8 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   },
   {
     id: 'pd-003', sessionType: 'project_deep_dive', competency: 'scaling_challenges',
-    promptTemplate: 'Did this project ever hit a limit — performance, scale, or otherwise? What happened and what did you do?',
-    voicePromptTemplate: 'Did this project ever hit a wall — performance, scale, anything like that? What happened?',
+    promptTemplate: 'Did this project ever hit a limit  -  performance, scale, or otherwise? What happened and what did you do?',
+    voicePromptTemplate: 'Did this project ever hit a wall  -  performance, scale, anything like that? What happened?',
     applicableRoles: 'any', difficulty: 'challenging',
     expectedEvidence: 'A concrete failure or limit encountered, diagnosis steps taken, and the actual fix or mitigation.',
   },
@@ -241,7 +241,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Tell me about the most difficult bug or issue you tracked down on this project.',
     voicePromptTemplate: 'Tell me about the most difficult bug you tracked down on this project.',
     applicableRoles: 'any', difficulty: 'standard',
-    expectedEvidence: 'A specific symptom, the investigation process, and the root cause — not just "we fixed it."',
+    expectedEvidence: 'A specific symptom, the investigation process, and the root cause  -  not just "we fixed it."',
   },
   {
     id: 'pd-005', sessionType: 'project_deep_dive', competency: 'collaboration_handoffs',
@@ -253,7 +253,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'pd-006', sessionType: 'project_deep_dive', competency: 'technical_ownership',
     promptTemplate: 'What part of this project\'s technical direction did you personally drive, versus follow?',
-    voicePromptTemplate: 'What part of the technical direction did you personally own — versus following someone else\'s lead?',
+    voicePromptTemplate: 'What part of the technical direction did you personally own  -  versus following someone else\'s lead?',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A specific decision or direction the candidate personally owned, distinguishable from work assigned to them.',
   },
@@ -278,7 +278,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Walk me through how you would investigate a problem you\'ve never seen before in a system you\'re unfamiliar with.',
     voicePromptTemplate: 'Walk me through how you\'d investigate a problem you\'ve never seen, in a system you\'re unfamiliar with.',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'A structured investigation method — narrowing scope, forming hypotheses, testing them — not a guess-and-check description.',
+    expectedEvidence: 'A structured investigation method  -  narrowing scope, forming hypotheses, testing them  -  not a guess-and-check description.',
   },
   {
     id: 'tc-004', sessionType: 'technical_concept', competency: 'performance_optimization',
@@ -290,14 +290,14 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'tc-005', sessionType: 'technical_concept', competency: 'technical_communication',
     promptTemplate: 'Explain why a fundamental concept in your field matters in practice, not just in theory.',
-    voicePromptTemplate: 'Explain why a fundamental concept in your field actually matters in practice — not just in theory.',
+    voicePromptTemplate: 'Explain why a fundamental concept in your field actually matters in practice  -  not just in theory.',
     applicableRoles: 'any', difficulty: 'standard',
     expectedEvidence: 'A grounded, practical connection between theory and a real consequence of getting it wrong.',
   },
   {
     id: 'tc-006', sessionType: 'technical_concept', competency: 'concept_explanation',
     promptTemplate: 'What is a concept in your field that is commonly misunderstood, and what is the correct way to think about it?',
-    voicePromptTemplate: 'What\'s a concept in your field that\'s commonly misunderstood — and what\'s the right way to think about it?',
+    voicePromptTemplate: 'What\'s a concept in your field that\'s commonly misunderstood  -  and what\'s the right way to think about it?',
     applicableRoles: 'any', difficulty: 'standard',
     expectedEvidence: 'An accurate correction of a real, common misconception with a clear explanation of the right model.',
   },
@@ -315,14 +315,14 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'Walk me through how you\'d break down an ambiguous, open-ended problem into something actionable.',
     voicePromptTemplate: 'How do you take a vague, open-ended problem and turn it into something you can actually act on?',
     applicableRoles: 'any', difficulty: 'standard',
-    expectedEvidence: 'A visible reasoning framework — decomposition, prioritization, hypothesis testing — applied to a concrete scenario.',
+    expectedEvidence: 'A visible reasoning framework  -  decomposition, prioritization, hypothesis testing  -  applied to a concrete scenario.',
   },
   {
     id: 'cp-003', sessionType: 'case_problem_solving', competency: 'prioritization',
     promptTemplate: 'You have three plausible causes for a problem and limited time to investigate. How do you decide where to look first?',
     voicePromptTemplate: 'You have three possible causes for a problem and limited time. How do you decide where to look first?',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'A reasoned prioritization based on likelihood, cost of investigation, or impact — not an arbitrary pick.',
+    expectedEvidence: 'A reasoned prioritization based on likelihood, cost of investigation, or impact  -  not an arbitrary pick.',
   },
   {
     id: 'cp-004', sessionType: 'case_problem_solving', competency: 'estimation',
@@ -350,7 +350,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'pde-001', sessionType: 'presentation_defense', competency: 'summarizing_clearly',
     promptTemplate: 'In two minutes, summarize the work you\'re about to defend and why it matters.',
-    voicePromptTemplate: 'In about two minutes — summarize what you\'re defending and why it matters.',
+    voicePromptTemplate: 'In about two minutes  -  summarize what you\'re defending and why it matters.',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A concise, structured summary that a non-expert could follow, within a reasonable time.',
   },
@@ -380,7 +380,7 @@ export const QUESTION_BANK: QuestionTemplate[] = [
     promptTemplate: 'What is the part of your recommendation you are least confident about, and why?',
     voicePromptTemplate: 'What\'s the part of your recommendation you\'re least confident about?',
     applicableRoles: 'any', difficulty: 'challenging',
-    expectedEvidence: 'Genuine, specific uncertainty acknowledged — not false confidence or a deflecting non-answer.',
+    expectedEvidence: 'Genuine, specific uncertainty acknowledged  -  not false confidence or a deflecting non-answer.',
   },
   {
     id: 'pde-006', sessionType: 'presentation_defense', competency: 'defending_decisions',
@@ -394,21 +394,21 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   {
     id: 'jf-001', sessionType: 'job_specific_full_loop', competency: 'requirement_alignment',
     promptTemplate: 'Looking at the requirements for this {{targetRole}} role, which one do you feel most prepared for, and why?',
-    voicePromptTemplate: 'Looking at what this {{targetRole}} role actually needs — which requirement do you feel most ready for?',
+    voicePromptTemplate: 'Looking at what this {{targetRole}} role actually needs  -  which requirement do you feel most ready for?',
     applicableRoles: 'any', difficulty: 'foundational',
     expectedEvidence: 'A specific job requirement matched against a real, specific piece of the candidate\'s experience.',
   },
   {
     id: 'jf-002', sessionType: 'job_specific_full_loop', competency: 'role_fit_evidence',
     promptTemplate: 'Which requirement for this role are you least prepared for today, and how would you close that gap?',
-    voicePromptTemplate: 'Which requirement are you least prepared for right now — and how would you close that gap?',
+    voicePromptTemplate: 'Which requirement are you least prepared for right now  -  and how would you close that gap?',
     applicableRoles: 'any', difficulty: 'challenging',
     expectedEvidence: 'Honest acknowledgment of a real gap plus a credible, concrete plan to address it.',
   },
   {
     id: 'jf-003', sessionType: 'job_specific_full_loop', competency: 'motivation_for_company',
     promptTemplate: 'What about {{targetCompany}} specifically, beyond the role itself, makes you want to work there?',
-    voicePromptTemplate: 'What about {{targetCompany}} specifically — beyond just the role — makes you want to be there?',
+    voicePromptTemplate: 'What about {{targetCompany}} specifically  -  beyond just the role  -  makes you want to be there?',
     applicableRoles: 'any', difficulty: 'standard',
     expectedEvidence: 'A specific, researched reason tied to the company\'s actual work, not a generic compliment.',
   },
@@ -435,15 +435,15 @@ export const QUESTION_BANK: QuestionTemplate[] = [
   },
 
   // ── Rapid-Fire Drill ──────────────────────────────────────────────────────
-  // Deliberately short, single-sentence prompts — this session type is scored almost
+  // Deliberately short, single-sentence prompts  -  this session type is scored almost
   // entirely on answer_relevance/concision/answer_structure (see rubrics.ts), so
   // questions favor breadth and speed over depth.
   {
     id: 'rf-001', sessionType: 'rapid_fire_drill', competency: 'quick_thinking',
     promptTemplate: 'In one sentence: what is your single biggest professional strength?',
-    voicePromptTemplate: 'Real quick — what\'s your single biggest professional strength?',
+    voicePromptTemplate: 'Real quick  -  what\'s your single biggest professional strength?',
     applicableRoles: 'any', difficulty: 'foundational',
-    expectedEvidence: 'A direct, specific answer in roughly one sentence — penalize rambling, not the content itself.',
+    expectedEvidence: 'A direct, specific answer in roughly one sentence  -  penalize rambling, not the content itself.',
   },
   {
     id: 'rf-002', sessionType: 'rapid_fire_drill', competency: 'concise_framing',

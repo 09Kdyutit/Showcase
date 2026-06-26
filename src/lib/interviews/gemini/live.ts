@@ -9,7 +9,7 @@ import { buildLiveInterviewerSystemInstruction, type LiveInterviewQuestion } fro
 // Real implementation, verified against a live billed Gemini project (not just
 // written from documentation): ephemeral token minting requires v1alpha
 // (see client.ts), and a token minted server-side with liveConnectConstraints set
-// was confirmed to open a real Live API WebSocket session using ONLY the token —
+// was confirmed to open a real Live API WebSocket session using ONLY the token  - 
 // the real GEMINI_API_KEY never reaches the browser. The system instruction
 // (interviewer persona + exact question list) is locked into the token via
 // liveConnectConstraints + lockAdditionalFields, so the browser cannot alter what
@@ -35,7 +35,7 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
     throw new InterviewLiveUnavailableError(
       'Live voice interviews are not yet enabled. This requires GEMINI_PAID_PROJECT_CONFIRMED=true, ' +
       'GEMINI_INTERVIEW_ENABLED=true, and INTERVIEW_LIVE_ENABLED=true, all of which are human decisions ' +
-      'requiring a reviewed Gemini billing/ToS state — see security/INTERVIEW_LAB_GATE.md. ' +
+      'requiring a reviewed Gemini billing/ToS state  -  see security/INTERVIEW_LAB_GATE.md. ' +
       'Use Text Mode or Recorded Mode instead.'
     )
   }
@@ -55,7 +55,7 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
   // endpoint (which the SDK auto-selects when the token name starts with auth_tokens/)
   // immediately closes connections from tokens that have no constraints defined.
   // lockAdditionalFields:[] locks only the fields explicitly set in the config, meaning
-  // the browser cannot override systemInstruction, responseModalities, or transcription —
+  // the browser cannot override systemInstruction, responseModalities, or transcription  - 
   // those come from the server's plan, not from client-side code.
   // We also return systemInstruction to the browser so it can show the question list
   // in the UI without a second round-trip.

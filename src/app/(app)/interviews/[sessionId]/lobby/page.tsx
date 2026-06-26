@@ -36,12 +36,12 @@ export default function InterviewLobbyPage() {
       const data: SessionDetail = sessionJson.data
       const status = data.session.status
 
-      // Already running — skip the lobby entirely and drop back into the live page
+      // Already running  -  skip the lobby entirely and drop back into the live page
       if (status === 'in_progress') {
         router.replace(`/interviews/${params.sessionId}/live`)
         return
       }
-      // Already done — send to results
+      // Already done  -  send to results
       if (status === 'completed') {
         router.replace(`/interviews/${params.sessionId}/results`)
         return
@@ -99,7 +99,7 @@ export default function InterviewLobbyPage() {
           <div>
             <p className="font-medium">Resuming your session</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              You left this session in progress. Your answers so far are saved — you&apos;ll pick up from where you left off.
+              You left this session in progress. Your answers so far are saved  -  you&apos;ll pick up from where you left off.
               {session.completed_question_count > 0 && ` (${session.completed_question_count} of ${session.planned_question_count} questions already answered)`}
             </p>
           </div>
@@ -120,12 +120,12 @@ export default function InterviewLobbyPage() {
           </div>
           {session.delivery_mode === 'voice' ? (
             <>
-              <p>Delivery mode: <span className="text-foreground">Live voice</span> — your AI interviewer speaks each question aloud and listens to your spoken answers. You&apos;ll need to allow microphone access.</p>
+              <p>Delivery mode: <span className="text-foreground">Live voice</span>  -  your AI interviewer speaks each question aloud and listens to your spoken answers. You&apos;ll need to allow microphone access.</p>
               <p>A transcript is stored privately and visible only to you. No raw audio recording is stored.</p>
             </>
           ) : (
             <>
-              <p>Delivery mode: <span className="text-foreground">Text</span> — type your answers, no microphone needed.</p>
+              <p>Delivery mode: <span className="text-foreground">Text</span>  -  type your answers, no microphone needed.</p>
               <p>Your transcript is stored privately and visible only to you.</p>
             </>
           )}

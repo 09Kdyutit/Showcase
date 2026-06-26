@@ -21,7 +21,7 @@ const SESSION_TYPES = [
   { value: 'case_problem_solving', label: 'Case / Problem Solving', desc: 'Structured reasoning through an ambiguous problem.', pro: true },
   { value: 'presentation_defense', label: 'Presentation Defense', desc: 'Defend a recommendation under pushback.', pro: true },
   { value: 'job_specific_full_loop', label: 'Job-Specific Full Loop', desc: 'Mapped to a specific role\'s real requirements.', pro: false },
-  { value: 'rapid_fire_drill', label: 'Rapid-Fire Drill', desc: 'Many short, quick questions — speed and clarity.', pro: true },
+  { value: 'rapid_fire_drill', label: 'Rapid-Fire Drill', desc: 'Many short, quick questions  -  speed and clarity.', pro: true },
 ] as const
 
 const FREE_DIFFICULTIES = ['foundational', 'standard'] as const
@@ -76,7 +76,7 @@ export default function NewInterviewPage() {
       toast.info('Live voice interviews are coming soon. Use Written mode for now.')
       return
     }
-    // Client-side Pro gate — catches edge cases like URL-prefilled Pro session types
+    // Client-side Pro gate  -  catches edge cases like URL-prefilled Pro session types
     // before hitting the server and getting a generic 403.
     const selectedType = SESSION_TYPES.find(t => t.value === sessionType)
     if (!isPro && selectedType?.pro) {
@@ -157,7 +157,7 @@ export default function NewInterviewPage() {
               )}
             </div>
             <p className="font-semibold text-foreground">Live Interview</p>
-            <p className="text-sm text-muted-foreground mt-1">Your AI interviewer speaks each question aloud over a real-time voice call, and listens to your spoken answers — closest to a real interview.</p>
+            <p className="text-sm text-muted-foreground mt-1">Your AI interviewer speaks each question aloud over a real-time voice call, and listens to your spoken answers  -  closest to a real interview.</p>
           </button>
 
           <button
@@ -291,12 +291,12 @@ export default function NewInterviewPage() {
         {deliveryMode === 'voice' ? (
           <>
             <p>Your microphone is used only to send your spoken answers to the AI interviewer in real time. A transcript of both sides is saved privately for you; no raw audio recording is stored.</p>
-            {!isPro && <p className="text-brand-300">Live Interview requires Pro — you can pick it now and upgrade before you start.</p>}
+            {!isPro && <p className="text-brand-300">Live Interview requires Pro  -  you can pick it now and upgrade before you start.</p>}
           </>
         ) : (
           <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>
         )}
-        <p>This is practice, not a real interview — Showcase never represents itself as an employer.</p>
+        <p>This is practice, not a real interview  -  Showcase never represents itself as an employer.</p>
       </div>
 
       <Button onClick={handleSubmit} disabled={submitting} size="lg" className="w-full">

@@ -6,7 +6,7 @@ import { ReviewerOutputSchema } from './review-types.ts'
 import { buildReviewerPrompt } from './prompts/reviewer.ts'
 import { toGeminiJsonSchema } from './gemini-schema-utils.ts'
 
-// ── Configuration — every knob the mission's Phase 8/10/11 requires, all defaulting closed ──
+// ── Configuration  -  every knob the mission's Phase 8/10/11 requires, all defaulting closed ──
 
 export function getReviewMode(): ReviewMode {
   const mode = process.env.AI_REVIEW_MODE
@@ -25,7 +25,7 @@ export function getReviewEligibleTasks(): Set<string> {
 
 export function getMaxRevisionPasses(): number {
   const n = Number(process.env.AI_MAX_REVISION_PASSES ?? '1')
-  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1 // hard ceiling of 1 — never an infinite loop
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1 // hard ceiling of 1  -  never an infinite loop
 }
 
 /** Phase 10's privacy/legal gate. Real (non-synthetic) data may never reach Gemini unless an
@@ -34,11 +34,11 @@ export function isGeminiPrivateDataAllowed(): boolean {
   return process.env.GEMINI_PRIVATE_DATA_ENABLED === 'true' && !!process.env.GEMINI_API_KEY
 }
 
-/** True only when there is something to do — mode isn't off, a key is configured, and (for
+/** True only when there is something to do  -  mode isn't off, a key is configured, and (for
  *  any path that would touch real user data) the privacy gate is open. Every call site must
  *  check this before attempting a review; nothing in this codebase calls Gemini unconditionally.
  *  Even when this returns true, callGeminiReviewer()'s own synthetic-only guard is a second,
- *  independent check — this function alone is not what keeps real data out. */
+ *  independent check  -  this function alone is not what keeps real data out. */
 export function isGeminiReviewEnabled(forTask: string): boolean {
   const mode = getReviewMode()
   if (mode === 'off') return false
@@ -47,7 +47,7 @@ export function isGeminiReviewEnabled(forTask: string): boolean {
   return isGeminiPrivateDataAllowed()
 }
 
-// ── Safe, typed errors — never let a raw provider error (which can embed request details)
+// ── Safe, typed errors  -  never let a raw provider error (which can embed request details)
 // reach a route's error response. ──
 
 export class GeminiNotConfiguredError extends Error {
@@ -87,35 +87,35 @@ export class GeminiRateLimitError extends Error {
 }
 
 /** Distinct from GeminiRateLimitError: a per-minute throttle is worth retrying with backoff,
- *  but Google's free tier also enforces GenerateRequestsPerDayPerProjectPerModel-FreeTier — a
+ *  but Google's free tier also enforces GenerateRequestsPerDayPerProjectPerModel-FreeTier  -  a
  *  fixed daily cap (20/day for gemini-2.5-flash as observed in this project) that no amount of
  *  in-process backoff can wait out. Retrying against this wastes the configured retry budget
  *  on every single call for the rest of the day; failing fast here is the correct response. */
 export class GeminiDailyQuotaExceededError extends Error {
   constructor() {
-    super('Gemini daily free-tier quota exceeded — will not reset until tomorrow; retrying will not help')
+    super('Gemini daily free-tier quota exceeded  -  will not reset until tomorrow; retrying will not help')
   }
 }
 
 /** A third distinct 429 cause, observed in this project: this API key's Google Cloud project
  *  is on prepaid billing and its credit balance hit zero. Unlike a daily quota, this does NOT
- *  reset on its own — it requires a human to add funds at ai.studio. Conflating this with
+ *  reset on its own  -  it requires a human to add funds at ai.studio. Conflating this with
  *  GeminiRateLimitError or GeminiDailyQuotaExceededError would tell an operator to "wait" when
  *  waiting will never fix it. */
 export class GeminiCreditsDepletedError extends Error {
   constructor() {
-    super('Gemini API prepayment credits depleted — requires billing action, will not resolve by waiting or retrying')
+    super('Gemini API prepayment credits depleted  -  requires billing action, will not resolve by waiting or retrying')
   }
 }
 
 const REVIEW_TIMEOUT_MS = 20_000
 // gemini-2.5-flash's "thinking" tokens are drawn from the same maxOutputTokens budget as the
-// visible JSON response — a run that thinks for ~1500 tokens before answering can blow past a
+// visible JSON response  -  a run that thinks for ~1500 tokens before answering can blow past a
 // tight cap and get cut off mid-JSON (finishReason: MAX_TOKENS), which surfaces here as a
 // GeminiSchemaError even though the model would have produced valid JSON given more room.
 // 4096 leaves real headroom for thinking + the (small) ReviewerOutputSchema payload.
 const MAX_OUTPUT_TOKENS = 4096
-// Caps how much of the request we'll build at all — buildReviewerPrompt() also caps each
+// Caps how much of the request we'll build at all  -  buildReviewerPrompt() also caps each
 // section individually; this is a hard backstop on the whole serialized request.
 const MAX_REQUEST_CHARACTERS = 12_000
 
@@ -128,7 +128,7 @@ function getClient(apiKey: string): GoogleGenAI {
   return cachedClient
 }
 
-// Raw z.toJSONSchema() output is rejected outright by Gemini's responseJsonSchema —
+// Raw z.toJSONSchema() output is rejected outright by Gemini's responseJsonSchema  - 
 // see gemini-schema-utils.ts, found and fixed while wiring up Interview Lab's
 // analysis call against a real billed project for the first time.
 const REVIEWER_JSON_SCHEMA = toGeminiJsonSchema(z.toJSONSchema(ReviewerOutputSchema))
@@ -138,7 +138,7 @@ function isRateLimitStatus(err: unknown): boolean {
 }
 
 /** Google's 429 body distinguishes the quota that was actually hit (see QuotaFailure.violations
- *  in the JSON body) — a per-day quota and a per-minute throttle both surface as HTTP 429, but
+ *  in the JSON body)  -  a per-day quota and a per-minute throttle both surface as HTTP 429, but
  *  only the latter is worth an in-process retry. Checked as a substring on the raw error message
  *  since the SDK doesn't parse this into a typed field. */
 function isDailyQuotaError(err: unknown): boolean {
@@ -147,7 +147,7 @@ function isDailyQuotaError(err: unknown): boolean {
 }
 
 /** A second non-retryable 429 cause distinct from a daily quota: this project's prepaid
- *  billing balance is at zero. Checked the same way — substring match on the raw message,
+ *  billing balance is at zero. Checked the same way  -  substring match on the raw message,
  *  since the SDK surfaces this as plain text rather than a typed field. */
 function isCreditsDepletedError(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err)
@@ -156,9 +156,9 @@ function isCreditsDepletedError(err: unknown): boolean {
 
 /** Google's free-tier quota for gemini-2.5-flash is low enough that a batch of sequential
  *  review calls (e.g. the eval:multi-model harness running ~25 fixtures) routinely hits 429
- *  mid-run. Retries with exponential backoff before surfacing GeminiRateLimitError — this is
+ *  mid-run. Retries with exponential backoff before surfacing GeminiRateLimitError  -  this is
  *  the adapter being a well-behaved client of a real rate limit, not a workaround for a bug.
- *  A daily-quota 429 fails immediately instead — backoff cannot wait out a quota that resets
+ *  A daily-quota 429 fails immediately instead  -  backoff cannot wait out a quota that resets
  *  tomorrow, and retrying it anyway would burn the configured delay budget on every call for
  *  the rest of the day for no benefit. */
 async function generateWithRateLimitRetry(
@@ -183,10 +183,10 @@ async function generateWithRateLimitRetry(
 /**
  * The only function in this codebase that talks to Google's API. Two independent gates must
  * both pass before any network call happens: (1) request.dataClassification must be exactly
- * 'synthetic' — there is no value, including undefined, that defaults to "allowed"; (2)
+ * 'synthetic'  -  there is no value, including undefined, that defaults to "allowed"; (2)
  * GEMINI_API_KEY and GEMINI_MODEL_REVIEWER must be configured via process.env only (never
  * NEXT_PUBLIC_*, never hardcoded). Never logs the key, the full prompt, or raw resume/portfolio
- * content — only operational metadata (model, latency, token counts, verdict) belongs in logs.
+ * content  -  only operational metadata (model, latency, token counts, verdict) belongs in logs.
  */
 export interface GeminiReviewMeta {
   model: string
@@ -204,7 +204,7 @@ export interface GeminiReviewResult {
 export async function callGeminiReviewer(request: ReviewRequest): Promise<GeminiReviewResult> {
   if (request.dataClassification !== 'synthetic') {
     throw new GeminiSafetyRejectionError(
-      `dataClassification must be "synthetic" — got ${JSON.stringify(request.dataClassification)}. Real user/private data may never reach Gemini through this function.`
+      `dataClassification must be "synthetic"  -  got ${JSON.stringify(request.dataClassification)}. Real user/private data may never reach Gemini through this function.`
     )
   }
 
@@ -269,7 +269,7 @@ export async function callGeminiReviewer(request: ReviewRequest): Promise<Gemini
     if (err instanceof GeminiSchemaError || err instanceof GeminiProviderError || err instanceof GeminiRateLimitError || err instanceof GeminiDailyQuotaExceededError || err instanceof GeminiCreditsDepletedError) throw err
     if (controller.signal.aborted) throw new GeminiTimeoutError()
     if (isRateLimitStatus(err)) throw new GeminiRateLimitError()
-    // Deliberately do not rethrow the raw provider error — it can carry request internals.
+    // Deliberately do not rethrow the raw provider error  -  it can carry request internals.
     // Operational detail (not the key, not the prompt) is safe to log server-side only.
     console.error('[gemini-reviewer] provider call failed', { model, promptId: request.promptId })
     throw new GeminiProviderError()
@@ -278,7 +278,7 @@ export async function callGeminiReviewer(request: ReviewRequest): Promise<Gemini
   }
 }
 
-/** Validates a hypothetical reviewer response against the structured schema — used by tests
+/** Validates a hypothetical reviewer response against the structured schema  -  used by tests
  *  and by the real call path alike, so a malformed reviewer response fails closed rather than
  *  silently passing through. */
 export function parseReviewerOutput(raw: unknown): ReviewerOutput {

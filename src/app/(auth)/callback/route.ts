@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Only a same-app relative path is ever a legitimate value here — this is a
+// Only a same-app relative path is ever a legitimate value here  -  this is a
 // post-authentication redirect, exactly the kind of target phishing campaigns
 // abuse open redirects for ("click this real login link, end up on a fake page").
 // Reject anything that isn't a plain relative path: no protocol-relative ("//evil.com"),

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     })
 
     // ── Hard filter: role-family and seniority compatibility, before scoring ──
-    // computeMatchScore is a soft skill-overlap signal — it can't tell a Software Engineer
+    // computeMatchScore is a soft skill-overlap signal  -  it can't tell a Software Engineer
     // role apart from a Wastewater Process Engineer role just because both mention "Linux"
     // or "communication". Role family is checked explicitly instead.
     const candidateFamily = classifyRoleFamily(profile?.target_role ?? null)

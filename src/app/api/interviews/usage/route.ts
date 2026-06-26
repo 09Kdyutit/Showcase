@@ -4,7 +4,7 @@ import { getUsageSnapshot } from '@/lib/interviews/entitlements'
 
 // Read-only usage display endpoint. The browser may show these numbers, but every
 // number here is re-derived server-side from the real reservation ledger and the
-// real, server-verified subscription — never trusted from a client-held value, and
+// real, server-verified subscription  -  never trusted from a client-held value, and
 // this route has no corresponding write capability.
 export async function GET() {
   try {

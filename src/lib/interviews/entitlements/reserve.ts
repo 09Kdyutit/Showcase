@@ -13,8 +13,8 @@ export interface ReserveSessionResult {
 
 // The ONLY function allowed to decide whether a new session may be created. Called
 // with the service-role client (interview_usage_reservations has no authenticated
-// insert policy — by design, so the browser cannot reserve its own slot). Reserves
-// the overall 'session' slot, and — for voice/recorded — the 'audio_session' sub-slot
+// insert policy  -  by design, so the browser cannot reserve its own slot). Reserves
+// the overall 'session' slot, and  -  for voice/recorded  -  the 'audio_session' sub-slot
 // too, atomically and in that order; if the audio reservation fails, the session
 // reservation is released immediately so a half-reserved state never persists.
 export async function reserveSessionUsage(
@@ -34,11 +34,11 @@ export async function reserveSessionUsage(
   const periodEndIso = period.end.toISOString()
 
   // Concurrency is checked INSIDE this RPC's own pg_advisory_xact_lock scope (migration
-  // 023) — a separate application-level "SELECT count() then proceed" pre-check was
+  // 023)  -  a separate application-level "SELECT count() then proceed" pre-check was
   // tried first and proven racy under real parallel load (scripts/test-interview-limits.mjs
   // caught it directly: it under-delivered the real period quota during a burst). This
-  // is not airtight against every conceivable race either — the new session row itself
-  // is still inserted by the caller after this RPC returns, outside this transaction —
+  // is not airtight against every conceivable race either  -  the new session row itself
+  // is still inserted by the caller after this RPC returns, outside this transaction  - 
   // but it closes the specific race that was actually observed and is a real improvement
   // over the prior non-atomic check.
   type ReserveRpcResult = { allowed: boolean; current_count: number; reservation_id: string | null; denial_reason: 'concurrent_limit' | 'period_limit' | null }
@@ -49,7 +49,7 @@ export async function reserveSessionUsage(
   }).single() as { data: ReserveRpcResult | null, error: { message: string } | null }
 
   if (sessionErr || !sessionRes) {
-    // Fail CLOSED here, unlike the generic abuse-prevention rate limiter — an outage
+    // Fail CLOSED here, unlike the generic abuse-prevention rate limiter  -  an outage
     // in the entitlement ledger must not silently grant unlimited free sessions.
     throw new EntitlementError('SESSION_LIMIT_REACHED', 'Could not verify your interview usage right now. Please try again in a moment.', 503)
   }
@@ -75,12 +75,12 @@ export async function reserveSessionUsage(
     }).single() as { data: AudioRpcResult | null, error: { message: string } | null }
 
     if (audioErr || !audioRes) {
-      // RPC failed (e.g. DB unreachable) — fail CLOSED and be honest about the cause.
+      // RPC failed (e.g. DB unreachable)  -  fail CLOSED and be honest about the cause.
       await supabase.rpc('interview_release_usage', { p_reservation_id: sessionRes.reservation_id, p_user_id: userId, p_allow_committed_release: false })
       throw new EntitlementError('AUDIO_LIMIT_REACHED', 'Could not verify your voice/recorded interview usage right now. Please try again in a moment.', 503)
     }
     if (!audioRes.allowed) {
-      // Genuine quota denial — roll back the session slot and give the user an accurate count.
+      // Genuine quota denial  -  roll back the session slot and give the user an accurate count.
       await supabase.rpc('interview_release_usage', { p_reservation_id: sessionRes.reservation_id, p_user_id: userId, p_allow_committed_release: false })
       const resetDate = period.end.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
       throw new EntitlementError('AUDIO_LIMIT_REACHED', `You've used your ${limits.audioSessionsPerPeriod} voice/recorded interview${limits.audioSessionsPerPeriod === 1 ? '' : 's'} for this period. Resets ${resetDate}.`)
@@ -93,7 +93,7 @@ export async function reserveSessionUsage(
 
 // Retry has its own independent pool, enforced ATOMICALLY for both tiers through the
 // interview_reserve_retry RPC (migration 027). The browser never decides retry
-// allowance and the route never pre-counts retries with a non-atomic SELECT — the RPC
+// allowance and the route never pre-counts retries with a non-atomic SELECT  -  the RPC
 // serializes concurrent callers per (user_id, session_id) under a Postgres advisory
 // transaction lock, so simultaneous retries on DIFFERENT questions of the same session
 // (the IL-17 gap (b) bypass) collide and only the allowed number commit.
@@ -124,7 +124,7 @@ export async function reserveRetryUsage(
     p_count_period: isPro,
   }).single() as { data: { allowed: boolean; session_count: number; period_count: number; reservation_id: string | null } | null, error: { message: string } | null }
 
-  // Fail CLOSED — an outage in the retry ledger must not silently grant unlimited
+  // Fail CLOSED  -  an outage in the retry ledger must not silently grant unlimited
   // retries, the same posture as session/audio reservation above.
   if (error || !data) {
     throw new EntitlementError('RETRY_LIMIT_REACHED', 'Could not verify your retry usage right now. Please try again in a moment.', 503)

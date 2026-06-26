@@ -117,7 +117,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
     setDebugLog([])
     try {
       // Create engine and pre-init AudioContext NOW, while still in the synchronous
-      // user-gesture handler — before any await. Browsers block audio playback created
+      // user-gesture handler  -  before any await. Browsers block audio playback created
       // outside a user gesture chain (especially Safari and Chrome on mobile). Doing
       // this before the fetch call ensures both AudioContexts are unlocked for the
       // full session lifetime, not just until the first await.
@@ -178,7 +178,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
       const wsUrl = `${wsBaseUrl}/functions/v1/live-interview-ws?jwt=${encodeURIComponent(jwt)}&session_id=${encodeURIComponent(sessionId)}`
       addDebug('proxy:ready')
 
-      // Start mic capture BEFORE connecting — mic ready before setupComplete fires,
+      // Start mic capture BEFORE connecting  -  mic ready before setupComplete fires,
       // and permission dialog happens before the WebSocket opens.
       await engine.startMicCapture()
       addDebug('mic:ready')
@@ -359,7 +359,7 @@ function WrittenInterview({ sessionId, initialDetail }: { sessionId: string; ini
         <div className="rounded-xl border border-border/60 bg-surface-100 p-3 flex items-start gap-2 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
           <p>
-            <strong className="text-foreground">Browser Voice (Beta).</strong> Uses your device&apos;s built-in voice features to read questions aloud and dictate answers. This is not Showcase&apos;s AI voice interviewer — nothing is sent to Gemini or any AI provider, and your speech is only ever turned into text in your own browser.
+            <strong className="text-foreground">Browser Voice (Beta).</strong> Uses your device&apos;s built-in voice features to read questions aloud and dictate answers. This is not Showcase&apos;s AI voice interviewer  -  nothing is sent to Gemini or any AI provider, and your speech is only ever turned into text in your own browser.
           </p>
         </div>
       )}
@@ -384,7 +384,7 @@ function WrittenInterview({ sessionId, initialDetail }: { sessionId: string; ini
         )}
       </div>
       {!dictationSupported && (
-        <p className="text-xs text-muted-foreground">Voice dictation isn&apos;t supported in this browser — try Chrome or Edge, or just type your answer.</p>
+        <p className="text-xs text-muted-foreground">Voice dictation isn&apos;t supported in this browser  -  try Chrome or Edge, or just type your answer.</p>
       )}
 
       <Button onClick={handleSubmitAnswer} disabled={submitting} size="lg" className="w-full">

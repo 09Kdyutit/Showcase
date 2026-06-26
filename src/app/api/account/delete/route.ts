@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const service = await createServiceClient()
 
-    // Best-effort storage cleanup — proceed with account deletion even if this fails,
+    // Best-effort storage cleanup  -  proceed with account deletion even if this fails,
     // since an orphaned private file under a now-deleted user's prefix is unreachable
     // (RLS-scoped to auth.uid(), which no longer exists) and not a real exposure risk.
     try {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // interview-recordings nests one level deeper (${userId}/${sessionId}/${file}),
     // so a flat list() of the user's own prefix only returns subfolder names, not
-    // files — list each subfolder too before removing.
+    // files  -  list each subfolder too before removing.
     try {
       const { data: sessionFolders } = await service.storage.from('interview-recordings').list(user.id)
       for (const folder of sessionFolders ?? []) {

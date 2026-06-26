@@ -44,7 +44,7 @@ function getMockResponse(messages: AIMessage[]): string {
       name: 'Mock User', email: 'mock@example.com', phone: '', location: '',
       summary: '[MOCK MODE] Set OPENAI_API_KEY for real parsing.',
       skills: ['JavaScript', 'React', 'Node.js'],
-      experience: [{ company: 'Mock Company', role: 'Software Engineer', period: '2022–2024', bullets: ['Built features'], metrics: [], has_metrics: false }],
+      experience: [{ company: 'Mock Company', role: 'Software Engineer', period: '2022-2024', bullets: ['Built features'], metrics: [], has_metrics: false }],
       education: [], projects: [], certifications: [],
       links: { linkedin: null, github: null, website: null, portfolio: null },
       weak_bullets: ['Built features'],
@@ -59,7 +59,7 @@ function getMockResponse(messages: AIMessage[]): string {
       hero: { headline: '[MOCK] Portfolio headline goes here', subheadline: 'Set OPENAI_API_KEY to generate real content', tagline: 'Mock Mode' },
       about: { bio: '[MOCK MODE] Real bio will be generated when OPENAI_API_KEY is set.', values: ['Quality', 'Impact'] },
       skills: [{ name: 'JavaScript', level: 'Expert', category: 'Frontend' }],
-      experience: [{ company: 'Mock Corp', role: 'Engineer', period: '2022–now', bullets: ['Built things'], metrics: [] }],
+      experience: [{ company: 'Mock Corp', role: 'Engineer', period: '2022-now', bullets: ['Built things'], metrics: [] }],
       projects: [{ title: 'Mock Project', role: 'Lead', summary: 'A mock project', problem: '', process: '', outcome: '', metrics: [], links: [], tags: ['Mock'] }],
       proof: [{ label: 'Projects', value: '5+' }],
       contact: { email: '', linkedin: '', github: '', website: '' },
@@ -73,7 +73,7 @@ function getMockResponse(messages: AIMessage[]): string {
 // ── OpenAI error → user-friendly message ─────────────────────────────────────
 
 function toUserError(err: unknown): Error {
-  // Always keep the raw error reachable via .cause — the friendly message above is for the
+  // Always keep the raw error reachable via .cause  -  the friendly message above is for the
   // user, but swallowing the real error (e.g. a schema validation failure) makes bugs like
   // that invisible in logs. Callers should log err.cause, not just err.message.
   if (err instanceof OpenAI.APIError) {
@@ -108,7 +108,7 @@ export async function callStructured<T>(
   } = {}
 ): Promise<T> {
   if (IS_MOCK_MODE) {
-    console.warn('[AI] Mock mode — set OPENAI_API_KEY in .env.local for real responses')
+    console.warn('[AI] Mock mode  -  set OPENAI_API_KEY in .env.local for real responses')
     const raw = getMockResponse(messages)
     return schema.parse(JSON.parse(raw)) as T
   }
@@ -196,7 +196,7 @@ export async function callAI(
   } = {}
 ): Promise<string> {
   if (IS_MOCK_MODE) {
-    console.warn('[AI] Mock mode — set OPENAI_API_KEY in .env.local')
+    console.warn('[AI] Mock mode  -  set OPENAI_API_KEY in .env.local')
     return getMockResponse(messages)
   }
 

@@ -39,7 +39,7 @@ export function Navbar() {
           : 'bg-transparent'
       )}
     >
-      {/* Top gradient line — appears on scroll */}
+      {/* Top gradient line  -  appears on scroll */}
       <div
         className={cn(
           'absolute top-0 left-0 right-0 h-px transition-opacity duration-500',

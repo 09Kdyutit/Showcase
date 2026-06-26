@@ -190,7 +190,7 @@ function deduplicateByProviderJobId(listings: JobListing[]): JobListing[] {
   })
 }
 
-// ── External API shapes (adapter layer — not all providers use the same schema) ──
+// ── External API shapes (adapter layer  -  not all providers use the same schema) ──
 
 interface ExternalApiCompensation {
   min?: number

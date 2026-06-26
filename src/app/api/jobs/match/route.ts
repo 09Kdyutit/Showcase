@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         ].join('\n\n')
         breakdown.ai_explanation = aiExplanation
       } catch {
-        // AI explanation failure is non-fatal — deterministic score is still valid
+        // AI explanation failure is non-fatal  -  deterministic score is still valid
       }
     }
 

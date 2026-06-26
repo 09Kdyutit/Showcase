@@ -43,7 +43,7 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('Magic link sent — check your email')
+      toast.success('Magic link sent  -  check your email')
     }
     setLoading(false)
   }
@@ -62,7 +62,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Center visual — ProofScore preview */}
+        {/* Center visual  -  ProofScore preview */}
         <div className="flex-1 flex items-center justify-center py-10">
           <div className="relative z-10 glass-card p-6 w-72 space-y-5">
             <div className="flex items-center justify-between">

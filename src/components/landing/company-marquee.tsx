@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import { cn } from '@/lib/utils'
 
-// Mode C — Role/industry marquee (safe static fallback)
+// Mode C  -  Role/industry marquee (safe static fallback)
 // No company names, affiliations, or hiring claims
 const CAREER_DOMAINS = [
   'Product Management',

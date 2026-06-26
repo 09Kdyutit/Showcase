@@ -6,7 +6,7 @@ import { z } from 'zod'
 const FREE_SAVED_JOBS_LIMIT = 5
 
 // Jobs from search/recommendations (fixture or external-provider) aren't rows in
-// job_listings_cache yet — their `id` is provider-local, not a cache UUID. To save one we
+// job_listings_cache yet  -  their `id` is provider-local, not a cache UUID. To save one we
 // either get a real cache UUID directly, or get the full listing and cache it ourselves.
 const jobSnapshotSchema = z.object({
   provider: z.string().min(1).max(100),
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     let job_listing_id = bodyJobListingId ?? null
     if (!job_listing_id && job) {
-      // Fixture/external-provider jobs aren't cache rows yet — find or create one by
+      // Fixture/external-provider jobs aren't cache rows yet  -  find or create one by
       // (provider, provider_job_id) so saved_jobs can FK to a real listing.
       if (job.provider_job_id) {
         const { data: existing } = await supabase

@@ -12,10 +12,10 @@ function userMessage(input: AtsCheckInput): string {
   const { resumeText, jobKeywords } = input
   return `TASK: review this resume for common ATS (Applicant Tracking System) parsing risks.
 
-IMPORTANT LIMITATIONS — state these, don't paper over them:
+IMPORTANT LIMITATIONS  -  state these, don't paper over them:
 - This is a text-based analysis, not a real ATS parse
 - Results indicate likely parsing behavior, NOT guaranteed ATS passage
-- Different ATS systems behave differently — this checks for common risks only
+- Different ATS systems behave differently  -  this checks for common risks only
 - Report what was tested, not what is guaranteed
 
 RESUME TEXT:
@@ -40,7 +40,7 @@ KEYWORD SUPPORT RULE:
 
 Return JSON:
 {
-  "overall_score": number (0-100, represents ATS-friendliness — not hiring probability),
+  "overall_score": number (0-100, represents ATS-friendliness  -  not hiring probability),
   "text_extractable": boolean,
   "contact_detected": boolean,
   "headings_recognized": boolean,

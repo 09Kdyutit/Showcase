@@ -1,4 +1,4 @@
-// Deterministic prohibited-question filtering — regex/keyword based, NOT a model call.
+// Deterministic prohibited-question filtering  -  regex/keyword based, NOT a model call.
 // The mission is explicit: this must be deterministic. A model-based safety check would
 // itself need a safety check (and could be prompt-injected), so the gate that actually
 // blocks a question from reaching a user must not depend on Gemini being well-behaved.
@@ -17,7 +17,7 @@ interface ProhibitedCategory {
 }
 
 // Each pattern targets the question ASKING ABOUT or trying to INFER the protected
-// characteristic — not every mention of a related word. "Are you legally authorized to
+// characteristic  -  not every mention of a related word. "Are you legally authorized to
 // work" must stay allowed even though it is adjacent to "citizenship" topics; that
 // exact carve-out is enforced by the ALLOWLIST_PATTERNS below, checked first.
 const PROHIBITED_CATEGORIES: ProhibitedCategory[] = [
@@ -84,7 +84,7 @@ const PROHIBITED_CATEGORIES: ProhibitedCategory[] = [
 ]
 
 // Neutral, job-relevant questions that are adjacent in wording to a prohibited
-// category but are explicitly allowed by the mission. Checked first — if a question
+// category but are explicitly allowed by the mission. Checked first  -  if a question
 // matches an allowlist pattern, it is safe regardless of any prohibited-pattern match.
 const ALLOWLIST_PATTERNS: RegExp[] = [
   /are you legally authorized to work/i,
@@ -110,7 +110,7 @@ export function checkQuestionSafety(questionText: string): QuestionSafetyResult 
 }
 
 /** Filters a batch of question texts, returning only the safe ones plus a report of
- *  what was blocked — used by the plan builder so an unsafe question can never reach
+ *  what was blocked  -  used by the plan builder so an unsafe question can never reach
  *  storage or a user, and by callers that want visibility into what was filtered. */
 export function filterUnsafeQuestions<T extends { questionText: string }>(
   questions: T[]

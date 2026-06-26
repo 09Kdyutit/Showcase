@@ -1,4 +1,4 @@
-// Interview Lab's legal/cost/safety gate — every flag here defaults to the SAFEST,
+// Interview Lab's legal/cost/safety gate  -  every flag here defaults to the SAFEST,
 // most-disabled state on an unset env var. This mirrors src/lib/ai/gemini.ts's
 // isGeminiPrivateDataAllowed()/isGeminiReviewEnabled() pattern (the only other place
 // in this codebase that talks to Gemini): multiple independent checks must ALL pass,
@@ -7,7 +7,7 @@
 // As of this build, GEMINI_PAID_PROJECT_CONFIRMED and GEMINI_INTERVIEW_ENABLED are
 // unset in every environment (no human has reviewed Gemini's ToS for this product or
 // confirmed paid billing). isInterviewLabRuntimeEnabled() is therefore false
-// everywhere — by design, not by omission. Every route that would call Gemini checks
+// everywhere  -  by design, not by omission. Every route that would call Gemini checks
 // this before doing anything else.
 
 export function isGeminiPaidProjectConfirmed(): boolean {
@@ -18,7 +18,7 @@ export function isGeminiInterviewEnabled(): boolean {
   return process.env.GEMINI_INTERVIEW_ENABLED === 'true'
 }
 
-/** Deliberately a SEPARATE attestation from isGeminiPaidProjectConfirmed() — "billing
+/** Deliberately a SEPARATE attestation from isGeminiPaidProjectConfirmed()  -  "billing
  *  is paid" and "we have reviewed Gemini's current terms for compatibility with this
  *  product's audience/use case" are two different facts a human can independently
  *  confirm or revoke; bundling them into one flag would let either one drift true
@@ -27,7 +27,7 @@ export function isGeminiTermsCompatibilityConfirmed(): boolean {
   return process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED === 'true'
 }
 
-/** A platform-wide emergency stop, independent of every other flag — flipping this
+/** A platform-wide emergency stop, independent of every other flag  -  flipping this
  *  true disables Interview Lab's Gemini-calling features immediately without needing
  *  to also unset the (slower-to-change, attestation-style) confirmation flags above.
  *  Intended for "something is wrong right now, stop spending" operator response. */
@@ -35,9 +35,9 @@ export function isInterviewKillSwitchActive(): boolean {
   return process.env.INTERVIEW_KILL_SWITCH === 'true'
 }
 
-/** The master runtime gate. All three must be explicitly 'true'/'false' as required —
+/** The master runtime gate. All three must be explicitly 'true'/'false' as required  - 
  *  set by a human who has confirmed paid billing AND separately reviewed the current
- *  Gemini API terms (mission gate items 1-2) — AND the kill switch must not be active.
+ *  Gemini API terms (mission gate items 1-2)  -  AND the kill switch must not be active.
  *  Individual sub-feature flags below are checked IN ADDITION to this, never instead
  *  of it. */
 export function isInterviewLabRuntimeEnabled(): boolean {
@@ -58,14 +58,14 @@ export function isInterviewRecordingEnabled(): boolean {
 }
 
 /** Raw audio retention is OFF by default (mission gate item 10) regardless of a
- *  user's own retention preference — this is the platform-wide ceiling; a user's
+ *  user's own retention preference  -  this is the platform-wide ceiling; a user's
  *  interview_profiles.raw_audio_retention_enabled can only opt IN when this is true,
  *  never override it when false. */
 export function isRawAudioRetentionAllowedPlatformWide(): boolean {
   return process.env.INTERVIEW_RAW_AUDIO_RETENTION === 'true'
 }
 
-/** Server-enforced hard ceiling on session length — "the browser cannot increase
+/** Server-enforced hard ceiling on session length  -  "the browser cannot increase
  *  them" per the mission. Every session-creation route clamps to this regardless of
  *  what the client requests. */
 export function getMaxSessionMinutes(): number {
@@ -79,7 +79,7 @@ export function getMaxConcurrentSessions(): number {
 }
 
 /** null = not configured, which callers should treat as "do not allow any
- *  cost-incurring call" rather than "unlimited" — the absence of a budget number is
+ *  cost-incurring call" rather than "unlimited"  -  the absence of a budget number is
  *  not the same as an infinite budget. */
 export function getGlobalDailyBudgetUsd(): number | null {
   const raw = process.env.INTERVIEW_GLOBAL_DAILY_BUDGET_USD
@@ -102,7 +102,7 @@ export function getGlobalMonthlyBudgetUsd(): number | null {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-/** Hard ceiling on Live reconnect attempts within one session — bounds the worst-case
+/** Hard ceiling on Live reconnect attempts within one session  -  bounds the worst-case
  *  cost of a flaky connection retrying indefinitely. */
 export function getMaxReconnects(): number {
   const n = Number(process.env.INTERVIEW_MAX_RECONNECTS ?? '3')
@@ -110,7 +110,7 @@ export function getMaxReconnects(): number {
 }
 
 /** A global hard ceiling on adaptive follow-ups, independent of and in addition to
- *  the per-plan-tier cap in entitlements/plans.ts — the tier cap can never exceed
+ *  the per-plan-tier cap in entitlements/plans.ts  -  the tier cap can never exceed
  *  this even if plans.ts is misconfigured in a future change. */
 export function getMaxFollowUpsCeiling(): number {
   const n = Number(process.env.INTERVIEW_MAX_FOLLOW_UPS ?? '5')

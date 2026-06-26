@@ -58,7 +58,7 @@ export function CreativeCaseStudyTheme({ portfolio, content }: ThemeProps) {
                 </motion.div>
               )}
 
-              {/* NAME — massive stacked */}
+              {/* NAME  -  massive stacked */}
               <motion.div style={{ x: nameX }} className="mb-8">
                 {nameWords.map((word, wi) => (
                   <div key={wi} className="overflow-hidden leading-[0.88]">

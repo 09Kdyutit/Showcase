@@ -1,4 +1,4 @@
-// Emergency kill switches — env vars only, no code deploy needed to flip them on a
+// Emergency kill switches  -  env vars only, no code deploy needed to flip them on a
 // host like Vercel. Default (unset) is always "enabled": setting any of these
 // requires deliberate action during an incident, never accidental opt-in.
 // Examples: a bug causing runaway OpenAI spend, a Stripe incident where checkout

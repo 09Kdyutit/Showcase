@@ -1,6 +1,6 @@
 // Pure, deterministic next-action engine. Gemini analysis may supply validated
-// weaknesses (real dimension scores with real evidence); this module — not the
-// model — decides which action the Hub recommends and in what order. No network
+// weaknesses (real dimension scores with real evidence); this module  -  not the
+// model  -  decides which action the Hub recommends and in what order. No network
 // access here; hub-data.ts fetches real rows and maps them into HubActionInput.
 import type { ReadinessGroup } from './readiness.ts'
 import { DIMENSION_REGISTRY } from './rubrics.ts'
@@ -33,7 +33,7 @@ export interface RecommendedAction {
 }
 
 /** Returns at most `limit` actions, ranked by priority (lower = more urgent).
- *  Every action's `reason` is built from real input data — never a fixed string
+ *  Every action's `reason` is built from real input data  -  never a fixed string
  *  pretending to be personalized. */
 export function computeNextActions(input: HubActionInput, limit = 3): RecommendedAction[] {
   const actions: RecommendedAction[] = []
@@ -52,7 +52,7 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
     actions.push({
       id: 'pending_analysis', priority: 1,
       title: 'Your last session is still being scored',
-      reason: 'Analysis is in progress — check back shortly for your results.',
+      reason: 'Analysis is in progress  -  check back shortly for your results.',
       source: 'incomplete_work', destination: `/interviews/${input.pendingAnalysisSession.id}/results`,
       estimatedMinutes: 1,
     })
@@ -62,7 +62,7 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
     actions.push({
       id: 'failed_analysis', priority: 1,
       title: 'Scoring failed on your last session',
-      reason: 'Your answers are saved — you can view the transcript, or start a new session.',
+      reason: 'Your answers are saved  -  you can view the transcript, or start a new session.',
       source: 'incomplete_work', destination: `/interviews/${input.failedAnalysisSession.id}/results`,
       estimatedMinutes: 1,
     })
@@ -92,14 +92,14 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
       actions.push({
         id: 'more_sessions_for_confidence', priority: 4,
         title: `Practice another ${g.sessionType.replace(/_/g, ' ')} session`,
-        reason: `Your readiness for ${g.targetRole} is based on only 1 session — one more will make it a more reliable estimate.`,
+        reason: `Your readiness for ${g.targetRole} is based on only 1 session  -  one more will make it a more reliable estimate.`,
         source: 'sample_size', destination: '/interviews/new',
         estimatedMinutes: 12,
       })
     }
     if (g.priority && g.weakDimensionIds.length > 0) {
       const drills = recommendDrillsForDimensions(g.weakDimensionIds, 1)
-      // Cite whichever weak dimension the chosen drill actually targets — not always
+      // Cite whichever weak dimension the chosen drill actually targets  -  not always
       // the single lowest-scoring one, since the catalog may have no drill for that
       // exact dimension. Citing the wrong dimension would be a real, if small,
       // trust-breaking inconsistency between the reason text and the recommendation.

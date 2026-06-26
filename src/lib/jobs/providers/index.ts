@@ -14,7 +14,7 @@ export type { JobProvider, JobSearchParams, JobSearchResult } from './types'
 
 function getRealProvider(): JobProvider | null {
   // Kill switch: forces fixture data immediately, without even attempting the real
-  // provider — for an abused/misbehaving external integration during an incident.
+  // provider  -  for an abused/misbehaving external integration during an incident.
   if (!isJobsProviderEnabled()) return null
 
   const jobDataApiKey = process.env.JOBDATA_API_KEY
@@ -28,13 +28,13 @@ function getRealProvider(): JobProvider | null {
   return null
 }
 
-// Provider resolution — checks env vars; falls back to fixture data in dev/demo
+// Provider resolution  -  checks env vars; falls back to fixture data in dev/demo
 export function getJobProvider(): JobProvider {
   return getRealProvider() ?? new FixtureProvider()
 }
 
 // A configured real provider can still fail at request time (auth/billing issues, outages,
-// rate limits) — never let that take down the Jobs tab. Fall back to demo data instead.
+// rate limits)  -  never let that take down the Jobs tab. Fall back to demo data instead.
 export async function searchJobs(params: JobSearchParams): Promise<JobSearchResult> {
   const real = getRealProvider()
   if (real) {

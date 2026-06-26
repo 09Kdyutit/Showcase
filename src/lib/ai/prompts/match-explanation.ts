@@ -37,9 +37,9 @@ Strongest area: ${parsedResume.experience[0]?.role ?? 'not available'} at ${pars
 Return JSON:
 {
   "score_justification": "2 sentences explaining the ${deterministicScore}/100 score honestly",
-  "top_strength": "The single strongest match signal — be specific",
-  "primary_gap": "The most significant gap to address — be specific and actionable",
-  "recommended_action": "One specific next step to improve this match — not generic advice"
+  "top_strength": "The single strongest match signal  -  be specific",
+  "primary_gap": "The most significant gap to address  -  be specific and actionable",
+  "recommended_action": "One specific next step to improve this match  -  not generic advice"
 }`
 }
 
@@ -56,7 +56,7 @@ export const matchExplanationPrompt = definePrompt<MatchExplanationInput, MatchE
   schemaName: 'match_explanation',
   invariants: [
     'Never presents the match score as a hiring-probability or interview-outcome prediction',
-    'Cannot change the deterministic score — schema has no score field',
+    'Cannot change the deterministic score  -  schema has no score field',
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [

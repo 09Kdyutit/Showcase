@@ -1,4 +1,4 @@
-// Deterministic comparison between an original answer and a retry. No AI, no score —
+// Deterministic comparison between an original answer and a retry. No AI, no score  - 
 // "never claim improvement when deterministic metrics didn't improve" (mission). Every
 // observation below is either objectively true of the text or it isn't; there is no
 // fabricated "your answer got better" framing.

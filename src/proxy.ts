@@ -5,19 +5,19 @@ import { isTrustedOrigin } from '@/lib/security/origin-check'
 const PROTECTED_ROUTES = ['/dashboard', '/builder', '/audit', '/resume', '/settings', '/billing', '/onboarding']
 const AUTH_ROUTES = ['/login']
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-// Stripe (and any future webhook provider) signs its own payloads — the signature
+// Stripe (and any future webhook provider) signs its own payloads  -  the signature
 // check in the route handler is the real authentication, and the request is
 // legitimately cross-origin by design (it originates from Stripe's servers, not a
 // browser), so Origin enforcement doesn't apply to it.
 const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook']
 
-// Pre-launch lockdown: the entire app — including the marketing homepage, /pricing,
-// /login, /signup, and every authenticated route — redirects to /waitlist. Existing
+// Pre-launch lockdown: the entire app  -  including the marketing homepage, /pricing,
+// /login, /signup, and every authenticated route  -  redirects to /waitlist. Existing
 // accounts get zero exception; there is no query string or path that opens a door.
 // Set LAUNCH_OPEN=true (env var on Vercel, not a query param) on launch day to lift this.
 const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
 // /opengraph-image is a code-generated route (app/opengraph-image.tsx) with no file
-// extension, so it isn't caught by the matcher's image-extension exclusion below —
+// extension, so it isn't caught by the matcher's image-extension exclusion below  - 
 // without this, a social crawler fetching /waitlist's og:image would get redirected
 // to /waitlist itself instead of the actual image.
 const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund', '/opengraph-image']

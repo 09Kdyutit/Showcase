@@ -1,7 +1,7 @@
 // Single source of truth for Showcase's public-facing positioning. Every marketing
 // page (/, /pricing, /waitlist, /for-career-services, /proofscore) should pull
 // headline territory, audience language, and trust copy from here rather than
-// re-deriving it — the point is that a visitor reading any two pages back-to-back
+// re-deriving it  -  the point is that a visitor reading any two pages back-to-back
 // never hits a contradiction.
 //
 // This is a content/copy module, not a design system. It does not import React.
@@ -41,7 +41,7 @@ export const PRIMARY_ICP = {
   ],
 } as const
 
-// ── Secondary segments — own pages, never the homepage hero ────────────────────
+// ── Secondary segments  -  own pages, never the homepage hero ────────────────────
 
 export const SECONDARY_SEGMENTS = [
   { id: 'career-switcher', label: 'Career switchers', href: '/waitlist?segment=career-switcher' },
@@ -61,7 +61,7 @@ export const SECONDARY_SEGMENTS = [
 export const HERO = {
   headline: 'Your résumé lists claims. Showcase turns them into evidence.',
   subheadline:
-    'Upload your résumé and Showcase turns your real experience into a professional portfolio, scores the strength of its evidence, and tells you exactly what to improve — without inventing a thing.',
+    'Upload your résumé and Showcase turns your real experience into a professional portfolio, scores the strength of its evidence, and tells you exactly what to improve  -  without inventing a thing.',
   primaryCta: { live: 'Build my portfolio', waitlist: 'Join the private beta' },
   secondaryCta: 'See a real example',
 } as const
@@ -82,7 +82,7 @@ export const FEATURE_BENEFITS = [
   { feature: 'Portfolio themes', benefit: 'Publish professional work without becoming a web designer.' },
 ] as const
 
-// ── Approved trust language (Phase 9) — use verbatim, do not paraphrase into a
+// ── Approved trust language (Phase 9)  -  use verbatim, do not paraphrase into a
 // stronger claim. ──────────────────────────────────────────────────────────────
 
 export const TRUST_COPY = [
@@ -95,7 +95,7 @@ export const TRUST_COPY = [
   'Showcase does not guarantee employment outcomes.',
 ] as const
 
-// ── Banned claims (Phase 19) — if new copy contains language matching these
+// ── Banned claims (Phase 19)  -  if new copy contains language matching these
 // patterns, it must be rewritten before shipping, regardless of how persuasive it
 // reads. Checked by scripts/test-marketing-truthfulness.mjs. ────────────────────
 
@@ -110,11 +110,11 @@ export const BANNED_CLAIM_PATTERNS = [
   /trusted by/i, // fake logo wall framing without verified relationships
 ] as const
 
-// ── Comparison framework (Phase 8) — mechanism-based, never "only platform" ────
+// ── Comparison framework (Phase 8)  -  mechanism-based, never "only platform" ────
 
 export const COMPARISON = [
   { alternative: 'Résumé template', does: 'Formats claims. Does not check whether they are supported.' },
-  { alternative: 'Website builder', does: 'Displays what you already know how to write — you still start from a blank page.' },
+  { alternative: 'Website builder', does: 'Displays what you already know how to write  -  you still start from a blank page.' },
   { alternative: 'Generic AI chat', does: 'Produces text but has no persistent evidence structure, no publishing workflow, and no safeguard against inventing a metric you never had.' },
   { alternative: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
 ] as const

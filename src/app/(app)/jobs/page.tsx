@@ -754,7 +754,7 @@ export default function JobsPage() {
       const res = await fetch('/api/jobs/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // job.id is provider-local (fixture/external), not a job_listings_cache UUID — send
+        // job.id is provider-local (fixture/external), not a job_listings_cache UUID  -  send
         // the full snapshot so the server can find-or-create the cache row and FK to it.
         body: JSON.stringify({
           job: {

@@ -30,7 +30,7 @@ export function StickyMobileCTA() {
           Join the Showcase beta
           <ArrowRight className="h-4 w-4" />
         </Link>
-        <p className="text-center text-xs text-muted-foreground/50 mt-2">Private beta — limited spots</p>
+        <p className="text-center text-xs text-muted-foreground/50 mt-2">Private beta  -  limited spots</p>
       </div>
     </div>
   )

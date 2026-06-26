@@ -24,7 +24,7 @@ export interface SharedReportPayload {
 
 /**
  * Resolves a raw share token into a redacted report payload, or null if the link is
- * invalid, expired, or revoked. The only path that can ever turn a token into data —
+ * invalid, expired, or revoked. The only path that can ever turn a token into data  - 
  * used by both the public page and (for symmetry/testing) the API route. Always uses
  * the service role: interview_shared_reports has no anon RLS policy at all (migration
  * 020), by design, so there is no other way to resolve a token.
@@ -47,7 +47,7 @@ export async function resolveSharedReport(token: string): Promise<SharedReportPa
     .maybeSingle()
   if (sessionError || !session) return null
 
-  // Audit trail only, not a security control — a benign race here can only undercount.
+  // Audit trail only, not a security control  -  a benign race here can only undercount.
   await service
     .from('interview_shared_reports')
     .update({ access_count: (share.access_count ?? 0) + 1, last_accessed_at: new Date().toISOString() })

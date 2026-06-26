@@ -6,7 +6,7 @@ import type { MarketingEvent } from '@/lib/marketing/events'
 
 /** Fires `event` once the section is ~50% visible. Exists so server-component pages
  *  (page.tsx) can opt a section into view-tracking without becoming client
- *  components themselves — only this wrapper needs the hook. */
+ *  components themselves  -  only this wrapper needs the hook. */
 export function TrackedSection({
   event,
   className,

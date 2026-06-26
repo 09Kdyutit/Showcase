@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-// Single source of truth for the brand mark — was previously copy-pasted as a
+// Single source of truth for the brand mark  -  was previously copy-pasted as a
 // hardcoded gradient box + "S" placeholder in 7+ separate files (sidebar x2, navbar,
 // footer, login, signup). The icon is a real raster asset (public/logo-icon.png,
 // transparent background, processed from the actual brand logo); the wordmark stays
@@ -25,7 +25,7 @@ export function Logo({
     <span className={cn('inline-flex items-center gap-2', className)}>
       {/* Decorative: every real usage of this component pairs the icon with adjacent
           text that already names "Showcase" (the wordmark below, or surrounding copy
-          like "Built with Showcase") — a non-empty alt here would make screen readers
+          like "Built with Showcase")  -  a non-empty alt here would make screen readers
           announce the name twice. Found by axe-core flagging image-redundant-alt. */}
       <Image
         src="/logo-icon.png"

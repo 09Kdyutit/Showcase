@@ -24,10 +24,10 @@ const INDUSTRIES = [
   'Finance', 'Healthcare', 'Education', 'Consulting', 'Startups', 'Other',
 ]
 
-/** Industry can usually be read off the target role itself — asking for it separately
+/** Industry can usually be read off the target role itself  -  asking for it separately
  *  when it's this derivable is exactly the kind of redundant input this flow exists to cut. */
 /** profiles.experience_level uses a slightly different vocabulary than the resume parser's
- *  seniority_level — map rather than leave the field permanently null for everyone who goes
+ *  seniority_level  -  map rather than leave the field permanently null for everyone who goes
  *  through this flow (job recommendations and settings both read it). */
 function mapSeniority(level: ParsedResume['seniority_level']): string | null {
   switch (level) {
@@ -146,7 +146,7 @@ export default function OnboardingPage() {
   }
 
   async function createPortfolio() {
-    if (!targetRole.trim()) { toast.error('Add a target role first — this shapes your whole portfolio.'); setEditOpen(true); return }
+    if (!targetRole.trim()) { toast.error('Add a target role first  -  this shapes your whole portfolio.'); setEditOpen(true); return }
     if (generatingRef.current) return
     generatingRef.current = true
     setPhase('generating')
@@ -195,10 +195,10 @@ export default function OnboardingPage() {
       })
       const genBody = await genRes.json()
       if (!genRes.ok) {
-        // Pro-gated or generation failed — the portfolio still exists as a draft, so land
+        // Pro-gated or generation failed  -  the portfolio still exists as a draft, so land
         // the user there either way rather than stranding them on the onboarding screen.
         toast.error(genBody.code === 'PRO_REQUIRED'
-          ? 'Your portfolio draft is ready — upgrade to Pro to generate full AI content.'
+          ? 'Your portfolio draft is ready  -  upgrade to Pro to generate full AI content.'
           : 'Portfolio created, but AI generation failed. You can retry from the builder.')
       } else {
         toast.success('Your portfolio is ready! Review and refine it below.')
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
         </div>
         <p className="text-foreground font-medium mb-1">{busyMsg}</p>
         <p className="text-xs text-muted-foreground/60">
-          {phase === 'analyzing' ? "This takes a few seconds." : "This takes 30–60 seconds. Don't close this tab."}
+          {phase === 'analyzing' ? "This takes a few seconds." : "This takes 30-60 seconds. Don't close this tab."}
         </p>
       </div>
     )
@@ -239,7 +239,7 @@ export default function OnboardingPage() {
               <Logo size="lg" />
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">Upload your resume</h1>
-            <p className="text-muted-foreground text-sm">We extract everything — role, skills, experience, projects, links — and use it to build your portfolio. No forms to fill out.</p>
+            <p className="text-muted-foreground text-sm">We extract everything  -  role, skills, experience, projects, links  -  and use it to build your portfolio. No forms to fill out.</p>
           </div>
 
           <div className="glass-card p-8 space-y-4">
@@ -264,7 +264,7 @@ export default function OnboardingPage() {
           </div>
 
           <button onClick={skipResume} className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors">
-            Skip — I&apos;ll set this up manually
+            Skip  -  I&apos;ll set this up manually
           </button>
         </div>
       </div>
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
             Resume parsed
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Here&apos;s what we found</h1>
-          <p className="text-muted-foreground text-sm">Quick review — nothing here is published yet. One click builds your full portfolio from this.</p>
+          <p className="text-muted-foreground text-sm">Quick review  -  nothing here is published yet. One click builds your full portfolio from this.</p>
         </div>
 
         <div className="glass-card p-6 space-y-6">
@@ -327,14 +327,14 @@ export default function OnboardingPage() {
               <Sparkles className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{parsed?.skills?.length ?? 0} skills</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">{parsed?.skills?.slice(0, 4).join(', ') || '—'}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{parsed?.skills?.slice(0, 4).join(', ') || ' - '}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Link2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{[linkedin, github, website].filter(Boolean).length} links found</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">{[linkedin && 'LinkedIn', github && 'GitHub', website && 'Website'].filter(Boolean).join(', ') || 'None — add later if you have them'}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{[linkedin && 'LinkedIn', github && 'GitHub', website && 'Website'].filter(Boolean).join(', ') || 'None  -  add later if you have them'}</p>
               </div>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function OnboardingPage() {
               <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-amber-400">{needsConfirmation.length} item{needsConfirmation.length === 1 ? '' : 's'} need real numbers or context</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">We won&apos;t invent these — you can add them after your portfolio is built. Nothing blocks you from generating now.</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">We won&apos;t invent these  -  you can add them after your portfolio is built. Nothing blocks you from generating now.</p>
               </div>
             </div>
           )}

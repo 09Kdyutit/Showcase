@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { scoreToBand } from '@/lib/interviews/rubrics'
 
 /**
- * Computes readiness summaries server-side from stored interview_evaluations —
+ * Computes readiness summaries server-side from stored interview_evaluations  - 
  * never from a single session in isolation, and never presented with false
  * precision (mission: "do not show false precision such as 17.347%"). Grouped by
  * target role, since the mission is explicit that unrelated sessions should not be

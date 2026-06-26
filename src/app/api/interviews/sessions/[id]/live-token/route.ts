@@ -11,7 +11,7 @@ import { buildLiveInterviewerSystemInstruction } from '@/lib/interviews/gemini/l
  * from sessions already cleared for voice delivery.
  *
  * The session's systemInstruction is built server-side from the real planned
- * questions so the browser cannot fabricate a different prompt — but the real
+ * questions so the browser cannot fabricate a different prompt  -  but the real
  * GEMINI_API_KEY never reaches the browser. It lives only in the Supabase Edge
  * Function (live-interview-ws) as a secret.
  */

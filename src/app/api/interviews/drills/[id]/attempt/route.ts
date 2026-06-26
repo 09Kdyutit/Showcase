@@ -9,7 +9,7 @@ const attemptSchema = z.object({
 
 /**
  * Records a drill attempt. The score is computed entirely server-side from the
- * deterministic check() function — the client can submit any text, but it can never
+ * deterministic check() function  -  the client can submit any text, but it can never
  * submit a score directly, so there is no path for a browser to fabricate a "best
  * score" (mirrors the scoring.ts discipline used for real interview evaluations:
  * the server computes the number, the client only ever supplies raw input).

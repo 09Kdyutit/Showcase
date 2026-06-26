@@ -48,9 +48,9 @@ const SKILLS = [
 ]
 
 const EXPERIENCE = [
-  { company: 'Figma', role: 'Lead Product Designer', period: '2022 — Present' },
-  { company: 'Stripe', role: 'Product Designer', period: '2020 — 2022' },
-  { company: 'Adobe', role: 'UX Designer', period: '2019 — 2020' },
+  { company: 'Figma', role: 'Lead Product Designer', period: '2022  -  Present' },
+  { company: 'Stripe', role: 'Product Designer', period: '2020  -  2022' },
+  { company: 'Adobe', role: 'UX Designer', period: '2019  -  2020' },
 ]
 
 const TABS: { id: Tab; label: string }[] = [
@@ -138,7 +138,7 @@ export default function DemoBuilderPage() {
                     <div>
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">Positioning Statement</label>
                       <div className="text-sm text-foreground/80 leading-relaxed">
-                        I help SaaS teams ship interfaces users actually adopt — specializing in complex flows, 0→1 products, and design systems that scale.
+                        I help SaaS teams ship interfaces users actually adopt  -  specializing in complex flows, 0→1 products, and design systems that scale.
                       </div>
                     </div>
                     <div>
@@ -161,7 +161,7 @@ export default function DemoBuilderPage() {
                   <div className="glass-card p-5">
                     <p className="text-sm text-foreground/80 leading-relaxed">
                       5 years designing for B2B SaaS. Led design at Figma for 2 years, shipping features used by 10M+ users. Before that, built Stripe&apos;s first checkout redesign.
-                      I care about evidence over aesthetics — every design decision I make is tied to a measurable outcome.
+                      I care about evidence over aesthetics  -  every design decision I make is tied to a measurable outcome.
                     </p>
                   </div>
                 </section>
@@ -288,7 +288,7 @@ export default function DemoBuilderPage() {
                   style={{ width: `${checklistScore}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground">Almost there — add contact links to reach 100%</p>
+              <p className="text-[10px] text-muted-foreground">Almost there  -  add contact links to reach 100%</p>
             </div>
           </div>
 

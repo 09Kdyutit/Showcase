@@ -13,7 +13,7 @@ export const SENIORITY_RANK: Record<Seniority, number> = {
 
 function extractYearsFromRequirements(requirements: string[]): number | null {
   for (const req of requirements) {
-    const m = req.match(/(\d+)\+?\s*(?:–|-)\s*(\d+)?\s*year/i) ?? req.match(/(\d+)\+?\s*year/i)
+    const m = req.match(/(\d+)\+?\s*(?:-|-)\s*(\d+)?\s*year/i) ?? req.match(/(\d+)\+?\s*year/i)
     if (m) return parseInt(m[1], 10)
   }
   return null
@@ -53,7 +53,7 @@ export interface MatchScoreResult {
   breakdown: MatchBreakdown
 }
 
-// Deterministic scoring — AI explanation is layered on top by the API route
+// Deterministic scoring  -  AI explanation is layered on top by the API route
 export function computeMatchScore(job: JobListing, parsed: ParsedResume): MatchScoreResult {
   const sd = job.structured_data
   const allResumeSkills = [
@@ -117,14 +117,14 @@ export function computeMatchScore(job: JobListing, parsed: ParsedResume): MatchS
   if (relevantProjects.length > 0) {
     opportunities.push({
       type: 'highlight_project',
-      description: `"${relevantProjects[0].title}" is directly relevant — move it first in your portfolio`,
+      description: `"${relevantProjects[0].title}" is directly relevant  -  move it first in your portfolio`,
       source: relevantProjects[0].title,
     })
   }
   if (matchedPreferred.length > 0) {
     opportunities.push({
       type: 'move_bullet',
-      description: `You match ${matchedPreferred.length} preferred skills — make these prominent: ${matchedPreferred.slice(0, 3).join(', ')}`,
+      description: `You match ${matchedPreferred.length} preferred skills  -  make these prominent: ${matchedPreferred.slice(0, 3).join(', ')}`,
     })
   }
   if (missingRequired.slice(0, 2).length > 0) {
@@ -144,7 +144,7 @@ export function computeMatchScore(job: JobListing, parsed: ParsedResume): MatchS
     projectScore * 0.1
   )
 
-  // Clamp to 15–95 (never claim 0 or 100 — those extremes are meaningless)
+  // Clamp to 15-95 (never claim 0 or 100  -  those extremes are meaningless)
   const finalScore = Math.min(95, Math.max(15, compositeScore))
 
   const breakdown: MatchBreakdown = {
@@ -168,7 +168,7 @@ export function salaryDisplay(job: JobListing): string | null {
   if (!job.salary_min && !job.salary_max) return null
   const fmt = (n: number) => `$${(n / 1000).toFixed(0)}k`
   if (job.salary_min && job.salary_max) {
-    return `${fmt(job.salary_min)} – ${fmt(job.salary_max)}`
+    return `${fmt(job.salary_min)} - ${fmt(job.salary_max)}`
   }
   if (job.salary_min) return `${fmt(job.salary_min)}+`
   if (job.salary_max) return `Up to ${fmt(job.salary_max)}`

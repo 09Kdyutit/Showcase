@@ -1,5 +1,5 @@
 // Typed registry of portfolio themes. The DB column (portfolios.theme) is a free-text
-// string — anything stored there might be stale (an old default), hand-edited, or simply
+// string  -  anything stored there might be stale (an old default), hand-edited, or simply
 // wrong. Every read goes through coerceThemeId() so an invalid value always degrades to a
 // real theme instead of crashing the page or silently rendering nothing.
 
@@ -25,7 +25,7 @@ export interface ThemeMeta {
   name: string
   description: string
   recommendedRoles: string[]
-  /** Small swatch colors used by the builder's theme picker cards — not used in the real render. */
+  /** Small swatch colors used by the builder's theme picker cards  -  not used in the real render. */
   swatch: { bg: string; accent: string; text: string }
   badge?: string
 }

@@ -114,14 +114,14 @@ export function BentoTheme({ portfolio, content }: ThemeProps) {
           {/* Bento grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-[160px] gap-3">
 
-            {/* Role card — 2 cols */}
+            {/* Role card  -  2 cols */}
             <BentoCard span={2} className="flex flex-col justify-end p-6 lg:p-7">
               <p className="text-xs text-white/30 font-medium mb-1 uppercase tracking-widest">Role</p>
               <p className="text-xl font-bold leading-tight">{portfolio.target_role ?? 'Creative Professional'}</p>
               {hero?.subheadline && <p className="text-sm text-white/50 mt-2 leading-relaxed line-clamp-2">{hero.subheadline}</p>}
             </BentoCard>
 
-            {/* Headshot — tall (if available) or proof metric */}
+            {/* Headshot  -  tall (if available) or proof metric */}
             {hero?.headshotUrl ? (
               <BentoCard tall className="row-span-2">
                 <img src={hero.headshotUrl} alt={portfolio.title} className="w-full h-full object-cover" />

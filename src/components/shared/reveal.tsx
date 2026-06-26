@@ -9,7 +9,7 @@ interface RevealProps {
 }
 
 // Public portfolio pages are server-rendered for SEO, but a fully static page with zero
-// motion reads as a flat template rather than a crafted product — this is the one client
+// motion reads as a flat template rather than a crafted product  -  this is the one client
 // boundary that lets sections animate in on scroll without giving up server rendering for
 // the rest of the page.
 export function Reveal({ children, className }: RevealProps) {

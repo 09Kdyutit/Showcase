@@ -28,7 +28,7 @@ export const DIMENSION_REGISTRY: Record<DimensionId, DimensionDefinition> = {
   evidence_specificity: {
     id: 'evidence_specificity', label: 'Evidence Specificity',
     definition: 'Did the candidate provide concrete details rather than generic claims?',
-    evidenceRequirements: 'Concrete nouns, numbers, names, or specific events cited from the transcript — not abstractions like "I worked hard."',
+    evidenceRequirements: 'Concrete nouns, numbers, names, or specific events cited from the transcript  -  not abstractions like "I worked hard."',
     scoringAnchors: { low: 'Entirely generic, no concrete detail.', mid: 'Some specifics, mixed with vague claims.', high: 'Consistently concrete and specific.' },
     minTranscriptEvidence: 1,
     appliesTo: ['behavioral', 'hiring_manager', 'portfolio_walkthrough', 'project_deep_dive', 'job_specific_full_loop'],
@@ -60,7 +60,7 @@ export const DIMENSION_REGISTRY: Record<DimensionId, DimensionDefinition> = {
   outcome_and_impact: {
     id: 'outcome_and_impact', label: 'Outcome and Impact',
     definition: 'Was the result clear and supported?',
-    evidenceRequirements: 'A stated result tied to the action — quantified where the candidate has real metrics, qualitative otherwise. Do not require a number that the candidate never claimed.',
+    evidenceRequirements: 'A stated result tied to the action  -  quantified where the candidate has real metrics, qualitative otherwise. Do not require a number that the candidate never claimed.',
     scoringAnchors: { low: 'No result stated.', mid: 'Result stated but vague or unsupported.', high: 'Clear, credible result tied directly to the actions described.' },
     minTranscriptEvidence: 1,
     appliesTo: ['behavioral', 'hiring_manager', 'portfolio_walkthrough', 'project_deep_dive', 'job_specific_full_loop'],
@@ -130,7 +130,7 @@ function profile(sessionType: SessionType, weights: Partial<Record<DimensionId, 
   return { id: `rubric-${sessionType}`, version: RUBRIC_REGISTRY_VERSION, sessionType, weights }
 }
 
-// Every profile's weights sum to exactly 1.0 — enforced at module load via the
+// Every profile's weights sum to exactly 1.0  -  enforced at module load via the
 // assertion in profile() above, so a typo here fails the build/test immediately
 // rather than silently producing a skewed overall score in production.
 export const RUBRIC_PROFILES: Record<SessionType, RubricProfile> = {
@@ -180,7 +180,7 @@ export function getRubricProfile(sessionType: SessionType): RubricProfile {
 
 // Fails the build/test immediately if a profile or the registry ever references a
 // dimension id that has drifted out of sync with the canonical DIMENSION_IDS list in
-// schemas.ts — same "fail closed on a typo" reasoning as the weight-sum assertion in
+// schemas.ts  -  same "fail closed on a typo" reasoning as the weight-sum assertion in
 // profile() above.
 for (const dimId of Object.keys(DIMENSION_REGISTRY)) {
   if (!DIMENSION_IDS.includes(dimId as DimensionId)) {

@@ -55,7 +55,7 @@ export function scoreBgColor(score: number): string {
 }
 
 export function absoluteUrl(path: string): string {
-  // VERCEL_URL is auto-provided per-deployment (Preview included) — without this fallback,
+  // VERCEL_URL is auto-provided per-deployment (Preview included)  -  without this fallback,
   // Stripe success/cancel URLs and the billing portal return URL would point at localhost
   // from a Preview deployment, since NEXT_PUBLIC_APP_URL is only set for Production.
   const base = process.env.NEXT_PUBLIC_APP_URL

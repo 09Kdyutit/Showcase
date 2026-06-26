@@ -40,7 +40,7 @@ export function MagazineTheme({ portfolio, content }: ThemeProps) {
   return (
     <div ref={containerRef} className="min-h-screen text-black overflow-x-hidden" style={{ fontFamily: SANS, background: '#f7f3ee' }}>
 
-      {/* Nav — full-width editorial header */}
+      {/* Nav  -  full-width editorial header */}
       <nav className="sticky top-0 z-50 border-b border-black/10 bg-[#f7f3ee]">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export function MagazineTheme({ portfolio, content }: ThemeProps) {
       {/* ── HERO ── Editorial spread */}
       <section className="min-h-[95svh] flex flex-col justify-end px-6 pt-16 pb-10 relative overflow-hidden">
 
-        {/* Hero photo — fills top right quadrant */}
+        {/* Hero photo  -  fills top right quadrant */}
         {hero?.headshotUrl && (
           <motion.div style={{ y: parallaxY }} className="absolute top-0 right-0 w-[45%] h-full pointer-events-none">
             <img src={hero.headshotUrl} alt={portfolio.title} className="w-full h-full object-cover" />
@@ -97,7 +97,7 @@ export function MagazineTheme({ portfolio, content }: ThemeProps) {
               className="text-xs font-black uppercase tracking-[0.3em] text-black/30 mb-6">{portfolio.target_role}</motion.div>
           )}
 
-          {/* NAME — large editorial serif */}
+          {/* NAME  -  large editorial serif */}
           <div className="mb-8 max-w-[65%]">
             {nameWords.map((word, wi) => (
               <div key={wi} className="overflow-hidden">

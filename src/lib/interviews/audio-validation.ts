@@ -1,10 +1,10 @@
 // Deterministic audio-upload validation for Recorded Mode, following the exact
 // pattern already established by the resume upload route (src/app/api/resume/
-// extract-text/route.ts): never trust the client's declared extension or MIME type —
+// extract-text/route.ts): never trust the client's declared extension or MIME type  - 
 // verify the actual file content via magic bytes. A declared type that doesn't match
 // the real file content is rejected outright, not silently corrected.
 
-export const MAX_AUDIO_BYTES = 25 * 1024 * 1024 // 25MB — generous for a single compressed answer, well under any plausible interview answer length
+export const MAX_AUDIO_BYTES = 25 * 1024 * 1024 // 25MB  -  generous for a single compressed answer, well under any plausible interview answer length
 export const MIN_AUDIO_BYTES = 256 // rejects empty/stub files
 
 export type AllowedAudioExtension = 'webm' | 'wav' | 'mp3' | 'ogg'
@@ -16,7 +16,7 @@ const EXTENSION_TO_MIME: Record<AllowedAudioExtension, string[]> = {
   ogg: ['audio/ogg'],
 }
 
-/** Canonical MIME type to send to Gemini for transcription — always derived from
+/** Canonical MIME type to send to Gemini for transcription  -  always derived from
  *  the validated extension, never the client's raw declared Content-Type (which
  *  EXTENSION_TO_MIME above allows several variants of, e.g. audio/x-wav). */
 export const CANONICAL_MIME_FOR_EXTENSION: Record<AllowedAudioExtension, string> = {
@@ -62,7 +62,7 @@ function extensionFromFilename(filename: string): string | null {
  * Validates an uploaded audio buffer end to end: size bounds, declared extension is
  * one of the allowed types, declared MIME type is consistent with that extension,
  * AND the actual file content's magic bytes match the detected format. All four
- * checks must pass — any single mismatch (e.g. a .wav-named file containing webm
+ * checks must pass  -  any single mismatch (e.g. a .wav-named file containing webm
  * bytes) fails closed, matching the resume upload route's "rejects files where
  * declared type doesn't match actual content" discipline.
  */
@@ -95,7 +95,7 @@ export function validateAudioUpload(buffer: Buffer, filename: string, declaredMi
   return { valid: true, error: null, extension: detected }
 }
 
-/** Produces a safe, predictable storage path — never derived from unsanitized user
+/** Produces a safe, predictable storage path  -  never derived from unsanitized user
  *  input beyond the already-validated extension, closing the same path-traversal
  *  class scripts/test-uploads.mjs already checks for on the resume upload route. */
 export function buildAudioStoragePath(userId: string, sessionId: string, questionId: string, attemptNumber: number, extension: AllowedAudioExtension): string {

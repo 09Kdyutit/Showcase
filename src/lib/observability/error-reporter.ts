@@ -1,5 +1,5 @@
 // Provider-neutral: works with zero configuration (structured console logging, which
-// every host — Vercel included — captures and makes searchable), and optionally also
+// every host  -  Vercel included  -  captures and makes searchable), and optionally also
 // forwards to ERROR_WEBHOOK_URL if set. That env var can point at literally anything
 // that accepts a JSON POST: a Slack incoming webhook for now, or later a real Sentry
 // project's ingestion endpoint, without changing this file or adding an SDK dependency
@@ -39,7 +39,7 @@ export async function captureError(error: Error, context: ErrorContext = {}): Pr
     timestamp: new Date().toISOString(),
   }
 
-  // Always logs — zero config, captured by any host's log viewer.
+  // Always logs  -  zero config, captured by any host's log viewer.
   console.error('[error-reporter]', JSON.stringify(payload))
 
   const webhookUrl = process.env.ERROR_WEBHOOK_URL

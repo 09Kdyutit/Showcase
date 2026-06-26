@@ -27,9 +27,9 @@ export interface InterviewScoreResult {
 /**
  * Strips any segment IDs that don't exist in the real transcript rather than throwing.
  * The original design threw on any bad citation, which caused every analysis to fail
- * because LLMs reliably mismatch UUIDs — the model reads the transcript correctly but
+ * because LLMs reliably mismatch UUIDs  -  the model reads the transcript correctly but
  * can't reproduce exact database UUIDs in its JSON output. The actual score comes from
- * ratingEvidence (0–100), not from citations, so stripping bad citations is safe: the
+ * ratingEvidence (0-100), not from citations, so stripping bad citations is safe: the
  * score is still computed from real evidence, citations are just display metadata.
  */
 export function sanitizeCitations(analysis: InterviewAnalysis, realSegments: TranscriptSegment[]): InterviewAnalysis {
@@ -60,7 +60,7 @@ export function validateCitations(analysis: InterviewAnalysis, realSegments: Tra
 /**
  * Computes the final, stored score deterministically from Gemini's already-validated
  * dimension evidence. Gemini supplies ratingEvidence + citations per dimension; this
- * function — not Gemini — decides the weights (from the rubric registry, keyed by
+ * function  -  not Gemini  -  decides the weights (from the rubric registry, keyed by
  * session type, never from the model response) and does the weighted-average math.
  * A dimension with zero cited evidence is excluded and the remaining weights are
  * renormalized, rather than silently scoring it on no evidence.
@@ -70,7 +70,7 @@ export function computeInterviewScore(
   analysis: InterviewAnalysis,
   realSegments: TranscriptSegment[]
 ): InterviewScoreResult {
-  // Sanitize first — strip bad citation IDs without throwing.
+  // Sanitize first  -  strip bad citation IDs without throwing.
   // Dimension scores still compute from ratingEvidence regardless.
   const clean = sanitizeCitations(analysis, realSegments)
 
@@ -86,12 +86,12 @@ export function computeInterviewScore(
       excludedDimensions.push({ dimensionId, reason: 'not assessed in this analysis' })
       continue
     }
-    // Don't exclude just because citations were stripped — ratingEvidence is still valid.
+    // Don't exclude just because citations were stripped  -  ratingEvidence is still valid.
     included.push({ assessment, weight })
   }
 
   if (included.length === 0) {
-    throw new Error('No dimension had usable evidence — cannot compute a score for this session')
+    throw new Error('No dimension had usable evidence  -  cannot compute a score for this session')
   }
 
   const totalWeight = included.reduce((sum, d) => sum + d.weight, 0)

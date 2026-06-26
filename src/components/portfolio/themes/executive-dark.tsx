@@ -83,7 +83,7 @@ export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
                 </motion.div>
               )}
 
-              {/* NAME — the centerpiece */}
+              {/* NAME  -  the centerpiece */}
               <div className="mb-8 overflow-hidden">
                 {nameWords.map((word, wi) => (
                   <div key={wi} className="overflow-hidden leading-[0.9]">

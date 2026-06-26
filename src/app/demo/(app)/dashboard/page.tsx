@@ -16,7 +16,7 @@ const PORTFOLIOS = [
   },
   {
     id: 'p2',
-    title: 'UX Lead — Fintech',
+    title: 'UX Lead  -  Fintech',
     status: 'draft',
     proof_score: 72,
     updated_at: '2026-06-10T10:00:00Z',
@@ -41,7 +41,7 @@ const CATEGORIES = [
 ]
 
 const ACTIVITY = [
-  { label: 'Ran ProofScore audit — score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
+  { label: 'Ran ProofScore audit  -  score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
   { label: 'Added Checkout Redesign case study', time: 'Yesterday', icon: Plus },
   { label: 'Published portfolio', time: '2 days ago', icon: Globe },
 ]
@@ -144,7 +144,7 @@ export default function DemoDashboardPage() {
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                   Only 2 of 8 bullets have metrics. Adding 3 more could push your ProofScore from{' '}
                   <span className="text-amber-400 font-semibold">84 → 91</span>.
-                  Recruiters skip unproven claims — numbers make you real.
+                  Recruiters skip unproven claims  -  numbers make you real.
                 </p>
                 <Button asChild variant="gradient" size="sm" className="gap-1.5">
                   <Link href="/demo/resume">

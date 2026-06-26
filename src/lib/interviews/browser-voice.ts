@@ -2,7 +2,7 @@
 
 // Browser-native voice I/O using the Web Speech API (SpeechSynthesis for the question
 // being read aloud, SpeechRecognition for dictating an answer). Zero API key, zero
-// secrets, zero Gemini involvement — deliberately a SEPARATE path from
+// secrets, zero Gemini involvement  -  deliberately a SEPARATE path from
 // src/lib/interviews/gemini/live.ts's Gemini Live integration, which remains gated
 // and unimplemented. This is real, working voice I/O today, just lower-quality and
 // browser-dependent (Chrome/Edge support SpeechRecognition; Firefox/Safari do not as
@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 // Feature detection (does this browser support SpeechRecognition/speechSynthesis)
-// must agree between server and client render or React flags a hydration mismatch —
+// must agree between server and client render or React flags a hydration mismatch  - 
 // there is no window on the server, so a server-rendered "false" must match the
 // client's first render exactly. useSyncExternalStore with a fixed getServerSnapshot
 // is the React-documented pattern for this (same one used by
