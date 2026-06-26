@@ -26,8 +26,8 @@ export function Navbar() {
 
   const navLinks = [
     { href: '/#built-for', label: "Who it's for" },
-    { href: '/waitlist#how-it-works', label: 'How it works' },
-    { href: '/waitlist#faq', label: 'FAQ' },
+    { href: '/#how-it-works', label: 'How it works' },
+    { href: '/#faq', label: 'FAQ' },
   ]
 
   return (
@@ -86,9 +86,9 @@ export function Navbar() {
                 <Link href="/login">Sign in</Link>
               </Button>
               <Button asChild variant="gradient" size="md" className="gap-1.5 shadow-[0_0_20px_rgba(99,70,200,0.25)] hover:shadow-[0_0_28px_rgba(99,70,200,0.4)] transition-shadow duration-300">
-                <Link href="/waitlist">
+                <Link href="/signup">
                   <Zap className="h-3.5 w-3.5" />
-                  Join Beta
+                  Get started
                 </Link>
               </Button>
             </>
@@ -129,9 +129,9 @@ export function Navbar() {
                   <Link href="/login">Sign in</Link>
                 </Button>
                 <Button asChild variant="gradient" className="gap-1.5">
-                  <Link href="/waitlist">
+                  <Link href="/signup">
                     <Zap className="h-3.5 w-3.5" />
-                    Join Beta
+                    Get started
                   </Link>
                 </Button>
               </>

@@ -90,8 +90,8 @@ export default function LandingPage() {
             style={{ animationDelay: '480ms' }}
           >
             <Button asChild variant="gradient" size="xl" className="w-full sm:w-auto gap-2.5 shadow-glow">
-              <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="hero_primary">
-                Join the private beta
+              <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="hero_primary">
+                Get started free
                 <ArrowRight className="h-4 w-4" />
               </TrackedLink>
             </Button>
@@ -385,8 +385,8 @@ export default function LandingPage() {
               ))}
             </ul>
             <Button asChild variant="gradient" size="lg" className="gap-2">
-              <Link href="/waitlist">
-                Join the private beta
+              <Link href="/signup">
+                Get started free
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -473,7 +473,7 @@ export default function LandingPage() {
                 )}
               </ul>
               <Button asChild variant="secondary" size="lg" className="w-full">
-                <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_free_card">Join the private beta</TrackedLink>
+                <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_free_card">Get started free</TrackedLink>
               </Button>
             </div>
           </StaggerChild>
@@ -512,10 +512,10 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button asChild variant="gradient" size="lg" className="w-full shadow-glow">
-                  <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_pro_card">Join the private beta</TrackedLink>
+                  <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_pro_card">Get started free</TrackedLink>
                 </Button>
                 <p className="text-xs text-muted-foreground/60 text-center mt-3">
-                  Private beta · Help shape V1 · Early access
+                  No credit card required · Cancel anytime
                 </p>
               </div>
             </div>
@@ -665,7 +665,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/* ─── FAQ ──────────────────────────────────────────────── */}
-      <section className="py-32 px-4 sm:px-6 max-w-3xl mx-auto">
+      <section id="faq" className="py-32 px-4 sm:px-6 max-w-3xl mx-auto">
         <AnimatedSection className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight mb-4">Frequently asked questions</h2>
           <p className="text-muted-foreground">The honest answers.</p>
@@ -689,13 +689,13 @@ export default function LandingPage() {
               stand.
             </p>
             <Button asChild variant="gradient" size="xl" className="shadow-glow gap-2">
-              <Link href="/waitlist">
-                Join the Showcase beta
+              <Link href="/signup">
+                Get started free
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <p className="text-xs text-muted-foreground/60 mt-4">
-              Private beta · Early access · Help shape V1
+              No credit card required · Set up in minutes
             </p>
           </div>
         </section>
