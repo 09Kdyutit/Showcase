@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
     // Send confirmation email — fire and forget, never block the response
     const { subject, html, text } = waitlistConfirmationEmail(data.full_name)
     resend.emails.send({
-      from: 'Showcase <onboarding@resend.dev>',
+      from: 'Showcase <hello@tryshowcase.ink>',
       to: data.email,
       subject,
       html,

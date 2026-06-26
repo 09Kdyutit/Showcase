@@ -119,8 +119,8 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
                 <tr>
                   <td style="padding:20px 40px 32px;border-top:1px solid rgba(255,255,255,0.05);">
                     <p style="margin:0;font-size:12px;color:#6b7280;line-height:1.6;">
-                      Questions? Reply to this email or reach us at <a href="mailto:kumar.vinay0210@gmail.com" style="color:#f472b6;text-decoration:none;">kumar.vinay0210@gmail.com</a><br/>
-                      <a href="mailto:kumar.vinay0210@gmail.com?subject=Unsubscribe" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
+                      Questions? Reply to this email or reach us at <a href="mailto:hello@tryshowcase.ink" style="color:#f472b6;text-decoration:none;">hello@tryshowcase.ink</a><br/>
+                      <a href="mailto:hello@tryshowcase.ink?subject=Unsubscribe" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
                     </p>
                   </td>
                 </tr>
@@ -160,11 +160,11 @@ WHAT TO EXPECT:
 
 No spam. No fake urgency. We'll only email you when something is real.
 
-Questions? Reply to this email or reach us at kumar.vinay0210@gmail.com
+Questions? Reply to this email or reach us at hello@tryshowcase.ink
 
 —
 Showcase · Turn your experience into evidence.
-To unsubscribe, email kumar.vinay0210@gmail.com with subject "Unsubscribe".`
+To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".`
 
   return { subject, html, text }
 }
