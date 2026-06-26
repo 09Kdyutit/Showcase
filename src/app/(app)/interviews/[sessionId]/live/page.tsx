@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiErrorMessage } from '@/lib/utils'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { speakText, stopSpeaking, useBrowserDictation, useSpeechSynthesisSupport } from '@/lib/interviews/browser-voice'
 import { LiveInterviewEngine, type LiveTranscriptSegment } from '@/lib/interviews/live-voice-client'
 import { LIVE_INTERVIEW_COMPLETE_PHRASE } from '@/lib/interviews/gemini/live-prompt'
@@ -155,19 +156,37 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
         setStatus('idle')
         return
       }
-      const { ephemeralToken, model } = tokenJson.data
-      addDebug(`token ok model=${model} tok=${String(ephemeralToken).slice(0,20)}...`)
+      const { model, systemInstruction } = tokenJson.data
+      addDebug(`token ok model=${model}`)
 
-      // Start mic capture BEFORE connecting — mic is ready before setupComplete fires,
-      // and any permission dialog happens before the WebSocket even opens. The engine's
-      // ScriptProcessorNode safely drops audio when this.session is null.
+      // Get the Supabase session JWT to authenticate the Edge Function proxy.
+      // The JWT is short-lived and passed as a URL param (WebSocket API has no header support).
+      const supabase = createSupabaseClient()
+      const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+      const jwt = supabaseSession?.access_token
+      if (!jwt) {
+        toast.error('Could not get session token. Please refresh and try again.')
+        addDebug('auth: no jwt')
+        setStatus('idle')
+        return
+      }
+
+      // Build the proxy WebSocket URL. The Edge Function validates the JWT and
+      // proxies to Gemini using the real API key (kept as a Supabase secret).
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+      const wsBaseUrl = supabaseUrl.replace(/^https?:\/\//, 'wss://')
+      const wsUrl = `${wsBaseUrl}/functions/v1/live-interview-ws?jwt=${encodeURIComponent(jwt)}&session_id=${encodeURIComponent(sessionId)}`
+      addDebug('proxy:ready')
+
+      // Start mic capture BEFORE connecting — mic ready before setupComplete fires,
+      // and permission dialog happens before the WebSocket opens.
       await engine.startMicCapture()
       addDebug('mic:ready')
 
-      // connect() sends the setup message and returns immediately after WebSocket open.
-      // The server will then send setupComplete; the engine detects it in handleMessage
-      // and fires the kickoff turn automatically — no explicit call needed here.
-      await engine.connect(ephemeralToken, model)
+      // connect() opens a WebSocket to the Edge Function proxy, sends the setup
+      // message on open, and returns. The proxy forwards it to Gemini. When
+      // setupComplete arrives back, the engine fires the kickoff automatically.
+      await engine.connect(wsUrl, model, systemInstruction)
     } catch (err) {
       console.error(err)
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -202,13 +221,6 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
             <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
             <p className="text-sm text-muted-foreground">Connecting to your AI interviewer…</p>
-            {debugLog.length > 0 && (
-              <div className="w-full rounded-lg bg-surface-100 border border-border/40 p-2 text-left">
-                {debugLog.map((line, i) => (
-                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -235,15 +247,6 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
               <div ref={transcriptEndRef} />
             </div>
 
-            {debugLog.length > 0 && (
-              <div className="mt-3 rounded-lg bg-surface-100 border border-border/40 p-2 max-h-[120px] overflow-y-auto">
-                <p className="text-[10px] font-mono font-medium text-muted-foreground mb-1">Connection log</p>
-                {debugLog.map((line, i) => (
-                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
-                ))}
-              </div>
-            )}
-
             <Button
               variant="outline" className="mt-4 gap-2 text-destructive"
               disabled={status === 'ending'}
@@ -256,16 +259,8 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
         )}
 
         {errorMessage && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2">
             <p className="text-xs text-destructive">{errorMessage}</p>
-            {debugLog.length > 0 && (
-              <div className="rounded-lg bg-surface-100 border border-border/40 p-2 max-h-[140px] overflow-y-auto">
-                <p className="text-[10px] font-mono font-medium text-muted-foreground mb-1">Connection log (share this if reporting a bug)</p>
-                {debugLog.map((line, i) => (
-                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>

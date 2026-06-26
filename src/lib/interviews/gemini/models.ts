@@ -6,5 +6,5 @@ export function getAnalysisModel(): string {
 }
 
 export function getLiveModel(): string {
-  return process.env.GEMINI_LIVE_MODEL ?? 'gemini-2.0-flash-live-001'
+  return process.env.GEMINI_LIVE_MODEL ?? 'gemini-2.5-flash-native-audio-latest'
 }

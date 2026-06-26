@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isProUser } from '@/lib/ai/rate-limit'
 import { isInterviewLiveEnabled } from '@/lib/interviews/config'
-import { createLiveEphemeralToken } from '@/lib/interviews/gemini/live'
+import { getLiveModel } from '@/lib/interviews/gemini/models'
+import { buildLiveInterviewerSystemInstruction } from '@/lib/interviews/gemini/live-prompt'
 
 /**
- * Issues a short-lived Gemini Live ephemeral token for a voice session. Runs every
- * check — ownership, delivery mode, session state, entitlement — BEFORE the feature
- * gate, then before calling Gemini, so the gate is proven to fail closed at the LAST
- * possible step rather than accidentally earlier for an unrelated reason. The
- * interviewer's system instruction (persona + exact question list) is built
- * server-side from this session's real planned questions and locked into the token
- * itself — the browser never sees the prompt, only the resulting token.
+ * Returns the model ID + system instruction needed for a live voice session.
+ * All access checks happen here so the Edge Function only receives connections
+ * from sessions already cleared for voice delivery.
+ *
+ * The session's systemInstruction is built server-side from the real planned
+ * questions so the browser cannot fabricate a different prompt — but the real
+ * GEMINI_API_KEY never reaches the browser. It lives only in the Supabase Edge
+ * Function (live-interview-ws) as a secret.
  */
 export async function POST(
   _request: NextRequest,
@@ -27,7 +29,7 @@ export async function POST(
       .from('interview_sessions')
       .select('id, user_id, status, delivery_mode, max_duration_seconds, target_role')
       .eq('id', id)
-      .eq('user_id', user.id) // ownership — a token can never be issued for another user's session
+      .eq('user_id', user.id)
       .maybeSingle()
     if (sessionError) throw sessionError
     if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -35,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'This session is not configured for voice delivery.', code: 'INVALID_DELIVERY_MODE' }, { status: 409 })
     }
     if (session.status !== 'planned' && session.status !== 'in_progress') {
-      return NextResponse.json({ error: `Session is ${session.status}, cannot issue a live token.`, code: 'INVALID_STATE' }, { status: 409 })
+      return NextResponse.json({ error: `Session is ${session.status}, cannot start a live session.`, code: 'INVALID_STATE' }, { status: 409 })
     }
 
     const isPro = await isProUser(user.id)
@@ -60,13 +62,15 @@ export async function POST(
       return NextResponse.json({ error: 'This session has no planned questions.', code: 'NO_QUESTIONS' }, { status: 409 })
     }
 
-    const token = await createLiveEphemeralToken({
-      sessionId: id, userId: user.id, maxDurationSeconds: session.max_duration_seconds,
-      targetRole: session.target_role, questions: questions.map((q) => ({ questionText: q.question_text, competency: q.competency })),
-    })
-    return NextResponse.json({ data: token })
+    const model = getLiveModel()
+    const systemInstruction = buildLiveInterviewerSystemInstruction(
+      questions.map((q) => ({ questionText: q.question_text, competency: q.competency })),
+      session.target_role,
+    )
+
+    return NextResponse.json({ data: { model, systemInstruction } })
   } catch (err) {
     console.error('[interviews/sessions/[id]/live-token POST]', err instanceof Error ? err.message : err)
-    return NextResponse.json({ error: 'Failed to issue live session token.' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to prepare live session.' }, { status: 500 })
   }
 }

@@ -1,26 +1,69 @@
 'use client'
 
-// Real-time browser client for Gemini Live voice interviews. Connects DIRECTLY to
-// Gemini using only the short-lived ephemeral token from /live-token — the real
-// GEMINI_API_KEY never reaches the browser. The system instruction is built
-// server-side from the session's real questions and passed to connect() explicitly
-// so the browser can include it in the config (more reliable than liveConnectConstraints).
+// Real-time browser client for Gemini Live voice interviews.
 //
-// AudioContext lifecycle: the caller MUST call preInitAudio() synchronously in the
-// user-gesture handler (before any await) to unlock the Web Audio API. Browsers
-// block audio playback created outside a user gesture chain; the
-// ScriptProcessorNode also requires the capture context to be unlocked. Without
-// this, the interviewer is connected but silent and no transcript appears.
+// Connection path:
+//   browser → Supabase Edge Function (live-interview-ws, validated JWT auth)
+//           → Gemini BidiGenerateContent (real API key, never in browser)
 //
-// Kickoff timing: the SDK's connect() resolves as soon as the WebSocket opens —
-// before the server sends setupComplete. Sending the kickoff turn before setupComplete
-// means the server may ignore it. We detect setupComplete in handleMessage and only
-// then fire the kickoff via sendRealtimeInput (better for audio mode than sendClientContent).
-
-import { GoogleGenAI, type Session, type LiveServerMessage } from '@google/genai'
+// WHY a proxy instead of connecting to Gemini directly:
+//   Gemini ephemeral tokens (auth_tokens/xxx) only work with the
+//   BidiGenerateContentConstrained endpoint, whose model registry uses the v1main
+//   (stable) catalog. gemini-2.0-flash-live-001 is not in that catalog — it
+//   requires BidiGenerateContent with a real API key. We cannot send the real key
+//   to the browser, so the Edge Function (supabase/functions/live-interview-ws)
+//   holds the key as a Supabase secret and proxies all messages transparently.
+//   The browser sends the same Gemini JSON wire format it would send directly;
+//   the proxy is invisible to this client.
+//
+// AudioContext lifecycle: the caller MUST call preInitAudio() synchronously inside
+// the user-gesture handler (before any await) to unlock the Web Audio API. Browsers
+// block audio playback created outside a user gesture chain.
+//
+// Kickoff timing: the WebSocket opens before Gemini sends setupComplete.
+// Sending audio or content before setupComplete causes an immediate close.
+// We gate all sends on readyToSendAudio, which is set on setupComplete.
 
 const CAPTURE_SAMPLE_RATE = 16000
 const PLAYBACK_SAMPLE_RATE = 24000
+
+// Gemini Live API wire format types (raw JSON, not SDK types)
+interface GeminiSetupMessage {
+  setup: {
+    model: string
+    systemInstruction?: { parts: Array<{ text: string }> }
+    generationConfig?: {
+      responseModalities?: string[]
+    }
+    inputAudioTranscription?: Record<string, never>
+    outputAudioTranscription?: Record<string, never>
+  }
+}
+
+interface GeminiRealtimeInputMessage {
+  realtimeInput: {
+    audio?: { data: string; mimeType: string }
+    text?: string
+  }
+}
+
+interface GeminiServerMessage {
+  setupComplete?: Record<string, unknown>
+  serverContent?: {
+    modelTurn?: {
+      parts?: Array<{
+        inlineData?: { data: string; mimeType: string }
+        text?: string
+      }>
+    }
+    outputTranscription?: { text?: string; finished?: boolean }
+    inputTranscription?: { text?: string; finished?: boolean }
+    turnComplete?: boolean
+    interrupted?: boolean
+  }
+  toolCall?: unknown
+  toolCallCancellation?: unknown
+}
 
 export interface LiveQuestionRef {
   id: string
@@ -33,7 +76,7 @@ export interface LiveTranscriptSegment {
   startMs: number
   endMs: number
   questionId: string | null
-  pending?: boolean // true while the turn is still streaming — replaced on flush
+  pending?: boolean
 }
 
 export interface LiveInterviewCallbacks {
@@ -76,7 +119,7 @@ function downsample(input: Float32Array, inputRate: number, outputRate: number):
 }
 
 export class LiveInterviewEngine {
-  private session: Session | null = null
+  private ws: WebSocket | null = null
   private playbackContext: AudioContext | null = null
   private captureContext: AudioContext | null = null
   private micStream: MediaStream | null = null
@@ -85,8 +128,7 @@ export class LiveInterviewEngine {
   private startedAt = 0
   private messageCount = 0
   private closeWasError = false
-  // Gate: audio chunks must not be sent until the server confirms setup is done.
-  // Sending audio before setupComplete causes the server to close the connection.
+  // Gate: audio must not be sent until the server confirms setup is complete.
   private readyToSendAudio = false
 
   private currentQuestionIndex = 0
@@ -100,9 +142,6 @@ export class LiveInterviewEngine {
     private readonly callbacks: LiveInterviewCallbacks
   ) {}
 
-  // Call this SYNCHRONOUSLY inside the button click handler, before any await.
-  // Creates and resumes both audio contexts while the browser considers us "in a
-  // user gesture", unlocking audio playback for the session's lifetime.
   preInitAudio(): void {
     if (!this.playbackContext) {
       this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
@@ -119,7 +158,6 @@ export class LiveInterviewEngine {
   }
 
   getTranscript(): LiveTranscriptSegment[] {
-    // Return committed segments only (no pending ones)
     return this.segments.filter((s) => !s.pending)
   }
 
@@ -140,98 +178,108 @@ export class LiveInterviewEngine {
     }
   }
 
-  async connect(ephemeralToken: string, model: string): Promise<void> {
+  // wsUrl: the Supabase Edge Function URL (wss://...supabase.co/functions/v1/live-interview-ws?jwt=...&session_id=...)
+  // systemInstruction: built server-side and returned by /live-token; sent to Gemini in the setup message.
+  async connect(wsUrl: string, model: string, systemInstruction: string): Promise<void> {
     if (!this.playbackContext) {
-      // Fallback if preInitAudio() wasn't called — less reliable on Safari/mobile
       this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
     }
 
-    const client = new GoogleGenAI({ apiKey: ephemeralToken, httpOptions: { apiVersion: 'v1alpha' } })
     this.startedAt = Date.now()
 
-    this.session = await client.live.connect({
-      model,
-      // config intentionally omitted: responseModalities, systemInstruction, and
-      // transcription are locked into the token via liveConnectConstraints on the
-      // server side. The BidiGenerateContentConstrained endpoint applies them
-      // automatically; passing them here too would attempt to override locked fields.
-      callbacks: {
-        onopen: () => {
-          this.callbacks.onDebugEvent?.('ws:open')
-          this.callbacks.onConnected?.()
+    const ws = new WebSocket(wsUrl)
+    // Gemini Live API sends JSON payloads inside binary WebSocket frames.
+    // Setting arraybuffer lets us decode them synchronously with TextDecoder.
+    ws.binaryType = 'arraybuffer'
+    this.ws = ws
+
+    ws.onopen = () => {
+      this.callbacks.onDebugEvent?.('ws:open')
+      // Send setup immediately — server expects the setup message right after open.
+      const setupMsg: GeminiSetupMessage = {
+        setup: {
+          model: `models/${model}`,
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          generationConfig: { responseModalities: ['AUDIO'] },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
         },
-        onmessage: (message) => this.handleMessage(message),
-        onerror: (e) => {
-          const msg = (e as ErrorEvent)?.message ?? String(e)
-          this.closeWasError = true
-          this.callbacks.onDebugEvent?.(`ws:error ${msg}`)
-          this.callbacks.onError?.(msg)
-        },
-        onclose: (e) => {
-          // Null the session immediately so the ScriptProcessorNode's onaudioprocess
-          // stops trying to send() on an already-closed WebSocket — that causes a
-          // flood of "WebSocket is already in CLOSING or CLOSED state" errors.
-          this.session = null
-          this.readyToSendAudio = false
-          const ce = e as CloseEvent
-          const detail = `code=${ce?.code ?? '?'} reason=${ce?.reason ?? ''} clean=${ce?.wasClean ?? '?'}`
-          this.callbacks.onDebugEvent?.(`ws:close ${detail} wasError=${this.closeWasError}`)
-          this.callbacks.onClosed?.(this.closeWasError)
-        },
-      },
-    })
+      }
+      ws.send(JSON.stringify(setupMsg))
+      this.callbacks.onDebugEvent?.('setup:sent')
+      this.callbacks.onConnected?.()
+    }
+
+    ws.onmessage = (event: MessageEvent) => {
+      try {
+        // Gemini sends binary frames; decode ArrayBuffer → string before parsing.
+        const raw: string =
+          event.data instanceof ArrayBuffer
+            ? new TextDecoder().decode(event.data)
+            : (event.data as string)
+        const msg: GeminiServerMessage = JSON.parse(raw)
+        this.handleMessage(msg)
+      } catch (e) {
+        this.callbacks.onDebugEvent?.(`msg:parseError ${String(e)}`)
+      }
+    }
+
+    ws.onerror = (e) => {
+      const msg = (e as ErrorEvent)?.message ?? 'WebSocket error'
+      this.closeWasError = true
+      this.callbacks.onDebugEvent?.(`ws:error ${msg}`)
+      this.callbacks.onError?.(msg)
+    }
+
+    ws.onclose = (e: CloseEvent) => {
+      // Null ws immediately to stop the ScriptProcessorNode from trying to
+      // send on a closed WebSocket (which would flood the console with errors).
+      this.ws = null
+      this.readyToSendAudio = false
+      const detail = `code=${e.code ?? '?'} reason=${e.reason ?? ''} clean=${e.wasClean ?? '?'}`
+      this.callbacks.onDebugEvent?.(`ws:close ${detail} wasError=${this.closeWasError}`)
+      this.callbacks.onClosed?.(this.closeWasError)
+    }
   }
 
-  // Fired internally when the server sends setupComplete, meaning it's fully ready
-  // to receive input. Using sendRealtimeInput (not sendClientContent) because
-  // the session is in realtime audio mode — sendRealtimeInput triggers immediate
-  // generation and is the correct path for audio-output Live sessions.
   private sendKickoff(): void {
-    if (!this.session) return
+    if (!this.ws) return
     this.callbacks.onDebugEvent?.('kickoff:sending')
-    this.session.sendRealtimeInput({
-      text: 'Please begin the interview now.',
-    })
+    const msg: GeminiRealtimeInputMessage = {
+      realtimeInput: { text: 'Please begin the interview now.' },
+    }
+    this.ws.send(JSON.stringify(msg))
   }
 
-  private handleMessage(message: LiveServerMessage) {
+  private handleMessage(msg: GeminiServerMessage) {
     this.messageCount++
 
-    // Server signals it's fully ready — open the audio gate and send the kickoff.
-    // The SDK's connect() resolves on WebSocket open (before setupComplete arrives),
-    // so the ScriptProcessorNode was already capturing audio — but gated from sending
-    // until now. Sending audio or content before setupComplete causes the server to
-    // close the connection immediately.
-    if (message.setupComplete) {
+    if (msg.setupComplete) {
       this.readyToSendAudio = true
       this.callbacks.onDebugEvent?.(`setupComplete msgCount=${this.messageCount}`)
       this.sendKickoff()
       return
     }
 
-    if (message.data) {
-      this.callbacks.onDebugEvent?.(`audio len=${message.data.length}`)
-      this.playAudioChunk(message.data)
-    }
-
-    const serverContent = message.serverContent
+    const serverContent = msg.serverContent
     if (!serverContent) {
-      this.callbacks.onDebugEvent?.(`msg#${this.messageCount} keys=${Object.keys(message).join(',')}`)
+      this.callbacks.onDebugEvent?.(`msg#${this.messageCount} keys=${Object.keys(msg).join(',')}`)
       return
     }
 
     const oT = serverContent.outputTranscription
     const iT = serverContent.inputTranscription
     this.callbacks.onDebugEvent?.(
-      `msg#${this.messageCount} outTx=${oT?.text?.slice(0,30) ?? '-'} inTx=${iT?.text?.slice(0,20) ?? '-'} tc=${serverContent.turnComplete ?? false}`
+      `msg#${this.messageCount} outTx=${oT?.text?.slice(0, 30) ?? '-'} inTx=${iT?.text?.slice(0, 20) ?? '-'} tc=${serverContent.turnComplete ?? false}`
     )
-    if (process.env.NODE_ENV !== 'production') {
-      if (oT || iT || serverContent.turnComplete) {
-        console.debug('[live-voice] message', JSON.stringify({
-          outputTranscription: oT ? { text: oT.text, finished: oT.finished } : undefined,
-          inputTranscription: iT ? { text: iT.text, finished: iT.finished } : undefined,
-          turnComplete: serverContent.turnComplete,
-        }))
+
+    // Audio arrives in modelTurn.parts[].inlineData.data as base64 PCM.
+    // Play each part independently to preserve ordering.
+    if (serverContent.modelTurn?.parts) {
+      for (const part of serverContent.modelTurn.parts) {
+        if (part.inlineData?.data) {
+          this.playAudioChunk(part.inlineData.data)
+        }
       }
     }
 
@@ -243,8 +291,6 @@ export class LiveInterviewEngine {
       if (this.pendingCandidateText) this.flushCandidate()
       this.pendingInterviewerText += serverContent.outputTranscription.text
       this.maybeAdvanceQuestion(this.pendingInterviewerText)
-      // Push a live-preview pending segment so the UI updates while the
-      // interviewer is still speaking — replaced by the committed version on flush.
       this.emitLivePreview()
     }
 
@@ -257,8 +303,6 @@ export class LiveInterviewEngine {
     }
   }
 
-  // Emits the current in-progress interviewer text as a temporary pending segment
-  // so the UI can show text as it streams, not just after the full turn ends.
   private emitLivePreview() {
     if (!this.pendingInterviewerText) return
     const withoutPending = this.segments.filter((s) => !s.pending)
@@ -292,7 +336,6 @@ export class LiveInterviewEngine {
     const trimmed = content.trim()
     if (!trimmed) return
     const endMs = this.elapsedMs()
-    // Remove any pending preview for this speaker before committing the final
     const withoutPending = this.segments.filter((s) => !s.pending)
     withoutPending.push({ speaker, content: trimmed, startMs: endMs, endMs, questionId: this.currentQuestionId() })
     this.segments = withoutPending
@@ -303,7 +346,6 @@ export class LiveInterviewEngine {
     if (!this.playbackContext) return
     const ctx = this.playbackContext
 
-    // Resume if suspended (autoplay policy may have suspended after creation)
     if (ctx.state === 'suspended') {
       void ctx.resume()
     }
@@ -335,20 +377,20 @@ export class LiveInterviewEngine {
     const source = this.captureContext.createMediaStreamSource(this.micStream)
     this.processorNode = this.captureContext.createScriptProcessor(4096, 1, 1)
     this.processorNode.onaudioprocess = (event) => {
-      if (!this.session || !this.readyToSendAudio) return
+      if (!this.ws || !this.readyToSendAudio) return
       const input = event.inputBuffer.getChannelData(0)
       const downsampled = downsample(input, this.captureContext!.sampleRate, CAPTURE_SAMPLE_RATE)
       const base64 = float32ToBase64Pcm16(downsampled)
       try {
-        this.session.sendRealtimeInput({ audio: { data: base64, mimeType: `audio/pcm;rate=${CAPTURE_SAMPLE_RATE}` } })
+        const msg: GeminiRealtimeInputMessage = {
+          realtimeInput: { audio: { data: base64, mimeType: `audio/pcm;rate=${CAPTURE_SAMPLE_RATE}` } },
+        }
+        this.ws.send(JSON.stringify(msg))
       } catch {
-        // WebSocket may close mid-session; the onclose handler nulls session to stop future calls
+        // WebSocket may close mid-session; onclose nulls ws to stop future calls
       }
     }
     source.connect(this.processorNode)
-    // ScriptProcessorNode must be connected to destination to fire onaudioprocess.
-    // The actual audio routed here is the mic signal, not the playback — it does
-    // create a faint echo path but ScriptProcessorNode offers no alternative.
     this.processorNode.connect(this.captureContext.destination)
   }
 
@@ -365,8 +407,8 @@ export class LiveInterviewEngine {
     this.flushInterviewer()
     this.flushCandidate()
     this.stopMicCapture()
-    this.session?.close()
-    this.session = null
+    this.ws?.close()
+    this.ws = null
     this.playbackContext?.close()
     this.playbackContext = null
   }
