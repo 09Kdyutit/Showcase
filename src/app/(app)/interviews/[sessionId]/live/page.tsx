@@ -155,7 +155,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
         setStatus('idle')
         return
       }
-      const { ephemeralToken, model, systemInstruction } = tokenJson.data
+      const { ephemeralToken, model } = tokenJson.data
       addDebug(`token ok model=${model} tok=${String(ephemeralToken).slice(0,20)}...`)
 
       // Start mic capture BEFORE connecting — mic is ready before setupComplete fires,
@@ -167,7 +167,7 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
       // connect() sends the setup message and returns immediately after WebSocket open.
       // The server will then send setupComplete; the engine detects it in handleMessage
       // and fires the kickoff turn automatically — no explicit call needed here.
-      await engine.connect(ephemeralToken, model, systemInstruction)
+      await engine.connect(ephemeralToken, model)
     } catch (err) {
       console.error(err)
       const msg = err instanceof Error ? err.message : 'Unknown error'

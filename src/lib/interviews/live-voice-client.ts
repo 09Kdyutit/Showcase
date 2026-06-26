@@ -17,7 +17,7 @@
 // means the server may ignore it. We detect setupComplete in handleMessage and only
 // then fire the kickoff via sendRealtimeInput (better for audio mode than sendClientContent).
 
-import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from '@google/genai'
+import { GoogleGenAI, type Session, type LiveServerMessage } from '@google/genai'
 
 const CAPTURE_SAMPLE_RATE = 16000
 const PLAYBACK_SAMPLE_RATE = 24000
@@ -140,7 +140,7 @@ export class LiveInterviewEngine {
     }
   }
 
-  async connect(ephemeralToken: string, model: string, systemInstruction: string): Promise<void> {
+  async connect(ephemeralToken: string, model: string): Promise<void> {
     if (!this.playbackContext) {
       // Fallback if preInitAudio() wasn't called — less reliable on Safari/mobile
       this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
@@ -151,16 +151,10 @@ export class LiveInterviewEngine {
 
     this.session = await client.live.connect({
       model,
-      config: {
-        // Pass the full config explicitly here — more reliable than relying on
-        // liveConnectConstraints being applied by the server when the browser
-        // doesn't specify a config. The SDK warns ephemeral token constraint
-        // support is experimental; explicit config removes all ambiguity.
-        responseModalities: [Modality.AUDIO],
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        outputAudioTranscription: {},
-        inputAudioTranscription: {},
-      },
+      // config intentionally omitted: responseModalities, systemInstruction, and
+      // transcription are locked into the token via liveConnectConstraints on the
+      // server side. The BidiGenerateContentConstrained endpoint applies them
+      // automatically; passing them here too would attempt to override locked fields.
       callbacks: {
         onopen: () => {
           this.callbacks.onDebugEvent?.('ws:open')

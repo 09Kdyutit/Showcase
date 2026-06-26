@@ -1,4 +1,5 @@
 import 'server-only'
+import { Modality } from '@google/genai'
 import { isInterviewLiveEnabled } from '../config.ts'
 import { InterviewLiveUnavailableError, InterviewGeminiProviderError } from './errors.ts'
 import { getLiveModel } from './models.ts'
@@ -50,18 +51,30 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
   const expireTime = new Date(Date.now() + newSessionWindowMs).toISOString()
   const newSessionExpireTime = new Date(Date.now() + 60_000).toISOString()
 
-  // The system instruction (persona + question list) is built here on the server and
-  // returned to the browser alongside the token. The browser passes it directly in the
-  // connect() config, which is more reliable than relying on liveConnectConstraints
-  // being applied server-side — the locked-field mechanism is experimental and the SDK
-  // warns that ephemeral token support may change. The questions are already known to the
-  // user (displayed in the session plan), so this is not a meaningful information leak.
+  // liveConnectConstraints are required: the BidiGenerateContentConstrained WebSocket
+  // endpoint (which the SDK auto-selects when the token name starts with auth_tokens/)
+  // immediately closes connections from tokens that have no constraints defined.
+  // lockAdditionalFields:[] locks only the fields explicitly set in the config, meaning
+  // the browser cannot override systemInstruction, responseModalities, or transcription —
+  // those come from the server's plan, not from client-side code.
+  // We also return systemInstruction to the browser so it can show the question list
+  // in the UI without a second round-trip.
   try {
     const token = await client.authTokens.create({
       config: {
         uses: 1,
         expireTime,
         newSessionExpireTime,
+        liveConnectConstraints: {
+          model,
+          config: {
+            responseModalities: [Modality.AUDIO],
+            systemInstruction,
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+          },
+        },
+        lockAdditionalFields: [],
       },
     })
     if (!token.name) throw new InterviewGeminiProviderError()
