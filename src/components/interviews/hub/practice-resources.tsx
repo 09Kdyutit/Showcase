@@ -1,21 +1,53 @@
 import Link from 'next/link'
-import { Dumbbell } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dumbbell, BookOpen, Building2 } from 'lucide-react'
 import type { DrillDefinition } from '@/lib/interviews/drills'
 
 export function PracticeResources({ drills }: { drills: DrillDefinition[] }) {
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Recommended Drills</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
-        {drills.map((d) => (
-          <Link key={d.id} href="/interviews/drills" className="block p-3 rounded-xl border border-border/60 hover:bg-surface-200 transition-colors">
-            <p className="text-sm font-medium text-foreground">{d.label}</p>
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.objective}</p>
-          </Link>
-        ))}
-        <Link href="/interviews/drills" className="text-xs text-brand-400 hover:underline inline-block mt-1">Browse all drills</Link>
-      </CardContent>
-    </Card>
+    <div className="glass-card rounded-2xl p-5 space-y-4">
+      <p className="text-sm font-semibold text-foreground">Practice Resources</p>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-1 gap-2">
+        <Link
+          href="/interviews/questions"
+          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-brand-500/20 hover:bg-brand-500/5 transition-all group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center shrink-0">
+            <BookOpen className="h-3.5 w-3.5 text-brand-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground group-hover:text-brand-200 transition-colors">Question Library</p>
+            <p className="text-xs text-muted-foreground/60">72 behavioral questions, AI-scored</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/interviews/companies"
+          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <Building2 className="h-3.5 w-3.5 text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground group-hover:text-emerald-200 transition-colors">Company Prep</p>
+            <p className="text-xs text-muted-foreground/60">Google, Amazon, Stripe + 12 more</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/interviews/drills"
+          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-amber-500/20 hover:bg-amber-500/5 transition-all group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+            <Dumbbell className="h-3.5 w-3.5 text-amber-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground group-hover:text-amber-200 transition-colors">Communication Drills</p>
+            <p className="text-xs text-muted-foreground/60">{drills.length} structural practice exercises</p>
+          </div>
+        </Link>
+      </div>
+    </div>
   )
 }

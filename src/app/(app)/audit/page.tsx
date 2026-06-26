@@ -536,6 +536,22 @@ export default function AuditPage() {
             </Button>
           </div>
 
+          {/* Project Roadmap CTA */}
+          <Link
+            href="/audit/projects"
+            className="flex items-center justify-between p-4 rounded-2xl border border-brand-500/15 bg-brand-500/5 hover:bg-brand-500/10 hover:border-brand-500/25 transition-all group"
+          >
+            <div>
+              <p className="text-sm font-semibold text-brand-200 group-hover:text-brand-100 transition-colors">
+                Want project ideas to close these gaps?
+              </p>
+              <p className="text-xs text-muted-foreground/60 mt-0.5">
+                AI suggests real projects tailored to your resume -- with step-by-step build guides.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-brand-400 shrink-0 group-hover:translate-x-1 transition-transform" />
+          </Link>
+
           {/* Disclaimer */}
           <p className="text-xs text-muted-foreground/50 text-center leading-relaxed">
             ProofScore is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to

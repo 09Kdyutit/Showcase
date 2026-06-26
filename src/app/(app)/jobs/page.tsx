@@ -44,16 +44,16 @@ const PIPELINE_STAGES = [
 
 // ── Score Badge ────────────────────────────────────────────────────────────────
 function MatchScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 80 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' :
-    score >= 65 ? 'bg-brand-500/15 text-brand-300 border-brand-500/20' :
-    score >= 45 ? 'bg-amber-500/15 text-amber-400 border-amber-500/20' :
-    'bg-red-500/10 text-red-400/80 border-red-500/20'
+  const { label, color } =
+    score >= 80 ? { label: 'Strong Match', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' } :
+    score >= 65 ? { label: 'Good Match',   color: 'bg-brand-500/15 text-brand-300 border-brand-500/20' } :
+    score >= 45 ? { label: 'Fair Match',   color: 'bg-amber-500/15 text-amber-400 border-amber-500/20' } :
+                  { label: 'Weak Match',   color: 'bg-red-500/10 text-red-400/80 border-red-500/20' }
 
   return (
     <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border', color)}>
       <Target className="h-2.5 w-2.5" />
-      {score}%
+      {label}
     </span>
   )
 }
@@ -199,15 +199,15 @@ function JobDetailPanel({
             {matchScore !== undefined && (
               <div className="shrink-0 text-center">
                 <div className={cn(
-                  'w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold border',
+                  'px-2 py-1 rounded-xl flex items-center justify-center text-xs font-bold border whitespace-nowrap',
                   matchScore >= 80 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                   matchScore >= 65 ? 'bg-brand-500/10 border-brand-500/20 text-brand-300' :
                   matchScore >= 45 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
                   'bg-red-500/10 border-red-500/20 text-red-400'
                 )}>
-                  {matchScore}
+                  {matchScore >= 80 ? 'Strong' : matchScore >= 65 ? 'Good' : matchScore >= 45 ? 'Fair' : 'Weak'}
                 </div>
-                <p className="text-[10px] text-muted-foreground/60 mt-1 leading-tight">role-content<br/>match</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">match</p>
               </div>
             )}
           </div>
