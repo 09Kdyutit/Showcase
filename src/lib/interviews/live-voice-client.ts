@@ -162,18 +162,20 @@ export class LiveInterviewEngine {
         },
         onmessage: (message) => this.handleMessage(message),
         onerror: (e) => {
-          const msg = e instanceof Error ? e.message : String(e)
+          const msg = (e as ErrorEvent)?.message ?? String(e)
           this.closeWasError = true
-          this.callbacks.onDebugEvent?.(`ws:error:${msg}`)
+          this.callbacks.onDebugEvent?.(`ws:error ${msg}`)
           this.callbacks.onError?.(msg)
         },
-        onclose: () => {
+        onclose: (e) => {
           // Null the session immediately so the ScriptProcessorNode's onaudioprocess
           // stops trying to send() on an already-closed WebSocket — that causes a
           // flood of "WebSocket is already in CLOSING or CLOSED state" errors.
           this.session = null
           this.readyToSendAudio = false
-          this.callbacks.onDebugEvent?.(`ws:close wasError=${this.closeWasError}`)
+          const ce = e as CloseEvent
+          const detail = `code=${ce?.code ?? '?'} reason=${ce?.reason ?? ''} clean=${ce?.wasClean ?? '?'}`
+          this.callbacks.onDebugEvent?.(`ws:close ${detail} wasError=${this.closeWasError}`)
           this.callbacks.onClosed?.(this.closeWasError)
         },
       },

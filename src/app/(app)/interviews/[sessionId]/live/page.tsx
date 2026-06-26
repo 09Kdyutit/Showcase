@@ -255,7 +255,19 @@ function LiveVoiceInterview({ sessionId, questions }: { sessionId: string; quest
           </div>
         )}
 
-        {errorMessage && <p className="text-xs text-destructive mt-2">{errorMessage}</p>}
+        {errorMessage && (
+          <div className="mt-2 space-y-2">
+            <p className="text-xs text-destructive">{errorMessage}</p>
+            {debugLog.length > 0 && (
+              <div className="rounded-lg bg-surface-100 border border-border/40 p-2 max-h-[140px] overflow-y-auto">
+                <p className="text-[10px] font-mono font-medium text-muted-foreground mb-1">Connection log (share this if reporting a bug)</p>
+                {debugLog.map((line, i) => (
+                  <p key={i} className="text-[10px] font-mono text-muted-foreground leading-tight">{line}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
