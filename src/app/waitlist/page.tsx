@@ -82,16 +82,16 @@ const INITIAL_FORM: FormState = {
 
 const FAQ = [
   {
-    q: 'Is the beta free?',
-    a: 'Yes. Beta access is completely free. Early users help us shape the product and will be recognized for it.',
+    q: 'What is this waitlist for?',
+    a: 'We are gauging interest before opening Showcase to the public. Joining the waitlist reserves your place and tells us you are interested. We will reach out when access opens.',
   },
   {
-    q: 'When will I get access?',
-    a: 'We invite users in small batches. We will email you when your spot is ready. No ETA  -  but sooner the more context you share below.',
+    q: 'When will I hear back?',
+    a: 'There is no set timeline. We will email you when we are ready to open access. We are not rushing  -  we want the product to be right before we let people in.',
   },
   {
-    q: 'Do I need a resume already?',
-    a: 'A resume helps but is not required. You can build a portfolio from project descriptions, links, and work history too.',
+    q: 'Is joining the waitlist free?',
+    a: 'Yes, joining the waitlist costs nothing. Pricing details for the actual product will be shared when access opens.',
   },
   {
     q: 'Will Showcase write fake experience?',
@@ -103,11 +103,7 @@ const FAQ = [
   },
   {
     q: 'How will my data be used?',
-    a: 'Your email is used for beta invites, product updates, and feedback requests only. We never sell it. You can unsubscribe or request deletion at any time.',
-  },
-  {
-    q: 'Can I give feedback?',
-    a: 'That is exactly why we are doing this beta. We want blunt, honest feedback to make V1 the best it can be.',
+    a: 'Your email is used only to notify you when access opens and for occasional product updates. We never sell it. You can unsubscribe or request deletion at any time.',
   },
   {
     q: 'Can I unsubscribe?',
@@ -294,22 +290,22 @@ function SuccessState({
       </div>
 
       <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
-        {alreadyJoined ? "You're already on the list" : "You're on the Showcase beta list"}
+        {alreadyJoined ? "You're already on the list" : "You're on the Showcase waitlist"}
       </h2>
       <p className="text-foreground/60 text-lg mb-10 max-w-sm mx-auto font-light">
         {alreadyJoined
-          ? "We already have your spot saved. We'll email you when your invite is ready."
-          : "We'll email you when your invite is ready. No ETA, but we move fast."}
+          ? "We already have your spot saved. We'll be in touch when access opens."
+          : "We'll reach out when we're ready to open access. No ETA  -  we want to get it right first."}
       </p>
 
       {/* What happens next */}
       <div className="text-left max-w-sm mx-auto mb-10 space-y-4">
         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">What happens next</p>
         {[
-          'We invite early users in small batches.',
-          'You build or audit a portfolio with Showcase.',
-          'You share feedback so we can shape V1.',
-          'Beta users may get early recognition  -  nothing promised until it exists.',
+          "You're on the list. Nothing else required from you.",
+          'We work on making Showcase the best it can be.',
+          "When we're ready, we'll email you with access details.",
+          'Pricing and details will be shared at that point.',
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -385,7 +381,7 @@ function WaitlistContent() {
     setError('')
 
     if (!form.email) { setError('Email is required.'); return }
-    if (!form.consent) { setError('Please agree to receive beta updates.'); return }
+    if (!form.consent) { setError('Please agree to receive updates.'); return }
 
     setSubmitting(true)
 
@@ -447,7 +443,7 @@ function WaitlistContent() {
           <div className="flex items-center gap-3">
             <Logo size="sm" />
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-[10px] font-bold text-brand-400 uppercase tracking-widest">
-              Private Beta
+              Coming Soon
             </span>
           </div>
 
@@ -472,7 +468,7 @@ function WaitlistContent() {
             onClick={() => scrollToForm('nav_join_beta')}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-violet-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.3)]"
           >
-            Join Beta
+            Join Waitlist
             <ArrowRight className="h-3 w-3" />
           </button>
         </div>
@@ -492,7 +488,7 @@ function WaitlistContent() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-400 mb-8">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                Private beta  -  limited spots
+                Waitlist  -  limited spots
               </div>
 
               <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black tracking-tight leading-[1.02] text-balance mb-6">
@@ -521,7 +517,7 @@ function WaitlistContent() {
                   onClick={() => scrollToForm('hero_primary')}
                   className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(99,102,241,0.35)]"
                 >
-                  Join the private beta
+                  Join the waitlist
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <a
@@ -565,10 +561,10 @@ function WaitlistContent() {
             <>
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
-                  Join the private beta
+                  Join the waitlist
                 </h2>
                 <p className="text-foreground/55 leading-relaxed">
-                  We invite early users in small batches. The more context you share, the sooner we can match your invite to what we are testing.
+                  Drop your email and we will reach out when access opens. Sharing more context helps us understand who is interested.
                 </p>
               </div>
 
@@ -718,7 +714,7 @@ function WaitlistContent() {
                       </div>
                     </div>
                     <p className="text-sm text-foreground/60 leading-relaxed">
-                      I agree to receive beta access updates and product emails from Showcase. I can unsubscribe anytime.
+                      I agree to receive updates and product emails from Showcase. I can unsubscribe anytime.
                     </p>
                   </label>
                 </div>
@@ -727,7 +723,7 @@ function WaitlistContent() {
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                   <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    We never sell your email. We use it only for beta access, product updates, and feedback requests.
+                    We never sell your email. We use it only for waitlist notifications and product updates.
                   </p>
                 </div>
 
@@ -756,7 +752,7 @@ function WaitlistContent() {
                     </>
                   ) : (
                     <>
-                      Join the private beta
+                      Join the waitlist
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -837,7 +833,7 @@ function WaitlistContent() {
             Simple, honest pricing
           </h2>
           <p className="text-foreground/50 text-center max-w-md mx-auto mb-10">
-            Beta access is free. Here&apos;s what Pro looks like once we open up.
+            Here&apos;s what you can expect when we open access.
           </p>
 
           {/* Billing toggle */}
@@ -924,7 +920,7 @@ function WaitlistContent() {
                 className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(99,102,241,0.3)]"
               >
                 <Zap className="h-4 w-4" />
-                Join the beta to get early Pro pricing
+                Join the waitlist for early access
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -937,21 +933,21 @@ function WaitlistContent() {
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why beta</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why join early</p>
               <h2 className="text-3xl font-black text-foreground mb-6 tracking-tight">
                 We are not launching to everyone yet  -  on purpose.
               </h2>
               <p className="text-foreground/60 leading-relaxed mb-6">
-                We are inviting a small group of beta users who will actually use Showcase, tell us what is broken, and help us build the best version before we open it widely.
+                We are taking our time to build something we are proud of before opening it up. The waitlist is how we know who is serious about getting in when the doors open.
               </p>
               <p className="text-foreground/60 leading-relaxed mb-8">
-                This is not a waitlist to watch a product launch. It is an invitation to help build one.
+                No timelines, no promises  -  just a spot in line for when we are ready.
               </p>
               <button
                 onClick={() => scrollToForm('beta_explainer')}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(99,102,241,0.25)]"
               >
-                Join the private beta
+                Join the waitlist
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -1023,7 +1019,7 @@ function WaitlistContent() {
                 onClick={() => scrollToForm('final_cta')}
                 className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-[0_0_40px_rgba(99,102,241,0.35)]"
               >
-                Join the private beta
+                Join the waitlist
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
