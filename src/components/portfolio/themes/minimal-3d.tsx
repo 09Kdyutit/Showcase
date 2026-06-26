@@ -227,7 +227,7 @@ export function Minimal3DTheme({ portfolio, content }: ThemeProps) {
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               className="p-10 sm:p-16 rounded-3xl text-center" style={{ background: `${accentColor}08`, border: `2px solid ${accentColor}20` }}>
               <h2 className="text-4xl sm:text-5xl font-black mb-3">Ready to build?</h2>
-              <p className="text-black/40 mb-8 text-lg">I'm open to the right opportunities.</p>
+              <p className="text-black/40 mb-8 text-lg">I&apos;m open to the right opportunities.</p>
               <div className="flex flex-wrap justify-center gap-3">
                 {contact?.email && <a href={`mailto:${contact.email}`} className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm text-white transition-transform hover:scale-105" style={{ background: accentColor }}><Mail className="h-4 w-4" />{contact.email}</a>}
                 {safeHref(contact?.linkedin) && <a href={safeHref(contact.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm border-2 border-black/10 bg-white transition-transform hover:scale-105"><ExternalLink className="h-4 w-4" />LinkedIn</a>}

@@ -299,7 +299,7 @@ export function MagazineTheme({ portfolio, content }: ThemeProps) {
                 <div>
                   <div className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60 mb-4">(03) Contact</div>
                   <h2 style={{ fontFamily: DISPLAY, fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: 'white', lineHeight: 0.9 }}>
-                    Let's work<br /><em>together.</em>
+                    Let&apos;s work<br /><em>together.</em>
                   </h2>
                 </div>
                 <div className="flex flex-col gap-3">
