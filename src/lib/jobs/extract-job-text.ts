@@ -9,7 +9,12 @@ export interface ExtractedJob {
 const MIN_USABLE_LENGTH = 200
 
 function htmlToPlainText(html: string): string {
-  const $ = cheerio.load(`<div>${html}</div>`)
+  // Insert line breaks at block boundaries before stripping tags, otherwise adjacent
+  // <p>/<li> elements collapse into one run-on sentence with no separating space.
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n</$1>')
+  const $ = cheerio.load(`<div>${withBreaks}</div>`)
   return $('div')
     .text()
     .replace(/ /g, ' ')
