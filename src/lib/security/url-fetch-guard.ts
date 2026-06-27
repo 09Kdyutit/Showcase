@@ -2,7 +2,7 @@ import dns from 'node:dns/promises'
 import net from 'node:net'
 
 const FETCH_TIMEOUT_MS = 8000
-const MAX_RESPONSE_BYTES = 3_000_000 // 3MB — job posting pages are never bigger than this
+const MAX_RESPONSE_BYTES = 3_000_000 // 3MB - job posting pages are never bigger than this
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:'])
 
 // Job boards block bot-looking UAs; a normal browser UA avoids most 403s without
@@ -33,7 +33,7 @@ function isPrivateIp(ip: string): boolean {
     if (lower.startsWith('::ffff:')) return isPrivateIp(lower.slice(7))
     return false
   }
-  return true // unrecognized format — treat as unsafe
+  return true // unrecognized format - treat as unsafe
 }
 
 async function assertPublicHost(hostname: string): Promise<void> {

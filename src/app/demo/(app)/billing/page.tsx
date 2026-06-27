@@ -71,7 +71,7 @@ export default function DemoBillingPage() {
           <div className="flex items-start gap-2 mb-5 p-3 rounded-xl bg-surface-200/40">
             <Shield className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground/80">
-              Secure billing via Stripe  -  your card is never stored by Showcase.
+              Secure billing via Stripe - your card is never stored by Showcase.
             </p>
           </div>
 

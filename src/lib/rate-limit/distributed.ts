@@ -1,6 +1,6 @@
 import type { RateLimiter, RateLimitCheckResult } from './types'
 
-// Upstash Redis REST API, called directly via fetch  -  no SDK dependency needed for a
+// Upstash Redis REST API, called directly via fetch - no SDK dependency needed for a
 // single atomic command. Only used when UPSTASH_REDIS_REST_URL/TOKEN are configured;
 // see index.ts for the selection logic. Uses INCR + EXPIRE (NX) for an atomic
 // fixed-window counter, equivalent in semantics to the Postgres implementation.

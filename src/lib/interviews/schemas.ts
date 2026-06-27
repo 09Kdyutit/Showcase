@@ -27,7 +27,7 @@ export type ReadinessBand = (typeof READINESS_BANDS)[number]
 
 // Mirrors src/lib/interviews/rubrics.ts's DIMENSION_REGISTRY keys. Defined here (not
 // derived from the registry) so this schema file has no import dependency on the
-// rubric module  -  the rubric module imports DimensionId from here instead.
+// rubric module - the rubric module imports DimensionId from here instead.
 export const DIMENSION_IDS = [
   'answer_relevance', 'evidence_specificity', 'context_clarity', 'personal_ownership',
   'action_quality', 'outcome_and_impact', 'answer_structure', 'role_technical_depth',
@@ -36,7 +36,7 @@ export const DIMENSION_IDS = [
 export type DimensionId = (typeof DIMENSION_IDS)[number]
 
 // ── InterviewPlan ─────────────────────────────────────────────────────────────
-// Server-authored, deterministic. Gemini never generates this  -  it personalizes
+// Server-authored, deterministic. Gemini never generates this - it personalizes
 // question wording and asks follow-ups WITHIN the bounds this plan sets, but cannot
 // redefine session type, dimensions, weights, limits, or evidence sources (mission's
 // explicit "Gemini must not redefine" list).
@@ -105,7 +105,7 @@ export type TranscriptSegment = z.infer<typeof TranscriptSegmentSchema>
 // Gemini returns BOUNDED EVIDENCE ASSESSMENTS, never a final score (mission: "Gemini
 // may not assign the final score directly... the server computes final scores
 // deterministically"). The server validates every citation against real segment IDs
-// before trusting any of this  -  see src/lib/interviews/scoring.ts.
+// before trusting any of this - see src/lib/interviews/scoring.ts.
 
 export const AnswerEvidenceAssessmentSchema = z.object({
   questionId: z.string(),
@@ -119,7 +119,7 @@ export type AnswerEvidenceAssessment = z.infer<typeof AnswerEvidenceAssessmentSc
 
 export const InterviewDimensionAssessmentSchema = z.object({
   dimensionId: z.enum(DIMENSION_IDS),
-  // Gemini's RAW bounded rating (0-100)  -  this is evidence for the server's weighted
+  // Gemini's RAW bounded rating (0-100) - this is evidence for the server's weighted
   // calculation, not the dimension's stored final score. The server still validates
   // range and citations; "bounded" refers to the 0-100 clamp plus the requirement
   // that every claim cite a real segment, not to any additional softening.
@@ -174,7 +174,7 @@ export const StoryBankSuggestionSchema = z.object({
   actions: z.array(z.string().max(500)).max(10),
   outcome: z.string().max(1000).nullable(),
   reflection: z.string().max(1000).nullable(),
-  // Every metric must trace to a real source the server already verified  -  Gemini
+  // Every metric must trace to a real source the server already verified - Gemini
   // cannot invent a number that doesn't appear in the cited source material.
   verifiedMetrics: z.array(z.object({ metric: z.string().max(200), sourceSegmentId: z.string().nullable() })).max(10),
 })

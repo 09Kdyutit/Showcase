@@ -17,7 +17,7 @@ export const RATES = {
   // Gemini 2.5 Flash Native Audio, Live API
   geminiLiveAudioInPerM: 3.00,
   geminiLiveAudioOutPerM: 12.00,
-  // OpenAI gpt-5-mini (interview analysis)  -  see src/lib/ai/openai.ts MODELS.interviewAnalysis
+  // OpenAI gpt-5-mini (interview analysis) - see src/lib/ai/openai.ts MODELS.interviewAnalysis
   gpt5MiniInPerM: 0.25,
   gpt5MiniOutPerM: 2.00,
 } as const
@@ -81,11 +81,11 @@ async function sumCostUsdSince(
 }
 
 /**
- * Pre-flight budget check  -  call BEFORE making a cost-incurring AI call, passing a
+ * Pre-flight budget check - call BEFORE making a cost-incurring AI call, passing a
  * conservative (worst-case, not expected-case) estimate of what that call could cost.
  * Throws BudgetExceededError (fail closed) if allowing it would breach any configured
  * ceiling. All three budgets default to null (unconfigured), which config.ts documents
- * as "do not allow any cost-incurring call" rather than "unlimited"  -  so with nothing
+ * as "do not allow any cost-incurring call" rather than "unlimited" - so with nothing
  * set in .env, this throws for every call until INTERVIEW_GLOBAL_DAILY_BUDGET_USD,
  * INTERVIEW_USER_MONTHLY_BUDGET_USD, and INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD are all set.
  *
@@ -93,7 +93,7 @@ async function sumCostUsdSince(
  * by the plan limits in entitlements/plans.ts (session counts, max minutes, etc.)  -
  * that's where their paid quota is supposed to live, not here. The two GLOBAL checks
  * (daily + monthly) still apply to every user regardless of plan, because those protect
- * the actual provider account balance  -  once that hits zero, AI calls fail with an
+ * the actual provider account balance - once that hits zero, AI calls fail with an
  * ugly provider error for every user, paying or not, so everyone shares that ceiling.
  */
 export async function assertWithinBudget(userId: string, estimatedCostUsd: number, isPro = false): Promise<void> {

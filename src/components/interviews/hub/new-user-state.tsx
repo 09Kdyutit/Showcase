@@ -31,7 +31,7 @@ export function NewUserState({ hasResume, hasPortfolio, displayName }: { hasResu
             </div>
             {(!hasResume || !hasPortfolio) && (
               <p className="text-xs text-muted-foreground pt-2 border-t border-border/60 mt-2">
-                Optional  -  you can still practice without these, but connecting them lets Showcase ground your interview questions in your real experience.
+                Optional - you can still practice without these, but connecting them lets Showcase ground your interview questions in your real experience.
               </p>
             )}
           </CardContent>
@@ -41,8 +41,8 @@ export function NewUserState({ hasResume, hasPortfolio, displayName }: { hasResu
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> What to expect</CardTitle></CardHeader>
           <CardContent className="space-y-1.5 text-sm text-muted-foreground">
             <p>You&apos;ll answer a handful of real interview questions, in text or live voice.</p>
-            <p>Your transcript is private  -  visible only to you, never shared without your explicit consent.</p>
-            <p>This is practice, not a real interview  -  Showcase never represents itself as an employer.</p>
+            <p>Your transcript is private - visible only to you, never shared without your explicit consent.</p>
+            <p>This is practice, not a real interview - Showcase never represents itself as an employer.</p>
           </CardContent>
         </Card>
       </div>

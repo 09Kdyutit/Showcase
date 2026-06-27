@@ -35,7 +35,7 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
     throw new InterviewLiveUnavailableError(
       'Live voice interviews are not yet enabled. This requires GEMINI_PAID_PROJECT_CONFIRMED=true, ' +
       'GEMINI_INTERVIEW_ENABLED=true, and INTERVIEW_LIVE_ENABLED=true, all of which are human decisions ' +
-      'requiring a reviewed Gemini billing/ToS state  -  see security/INTERVIEW_LAB_GATE.md. ' +
+      'requiring a reviewed Gemini billing/ToS state - see security/INTERVIEW_LAB_GATE.md. ' +
       'Use Text Mode or Recorded Mode instead.'
     )
   }

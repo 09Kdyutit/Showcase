@@ -14,15 +14,15 @@ import { Badge } from '@/components/ui/badge'
 import { getUnconfirmedFabricationRisks } from '@/lib/jobs/truth-ledger'
 import type { TruthEntry, TailoredBullet, TailoredExperience, InterviewBrief } from '@/types/database'
 
-// ── Static demo output  -  mirrors the shape returned by /api/jobs/[id]/tailor ──
-const JOB_TITLE = 'Product Designer  -  Checkout & Payments'
+// ── Static demo output - mirrors the shape returned by /api/jobs/[id]/tailor ──
+const JOB_TITLE = 'Product Designer - Checkout & Payments'
 const JOB_COMPANY = 'Volta Financial'
 
 const DEMO_EXPERIENCE: TailoredExperience[] = [
   {
     company: 'Stripe',
     role: 'Product Designer',
-    period: '2020  -  2022',
+    period: '2020 - 2022',
     original_bullets: [
       'Redesigned Stripe Checkout, increasing completion rate by 24%.',
       "Built Stripe's first internal design system from scratch.",
@@ -30,7 +30,7 @@ const DEMO_EXPERIENCE: TailoredExperience[] = [
     tailored_bullets: [
       {
         original: 'Redesigned Stripe Checkout, increasing completion rate by 24%.',
-        tailored: 'Led end-to-end redesign of Stripe Checkout  -  the exact surface this role owns  -  increasing completion rate by 24% and directly informing this application.',
+        tailored: 'Led end-to-end redesign of Stripe Checkout - the exact surface this role owns - increasing completion rate by 24% and directly informing this application.',
         change_type: 'rewritten',
         reason: 'Moved to the top and rewritten to mirror the language in the job description ("own design for our checkout and payments product surface").',
         source_evidence: 'Resume bullet, Stripe Product Designer role',
@@ -51,7 +51,7 @@ const DEMO_EXPERIENCE: TailoredExperience[] = [
   {
     company: 'Figma',
     role: 'Lead Product Designer',
-    period: '2022  -  Present',
+    period: '2022 - Present',
     original_bullets: [
       'Led design for core editor and collaboration features.',
       "Owned and maintained Figma's internal design system.",
@@ -61,7 +61,7 @@ const DEMO_EXPERIENCE: TailoredExperience[] = [
         original: 'Led design for core editor and collaboration features.',
         tailored: 'Led design for core editor and collaboration features used by [PLACEHOLDER: add user count if known].',
         change_type: 'rewritten',
-        reason: 'Flagged for a metric  -  your resume doesn\'t state a user count for this feature area, so a placeholder was inserted instead of inventing one.',
+        reason: 'Flagged for a metric - your resume doesn\'t state a user count for this feature area, so a placeholder was inserted instead of inventing one.',
         source_evidence: 'Resume bullet, Figma Lead Product Designer role',
         needs_user_input: true,
         placeholder: '[PLACEHOLDER: add user count if known]',
@@ -71,7 +71,7 @@ const DEMO_EXPERIENCE: TailoredExperience[] = [
         original: "Owned and maintained Figma's internal design system.",
         tailored: "Owned and maintained Figma's internal design system.",
         change_type: 'unchanged',
-        reason: 'Already relevant  -  kept as-is.',
+        reason: 'Already relevant - kept as-is.',
         source_evidence: 'Resume bullet, Figma Lead Product Designer role',
         needs_user_input: false,
         accepted: true,
@@ -82,7 +82,7 @@ const DEMO_EXPERIENCE: TailoredExperience[] = [
 
 const DEMO_TRUTH_MAP: TruthEntry[] = [
   {
-    statement: 'Led end-to-end redesign of Stripe Checkout  -  the exact surface this role owns  -  increasing completion rate by 24%.',
+    statement: 'Led end-to-end redesign of Stripe Checkout - the exact surface this role owns - increasing completion rate by 24%.',
     source_text: 'Redesigned Stripe Checkout, increasing completion rate by 24%.',
     source_location: 'Resume → Experience → Stripe → Product Designer',
     change_type: 'rewritten',
@@ -118,7 +118,7 @@ const DEMO_INTERVIEW_BRIEF: InterviewBrief = {
     'How do you balance speed with rigor when working with a small (2 PM, 8 engineer) team?',
   ],
   project_questions: [
-    'Walk me through your Stripe Checkout redesign  -  what was broken, and how did you find it?',
+    'Walk me through your Stripe Checkout redesign - what was broken, and how did you find it?',
   ],
   star_evidence: [
     {
@@ -130,7 +130,7 @@ const DEMO_INTERVIEW_BRIEF: InterviewBrief = {
       source_project: 'Checkout Redesign',
     },
   ],
-  skill_gaps_to_address: ['No documented accessibility (WCAG) audit experience  -  be ready to discuss your general approach.'],
+  skill_gaps_to_address: ['No documented accessibility (WCAG) audit experience - be ready to discuss your general approach.'],
   questions_to_ask: [
     'What does the checkout funnel look like today, and where is the biggest drop-off?',
     'How is the design team structured relative to the 2 PMs and 8 engineers on this surface?',
@@ -143,10 +143,10 @@ const DEMO_TAILORED = {
   skills: ['Figma', 'Prototyping', 'Design Systems', 'User Research', 'A/B Testing', 'Stakeholder Management'],
   experience: DEMO_EXPERIENCE,
   recommended_projects: ['Checkout Redesign', 'Design System v2'],
-  portfolio_headline: 'I redesigned Stripe Checkout and increased completion by 24%  -  now I want to do it for Volta.',
-  recruiter_summary: 'Alex is a Product Designer with direct checkout/payments redesign experience (Stripe, +24% completion) and a track record building design systems from scratch  -  a strong fit for Volta\'s Checkout & Payments role.',
-  cover_letter: "I'm excited about the Product Designer role on Volta's Checkout & Payments team. At Stripe, I led a checkout redesign that increased completion rate by 24%  -  the exact kind of high-stakes, high-leverage work this role is built around. I'd love to bring that experience to Volta's $4B-volume merchant base.",
-  recruiter_note: "Hi  -  I saw the Product Designer opening on the Checkout & Payments team. I led Stripe's checkout redesign (+24% completion) and would love to chat about how that experience maps to Volta's merchant flows.",
+  portfolio_headline: 'I redesigned Stripe Checkout and increased completion by 24% - now I want to do it for Volta.',
+  recruiter_summary: 'Alex is a Product Designer with direct checkout/payments redesign experience (Stripe, +24% completion) and a track record building design systems from scratch - a strong fit for Volta\'s Checkout & Payments role.',
+  cover_letter: "I'm excited about the Product Designer role on Volta's Checkout & Payments team. At Stripe, I led a checkout redesign that increased completion rate by 24% - the exact kind of high-stakes, high-leverage work this role is built around. I'd love to bring that experience to Volta's $4B-volume merchant base.",
+  recruiter_note: "Hi - I saw the Product Designer opening on the Checkout & Payments team. I led Stripe's checkout redesign (+24% completion) and would love to chat about how that experience maps to Volta's merchant flows.",
   truth_map: DEMO_TRUTH_MAP,
   interview_brief: DEMO_INTERVIEW_BRIEF,
 }
@@ -201,7 +201,7 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
         <p className="text-[11px] text-emerald-600 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmed accurate</p>
       )}
       {entry.user_confirmed === false && (
-        <p className="text-[11px] text-red-600 flex items-center gap-1"><X className="h-3 w-3" /> Flagged  -  needs revision</p>
+        <p className="text-[11px] text-red-600 flex items-center gap-1"><X className="h-3 w-3" /> Flagged - needs revision</p>
       )}
     </div>
   )
@@ -367,7 +367,7 @@ export default function DemoTailorStudioPage() {
             {unconfirmed.length > 0 ? (
               <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-[11px] text-red-600 leading-relaxed flex items-start gap-1.5">
                 <Lock className="h-3 w-3 shrink-0 mt-0.5" />
-                Export blocked  -  {unconfirmed.length} statement{unconfirmed.length > 1 ? 's' : ''} need confirmation in the Truth Ledger.
+                Export blocked - {unconfirmed.length} statement{unconfirmed.length > 1 ? 's' : ''} need confirmation in the Truth Ledger.
               </div>
             ) : (
               <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
@@ -515,7 +515,7 @@ export default function DemoTailorStudioPage() {
                 </h2>
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-600/80">
                   Based on your documented experience. STAR stories use only facts from your resume.
-                  Research the company independently  -  do not rely solely on this brief.
+                  Research the company independently - do not rely solely on this brief.
                 </div>
                 <section>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Role Themes</h3>

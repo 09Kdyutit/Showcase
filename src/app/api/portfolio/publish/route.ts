@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (action === 'publish') {
-      // Unpublishing is never blocked by this switch  -  taking content down must always
+      // Unpublishing is never blocked by this switch - taking content down must always
       // stay available, including during the exact incident that would justify flipping it.
       if (!isPublishingEnabled()) {
         return NextResponse.json({ error: KILL_SWITCH_MESSAGE }, { status: 503 })

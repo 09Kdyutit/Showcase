@@ -23,7 +23,7 @@ function htmlToPlainText(html: string): string {
     .trim()
 }
 
-/** schema.org JobPosting JSON-LD — the most reliable source; output by Greenhouse,
+/** schema.org JobPosting JSON-LD - the most reliable source; output by Greenhouse,
  * Lever, Workday, and most ATS platforms that want Google for Jobs indexing. */
 function extractFromJsonLd($: cheerio.CheerioAPI): ExtractedJob | null {
   const scripts = $('script[type="application/ld+json"]')
@@ -99,7 +99,7 @@ function extractByHeuristic($: cheerio.CheerioAPI): ExtractedJob | null {
 
   if (description.length < MIN_USABLE_LENGTH) return null
 
-  const title = $('title').first().text().trim().split(/[|\-–—]/)[0]?.trim() || null
+  const title = $('title').first().text().trim().split(/[|\-–-]/)[0]?.trim() || null
   return { description, title, company: null }
 }
 

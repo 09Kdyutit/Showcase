@@ -41,11 +41,11 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
       const text = await file.text()
       onText(text)
       setStatus('done')
-      toast.success('Resume text extracted  -  ready to analyze')
+      toast.success('Resume text extracted - ready to analyze')
       return
     }
 
-    // PDF / DOCX  -  extract text server-side, fall back to manual paste only if extraction fails
+    // PDF / DOCX - extract text server-side, fall back to manual paste only if extraction fails
     setStatus('uploading')
     try {
       const formData = new FormData()
@@ -61,7 +61,7 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
 
       onText(data.data.text)
       setStatus('done')
-      toast.success('Resume text extracted  -  ready to analyze')
+      toast.success('Resume text extracted - ready to analyze')
 
       // Also archive the original file in storage, best-effort
       try {
@@ -69,7 +69,7 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
         if (supabase) {
           const { data: userData } = await supabase.auth.getUser()
           if (userData.user) {
-            // file.name is attacker-controlled  -  strip anything but safe extension chars
+            // file.name is attacker-controlled - strip anything but safe extension chars
             // so a crafted name like "x.pdf/../../other-user" can't inject path segments.
             const rawExt = file.name.split('.').pop() ?? 'pdf'
             const ext = /^[a-zA-Z0-9]{1,10}$/.test(rawExt) ? rawExt : 'pdf'

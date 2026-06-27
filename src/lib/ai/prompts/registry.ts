@@ -10,18 +10,18 @@ import { atsCheckPrompt } from './ats-check'
 import { interviewAnalysisPrompt } from './interview-analysis'
 import type { PromptSpec } from './types'
 
-// Canonical registry  -  every active production prompt, keyed by its stable id. This is the
+// Canonical registry - every active production prompt, keyed by its stable id. This is the
 // single source of truth for prompt text, model tier, temperature, token limits, output
 // schema, and review eligibility. Route files must not hardcode any of those values; they
 // call runPrompt(REGISTRY.x, input) (see ../client.ts) instead.
 //
 // Two prompts that existed in the old flat prompts.ts file were NOT migrated here because
 // they have zero call sites anywhere in the app (confirmed via grep across src/):
-//   - buildRecruiterSummaryPrompt / RecruiterSummarySchema  -  no route ever called it
-//   - buildVoiceProfilePrompt  -  no route ever called it; only the unrelated VoiceProfile
+//   - buildRecruiterSummaryPrompt / RecruiterSummarySchema - no route ever called it
+//   - buildVoiceProfilePrompt - no route ever called it; only the unrelated VoiceProfile
 //     *type* in src/types/database.ts shares the name
 // If a future feature needs either, write a fresh PromptSpec against this standard rather
-// than resurrecting the old unstructured text  -  both predate the no-fake-authority pass.
+// than resurrecting the old unstructured text - both predate the no-fake-authority pass.
 export const REGISTRY = {
   'resume-parse': resumeParsePrompt,
   'portfolio-generation': portfolioGenerationPrompt,

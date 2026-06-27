@@ -11,7 +11,7 @@ const submitSchema = z.object({
 /**
  * Text-mode answer submission. Appends a candidate transcript segment, records the
  * answer, and returns the next question (or null if the candidate has reached the
- * end of the plan  -  the client should call .../complete next). Voice modes would post
+ * end of the plan - the client should call .../complete next). Voice modes would post
  * here too once Live/Recorded are implemented, with source_mode set accordingly; this
  * build only exercises 'text'.
  */
@@ -91,7 +91,7 @@ export async function POST(
     await supabase.from('interview_questions').update({ answered_at: new Date().toISOString() }).eq('id', question.id)
 
     // The first real accepted answer is the exact moment a reservation becomes a
-    // genuine, non-refundable session  -  see entitlements/reconcile.ts. Idempotent on
+    // genuine, non-refundable session - see entitlements/reconcile.ts. Idempotent on
     // every later answer in the same session, so calling it unconditionally here is
     // safe and simpler than tracking "was this the first answer" separately.
     if (attemptNumber === 1) {

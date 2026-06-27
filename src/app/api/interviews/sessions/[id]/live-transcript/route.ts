@@ -19,13 +19,13 @@ const submitSchema = z.object({
  * Persists a completed Live voice conversation's transcript, generated entirely
  * client-side (the browser is the only party with both the real-time audio stream
  * and the question list needed to track which question is "currently active" as the
- * conversation progresses  -  see src/lib/interviews/live-voice-client.ts). Unlike
+ * conversation progresses - see src/lib/interviews/live-voice-client.ts). Unlike
  * text/recorded mode, which answer one question per request, a live conversation is
  * submitted in one batch at the end of the call: the model naturally moves through
  * all planned questions in a single continuous session.
  *
  * Every questionId in the payload is verified to actually belong to this session
- * before any insert happens  -  a malicious client could otherwise attribute fake
+ * before any insert happens - a malicious client could otherwise attribute fake
  * "evidence" to an arbitrary question_id from a DIFFERENT session it doesn't own.
  */
 export async function POST(

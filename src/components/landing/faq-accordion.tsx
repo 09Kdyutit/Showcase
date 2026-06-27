@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils'
 const FAQS = [
   {
     q: 'Does Showcase guarantee I will get hired or get interviews?',
-    a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward  -  not guarantee outcomes.',
+    a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.',
   },
   {
     q: 'Will Showcase invent experience I do not have?',
-    a: 'Never. Our AI only works with what you provide. It rewrites and improves how you present real experience, but it will never fabricate metrics, employers, projects, or certifications. When evidence is missing, we tell you exactly what to add  -  we do not fill it in.',
+    a: 'Never. Our AI only works with what you provide. It rewrites and improves how you present real experience, but it will never fabricate metrics, employers, projects, or certifications. When evidence is missing, we tell you exactly what to add - we do not fill it in.',
   },
   {
     q: 'What is ProofScore and how is it calculated?',
@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: 'Will my resume sound AI-generated?',
-    a: 'Showcase writes from your real experience and your existing phrasing, then gives you every change to review. It avoids generic filler and never invents facts. No product can honestly guarantee how an AI detector will classify a document, so Showcase focuses on specific, authentic writing that sounds like you  -  not on gaming detection systems.',
+    a: 'Showcase writes from your real experience and your existing phrasing, then gives you every change to review. It avoids generic filler and never invents facts. No product can honestly guarantee how an AI detector will classify a document, so Showcase focuses on specific, authentic writing that sounds like you - not on gaming detection systems.',
   },
   {
     q: 'Is the resume ATS-friendly?',
@@ -39,7 +39,7 @@ const FAQS = [
   },
   {
     q: 'Does Role Match predict whether I will get hired?',
-    a: 'No. Role Match evaluates how closely your documented experience and evidence align with a job description. It is labeled "role-content match"  -  not a hiring prediction. Hiring decisions depend on many factors beyond a resume or portfolio.',
+    a: 'No. Role Match evaluates how closely your documented experience and evidence align with a job description. It is labeled "role-content match" - not a hiring prediction. Hiring decisions depend on many factors beyond a resume or portfolio.',
   },
   {
     q: 'How does Showcase handle my resume data?',
@@ -47,7 +47,7 @@ const FAQS = [
   },
   {
     q: 'Can I cancel my subscription anytime?',
-    a: 'Yes. Cancel from billing settings anytime  -  no questions asked. You keep Pro access until the end of your current billing period. We offer a 7-day money-back guarantee if you have not used Pro features.',
+    a: 'Yes. Cancel from billing settings anytime - no questions asked. You keep Pro access until the end of your current billing period. We offer a 7-day money-back guarantee if you have not used Pro features.',
   },
 ]
 

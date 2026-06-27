@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const input = parsed.data
 
     // Voice mode requires the Live-voice Gemini gate. Previously this unconditionally
-    // 403'd regardless of the flag's actual value  -  a real bug that would have kept
+    // 403'd regardless of the flag's actual value - a real bug that would have kept
     // rejecting voice sessions even after isInterviewLiveEnabled() was flipped on.
     if (input.deliveryMode === 'voice' && !isInterviewLiveEnabled()) {
       return NextResponse.json({
@@ -46,19 +46,19 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    // Age eligibility is intentionally NOT checked at creation time  -  the product
+    // Age eligibility is intentionally NOT checked at creation time - the product
     // flow is New Interview (configure) -> Lobby (privacy notice) -> Start, and the
     // Lobby only exists after a session is created. /start is the real downstream
-    // gate  -  see sessions/[id]/start/route.ts. (No age-eligibility check exists
+    // gate - see sessions/[id]/start/route.ts. (No age-eligibility check exists
     // there either: the account owner explicitly removed Interview Lab's age gate in
     // migration 019 and reconfirmed that decision when this entitlements system was
-    // built  -  see security/release-gate.json IL-10.)
+    // built - see security/release-gate.json IL-10.)
 
     const serviceSupabase = await createServiceClient()
     const { tier } = await resolvePlanContext(supabase, user.id)
     const limits = getPlanLimits(tier)
 
-    // Server-authoritative plan/tier gates  -  the browser's request body is never
+    // Server-authoritative plan/tier gates - the browser's request body is never
     // trusted for any of these, only re-derived facts (subscription status) decide.
     if (!isSessionTypeAllowed(tier, input.sessionType)) {
       return NextResponse.json({ error: `${input.sessionType.replace(/_/g, ' ')} requires Pro.`, code: 'SESSION_TYPE_REQUIRES_PRO' }, { status: 403 })
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Full-length sessions require Pro. Try Quick or Standard.', code: 'QUESTION_COUNT_EXCEEDS_PLAN' }, { status: 403 })
     }
 
-    // Atomic, race-proof, fail-closed reservation against the real ledger  -  see
+    // Atomic, race-proof, fail-closed reservation against the real ledger - see
     // src/lib/interviews/entitlements/. Reserved BEFORE the session row exists (using
     // a null session_id, attached right after insert below) so a denied reservation
     // never leaves an orphaned session row behind.
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Gather rich, verified user context ────────────────────────────────────
-    // Fetch as much detail as available  -  resume bullets, portfolio metrics, story
-    // bank  -  so the AI question generator can produce genuinely personalized questions.
+    // Fetch as much detail as available - resume bullets, portfolio metrics, story
+    // bank - so the AI question generator can produce genuinely personalized questions.
     // Any ID that doesn't exist or belongs to another user is treated as "none provided."
     let verifiedResumeId: string | null = null
     let resumeContext: ResumeContext | null = null
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Story bank  -  which competencies does the user already have stories for?
+    // Story bank - which competencies does the user already have stories for?
     const { data: storyBankRows } = await supabase
       .from('story_bank_entries')
       .select('competencies')
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
       if (savedJob) verifiedSavedJobId = savedJob.id
     }
 
-    // ── Generate questions  -  AI first, static bank fallback ───────────────────
+    // ── Generate questions - AI first, static bank fallback ───────────────────
     const questionCount = Math.min(
       { quick: 3, standard: 5, full: 8 }[input.sessionLength as SessionLength],
       limits.maxPrimaryQuestions,
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       // same paid-project / key confirmation required. No pre-flight budget check here:
       // this call is cheap (well under a cent) and already has a graceful static-bank
       // fallback on any failure, so a budget-exceeded error just degrades quality rather
-      // than blocking session creation  -  the real budget enforcement point is live
+      // than blocking session creation - the real budget enforcement point is live
       // voice (see live-token/route.ts), the actual cost driver.
       try {
         const genResult = await generatePersonalizedQuestions({
@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single()
     if (sessionError) {
-      // The reservation already succeeded  -  release it so a session that was never
+      // The reservation already succeeded - release it so a session that was never
       // actually created doesn't permanently consume a real, scarce quota slot.
       const idsToRelease = [reservation.sessionReservationId, ...(reservation.audioReservationId ? [reservation.audioReservationId] : [])]
       for (const id of idsToRelease) await serviceSupabase.rpc('interview_release_usage', { p_reservation_id: id, p_user_id: user.id })

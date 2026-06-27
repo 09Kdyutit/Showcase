@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { resumeText, resumeId } = parsed.data
     const isPro = await isProUser(user.id)
 
-    // Re-parsing identical text is pure waste  -  same AI cost, same result, and it eats into
+    // Re-parsing identical text is pure waste - same AI cost, same result, and it eats into
     // the user's daily rate limit for nothing. Only short-circuit when the stored text is an
     // exact match for what's being submitted now; any actual edit still gets a fresh parse.
     if (resumeId) {

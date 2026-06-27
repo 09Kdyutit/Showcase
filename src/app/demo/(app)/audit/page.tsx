@@ -24,7 +24,7 @@ const CATEGORIES: Category[] = [
   { name: 'Target Role Alignment', score: 91, severity: 'minor', explanation: "Strong. Add 'design systems' and 'cross-functional' to push above 95." },
   { name: 'Proof Strength', score: 41, severity: 'critical', explanation: 'Only 2 of 8 bullets have measurable outcomes. Add metrics to at least 4 more.' },
   { name: 'Project Depth', score: 64, severity: 'major', explanation: 'Projects show WHAT not WHY. Add a clear problem statement and outcome to each case study.' },
-  { name: 'Resume Quality', score: 76, severity: 'minor', explanation: 'Formatting is clean. Bullet length is inconsistent  -  some are too long.' },
+  { name: 'Resume Quality', score: 76, severity: 'minor', explanation: 'Formatting is clean. Bullet length is inconsistent - some are too long.' },
   { name: 'Case Study Quality', score: 82, severity: 'minor', explanation: 'Good structure overall. Add more process detail to Checkout Redesign.' },
   { name: 'Credibility Signals', score: 88, severity: 'minor', explanation: 'Strong company names (Figma, Stripe). Add 1-2 external links (Figma community, etc).' },
   { name: 'Visual Polish', score: 95, severity: null, explanation: 'Excellent. Portfolio design is clean and highly professional.' },
@@ -37,7 +37,7 @@ const GAPS = [
   {
     severity: 'critical' as const,
     title: 'Proof Strength',
-    description: '6 of 8 bullets have no measurable outcome. Recruiters skip unproven claims  -  numbers make you credible.',
+    description: '6 of 8 bullets have no measurable outcome. Recruiters skip unproven claims - numbers make you credible.',
   },
   {
     severity: 'major' as const,
@@ -54,7 +54,7 @@ const GAPS = [
 const FIXES = [
   {
     title: 'Add metrics to 3 resume bullets',
-    description: 'Pick your 3 best bullets. Add a number: %, $, time, users. Even rough estimates work  -  "~40%" is better than nothing.',
+    description: 'Pick your 3 best bullets. Add a number: %, $, time, users. Even rough estimates work - "~40%" is better than nothing.',
     icon: TrendingUp,
   },
   {
@@ -175,7 +175,7 @@ export default function DemoAuditPage() {
           {/* Score details */}
           <div className="flex-1 space-y-4 text-center sm:text-left">
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-1">Strong  -  Ready to apply</h2>
+              <h2 className="text-xl font-bold text-foreground mb-1">Strong - Ready to apply</h2>
               <p className="text-muted-foreground text-sm">84 / 100 overall score · 11 categories evaluated</p>
             </div>
 

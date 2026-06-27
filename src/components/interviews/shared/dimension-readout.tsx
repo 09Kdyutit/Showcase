@@ -2,8 +2,8 @@ import type { DimensionReadout } from '@/lib/interviews/readiness'
 
 // Deliberately not a radar/radial chart: those need color-only differentiation to read
 // and fail "always provide accessible text and table alternatives" by default. This
-// groups dimensions into Strong / Developing / Focus Here  -  the three things a user
-// actually needs to know  -  backed by a real <table> for screen readers and zoom.
+// groups dimensions into Strong / Developing / Focus Here - the three things a user
+// actually needs to know - backed by a real <table> for screen readers and zoom.
 function groupDimensions(dimensions: DimensionReadout[]) {
   const strong = dimensions.filter((d) => d.score >= 80)
   const developing = dimensions.filter((d) => d.score >= 60 && d.score < 80)

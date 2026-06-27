@@ -1,6 +1,6 @@
 // Browsers attach the real Origin header to cross-site requests and never let JS
 // override it, so checking it against our own origin is a real, standard CSRF
-// mitigation for cookie-authenticated state-changing requests  -  a malicious site
+// mitigation for cookie-authenticated state-changing requests - a malicious site
 // can make the browser send our cookies, but it cannot make the browser lie about
 // where the request came from.
 export function isTrustedOrigin(headers: Headers, expectedHost: string | null): boolean {

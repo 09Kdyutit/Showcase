@@ -21,7 +21,7 @@ const schema = z.object({
 })
 
 // Generous, since this fires often during normal browsing (scroll-triggered section
-// views)  -  the goal is abuse prevention, not throttling real visitors.
+// views) - the goal is abuse prevention, not throttling real visitors.
 const IP_LIMIT = 60
 const IP_WINDOW_SECONDS = 60
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   } catch {
     // Analytics must never surface an error to a visitor or block the page.
     // Also covers the case where the marketing_events migration has not been
-    // applied yet in a given environment  -  fails closed and silent.
+    // applied yet in a given environment - fails closed and silent.
   }
 
   return NextResponse.json({ success: true })

@@ -19,15 +19,15 @@ import { ViewTracker } from '@/components/landing/view-tracker'
 import { SectionLabel } from '@/components/shared/section-label'
 
 const FLOW_STEPS = [
-  { icon: FileText, step: '01', title: 'Upload your resume', desc: 'Paste or upload your resume. Showcase parses it instantly  -  skills, projects, experience, all of it.' },
+  { icon: FileText, step: '01', title: 'Upload your resume', desc: 'Paste or upload your resume. Showcase parses it instantly - skills, projects, experience, all of it.' },
   { icon: Zap, step: '02', title: 'AI builds your portfolio', desc: 'We turn your experience into structured case studies and proof-of-work, not generic summaries.' },
   { icon: BarChart3, step: '03', title: 'Get your ProofScore', desc: 'An honest audit across 11 categories: what is strong, what is weak, what is missing.' },
-  { icon: Target, step: '04', title: 'Discover matched roles', desc: 'Browse jobs and get a personalized feed scored against your real evidence  -  not keyword guessing.' },
+  { icon: Target, step: '04', title: 'Discover matched roles', desc: 'Browse jobs and get a personalized feed scored against your real evidence - not keyword guessing.' },
   { icon: ArrowRight, step: '05', title: 'Tailor and apply', desc: 'One click creates a role-specific resume kit. Every change traced to your real experience in the Truth Ledger.' },
 ]
 
 // Names match the real 11 categories in src/lib/proofscore/engine.ts and the
-// /proofscore methodology page exactly  -  this is fictional demonstration data, but
+// /proofscore methodology page exactly - this is fictional demonstration data, but
 // the category names themselves must be real so the demo doesn't contradict the
 // product it is illustrating.
 const PROOF_CATEGORIES = [
@@ -83,7 +83,7 @@ export default function LandingPage() {
             Built for students, new grads, and early-career professionals with real projects but
             no clear way to prove them. Upload your résumé and Showcase turns it into a
             portfolio, scores the strength of its evidence, and tells you exactly what to
-            improve  -  without inventing a thing.
+            improve - without inventing a thing.
           </p>
 
           <div
@@ -136,7 +136,7 @@ export default function LandingPage() {
 
                 {/* Mockup content */}
                 <div className="p-6 grid md:grid-cols-[1fr_280px] gap-6">
-                  {/* Left  -  portfolio preview */}
+                  {/* Left - portfolio preview */}
                   <div className="space-y-4 text-left">
                     <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Fictional demonstration data</p>
                     {/* Identity */}
@@ -169,7 +169,7 @@ export default function LandingPage() {
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
                         <p className="text-xs font-semibold text-foreground/80 mb-1">Internal Analytics Dashboard</p>
                         <p className="text-xs text-emerald-600 font-medium mb-1.5">Built solo · shipped in 6-week internship</p>
-                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Operations team manually compiled reports in spreadsheets. Built a dashboard pulling live data instead. Outcome not yet quantified  -  flagged below.</p>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Operations team manually compiled reports in spreadsheets. Built a dashboard pulling live data instead. Outcome not yet quantified - flagged below.</p>
                       </div>
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
                         <p className="text-xs font-semibold text-foreground/80 mb-1">Course Scheduler App</p>
@@ -179,7 +179,7 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Right  -  ProofScore panel */}
+                  {/* Right - ProofScore panel */}
                   <div className="glass-card p-5 flex flex-col gap-4 border-brand-500/20 shadow-glow-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">ProofScore™</span>
@@ -260,7 +260,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Built around your real work</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  ChatGPT will make things up. Templates show the same layout as everyone else. Showcase only works with what you actually did  -  and flags every claim that needs evidence.
+                  ChatGPT will make things up. Templates show the same layout as everyone else. Showcase only works with what you actually did - and flags every claim that needs evidence.
                 </p>
               </div>
               <div className="glass-card p-6 border-brand-500/20">
@@ -269,7 +269,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">ProofScore tells you exactly what is weak</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  No vague feedback. ProofScore audits 11 specific hiring-readiness categories and tells you what is costing you, with concrete fixes  -  not generic advice.
+                  No vague feedback. ProofScore audits 11 specific hiring-readiness categories and tells you what is costing you, with concrete fixes - not generic advice.
                 </p>
               </div>
               <div className="glass-card p-6">
@@ -278,7 +278,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">A public page recruiters will actually open</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Your portfolio lives at showcase.app/p/your-name  -  no &ldquo;.github.io&rdquo;, no &ldquo;notion.so/docs/&rdquo;, no login required. One clean link that works on a phone.
+                  Your portfolio lives at showcase.app/p/your-name - no &ldquo;.github.io&rdquo;, no &ldquo;notion.so/docs/&rdquo;, no login required. One clean link that works on a phone.
                 </p>
               </div>
             </div>
@@ -348,7 +348,7 @@ export default function LandingPage() {
             </div>
             <p className="text-sm text-muted-foreground/60 mt-8 max-w-2xl leading-relaxed">
               Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce
-              generic applications. If the evidence is not there, we tell you it is missing  -  we do not
+              generic applications. If the evidence is not there, we tell you it is missing - we do not
               invent it.
             </p>
           </div>
@@ -375,7 +375,7 @@ export default function LandingPage() {
               {[
                 'First impression clarity and role positioning',
                 'Project depth and case study quality',
-                'Proof strength  -  are your claims backed up?',
+                'Proof strength - are your claims backed up?',
                 'Keyword relevance for your target role',
                 'Hiring risk gaps that could cost you the interview',
               ].map((item) => (
@@ -594,8 +594,8 @@ export default function LandingPage() {
                 <div className="bg-amber-500/[0.06] border border-amber-500/20 rounded-lg p-4">
                   <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">ProofScore flag</p>
                   <p className="text-sm text-foreground/80">
-                    Outcome is not quantified yet. Add a number  -  hours saved, report turnaround time, or
-                    adoption  -  before this goes out.
+                    Outcome is not quantified yet. Add a number - hours saved, report turnaround time, or
+                    adoption - before this goes out.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
@@ -627,7 +627,7 @@ export default function LandingPage() {
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-8 max-w-2xl">
                   Showcase only works with what you provide. Our AI rewrites how you{' '}
-                  <em>present</em> real experience  -  it never fabricates metrics, employers, projects, or
+                  <em>present</em> real experience - it never fabricates metrics, employers, projects, or
                   certifications. When evidence is missing, we tell you exactly what to add. We never make it up.
                 </p>
                 <div className="grid sm:grid-cols-3 gap-6">
@@ -645,7 +645,7 @@ export default function LandingPage() {
                     {
                       icon: CheckCircle2,
                       title: 'Honest audit scores',
-                      desc: 'ProofScore is designed to expose weaknesses  -  not inflate your confidence. A low score means there is real work to do.',
+                      desc: 'ProofScore is designed to expose weaknesses - not inflate your confidence. A low score means there is real work to do.',
                     },
                   ].map(({ icon: Icon, title, desc }) => (
                     <div key={title} className="flex items-start gap-3">

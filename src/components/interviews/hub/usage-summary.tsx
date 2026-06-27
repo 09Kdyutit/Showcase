@@ -38,14 +38,14 @@ export function UsageSummary({ usage }: { usage: UsageSnapshot }) {
         )}
 
         <p className="text-xs text-muted-foreground">
-          Resets {resetDate}. {usage.tier === 'free' ? 'A session counts once you start answering  -  abandoned setups are never charged.' : `Plan: Pro (${usage.periodLabel})`}
+          Resets {resetDate}. {usage.tier === 'free' ? 'A session counts once you start answering - abandoned setups are never charged.' : `Plan: Pro (${usage.periodLabel})`}
         </p>
 
         {usage.tier === 'free' && usage.sessions.remaining === 0 && (
           <div className="rounded-lg border border-border/60 bg-surface-100 p-3">
             <p className="text-sm text-foreground font-medium">You&apos;ve used your {usage.sessions.limit} free interviews this month.</p>
             <p className="text-xs text-muted-foreground mt-1">Resets {resetDate}. Your existing sessions, transcripts, and Story Bank stay fully available.</p>
-            <Button asChild size="sm" className="mt-3"><Link href="/billing">Upgrade to Pro  -  $15/mo or $150/yr</Link></Button>
+            <Button asChild size="sm" className="mt-3"><Link href="/billing">Upgrade to Pro - $15/mo or $150/yr</Link></Button>
           </div>
         )}
       </CardContent>

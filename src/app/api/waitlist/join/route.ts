@@ -28,7 +28,7 @@ const schema = z.object({
   consent: z.boolean().refine((v) => v === true, { message: 'You must agree to receive updates.' }),
 })
 
-// Postgres-backed (or Upstash, if configured)  -  safe across multiple server instances,
+// Postgres-backed (or Upstash, if configured) - safe across multiple server instances,
 // unlike a per-process in-memory Map which only protects whichever instance happens to
 // receive the request.
 const IP_LIMIT = 5
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data
 
-    // Honeypot check  -  silently succeed without inserting
+    // Honeypot check - silently succeed without inserting
     if (data.website_url_hidden) {
       return NextResponse.json({ success: true, message: "You're on the list!" })
     }
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Send confirmation email. Must be awaited — Vercel can freeze the serverless
+    // Send confirmation email. Must be awaited - Vercel can freeze the serverless
     // function the instant a response is returned, so an un-awaited send can get cut
     // off before the request to Resend ever completes.
     const { subject, html, text } = waitlistConfirmationEmail(data.full_name)

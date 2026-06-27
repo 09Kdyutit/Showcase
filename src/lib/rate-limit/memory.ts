@@ -1,6 +1,6 @@
 import type { RateLimiter, RateLimitCheckResult } from './types'
 
-// Single-process only  -  correct for local dev (one Next.js process), NOT safe for any
+// Single-process only - correct for local dev (one Next.js process), NOT safe for any
 // production deployment with more than one instance, since each instance has its own
 // Map. Never select this implementation when DATABASE_URL/Supabase is configured;
 // it exists purely as the zero-dependency fallback so local dev never requires

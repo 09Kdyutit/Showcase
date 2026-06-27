@@ -5,7 +5,7 @@ import { useSyncExternalStore, type ReactNode } from 'react'
 const EASE = [0.21, 0.47, 0.32, 0.98] as const
 
 // Framer Motion's own useReducedMotion() reads window.matchMedia synchronously on
-// the very first client render  -  on the server there is no window, so it has no
+// the very first client render - on the server there is no window, so it has no
 // choice but to assume false there. The result: a user with reduced motion enabled
 // gets a server-rendered HTML that assumes animation is on, and a first client
 // render that immediately disagrees, which is a real React hydration mismatch (seen

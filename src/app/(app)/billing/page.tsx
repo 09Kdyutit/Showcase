@@ -154,7 +154,7 @@ export default function BillingPage() {
                       <span className="text-4xl font-bold text-foreground">$12.50</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
-                    <p className="text-sm text-emerald-600 font-medium mt-1">$150 billed annually  -  save $30</p>
+                    <p className="text-sm text-emerald-600 font-medium mt-1">$150 billed annually - save $30</p>
                   </>
                 ) : (
                   <div className="flex items-baseline gap-1">
@@ -213,7 +213,7 @@ export default function BillingPage() {
               className="w-full sm:w-auto gap-2 shadow-glow"
             >
               <Zap className="h-4 w-4" />
-              Upgrade to Pro  -  {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
+              Upgrade to Pro - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground/60">

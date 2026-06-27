@@ -9,7 +9,7 @@
 // WHY a proxy instead of connecting to Gemini directly:
 //   Gemini ephemeral tokens (auth_tokens/xxx) only work with the
 //   BidiGenerateContentConstrained endpoint, whose model registry uses the v1main
-//   (stable) catalog. gemini-2.0-flash-live-001 is not in that catalog  -  it
+//   (stable) catalog. gemini-2.0-flash-live-001 is not in that catalog - it
 //   requires BidiGenerateContent with a real API key. We cannot send the real key
 //   to the browser, so the Edge Function (supabase/functions/live-interview-ws)
 //   holds the key as a Supabase secret and proxies all messages transparently.
@@ -195,7 +195,7 @@ export class LiveInterviewEngine {
 
     ws.onopen = () => {
       this.callbacks.onDebugEvent?.('ws:open')
-      // Send setup immediately  -  server expects the setup message right after open.
+      // Send setup immediately - server expects the setup message right after open.
       const setupMsg: GeminiSetupMessage = {
         setup: {
           model: `models/${model}`,

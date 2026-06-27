@@ -21,7 +21,7 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
             Not measured yet. Complete one baseline session to create your first readiness estimate.
           </p>
           <p className="text-xs text-muted-foreground mt-4 border-t border-border/60 pt-3">
-            Interview Readiness is a structured practice diagnostic  -  not a hiring prediction.
+            Interview Readiness is a structured practice diagnostic - not a hiring prediction.
           </p>
         </CardContent>
       </Card>
@@ -34,7 +34,7 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base capitalize">{primary.sessionType.replace(/_/g, ' ')} Readiness  -  {primary.targetRole}</CardTitle>
+        <CardTitle className="text-base capitalize">{primary.sessionType.replace(/_/g, ' ')} Readiness - {primary.targetRole}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-6 flex-wrap">
@@ -56,10 +56,10 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
           <summary className="text-xs text-brand-600 cursor-pointer hover:underline">How this score was calculated</summary>
           <div className="mt-3 text-xs text-muted-foreground space-y-1.5">
             <p>Rubric: <span className="text-foreground">{primary.rubricVersion}</span> for {primary.sessionType.replace(/_/g, ' ')}</p>
-            <p>Coaching mode: <span className="text-foreground capitalize">{primary.coachingMode}</span> sessions only  -  other modes are tracked separately, never blended in.</p>
+            <p>Coaching mode: <span className="text-foreground capitalize">{primary.coachingMode}</span> sessions only - other modes are tracked separately, never blended in.</p>
             <p>Sessions used: <span className="text-foreground">{primary.comparableSessionCount}</span> most recent, current-rubric, matching-mode sessions for this role and interview type.</p>
-            {primary.excludedStaleRubricCount > 0 && <p>{primary.excludedStaleRubricCount} session(s) excluded  -  scored under a previous rubric version.</p>}
-            {primary.excludedModeMismatchCount > 0 && <p>{primary.excludedModeMismatchCount} session(s) excluded  -  different coaching mode.</p>}
+            {primary.excludedStaleRubricCount > 0 && <p>{primary.excludedStaleRubricCount} session(s) excluded - scored under a previous rubric version.</p>}
+            {primary.excludedModeMismatchCount > 0 && <p>{primary.excludedModeMismatchCount} session(s) excluded - different coaching mode.</p>}
           </div>
         </details>
 
@@ -71,7 +71,7 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
             <div className="mt-2 space-y-1.5">
               {otherGroups.map((g) => (
                 <div key={`${g.targetRole}-${g.sessionType}`} className="flex items-center justify-between text-sm p-2 rounded-lg bg-surface-100">
-                  <span className="text-foreground capitalize">{g.sessionType.replace(/_/g, ' ')}  -  {g.targetRole}</span>
+                  <span className="text-foreground capitalize">{g.sessionType.replace(/_/g, ' ')} - {g.targetRole}</span>
                   <span className="flex items-center gap-2">
                     <span className="tabular-nums font-medium">{g.score}</span>
                     <ReadinessBandBadge band={g.band} />
@@ -83,7 +83,7 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
         )}
 
         <p className="text-xs text-muted-foreground mt-4 border-t border-border/60 pt-3">
-          Interview Readiness is a structured practice diagnostic  -  not a hiring prediction.
+          Interview Readiness is a structured practice diagnostic - not a hiring prediction.
         </p>
       </CardContent>
     </Card>

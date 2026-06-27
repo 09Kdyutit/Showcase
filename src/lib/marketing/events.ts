@@ -1,4 +1,4 @@
-// Shared between the client tracker and the API route  -  the allowlist IS the
+// Shared between the client tracker and the API route - the allowlist IS the
 // validation. An event name or metadata key not listed here is rejected, not
 // silently accepted, so this file is the only place the funnel can grow from.
 
@@ -23,7 +23,7 @@ export const MARKETING_EVENTS = [
 
 export type MarketingEvent = (typeof MARKETING_EVENTS)[number]
 
-// Metadata is intentionally restricted to small, enumerable values  -  never free text,
+// Metadata is intentionally restricted to small, enumerable values - never free text,
 // never anything that could carry a resume fragment, name, or email.
 export type MarketingEventMetadata = Record<string, string | number | boolean | null>
 

@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    // Ownership of any referenced resume/project is verified explicitly  -  a story
+    // Ownership of any referenced resume/project is verified explicitly - a story
     // bank entry must never be plantable against another user's source material,
     // even though resumeSourceId/projectSourceId are just FKs (RLS on resumes/
     // projects would also block a cross-user SELECT, but this route writes the FK

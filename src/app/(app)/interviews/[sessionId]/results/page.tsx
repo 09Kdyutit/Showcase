@@ -284,14 +284,14 @@ export default function InterviewResultsPage() {
           {analyzing ? (
             <div className="flex items-center gap-3 text-sm text-muted-foreground py-4">
               <div className="h-4 w-4 rounded-full border-2 border-brand-400 border-t-transparent animate-spin shrink-0" />
-              Analyzing your session  -  this takes 15-30 seconds…
+              Analyzing your session - this takes 15-30 seconds…
             </div>
           ) : session.analysis_status === 'failed' || session.analysis_status === 'skipped' ? (
             <div className="space-y-3">
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Info className="h-4 w-4 mt-0.5 shrink-0" />
                 <p>{session.analysis_status === 'failed'
-                  ? 'AI scoring ran into an error. Your transcript is saved  -  you can retry below.'
+                  ? 'AI scoring ran into an error. Your transcript is saved - you can retry below.'
                   : 'AI scoring wasn\'t available when this session completed.'}</p>
               </div>
               <Button size="sm" onClick={runAnalysis} className="gap-2"><RefreshCw className="h-3.5 w-3.5" /> Run AI Scoring</Button>
@@ -441,7 +441,7 @@ export default function InterviewResultsPage() {
                   <DistBar label="Over 100 words" value={responseDist.over100} max={responseDist.total} count={responseDist.over100} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Most strong interview answers land between 60-120 words  -  specific enough to show depth, short enough to
+                  Most strong interview answers land between 60-120 words - specific enough to show depth, short enough to
                   not lose the interviewer. Under 50 words often signals a missed opportunity; over 150 can signal rambling.
                 </p>
               </div>
@@ -452,7 +452,7 @@ export default function InterviewResultsPage() {
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-foreground">Keyword heatmap</p>
-                  <span className="text-xs text-muted-foreground">from your answers  -  darker = used more</span>
+                  <span className="text-xs text-muted-foreground">from your answers - darker = used more</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {delivery.keywords.map(({ word, count }, i) => {
@@ -474,7 +474,7 @@ export default function InterviewResultsPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Topics you mentioned most across all your answers. Heavy repetition of a single keyword can indicate
-                  over-reliance on one concept  -  interviewers value range and specificity.
+                  over-reliance on one concept - interviewers value range and specificity.
                 </p>
               </div>
             )}
@@ -568,7 +568,7 @@ export default function InterviewResultsPage() {
                             <p className="text-sm text-foreground leading-relaxed italic bg-brand-500/5 rounded-lg p-3">
                               &ldquo;{coaching.suggestedStructure}&rdquo;
                             </p>
-                            <p className="text-[10px] text-muted-foreground/60">This is an example, not a script  -  adapt it to your actual experience.</p>
+                            <p className="text-[10px] text-muted-foreground/60">This is an example, not a script - adapt it to your actual experience.</p>
                           </div>
                         )}
                       </div>
@@ -609,7 +609,7 @@ export default function InterviewResultsPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground pt-1">Objective text comparison  -  your original answer is preserved.</p>
+                    <p className="text-xs text-muted-foreground pt-1">Objective text comparison - your original answer is preserved.</p>
                   </div>
                 )}
               </div>
@@ -626,7 +626,7 @@ export default function InterviewResultsPage() {
             <p className="text-xs text-muted-foreground">
               {weakDimensionIds.length > 0
                 ? 'Drills targeting your lowest-scoring dimensions from this session.'
-                : hasAnalysis ? 'You scored well across every dimension  -  general recommendations below.' : 'General practice recommendations.'}
+                : hasAnalysis ? 'You scored well across every dimension - general recommendations below.' : 'General practice recommendations.'}
             </p>
             <div className="grid sm:grid-cols-3 gap-2">
               {recommendDrillsForDimensions(weakDimensionIds).map((d) => (
@@ -651,7 +651,7 @@ export default function InterviewResultsPage() {
             <p className="text-xs text-muted-foreground">Private by default. Share links never include your transcript or audio. Revokable at any time.</p>
             {newShareLink && (
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">
-                <p className="text-xs text-foreground font-medium">Link created  -  copy it now:</p>
+                <p className="text-xs text-foreground font-medium">Link created - copy it now:</p>
                 <div className="flex items-center gap-2">
                   <code className="text-xs text-muted-foreground bg-surface-100 rounded-lg px-2 py-1.5 flex-1 truncate">{newShareLink}</code>
                   <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(newShareLink); toast.success('Copied.') }}><Copy className="h-3.5 w-3.5" /></Button>

@@ -1,7 +1,7 @@
 import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Releases exactly ONE specific reservation by id  -  for cases (like a retry that lost
+// Releases exactly ONE specific reservation by id - for cases (like a retry that lost
 // a database-level race after its reservation was already taken) where releasing
 // every 'reserved' row for the session would be wrong, since other still-valid
 // reservations (e.g. an earlier, genuinely successful retry on the same session) may
@@ -11,7 +11,7 @@ export async function releaseSpecificReservation(supabase: SupabaseClient, reser
 }
 
 // Reservations are taken before the session row exists (so a denied reservation never
-// leaves an orphaned session behind)  -  this attaches the real session_id immediately
+// leaves an orphaned session behind) - this attaches the real session_id immediately
 // after the session is actually created, so later commit/release-by-session-id lookups
 // work. Called once, right after the insert, for every reservation id this session's
 // creation produced (session + audio, if applicable).
@@ -21,7 +21,7 @@ export async function attachSessionToReservations(supabase: SupabaseClient, rese
 }
 
 // Called the moment the FIRST real answer for a session is accepted (text transcript
-// or recorded-audio answer route)  -  this is the exact instant a reservation becomes a
+// or recorded-audio answer route) - this is the exact instant a reservation becomes a
 // genuine, non-refundable session per the product definition. Idempotent: committing
 // an already-committed row is a no-op.
 export async function commitSessionUsage(supabase: SupabaseClient, sessionId: string, userId: string): Promise<void> {
@@ -35,7 +35,7 @@ export async function commitSessionUsage(supabase: SupabaseClient, sessionId: st
 }
 
 // Refunds the session+audio reservations for a session that never received a real
-// answer  -  abandoned in the Lobby, provider connection failed before the first
+// answer - abandoned in the Lobby, provider connection failed before the first
 // question, or the session was deleted pre-answer. Only releases rows still in
 // 'reserved' state; a session that already has a committed reservation is a genuine
 // used session and is NOT touched here.

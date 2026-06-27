@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { extractPdfViaVision, isGarbledPdfText } from '@/lib/ai/pdf-vision'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 
-const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB  -  stays under typical serverless body limits
+const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB - stays under typical serverless body limits
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
 
-    // Magic-byte check  -  the declared MIME type and filename extension are both
+    // Magic-byte check - the declared MIME type and filename extension are both
     // attacker-controlled. A renamed .exe claiming to be "resume.pdf" must be rejected
     // before it ever reaches a parser, regardless of what the client says it is.
     const isPdfSignature = buffer.length >= 4 && buffer.subarray(0, 4).toString('latin1') === '%PDF'
-    // DOCX is a zip container  -  real zip files start with 'PK' (0x50 0x4B).
+    // DOCX is a zip container - real zip files start with 'PK' (0x50 0x4B).
     const isZipSignature = buffer.length >= 2 && buffer[0] === 0x50 && buffer[1] === 0x4b
     if (isPdf && !isPdfSignature) {
       return NextResponse.json({ error: 'This file is not a valid PDF.' }, { status: 400 })
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     let text = ''
 
     // Parsers run on attacker-controlled bytes (zip bombs, deeply nested structures can
-    // hang or balloon memory)  -  bound how long we'll wait regardless of file content.
+    // hang or balloon memory) - bound how long we'll wait regardless of file content.
     const PARSE_TIMEOUT_MS = 15_000
     function withTimeout<T>(promise: Promise<T>): Promise<T> {
       return Promise.race([
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         const parser = new PDFParse({ data: buffer })
         try {
           const result = await withTimeout(parser.getText())
-          // Strip pdf-parse's "-- N of M --" page-separator footers  -  noise, not resume content
+          // Strip pdf-parse's "-- N of M --" page-separator footers - noise, not resume content
           text = result.text.replace(/^--\s*\d+\s*of\s*\d+\s*--$/gm, '')
         } finally {
           await parser.destroy()
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
       // Trigger vision fallback if:
       //   a) text layer is nearly empty (scanned / outlined-font PDF), OR
-      //   b) text looks garbled (multi-column designer layout — pdf-parse reads in render
+      //   b) text looks garbled (multi-column designer layout - pdf-parse reads in render
       //      order, not logical reading order, producing a jumble of tiny fragments).
       // Vision reads the page as an image, so it handles both cases perfectly.
       const cleanedText = text.replace(/\n{3,}/g, '\n\n').trim()
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             console.error('[resume/extract-text] vision fallback also failed:', visionErr instanceof Error ? visionErr.message : visionErr)
           }
         } else {
-          console.error('[resume/extract-text] vision fallback skipped  -  rate limited:', rl.reason)
+          console.error('[resume/extract-text] vision fallback skipped - rate limited:', rl.reason)
         }
       }
     } else if (isDocx) {
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'extraction_too_short',
           message: isPdf
-            ? 'This PDF appears to have no readable text or image content (it may be empty or corrupted)  -  try pasting the text manually instead.'
+            ? 'This PDF appears to have no readable text or image content (it may be empty or corrupted) - try pasting the text manually instead.'
             : 'Could not extract enough text from this file. Try pasting the text manually instead.',
         },
         { status: 422 }

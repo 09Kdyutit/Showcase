@@ -2,8 +2,8 @@ import type { ParsedResumeOutput, PortfolioContentOutput } from '@/lib/ai/schema
 
 // ProofScore is a structured career-readiness diagnostic, not a scientifically
 // validated assessment. Every category score below is computed from concrete,
-// countable facts in the user's own resume/portfolio data  -  never from an AI's
-// subjective judgment  -  so the same input always produces the same score, and
+// countable facts in the user's own resume/portfolio data - never from an AI's
+// subjective judgment - so the same input always produces the same score, and
 // every score traces back to evidence the user can verify. AI is layered on
 // top afterward only to explain *why*, never to decide *what*.
 
@@ -126,16 +126,16 @@ function scoreFirstImpression(parsed: ParsedResumeOutput | null, portfolio: Port
   const len = summary.trim().length
 
   if (len === 0) {
-    evidence.push('No summary or subheadline found  -  the first thing a reviewer sees is currently blank.')
+    evidence.push('No summary or subheadline found - the first thing a reviewer sees is currently blank.')
     return { key: 'first_impression', score: 0, evidence }
   }
   let score = 100
   if (len < 40) {
     score = 35
-    evidence.push(`Summary is only ${len} characters  -  too short to communicate who you are.`)
+    evidence.push(`Summary is only ${len} characters - too short to communicate who you are.`)
   } else if (len > 500) {
     score = 55
-    evidence.push(`Summary is ${len} characters  -  likely too long for a first impression.`)
+    evidence.push(`Summary is ${len} characters - likely too long for a first impression.`)
   } else {
     evidence.push(`Summary is ${len} characters, a reasonable length for a first impression.`)
   }
@@ -226,7 +226,7 @@ function scoreCaseStudyQuality(portfolio: PortfolioContentOutput | null): ScoreI
   const evidence: string[] = []
   const projects = portfolio?.projects ?? []
   if (projects.length === 0) {
-    evidence.push('No portfolio case studies found  -  publish a portfolio to unlock this category.')
+    evidence.push('No portfolio case studies found - publish a portfolio to unlock this category.')
     return { key: 'case_study_quality', score: null, evidence }
   }
   let totalPoints = 0
@@ -261,7 +261,7 @@ function scoreContactReadiness(parsed: ParsedResumeOutput | null, portfolio: Por
   const hasLink = Object.values(links).some(Boolean)
   const points = (email ? 2 : 0) + (hasLink ? 2 : 0)
   const score = clamp((points / 4) * 100)
-  if (!email) evidence.push('No email address found  -  a recruiter cannot reach you.')
+  if (!email) evidence.push('No email address found - a recruiter cannot reach you.')
   if (!hasLink) evidence.push('No LinkedIn, GitHub, website, or portfolio link found.')
   if (email && hasLink) evidence.push('Email and at least one professional link are present.')
   return { key: 'contact_readiness', score, evidence }
@@ -276,7 +276,7 @@ function scoreKeywordSupport(parsed: ParsedResumeOutput | null, targetRole: stri
   const skillCount = parsed.skills.length
   const targetWords = tokenize(targetRole).length
   const score = clamp(Math.min(skillCount * 8, 100) * (targetWords > 0 ? 1 : 0.8))
-  evidence.push(`${skillCount} distinct skills listed${skillCount < 5 ? '  -  ATS keyword matching needs more breadth' : '.'}`)
+  evidence.push(`${skillCount} distinct skills listed${skillCount < 5 ? ' - ATS keyword matching needs more breadth' : '.'}`)
   return { key: 'keyword_support', score, evidence }
 }
 
@@ -333,7 +333,7 @@ export function computeProofScore(
       score,
       maxScore: 100 as const,
       weight: def.weight,
-      evidence: visible ? computed.evidence : ['Available on Pro  -  upgrade to see this category.'],
+      evidence: visible ? computed.evidence : ['Available on Pro - upgrade to see this category.'],
       severity: severityFor(score),
       gated,
     }

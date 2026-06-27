@@ -1,10 +1,10 @@
-// Pure, deterministic readiness computation  -  no DB/network access, fully unit
+// Pure, deterministic readiness computation - no DB/network access, fully unit
 // testable. Caller (hub-data.ts) is responsible for fetching real rows and mapping
 // them into ReadinessInputSession before calling computeReadinessGroups().
 //
 // Mission rule this file exists to enforce: "Do not average unrelated session
 // types." A single readiness number that blends a Behavioral session with a
-// Technical Concept session is not honest  -  they measure different things against
+// Technical Concept session is not honest - they measure different things against
 // different rubric weights. So readiness is computed per (targetRole, sessionType)
 // pair, and the Hub shows the pair with the most comparable data as the headline,
 // with every other pair inspectable via a breakdown view.
@@ -69,7 +69,7 @@ function sampleLabel(comparable: number, sessionType: string, targetRole: string
 export function computeReadinessGroups(sessions: ReadinessInputSession[]): ReadinessGroup[] {
   const byKey = new Map<string, ReadinessInputSession[]>()
   for (const s of sessions) {
-    if (!s.evaluation) continue // analysis pending/failed/skipped  -  not a valid data point
+    if (!s.evaluation) continue // analysis pending/failed/skipped - not a valid data point
     const key = `${s.targetRole}::${s.sessionType}`
     byKey.set(key, [...(byKey.get(key) ?? []), s])
   }
@@ -129,7 +129,7 @@ export function computeReadinessGroups(sessions: ReadinessInputSession[]): Readi
   return groups
 }
 
-/** The headline readiness shown in the Hub's command header  -  the group with the
+/** The headline readiness shown in the Hub's command header - the group with the
  *  most comparable sessions, ties broken by most recent activity. Never picks an
  *  arbitrary or averaged-across-everything number. */
 export function pickPrimaryReadinessGroup(groups: ReadinessGroup[], preferredTargetRole?: string | null): ReadinessGroup | null {

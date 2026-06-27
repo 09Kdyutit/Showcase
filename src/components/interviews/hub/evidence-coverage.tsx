@@ -9,7 +9,7 @@ export function EvidenceCoverage({ coverage }: { coverage: EvidenceCoverageSumma
       <CardHeader><CardTitle className="text-base">Evidence Coverage</CardTitle></CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
-          Competencies you have strong evidence for  -  based on your resume and portfolio.
+          Competencies you have strong evidence for - based on your resume and portfolio.
         </p>
 
         <ul className="grid sm:grid-cols-2 gap-2" aria-label="Competency coverage">

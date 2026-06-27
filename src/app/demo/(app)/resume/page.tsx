@@ -25,7 +25,7 @@ const EXPERIENCE = [
   {
     company: 'Figma',
     role: 'Lead Product Designer',
-    period: '2022  -  Present',
+    period: '2022 - Present',
     bullets: [
       'Led design for core editor and collaboration features.',
       'Owned and maintained Figma\'s internal design system.',
@@ -35,7 +35,7 @@ const EXPERIENCE = [
   {
     company: 'Stripe',
     role: 'Product Designer',
-    period: '2020  -  2022',
+    period: '2020 - 2022',
     bullets: [
       'Redesigned Stripe Checkout, increasing completion rate by 24%.',
       'Built Stripe\'s first internal design system from scratch.',
@@ -44,7 +44,7 @@ const EXPERIENCE = [
   {
     company: 'Adobe',
     role: 'UX Designer',
-    period: '2019  -  2020',
+    period: '2019 - 2020',
     bullets: [
       'Designed mobile experiences for Adobe Creative Cloud apps.',
     ],
@@ -104,7 +104,7 @@ export default function DemoResumePage() {
         <p className="text-muted-foreground text-sm mt-1">Your resume, structured as career evidence.</p>
       </div>
 
-      {/* Upload area  -  already uploaded state */}
+      {/* Upload area - already uploaded state */}
       <div className="glass-card p-5">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">

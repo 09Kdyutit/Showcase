@@ -72,7 +72,7 @@ export const RoleMatchSchema = z.object({
 export type RoleMatchOutput = z.infer<typeof RoleMatchSchema>
 
 // ── AuditResult ───────────────────────────────────────────────────────────────
-// score/maxScore/severity/priority are NOT part of what the AI returns  -  they come from
+// score/maxScore/severity/priority are NOT part of what the AI returns - they come from
 // the deterministic engine in src/lib/proofscore/engine.ts. The AI is given the precomputed
 // score + evidence per category and asked only to explain it in plain language; it cannot
 // change the number. This is enforced structurally (the AI's schema has no score field at
@@ -130,7 +130,7 @@ export const PortfolioContentSchema = z.object({
   }),
   recruiterSummary: z.string().nullable().optional(),
   featuredResult: z.string().nullable().optional(),
-  // Theme customization  -  stored alongside content so it travels with the portfolio
+  // Theme customization - stored alongside content so it travels with the portfolio
   accentColor: z.string().nullable().optional(),
   about: z.object({
     bio: z.string(),

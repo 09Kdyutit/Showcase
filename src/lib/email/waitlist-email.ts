@@ -154,25 +154,25 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
 
 You're on the Showcase waitlist.
 
-We'll reach out as soon as access opens. No ETA — we want to get it right first.
+We'll reach out as soon as access opens. No ETA - we want to get it right first.
 
 Visit: ${siteUrl}
 
 WHAT IS SHOWCASE?
-Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, scores how strong your evidence is with ProofScore™, and tells you exactly what to improve — without inventing a single thing.
+Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, scores how strong your evidence is with ProofScore™, and tells you exactly what to improve - without inventing a single thing.
 
 WHAT TO EXPECT:
-1. Resume & portfolio builder — Upload your resume and get a polished, role-specific portfolio in minutes.
-2. ProofScore™ audit — An honest 0–100 score across 11 dimensions.
-3. Interview prep — Company-specific questions and AI-scored practice.
-4. Job matching — Match your profile to real job postings.
-5. Project roadmap — AI suggests 6 custom projects to fill your gaps.
+1. Resume & portfolio builder - Upload your resume and get a polished, role-specific portfolio in minutes.
+2. ProofScore™ audit - An honest 0–100 score across 11 dimensions.
+3. Interview prep - Company-specific questions and AI-scored practice.
+4. Job matching - Match your profile to real job postings.
+5. Project roadmap - AI suggests 6 custom projects to fill your gaps.
 
 No spam. No fake urgency. We'll only email you when something is real.
 
 Questions? Reply to this email or write to hello@tryshowcase.ink
 
-—
+-
 Showcase · Turn your experience into evidence.
 You're receiving this because you signed up at tryshowcase.ink.
 To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".`

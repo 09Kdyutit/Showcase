@@ -26,7 +26,7 @@ export type TrackMeta = Record<string, string | number | boolean | null | undefi
 
 /**
  * Server-side event tracking. Writes to usage_events via service client.
- * Always fails silently  -  never blocks the calling API route.
+ * Always fails silently - never blocks the calling API route.
  *
  * Only call from server-side API routes, never from client components.
  * Do not pass resume text, portfolio content, or PII in metadata.

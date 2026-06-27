@@ -8,7 +8,7 @@ const createSchema = z.object({
   expiresInDays: z.number().int().min(1).max(90).default(30),
 })
 
-/** Lists this user's active shares for a session  -  metadata only, never the raw
+/** Lists this user's active shares for a session - metadata only, never the raw
  *  token (it was never stored after creation, so there is nothing to return). */
 export async function GET(
   _request: NextRequest,
@@ -37,7 +37,7 @@ export async function GET(
 
 /**
  * Creates a new share for a completed session. The raw token is returned exactly
- * once, in this response  -  only its sha256 hash is ever stored, so it cannot be
+ * once, in this response - only its sha256 hash is ever stored, so it cannot be
  * retrieved again after this call returns. The token is never logged.
  */
 export async function POST(

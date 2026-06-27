@@ -36,16 +36,16 @@ INDUSTRY: ${industry}
 
 ${context.join('\n\n')}
 
-ALREADY-COMPUTED SCORES (authoritative  -  explain these, do not contradict or imply a different number):
+ALREADY-COMPUTED SCORES (authoritative - explain these, do not contradict or imply a different number):
 ${categoryBlock}
 
-DECISION PROCEDURE  -  for each category above, write:
-- "explanation": why this score makes sense given the computed evidence listed  -  cite the
+DECISION PROCEDURE - for each category above, write:
+- "explanation": why this score makes sense given the computed evidence listed - cite the
   actual evidence given, never invent new evidence not in that list or the source content
 - "issues": specific issues found, referencing actual content from the resume/portfolio above
 - "fix": one specific, actionable instruction (not "improve it")
 - "example": a concrete before/after rewrite or specific suggestion grounded in the
-  candidate's real content  -  never invent facts, metrics, or claims not present above
+  candidate's real content - never invent facts, metrics, or claims not present above
 
 FAILURE BEHAVIOR: if the computed evidence for a category is thin (one short phrase), write a
 correspondingly short, honest explanation rather than padding it with generic career advice.
@@ -73,7 +73,7 @@ export const proofScoreExplanationPrompt = definePrompt<ProofScoreExplanationInp
   outputSchema: AuditExplanationResultSchema,
   schemaName: 'audit_explanation',
   invariants: [
-    'Output schema has no score field  -  structurally cannot change a deterministic score',
+    'Output schema has no score field - structurally cannot change a deterministic score',
     'Explanations cite only the precomputed evidence list, never invented evidence',
     'Never presents ProofScore as scientifically validated or as a hiring-outcome predictor',
   ],

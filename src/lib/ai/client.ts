@@ -73,7 +73,7 @@ function getMockResponse(messages: AIMessage[]): string {
 // ── OpenAI error → user-friendly message ─────────────────────────────────────
 
 function toUserError(err: unknown): Error {
-  // Always keep the raw error reachable via .cause  -  the friendly message above is for the
+  // Always keep the raw error reachable via .cause - the friendly message above is for the
   // user, but swallowing the real error (e.g. a schema validation failure) makes bugs like
   // that invisible in logs. Callers should log err.cause, not just err.message.
   if (err instanceof OpenAI.APIError) {
@@ -113,7 +113,7 @@ async function callStructuredWithUsage<T>(
   } = {}
 ): Promise<{ data: T; usage: StructuredCallUsage }> {
   if (IS_MOCK_MODE) {
-    console.warn('[AI] Mock mode  -  set OPENAI_API_KEY in .env.local for real responses')
+    console.warn('[AI] Mock mode - set OPENAI_API_KEY in .env.local for real responses')
     const raw = getMockResponse(messages)
     return { data: schema.parse(JSON.parse(raw)) as T, usage: { inputTokens: 0, outputTokens: 0 } }
   }
@@ -223,7 +223,7 @@ export async function callAI(
   } = {}
 ): Promise<string> {
   if (IS_MOCK_MODE) {
-    console.warn('[AI] Mock mode  -  set OPENAI_API_KEY in .env.local')
+    console.warn('[AI] Mock mode - set OPENAI_API_KEY in .env.local')
     return getMockResponse(messages)
   }
 

@@ -80,7 +80,7 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
         <p className="text-[11px] text-emerald-600 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmed accurate</p>
       )}
       {entry.user_confirmed === false && (
-        <p className="text-[11px] text-red-600 flex items-center gap-1"><X className="h-3 w-3" /> Flagged  -  needs revision</p>
+        <p className="text-[11px] text-red-600 flex items-center gap-1"><X className="h-3 w-3" /> Flagged - needs revision</p>
       )}
     </div>
   )
@@ -221,7 +221,7 @@ function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => v
       setCompany(data.company)
       setDescription(data.description)
       setFetchedFromUrl(true)
-      toast.success('Pulled the job description — review it below, then continue')
+      toast.success('Pulled the job description - review it below, then continue')
     } catch {
       toast.error('Could not reach that URL.')
     } finally {
@@ -234,7 +234,7 @@ function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => v
     setSaving(true)
     try {
       // If we already fetched from a URL, re-parsing isn't needed unless the user edited
-      // the text materially — but re-running keeps match score accurate to any edits.
+      // the text materially - but re-running keeps match score accurate to any edits.
       const res = await fetch('/api/jobs/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -463,7 +463,7 @@ function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchB
           )}
 
           <p className="sm:col-span-2 text-[11px] text-muted-foreground/50 pt-1">
-            Score is deterministic, based on required skills, experience level, seniority, and relevant projects — not AI-generated, so it won&apos;t change between visits unless your resume does.
+            Score is deterministic, based on required skills, experience level, seniority, and relevant projects - not AI-generated, so it won&apos;t change between visits unless your resume does.
           </p>
         </div>
       )}
@@ -504,7 +504,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       if (savedJobData) {
         setSavedJob(savedJobData as SavedJob)
 
-        // Resolve the job listing  -  saved jobs from search/recommendations are cached into
+        // Resolve the job listing - saved jobs from search/recommendations are cached into
         // job_listings_cache on save (their original provider id isn't a cache UUID).
         if (savedJobData.job_listing_id) {
           const { data: cached } = await supabase
@@ -631,7 +631,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       a.remove()
       URL.revokeObjectURL(url)
       const coverage = res.headers.get('X-ATS-Coverage')
-      toast.success(coverage ? `Exported  -  ATS coverage ${coverage}%` : 'Exported')
+      toast.success(coverage ? `Exported - ATS coverage ${coverage}%` : 'Exported')
     } catch {
       toast.error('Export failed. Please try again.')
     } finally {
@@ -794,7 +794,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
             </div>
             <h2 className="text-xl font-bold mb-3">Tailor for {job?.title ?? 'this role'}</h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-              Showcase will rewrite your resume to foreground the experience most relevant to this role  -  using only your existing evidence, never fabricating facts.
+              Showcase will rewrite your resume to foreground the experience most relevant to this role - using only your existing evidence, never fabricating facts.
             </p>
             <p className="text-xs text-muted-foreground/60 mb-6">
               Every change will be shown in the Truth Ledger for your review before use.
@@ -803,7 +803,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               {[
                 ['Role-specific summary', 'Opens with your strongest credential for this exact role'],
                 ['Reordered bullets', 'Your most relevant experience moved to the top'],
-                ['Truth Ledger', 'Every change traced to its source  -  accept or reject each one'],
+                ['Truth Ledger', 'Every change traced to its source - accept or reject each one'],
                 ['Interview brief', 'Likely questions, STAR evidence, what to ask'],
               ].map(([title, desc]) => (
                 <div key={title} className="rounded-xl border border-border bg-surface-100 p-3">
@@ -1053,7 +1053,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
 
                   <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-600/80">
                     Based on your documented experience. STAR stories use only facts from your resume.
-                    Research the company independently  -  do not rely solely on this brief.
+                    Research the company independently - do not rely solely on this brief.
                   </div>
 
                   <section>

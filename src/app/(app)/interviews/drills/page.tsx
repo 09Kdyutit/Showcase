@@ -93,7 +93,7 @@ export default function DrillsPage() {
         </Link>
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Drills</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Short, focused exercises on one skill at a time. Checks here are simple and mechanical  -  length, structure, specific words  -  not an AI judgment of quality.
+          Short, focused exercises on one skill at a time. Checks here are simple and mechanical - length, structure, specific words - not an AI judgment of quality.
         </p>
       </div>
 

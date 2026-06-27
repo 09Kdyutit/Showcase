@@ -79,7 +79,7 @@ export default function ResumePage() {
     if (!text.trim()) { toast.error('Add your resume text first'); return }
     setAnalyzing(true)
     try {
-      // Analyzing always persists  -  a resume row must exist (and stay in sync with the
+      // Analyzing always persists - a resume row must exist (and stay in sync with the
       // current text) before /api/ai/analyze-resume can attach parsed_json to it. Without
       // this, a user who clicks Analyze without first clicking Save loses their result on
       // refresh and ProofScore has nothing to audit.
@@ -146,7 +146,7 @@ export default function ResumePage() {
       a.remove()
       URL.revokeObjectURL(url)
       const coverage = res.headers.get('X-ATS-Coverage')
-      toast.success(coverage ? `Exported  -  ATS coverage ${coverage}%` : 'Exported')
+      toast.success(coverage ? `Exported - ATS coverage ${coverage}%` : 'Exported')
     } catch {
       toast.error('Export failed. Please try again.')
     } finally {

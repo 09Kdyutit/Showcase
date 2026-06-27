@@ -11,7 +11,7 @@ import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExcee
  * Recorded Mode answer upload + transcription. Ownership/session-state/question-
  * existence are all checked BEFORE the feature gate, same ordering as live-token, so
  * that gate-flip-later changes nothing about authorization. The recording is
- * uploaded and persisted FIRST, independent of transcription succeeding  -  a
+ * uploaded and persisted FIRST, independent of transcription succeeding - a
  * transcription failure (provider timeout, etc.) never loses the candidate's actual
  * recording, it just means the question isn't marked answered yet and the client
  * should offer a retry or a fall back to typing. No transcript is ever fabricated:
@@ -28,7 +28,7 @@ export async function POST(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Ownership, session state, and question existence are all checked BEFORE the
-    // feature gate  -  same ordering as live-token's "every check the mission requires
+    // feature gate - same ordering as live-token's "every check the mission requires
     // before reaching the point where a real implementation would act," so that
     // ownership enforcement is provable independently of whether the gate happens to
     // be open or closed, and opening the gate later changes nothing about this order.

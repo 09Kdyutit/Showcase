@@ -42,7 +42,7 @@ export async function checkRateLimit(
   eventName: EventName,
   isPro: boolean
 ): Promise<RateLimitResult> {
-  // Kill switch first, before any quota math  -  every AI-quota-gated route funnels
+  // Kill switch first, before any quota math - every AI-quota-gated route funnels
   // through this function, making it the single choke point to halt AI spend
   // during an incident without a code deploy.
   if (!isAIEnabled()) {
@@ -64,7 +64,7 @@ export async function checkRateLimit(
   try {
     const supabase = await createServiceClient()
 
-    // Global daily ceiling, independent of per-user limits  -  bounds aggregate spend if
+    // Global daily ceiling, independent of per-user limits - bounds aggregate spend if
     // an attacker spreads calls across many accounts (each individually within its own
     // per-user limit). Default is generous (won't bind under normal usage) but finite;
     // override with AI_GLOBAL_DAILY_LIMIT for an incident. Checked before the per-user
@@ -82,10 +82,10 @@ export async function checkRateLimit(
       }
     }
 
-    // Atomic increment-and-check via rate_limit_increment() (migration 011)  -  a single
+    // Atomic increment-and-check via rate_limit_increment() (migration 011) - a single
     // INSERT ... ON CONFLICT DO UPDATE statement, so concurrent requests serialize on the
     // row instead of racing a separate SELECT-count-then-INSERT (which a real adversarial
-    // test proved lets 10 parallel requests all pass a limit of 3  -  every request reads
+    // test proved lets 10 parallel requests all pass a limit of 3 - every request reads
     // the same pre-insert count before any of them has recorded their own usage). The
     // counter key is scoped per user+event, independent of usage_events, which remains a
     // pure analytics/audit log and is no longer load-bearing for quota enforcement.
@@ -97,7 +97,7 @@ export async function checkRateLimit(
 
     if (error || !data) {
       // Fail open on infrastructure error, same documented tradeoff as the Postgres
-      // rate limiter for non-AI routes  -  an outage here must never take down the feature.
+      // rate limiter for non-AI routes - an outage here must never take down the feature.
       return { allowed: true }
     }
 

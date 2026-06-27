@@ -9,7 +9,7 @@ let cached: RateLimiter | null = null
 
 // Selection order: Upstash (if configured, lowest latency) > Postgres (always available
 // when Supabase is configured, atomic, no extra infra) > in-memory (local-dev-only
-// last resort  -  never selected once NEXT_PUBLIC_SUPABASE_URL is set, which it always
+// last resort - never selected once NEXT_PUBLIC_SUPABASE_URL is set, which it always
 // is outside of a completely unconfigured fresh checkout).
 export function getRateLimiter(): RateLimiter {
   if (cached) return cached

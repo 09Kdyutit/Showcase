@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Thank you  -  this directly shapes Showcase V1.',
+      message: 'Thank you - this directly shapes Showcase V1.',
     })
   } catch (err) {
     console.error('Beta feedback error:', err)

@@ -21,7 +21,7 @@ export function JobSpecificBanner({ job }: { job: HubSelectedJob }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-3">Practice based on this job description  -  a recommended sequence, not an official interview simulation.</p>
+        <p className="text-sm text-muted-foreground mb-3">Practice based on this job description - a recommended sequence, not an official interview simulation.</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {RECOMMENDED_SEQUENCE.map((step, i) => (
             <span key={step.type} className="text-xs px-2.5 py-1 rounded-full bg-surface-100 border border-border/60 text-foreground">

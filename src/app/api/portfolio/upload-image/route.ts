@@ -14,7 +14,7 @@ function detectMime(buf: Uint8Array): string | null {
   for (const { bytes, offset = 0 } of MAGIC_BYTES) {
     if (bytes.every((b, i) => buf[offset + i] === b)) {
       if (bytes[0] === 0x52) {
-        // RIFF  -  confirm WEBP at offset 8
+        // RIFF - confirm WEBP at offset 8
         if (buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50) return 'image/webp'
         continue
       }

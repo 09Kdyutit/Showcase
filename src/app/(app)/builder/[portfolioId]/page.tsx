@@ -54,7 +54,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastSavedRef = useRef({ title: '', targetRole: '', content: {} as Partial<PortfolioContent> })
-  // Synchronous guard checked before any state update  -  a second click landing before React
+  // Synchronous guard checked before any state update - a second click landing before React
   // re-renders (and the `generating` state/disabled prop actually reflect the first click)
   // would otherwise both pass an `if (generating) return` check and fire two generations.
   const generatingRef = useRef(false)
@@ -102,14 +102,14 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       if (showToast) toast.success('Saved')
     } catch {
       setSaveState('error')
-      if (showToast) toast.error('Save failed  -  check your connection')
+      if (showToast) toast.error('Save failed - check your connection')
     }
   }, [title, targetRole, content, theme, portfolioId])
 
   // Debounce off the actual [title, targetRole, content, theme] values via an effect, rather
   // than calling a manually-built `save` closure from inside each setState updater. The old
   // approach scheduled a timer using whatever `save` closure existed *before* the edit being
-  // made was applied  -  every single autosave was missing the one edit that triggered it,
+  // made was applied - every single autosave was missing the one edit that triggered it,
   // so an isolated action like "click Generate once" never actually got persisted by
   // autosave at all. An effect re-runs after the state commits, so the `save` it closes
   // over here always reflects the value that was just set, not the one before it.
@@ -124,7 +124,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   }, [title, targetRole, content, theme])
 
   // Declared after the autosave effect above so it commits second on the initial-load
-  // render  -  the autosave effect still sees hasLoadedRef as false on that first pass and
+  // render - the autosave effect still sees hasLoadedRef as false on that first pass and
   // correctly skips scheduling a no-op save of the data that was just loaded.
   useEffect(() => {
     if (!loading) hasLoadedRef.current = true
@@ -159,7 +159,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
 
     try {
       // Reuse the resume's already-parsed structured data (from onboarding or the Resume
-      // page) instead of re-parsing from scratch on every generation  -  faster, and avoids
+      // page) instead of re-parsing from scratch on every generation - faster, and avoids
       // paying for the same AI call twice. Only fall back to a fresh parse for legacy
       // resumes that predate parsed_json being stored.
       let resolvedParsedResume = parsedResume
@@ -647,7 +647,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   </div>
                 </div>
 
-                {/* Live preview  -  the real theme renderer, shrunk to fit, not a mockup */}
+                {/* Live preview - the real theme renderer, shrunk to fit, not a mockup */}
                 <div>
                   <div className="glass-card overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-surface-200/50">
@@ -774,7 +774,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         { key: 'title', label: 'Project title', placeholder: 'e.g. Checkout Redesign', multi: false },
                         { key: 'role', label: 'Your role', placeholder: 'e.g. Lead Product Designer', multi: false },
                         { key: 'summary', label: 'One-line summary', placeholder: 'e.g. Redesigned the payment flow to reduce drop-off', multi: false },
-                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (no invention  -  use real context)', multi: true },
+                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (no invention - use real context)', multi: true },
                         { key: 'process', label: 'Process', placeholder: 'What did you do and how did you make decisions?', multi: true },
                         { key: 'outcome', label: 'Outcome', placeholder: 'What was the measurable result? If no metrics exist, write "[Add: X% improvement]"', multi: true },
                       ].map(({ key, label, placeholder, multi }) => (
@@ -849,7 +849,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     slot="headshot"
                     value={content?.hero?.headshotUrl}
                     aspectRatio="square"
-                    hint="JPG, PNG, WebP  -  max 5 MB"
+                    hint="JPG, PNG, WebP - max 5 MB"
                     onUpload={(url) => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', headshotUrl: url } }))}
                     onRemove={() => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', headshotUrl: undefined } }))}
                   />
@@ -865,7 +865,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     slot="hero-bg"
                     value={content?.hero?.heroImageUrl}
                     aspectRatio="wide"
-                    hint="Landscape orientation recommended  -  min 1200×600px"
+                    hint="Landscape orientation recommended - min 1200×600px"
                     onUpload={(url) => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', heroImageUrl: url } }))}
                     onRemove={() => updateContent(c => ({ ...c, hero: { ...c.hero!, headline: c.hero?.headline ?? '', subheadline: c.hero?.subheadline ?? '', tagline: c.hero?.tagline ?? '', heroImageUrl: undefined } }))}
                   />
@@ -1129,7 +1129,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 <div className="glass-card p-5 space-y-4 max-w-lg">
                   <h3 className="text-sm font-semibold text-foreground">Export</h3>
                   <p className="text-xs text-muted-foreground">
-                    Download your portfolio as a standalone HTML file. Host it anywhere  -  GitHub Pages, Netlify, your own server, or point a custom domain at it.
+                    Download your portfolio as a standalone HTML file. Host it anywhere - GitHub Pages, Netlify, your own server, or point a custom domain at it.
                   </p>
                   <Button
                     variant="outline"
@@ -1142,7 +1142,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     Download HTML
                   </Button>
                   <p className="text-xs text-muted-foreground/50">
-                    The exported file includes all fonts and styles. No build tools needed  -  open it in any browser or deploy to any static host.
+                    The exported file includes all fonts and styles. No build tools needed - open it in any browser or deploy to any static host.
                   </p>
                 </div>
               </div>

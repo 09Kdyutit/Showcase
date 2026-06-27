@@ -47,7 +47,7 @@ export async function POST(
     }
 
     const startedAt = new Date()
-    // Server-enforced expiry  -  "the browser cannot increase them." A session that
+    // Server-enforced expiry - "the browser cannot increase them." A session that
     // never receives a /complete call is simply unusable past this point; no client
     // request can extend it.
     const expiresAt = new Date(startedAt.getTime() + session.max_duration_seconds * 1000)

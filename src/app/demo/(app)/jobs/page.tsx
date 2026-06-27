@@ -19,7 +19,7 @@ import type { JobListing, MatchBreakdown, ParsedResume } from '@/types/database'
 // ── Tab + demo persona data ──────────────────────────────────────────────────
 type Tab = 'browse' | 'for-you' | 'pipeline'
 
-// Alex Chen  -  same persona used across /demo/resume and /demo/dashboard
+// Alex Chen - same persona used across /demo/resume and /demo/dashboard
 const DEMO_RESUME: ParsedResume = {
   name: 'Alex Chen',
   email: 'alex@example.com',
@@ -28,9 +28,9 @@ const DEMO_RESUME: ParsedResume = {
   summary: 'Product Designer with 5 years experience in B2B SaaS, specializing in complex checkout flows and design systems.',
   skills: ['Figma', 'Design Systems', 'User Research', 'Prototyping', 'A/B Testing', 'Stakeholder Management'],
   experience: [
-    { company: 'Figma', role: 'Lead Product Designer', period: '2022  -  Present', bullets: ['Led design for core editor and collaboration features.', "Owned and maintained Figma's internal design system."], metrics: [] },
-    { company: 'Stripe', role: 'Product Designer', period: '2020  -  2022', bullets: ['Redesigned Stripe Checkout, increasing completion rate by 24%.', "Built Stripe's first internal design system from scratch."], metrics: [] },
-    { company: 'Adobe', role: 'UX Designer', period: '2019  -  2020', bullets: ['Designed mobile experiences for Adobe Creative Cloud apps.'], metrics: [] },
+    { company: 'Figma', role: 'Lead Product Designer', period: '2022 - Present', bullets: ['Led design for core editor and collaboration features.', "Owned and maintained Figma's internal design system."], metrics: [] },
+    { company: 'Stripe', role: 'Product Designer', period: '2020 - 2022', bullets: ['Redesigned Stripe Checkout, increasing completion rate by 24%.', "Built Stripe's first internal design system from scratch."], metrics: [] },
+    { company: 'Adobe', role: 'UX Designer', period: '2019 - 2020', bullets: ['Designed mobile experiences for Adobe Creative Cloud apps.'], metrics: [] },
   ],
   education: [],
   projects: [

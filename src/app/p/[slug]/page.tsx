@@ -25,9 +25,9 @@ export async function generateMetadata({ params }: PublicPortfolioPageProps): Pr
   const hero = content?.hero
   return {
     title: `${data.title} · Showcase`,
-    description: hero?.subheadline ?? `${data.target_role ?? 'Professional'} portfolio  -  built with Showcase`,
+    description: hero?.subheadline ?? `${data.target_role ?? 'Professional'} portfolio - built with Showcase`,
     openGraph: {
-      title: `${data.title}  -  ${data.target_role ?? 'Portfolio'}`,
+      title: `${data.title} - ${data.target_role ?? 'Portfolio'}`,
       description: hero?.subheadline ?? `View ${data.title}'s professional portfolio`,
       type: 'profile',
     },
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PublicPortfolioPageProps): Pr
   }
 }
 
-// This page only ever fetches `status = 'published'` rows  -  draft portfolios stay
+// This page only ever fetches `status = 'published'` rows - draft portfolios stay
 // completely invisible at this route regardless of theme, slug guesses, or direct ID access.
 export default async function PublicPortfolioPage({ params }: PublicPortfolioPageProps) {
   const { slug } = await params

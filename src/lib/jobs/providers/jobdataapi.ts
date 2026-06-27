@@ -4,8 +4,8 @@ import type { JobListing, Seniority, WorkMode, EmploymentType } from '@/types/da
 const BASE_URL = 'https://api.jobdatalake.com/v1'
 const TIMEOUT_MS = 8_000
 
-// api.jobdatalake.com  -  real job-board API. 1,000 free credits, 1 credit per request.
-// Auth via X-API-Key header (not Bearer/Api-Key  -  verified directly against the live API).
+// api.jobdatalake.com - real job-board API. 1,000 free credits, 1 credit per request.
+// Auth via X-API-Key header (not Bearer/Api-Key - verified directly against the live API).
 export class JobDataApiProvider implements JobProvider {
   readonly name = 'jobdatalake'
   private readonly apiKey: string
@@ -115,7 +115,7 @@ function employmentTypeFromApi(raw: string | undefined): EmploymentType | null {
   return null
 }
 
-// API returns an array of levels (e.g. ["Mid Level", "Senior"])  -  take the most senior one
+// API returns an array of levels (e.g. ["Mid Level", "Senior"]) - take the most senior one
 function seniorityFromApi(levels: string[] | undefined): Seniority | null {
   if (!levels?.length) return null
   const order: Record<string, Seniority> = {

@@ -26,7 +26,7 @@ export default function DemoOnboardingPage() {
         {/* Demo banner */}
         <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 text-xs text-amber-600 font-medium flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-          Demo mode  -  static sample data for visual QA only
+          Demo mode - static sample data for visual QA only
         </div>
 
         {/* Header */}
@@ -51,7 +51,7 @@ export default function DemoOnboardingPage() {
           ))}
         </div>
 
-        {/* Step 1  -  filled with demo data */}
+        {/* Step 1 - filled with demo data */}
         <div className="glass-card p-8 space-y-6">
           <div className="space-y-1.5">
             <Label>What role are you targeting?</Label>
@@ -60,7 +60,7 @@ export default function DemoOnboardingPage() {
               defaultValue="Senior Product Designer"
               className="pointer-events-none"
             />
-            <p className="text-xs text-muted-foreground/60">Be specific  -  this shapes your entire portfolio.</p>
+            <p className="text-xs text-muted-foreground/60">Be specific - this shapes your entire portfolio.</p>
           </div>
 
           <div className="space-y-2">

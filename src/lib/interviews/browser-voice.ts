@@ -2,7 +2,7 @@
 
 // Browser-native voice I/O using the Web Speech API (SpeechSynthesis for the question
 // being read aloud, SpeechRecognition for dictating an answer). Zero API key, zero
-// secrets, zero Gemini involvement  -  deliberately a SEPARATE path from
+// secrets, zero Gemini involvement - deliberately a SEPARATE path from
 // src/lib/interviews/gemini/live.ts's Gemini Live integration, which remains gated
 // and unimplemented. This is real, working voice I/O today, just lower-quality and
 // browser-dependent (Chrome/Edge support SpeechRecognition; Firefox/Safari do not as

@@ -54,7 +54,7 @@ export async function POST(
       saved_job_id,
     } = parsed.data
 
-    // Resolve job  -  `jobId` is the saved job's job_listing_id, a real job_listings_cache
+    // Resolve job - `jobId` is the saved job's job_listing_id, a real job_listings_cache
     // UUID (jobs are cached there on save, since fixture/external-provider ids aren't UUIDs).
     let job: JobListing | null = FIXTURE_JOBS.find(j => j.id === jobId) ?? null
     if (!job) {
@@ -104,7 +104,7 @@ export async function POST(
 
     const resumeData = parsed_resume as unknown as ParsedResume
 
-    // Run the tailor prompt  -  the most important AI call in the product
+    // Run the tailor prompt - the most important AI call in the product
     const { data: tailored, meta } = await runPrompt(tailorApplicationPrompt, {
       parsedResume: resumeData,
       job,

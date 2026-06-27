@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
   // ── ATS round-trip: actually read the generated file back, not the source data ──
   // Reconstructing text from `content`/`parsed` would trivially "match" since it's the
-  // same data twice  -  this proves nothing about whether the .docx itself is intact and
+  // same data twice - this proves nothing about whether the .docx itself is intact and
   // machine-readable. Extracting from the real buffer catches genuine corruption risk.
   const mammoth = await import('mammoth')
   const { value: extractedText } = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
   const coverageResult = computeCoverage(extractedText, content, parsed)
 
-  // Return file + coverage metadata via headers (not body  -  body is binary)
+  // Return file + coverage metadata via headers (not body - body is binary)
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
@@ -155,7 +155,7 @@ function buildDocxFromTailored(c: TailoredContent): Document {
     children.push(heading1('Experience'))
     for (const exp of c.experience) {
       children.push(
-        heading2(`${exp.role}  -  ${exp.company}`),
+        heading2(`${exp.role} - ${exp.company}`),
         body(exp.period, { italic: true })
       )
       for (const bullet of exp.tailored_bullets) {
@@ -204,7 +204,7 @@ function buildDocxFromParsed(p: ParsedResume): Document {
     children.push(heading1('Experience'))
     for (const exp of p.experience) {
       children.push(
-        heading2(`${exp.role}  -  ${exp.company}`),
+        heading2(`${exp.role} - ${exp.company}`),
         body(exp.period, { italic: true })
       )
       for (const b of exp.bullets) {
@@ -217,7 +217,7 @@ function buildDocxFromParsed(p: ParsedResume): Document {
   if (p.education.length > 0) {
     children.push(heading1('Education'))
     for (const edu of p.education) {
-      children.push(body(`${edu.degree}  -  ${edu.institution}${edu.year ? ` (${edu.year})` : ''}`))
+      children.push(body(`${edu.degree} - ${edu.institution}${edu.year ? ` (${edu.year})` : ''}`))
     }
     children.push(spacer())
   }

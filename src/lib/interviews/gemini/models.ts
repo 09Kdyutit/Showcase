@@ -1,4 +1,4 @@
-// Centralized model routing  -  every call site reads these instead of hardcoding a
+// Centralized model routing - every call site reads these instead of hardcoding a
 // model ID, so an upstream change to the suggested defaults touches one file.
 
 export function getAnalysisModel(): string {

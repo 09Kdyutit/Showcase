@@ -156,7 +156,7 @@ function BetaFeedbackContent() {
                 How did Showcase feel?
               </h1>
               <p className="text-foreground/55 leading-relaxed">
-                Two minutes of honest feedback directly shapes what we build next. Be blunt  -  we can handle it.
+                Two minutes of honest feedback directly shapes what we build next. Be blunt - we can handle it.
               </p>
             </div>
 
@@ -359,7 +359,7 @@ function BetaFeedbackContent() {
               {/* Willingness to pay */}
               <div>
                 <label htmlFor="willingness_to_pay" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                  Would you pay for Showcase? If yes  -  how much, for what?
+                  Would you pay for Showcase? If yes - how much, for what?
                 </label>
                 <textarea
                   id="willingness_to_pay"

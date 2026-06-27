@@ -47,7 +47,7 @@ export async function resolveSharedReport(token: string): Promise<SharedReportPa
     .maybeSingle()
   if (sessionError || !session) return null
 
-  // Audit trail only, not a security control  -  a benign race here can only undercount.
+  // Audit trail only, not a security control - a benign race here can only undercount.
   await service
     .from('interview_shared_reports')
     .update({ access_count: (share.access_count ?? 0) + 1, last_accessed_at: new Date().toISOString() })

@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createServiceClient()
   const eventCreatedAt = new Date(event.created * 1000).toISOString()
 
-  // Idempotency: Stripe does not guarantee exactly-once delivery  -  retries and replays
+  // Idempotency: Stripe does not guarantee exactly-once delivery - retries and replays
   // are expected. Recording the event id with a unique constraint, before doing any
   // work, makes "already handled this exact event" an atomic check rather than a hope.
-  // If insertion conflicts, we've seen this event id before  -  short-circuit cleanly.
+  // If insertion conflicts, we've seen this event id before - short-circuit cleanly.
   const { error: dedupeError } = await supabase
     .from('processed_webhook_events')
     .insert({ event_id: event.id, event_type: event.type })

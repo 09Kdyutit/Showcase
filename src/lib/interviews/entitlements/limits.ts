@@ -1,4 +1,4 @@
-// Pure date/period math, no secrets or DB access  -  deliberately NOT server-only
+// Pure date/period math, no secrets or DB access - deliberately NOT server-only
 // guarded, unlike usage.ts/reserve.ts/reconcile.ts, so it stays directly testable
 // under plain Node (see scripts/test-interview-entitlements.mjs).
 
@@ -24,7 +24,7 @@ export interface ProSubscriptionInfo {
 
 // Pro users: the real Stripe billing period, derived from current_period_end and the
 // known interval (monthly vs annual, identified by comparing price_id against the two
-// configured Pro price env vars  -  no extra Stripe API call needed). Falls back to a
+// configured Pro price env vars - no extra Stripe API call needed). Falls back to a
 // 30-day window if price_id is unrecognized (e.g. legacy/test fixture price), which is
 // a safe, slightly-conservative approximation, never a wider one.
 export function proBillingPeriod(sub: ProSubscriptionInfo, now: Date = new Date()): UsagePeriod {
@@ -38,7 +38,7 @@ export function proBillingPeriod(sub: ProSubscriptionInfo, now: Date = new Date(
 
   // A subscription period boundary is fixed at the moment of purchase/renewal, so
   // "now" can fall before start (clock skew/test fixtures) or after end (webhook
-  // lag)  -  clamp the label, not the math, since the math must stay exact for the
+  // lag) - clamp the label, not the math, since the math must stay exact for the
   // reservation-count partition key.
   void now
   return {

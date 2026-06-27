@@ -216,7 +216,7 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
       <div className="mt-4 p-3 rounded-xl bg-surface-300/50 flex items-start gap-2">
         <Info className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/70 leading-relaxed">
-          Showcase will never fabricate evidence. These are areas where you have real experience to add  -  we&apos;ll
+          Showcase will never fabricate evidence. These are areas where you have real experience to add - we&apos;ll
           help you surface and frame it.
         </p>
       </div>
@@ -290,7 +290,7 @@ function AuditLoadingPanel({ step }: { step: number }) {
       </div>
 
       <p className="text-center text-xs text-muted-foreground/50">
-        Reviewing your materials honestly  -  this takes 10-20 seconds
+        Reviewing your materials honestly - this takes 10-20 seconds
       </p>
     </div>
   )
@@ -361,7 +361,7 @@ export default function AuditPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground mb-1">ProofScore Audit</h1>
         <p className="text-muted-foreground text-sm">
-          ProofScore audits the resume you already uploaded against a specific target role  -  an honest score
+          ProofScore audits the resume you already uploaded against a specific target role - an honest score
           across 11 hiring-readiness categories. (Resume parsing extracts your experience; ProofScore judges
           how well it lands for the role you pick below.)
         </p>
@@ -376,7 +376,7 @@ export default function AuditPage() {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
               <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
               <p className="text-sm text-amber-700 flex-1">
-                Upload your resume first  -  ProofScore audits it for a target role.
+                Upload your resume first - ProofScore audits it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
                 <Link href="/resume">Go to Resume</Link>
@@ -478,7 +478,7 @@ export default function AuditPage() {
             </Button>
           </div>
 
-          {/* Next 3 Fixes  -  prominent callout */}
+          {/* Next 3 Fixes - prominent callout */}
           {result.top_priorities?.length > 0 && (
             <Next3Fixes priorities={result.top_priorities} />
           )}

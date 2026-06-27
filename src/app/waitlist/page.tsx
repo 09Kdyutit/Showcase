@@ -32,10 +32,10 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   'Everything in Free',
   'Full AI portfolio generation from resume',
-  'Complete ProofScore audit  -  all 11 categories',
+  'Complete ProofScore audit - all 11 categories',
   'Public portfolio at showcase.app/p/your-name',
-  'Tailor Studio  -  role-specific resume in one click',
-  'Truth Ledger  -  every change traced to your real experience',
+  'Tailor Studio - role-specific resume in one click',
+  'Truth Ledger - every change traced to your real experience',
   'Unlimited portfolios',
   'Priority AI processing',
 ]
@@ -87,7 +87,7 @@ const FAQ = [
   },
   {
     q: 'When will I hear back?',
-    a: 'There is no set timeline. We will email you when we are ready to open access. We are not rushing  -  we want the product to be right before we let people in.',
+    a: 'There is no set timeline. We will email you when we are ready to open access. We are not rushing - we want the product to be right before we let people in.',
   },
   {
     q: 'Is joining the waitlist free?',
@@ -99,7 +99,7 @@ const FAQ = [
   },
   {
     q: 'Will this guarantee a job or interview?',
-    a: 'No, and we will never claim that. A stronger portfolio improves your presentation  -  outcomes depend on many other factors outside our control.',
+    a: 'No, and we will never claim that. A stronger portfolio improves your presentation - outcomes depend on many other factors outside our control.',
   },
   {
     q: 'How will my data be used?',
@@ -196,7 +196,7 @@ function HowItWorksFlow() {
     {
       icon: BarChart3,
       title: 'Run ProofScore',
-      desc: 'Get an honest 0-100 audit across 11 dimensions  -  from proof strength to first impression.',
+      desc: 'Get an honest 0-100 audit across 11 dimensions - from proof strength to first impression.',
       color: 'text-amber-600 bg-amber-500/10',
     },
     {
@@ -295,7 +295,7 @@ function SuccessState({
       <p className="text-foreground/60 text-lg mb-10 max-w-sm mx-auto font-light">
         {alreadyJoined
           ? "We already have your spot saved. We'll be in touch when access opens."
-          : "We'll reach out when we're ready to open access. No ETA  -  we want to get it right first."}
+          : "We'll reach out when we're ready to open access. No ETA - we want to get it right first."}
       </p>
 
       {/* What happens next */}
@@ -484,11 +484,11 @@ function WaitlistContent() {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-[1fr_400px] gap-16 items-center">
 
-            {/* Left  -  copy */}
+            {/* Left - copy */}
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-600 mb-8">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                Waitlist  -  limited spots
+                Waitlist - limited spots
               </div>
 
               <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black tracking-tight leading-[1.02] text-balance mb-6">
@@ -509,7 +509,7 @@ function WaitlistContent() {
               </h1>
 
               <p className="text-xl text-foreground/60 leading-relaxed max-w-xl mb-10 font-light">
-                Built for students, new graduates, and early-career professionals who have real projects but no clear way to prove them. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve  -  without inventing a thing.
+                Built for students, new graduates, and early-career professionals who have real projects but no clear way to prove them. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve - without inventing a thing.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mb-10">
@@ -543,7 +543,7 @@ function WaitlistContent() {
               </div>
             </div>
 
-            {/* Right  -  product widget */}
+            {/* Right - product widget */}
             <div className="hidden lg:block" id="proof-score">
               <ProofScoreWidget />
             </div>
@@ -584,7 +584,7 @@ function WaitlistContent() {
                   }}
                 />
 
-                {/* Email  -  required */}
+                {/* Email - required */}
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
                     Email <span className="text-brand-600">*</span>
@@ -797,7 +797,7 @@ function WaitlistContent() {
             ))}
           </div>
           <p className="text-sm text-muted-foreground mt-8 max-w-2xl leading-relaxed">
-            Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce generic applications. If the evidence is not there, we tell you it is missing  -  we do not invent it.
+            Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce generic applications. If the evidence is not there, we tell you it is missing - we do not invent it.
           </p>
         </div>
       </section>
@@ -812,7 +812,7 @@ function WaitlistContent() {
           <div className="rounded-2xl border border-border bg-secondary divide-y divide-border">
             {[
               { alt: 'Résumé template', does: 'Formats claims. Does not check whether they are supported.' },
-              { alt: 'Website builder', does: 'Displays what you already know how to write  -  you still start from a blank page.' },
+              { alt: 'Website builder', does: 'Displays what you already know how to write - you still start from a blank page.' },
               { alt: 'Generic AI chat', does: 'Produces text but has no persistent evidence structure, no publishing workflow, and no safeguard against inventing a metric you never had.' },
               { alt: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
             ].map((row) => (
@@ -895,7 +895,7 @@ function WaitlistContent() {
                     <span className="text-4xl font-black text-foreground">$12.50</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
-                  <p className="text-sm text-emerald-600 font-medium mb-1">$150 billed annually  -  save $30</p>
+                  <p className="text-sm text-emerald-600 font-medium mb-1">$150 billed annually - save $30</p>
                   <p className="text-sm text-muted-foreground line-through mb-6">$180/year if monthly</p>
                 </>
               ) : (
@@ -935,13 +935,13 @@ function WaitlistContent() {
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why join early</p>
               <h2 className="text-3xl font-black text-foreground mb-6 tracking-tight">
-                We are not launching to everyone yet  -  on purpose.
+                We are not launching to everyone yet - on purpose.
               </h2>
               <p className="text-foreground/60 leading-relaxed mb-6">
                 We are taking our time to build something we are proud of before opening it up. The waitlist is how we know who is serious about getting in when the doors open.
               </p>
               <p className="text-foreground/60 leading-relaxed mb-8">
-                No timelines, no promises  -  just a spot in line for when we are ready.
+                No timelines, no promises - just a spot in line for when we are ready.
               </p>
               <button
                 onClick={() => scrollToForm('beta_explainer')}
@@ -956,7 +956,7 @@ function WaitlistContent() {
                 {
                   icon: ShieldCheck,
                   title: 'We never invent experience',
-                  desc: 'Showcase only uses what you provide. No fake projects, employers, metrics, or certifications  -  ever.',
+                  desc: 'Showcase only uses what you provide. No fake projects, employers, metrics, or certifications - ever.',
                   color: 'text-emerald-600 bg-emerald-500/10',
                 },
                 {

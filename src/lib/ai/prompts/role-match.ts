@@ -13,7 +13,7 @@ const MAX_INPUT_CHARACTERS = 10000
 function userMessage(input: RoleMatchInput): string {
   const { parsedResume, targetRole, industry } = input
   return `TASK: assess how well this candidate's background matches ${targetRole} roles in
-${industry}. Be honest and specific  -  do not soften the assessment to be encouraging.
+${industry}. Be honest and specific - do not soften the assessment to be encouraging.
 
 TARGET ROLE: ${targetRole}
 INDUSTRY: ${industry}
@@ -28,7 +28,7 @@ SCORING RUBRIC for match_score:
 - 40-54: Significant gaps, realistic path exists but takes 1-2 years
 - Below 40: Wrong direction or major pivot needed
 
-This match_score is a role-content match, not a hiring probability  -  do not imply it predicts
+This match_score is a role-content match, not a hiring probability - do not imply it predicts
 interview outcomes or offer likelihood, in this output or any field within it.
 
 Return JSON:
@@ -40,7 +40,7 @@ Return JSON:
   "transferable_skills": ["Skills from a different context that apply to ${targetRole}"],
   "experience_gaps": ["Specific experience gaps that would concern a ${targetRole} hiring manager"],
   "strengths": ["Genuine differentiators or competitive advantages for ${targetRole}"],
-  "recommendations": ["Specific, prioritized actions to close gaps  -  not generic advice"],
+  "recommendations": ["Specific, prioritized actions to close gaps - not generic advice"],
   "realistic_timeline": "Honest timeline to become a competitive ${targetRole} candidate",
   "strongest_asset": "The single most compelling thing about this candidate for ${targetRole}"
 }`

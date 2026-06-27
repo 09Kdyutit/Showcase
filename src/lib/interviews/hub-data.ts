@@ -193,7 +193,7 @@ export async function loadHubData(supabase: SupabaseClient, userId: string, disp
 
 /** Finds the single weakest answer in the user's most recent completed+scored
  *  session that has NOT already been retried (no higher attempt_number exists for
- *  that question)  -  real evidence, not a guess at what's weak. */
+ *  that question) - real evidence, not a guess at what's weak. */
 async function findRetryOpportunity(
   supabase: SupabaseClient, userId: string, mostRecentSessionId: string | undefined,
   dimensionsBySession: Map<string, { dimensionId: string; score: number }[]>

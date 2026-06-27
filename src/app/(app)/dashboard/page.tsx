@@ -57,7 +57,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative min-h-full">
-      {/* Ambient background — top-left purple blob */}
+      {/* Ambient background - top-left purple blob */}
       <div
         className="pointer-events-none absolute top-0 left-0 right-0 h-96 opacity-40"
         style={{ background: 'radial-gradient(ellipse 70% 50% at 20% 0%, color-mix(in oklch, var(--color-brand-500) 15%, transparent), transparent)' }}

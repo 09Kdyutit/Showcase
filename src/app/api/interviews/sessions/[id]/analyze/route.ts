@@ -11,7 +11,7 @@ import type { InterviewPlan, TranscriptSegment, SessionType, DimensionId } from 
 
 /**
  * Runs (or, if isInterviewAnalysisEnabled() is false, honestly declines to run)
- * post-session analysis. Analysis itself calls OpenAI (gpt-5-mini by default  -  see
+ * post-session analysis. Analysis itself calls OpenAI (gpt-5-mini by default - see
  * src/lib/interviews/analysis.ts and src/lib/ai/openai.ts), not Gemini; the gate flag
  * names in config.ts are Gemini-named for historical reasons but still apply as the
  * human attestation required before this feature runs for real. Live voice interviews

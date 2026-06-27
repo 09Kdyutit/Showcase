@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     let { description, title, company } = parsed.data
     const { source_url } = parsed.data
 
-    // No pasted text — fetch the URL ourselves and pull the job description out of it.
+    // No pasted text - fetch the URL ourselves and pull the job description out of it.
     if (!description && source_url) {
       let html: string
       try {

@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai'
 import { InterviewGeminiNotConfiguredError } from './errors.ts'
 
 // Single cached client, same pattern as src/lib/ai/gemini.ts's getClient(). One
-// GoogleGenAI instance for the whole module  -  analysis.ts and live.ts both call this
+// GoogleGenAI instance for the whole module - analysis.ts and live.ts both call this
 // rather than each constructing their own client.
 let cachedClient: GoogleGenAI | null = null
 
@@ -17,7 +17,7 @@ export function getInterviewGeminiClient(): GoogleGenAI {
 }
 
 // Ephemeral token minting (live.ts) specifically requires the v1alpha API
-// version  -  confirmed by direct testing: the default (stable) API version 404s on
+// version - confirmed by direct testing: the default (stable) API version 404s on
 // authTokens.create(), v1alpha succeeds. Kept as a separate client instance so the
 // stable-version client above (used for analysis/transcription) is never
 // accidentally pinned to an alpha API surface it doesn't need.

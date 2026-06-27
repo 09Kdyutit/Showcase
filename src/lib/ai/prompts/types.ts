@@ -11,11 +11,11 @@ export interface PromptSpec<TInput, TOutput> {
   /** Stable identifier. Never reused for a different task once shipped. */
   id: string
   /** Bump on any change to task text, rubric, or output contract. Never edit a shipped
-   *  version's wording in place  -  ship a new version so old generations stay attributable. */
+   *  version's wording in place - ship a new version so old generations stay attributable. */
   version: string
   /** One-line description of what this prompt produces, for the registry inventory. */
   task: string
-  /** Route(s) that call this prompt, for the inventory  -  informational only. */
+  /** Route(s) that call this prompt, for the inventory - informational only. */
   routes: string[]
   modelTier: ModelTier
   temperature: number
@@ -26,7 +26,7 @@ export interface PromptSpec<TInput, TOutput> {
   /** Schema name passed to the provider's structured-output mode. */
   schemaName: string
   buildMessages(input: TInput): AIMessage[]
-  /** Human-readable non-negotiable rules this prompt's text encodes  -  used both as
+  /** Human-readable non-negotiable rules this prompt's text encodes - used both as
    *  documentation and as a checklist for deterministic graders in the eval harness. */
   invariants: string[]
   reviewPolicy: ReviewPolicy

@@ -17,7 +17,7 @@ const DESIGN_WIDTH = 1280
 /**
  * Renders the *real* theme component at a shrunk scale, instead of a hand-built mini mockup
  * that can drift from what actually publishes. Uses CSS `zoom` rather than `transform:
- * scale`  -  zoom reflows layout at the scaled size, so the outer frame's native scrollbar
+ * scale` - zoom reflows layout at the scaled size, so the outer frame's native scrollbar
  * works correctly against the shrunk content's real height; `transform` would need separate
  * height measurement to make scrolling behave right.
  */
