@@ -25,7 +25,7 @@ export function Footer() {
                 { href: '/proofscore', label: 'How ProofScore works' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
-                { href: '/waitlist', label: 'Join the private beta' },
+                { href: '/signup', label: 'Get started free' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">
@@ -56,7 +56,7 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Showcase. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground italic">
+          <p className="text-xs text-muted-foreground font-serif italic">
             For professionals who show, not just tell.
           </p>
         </div>

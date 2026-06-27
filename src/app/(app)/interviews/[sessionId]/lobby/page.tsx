@@ -95,7 +95,7 @@ export default function InterviewLobbyPage() {
 
       {isResuming && (
         <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-4 text-sm text-foreground flex items-start gap-3">
-          <RotateCcw className="h-4 w-4 mt-0.5 text-brand-400 shrink-0" />
+          <RotateCcw className="h-4 w-4 mt-0.5 text-brand-600 shrink-0" />
           <div>
             <p className="font-medium">Resuming your session</p>
             <p className="text-muted-foreground mt-0.5 text-xs">

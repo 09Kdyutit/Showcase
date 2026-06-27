@@ -14,19 +14,19 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const variants = {
   primary: 'bg-brand-500 hover:bg-brand-600 text-white shadow-glow-sm hover:shadow-glow transition-all duration-200 active:scale-[0.98]',
   gradient: 'bg-gradient-to-r from-brand-600 to-brand-400 hover:from-brand-700 hover:to-brand-500 text-white shadow-glow-sm hover:shadow-glow transition-all duration-200 active:scale-[0.98]',
-  secondary: 'bg-surface-200 hover:bg-surface-300 text-foreground border border-border hover:border-white/20 transition-all duration-200',
-  ghost: 'hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200',
+  secondary: 'bg-surface-200 hover:bg-surface-300 text-foreground border border-border hover:border-brand-300 transition-all duration-200',
+  ghost: 'hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200',
   outline: 'border border-border hover:border-brand-500/50 hover:bg-brand-500/5 text-foreground transition-all duration-200',
   destructive: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-all duration-200',
-  link: 'text-brand-400 hover:text-brand-300 underline-offset-4 hover:underline p-0 h-auto',
+  link: 'text-brand-600 hover:text-brand-700 underline-offset-4 hover:underline p-0 h-auto',
 }
 
 const sizes = {
-  sm: 'h-8 px-3 text-xs rounded-lg gap-1.5',
-  md: 'h-9 px-4 text-sm rounded-lg gap-2',
-  lg: 'h-11 px-6 text-sm rounded-xl gap-2',
-  xl: 'h-13 px-8 text-base rounded-xl gap-2.5',
-  icon: 'h-9 w-9 rounded-lg',
+  sm: 'h-8 px-3.5 text-xs rounded-full gap-1.5',
+  md: 'h-9 px-5 text-sm rounded-full gap-2',
+  lg: 'h-11 px-7 text-sm rounded-full gap-2',
+  xl: 'h-13 px-9 text-base rounded-full gap-2.5',
+  icon: 'h-9 w-9 rounded-full',
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -18,9 +18,9 @@ export function EvidenceCoverage({ coverage }: { coverage: EvidenceCoverageSumma
               key={c.competency}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm border ${c.covered ? 'border-emerald-500/20 bg-emerald-500/5 text-foreground' : 'border-border/60 bg-surface-100 text-muted-foreground'}`}
             >
-              {c.covered ? <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> : <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+              {c.covered ? <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> : <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
               <span className="truncate">{CANONICAL_COMPETENCY_LABELS[c.competency]}</span>
-              {c.covered && !c.hasOutcome && <span className="text-[10px] text-amber-400 ml-auto shrink-0">needs outcome</span>}
+              {c.covered && !c.hasOutcome && <span className="text-[10px] text-amber-600 ml-auto shrink-0">needs outcome</span>}
             </li>
           ))}
         </ul>

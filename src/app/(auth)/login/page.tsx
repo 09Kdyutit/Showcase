@@ -52,7 +52,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-background flex">
       {/* Left panel */}
       <div className="hidden lg:flex flex-col flex-1 bg-surface-50 border-r border-border p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-500/6 rounded-full blur-3xl" />
 
         {/* Logo */}
@@ -69,7 +69,7 @@ export default function LoginPage() {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">ProofScore</p>
                 <p className="text-4xl font-bold text-foreground">84</p>
-                <p className="text-xs text-emerald-400 font-semibold mt-1">Strong</p>
+                <p className="text-xs text-emerald-600 font-semibold mt-1">Strong</p>
               </div>
               <svg viewBox="0 0 80 80" className="w-16 h-16 -rotate-90">
                 <circle cx="40" cy="40" r="30" fill="none" stroke="currentColor" className="text-surface-300" strokeWidth="8" />
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
         {/* Bottom */}
         <div className="relative z-10 space-y-4">
-          <blockquote className="text-xl font-medium text-foreground leading-snug">
+          <blockquote className="text-xl font-serif italic text-foreground leading-snug">
             &ldquo;Turn your experience into evidence.&rdquo;
           </blockquote>
           <div className="flex items-center gap-6 text-xs text-muted-foreground/50">
@@ -129,7 +129,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-foreground mb-2">Sign in</h1>
             <p className="text-muted-foreground text-sm">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-brand-400 hover:text-brand-300 transition-colors font-medium">
+              <Link href="/signup" className="text-brand-600 hover:text-brand-700 transition-colors font-medium">
                 Create one free
               </Link>
             </p>
@@ -154,7 +154,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleMagicLink}
-                  className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                  className="text-xs text-brand-600 hover:text-brand-700 transition-colors"
                 >
                   Send magic link instead
                 </button>
@@ -201,7 +201,7 @@ export default function LoginPage() {
             onClick={handleMagicLink}
             loading={loading}
           >
-            <Zap className="h-4 w-4 text-brand-400" />
+            <Zap className="h-4 w-4 text-brand-600" />
             Send magic link
           </Button>
         </div>

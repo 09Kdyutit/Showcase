@@ -23,11 +23,11 @@ export function NewUserState({ hasResume, hasPortfolio, displayName }: { hasResu
           <CardContent className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Résumé</span>
-              <span className={hasResume ? 'text-emerald-400' : 'text-muted-foreground'}>{hasResume ? 'Connected' : 'Not added yet'}</span>
+              <span className={hasResume ? 'text-emerald-600' : 'text-muted-foreground'}>{hasResume ? 'Connected' : 'Not added yet'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Portfolio</span>
-              <span className={hasPortfolio ? 'text-emerald-400' : 'text-muted-foreground'}>{hasPortfolio ? 'Connected' : 'Not added yet'}</span>
+              <span className={hasPortfolio ? 'text-emerald-600' : 'text-muted-foreground'}>{hasPortfolio ? 'Connected' : 'Not added yet'}</span>
             </div>
             {(!hasResume || !hasPortfolio) && (
               <p className="text-xs text-muted-foreground pt-2 border-t border-border/60 mt-2">

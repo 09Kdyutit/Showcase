@@ -77,7 +77,7 @@ export default function DemoBuilderPage() {
           <Badge variant="success">Published</Badge>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-600">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             Auto-saved 3 seconds ago
           </div>
@@ -104,7 +104,7 @@ export default function DemoBuilderPage() {
                   className={cn(
                     'px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
                     activeTab === tab.id
-                      ? 'border-brand-500 text-brand-400'
+                      ? 'border-brand-500 text-brand-600'
                       : 'border-transparent text-muted-foreground hover:text-foreground',
                   )}
                 >
@@ -122,7 +122,7 @@ export default function DemoBuilderPage() {
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hero Section</p>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                    <button className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -143,7 +143,7 @@ export default function DemoBuilderPage() {
                     </div>
                     <div>
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">Proof Metrics</label>
-                      <div className="text-sm text-brand-400 font-medium">
+                      <div className="text-sm text-brand-600 font-medium">
                         +24% checkout completion · $180k recovered · 3 products on 1 design system · 40% faster engineering delivery
                       </div>
                     </div>
@@ -154,7 +154,7 @@ export default function DemoBuilderPage() {
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">About</p>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                    <button className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -167,7 +167,7 @@ export default function DemoBuilderPage() {
                 </section>
 
                 {/* Save status */}
-                <div className="flex items-center gap-2 text-xs text-emerald-400 py-2">
+                <div className="flex items-center gap-2 text-xs text-emerald-600 py-2">
                   <Save className="h-3.5 w-3.5" />
                   Auto-saved 3 seconds ago
                 </div>
@@ -186,9 +186,9 @@ export default function DemoBuilderPage() {
                         <Badge variant="success">{proj.status}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mb-2">{proj.role} · {proj.year}</p>
-                      <p className="text-xs text-emerald-400 font-medium">{proj.outcome}</p>
+                      <p className="text-xs text-emerald-600 font-medium">{proj.outcome}</p>
                     </div>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0">
+                    <button className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 shrink-0">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -206,7 +206,7 @@ export default function DemoBuilderPage() {
                       <span className="text-sm text-foreground">{skill.name}</span>
                       <span className={cn(
                         'text-xs font-medium',
-                        skill.level === 'Expert' ? 'text-brand-400' : skill.level === 'Advanced' ? 'text-violet-400' : 'text-muted-foreground',
+                        skill.level === 'Expert' ? 'text-brand-600' : skill.level === 'Advanced' ? 'text-violet-600' : 'text-muted-foreground',
                       )}>{skill.level}</span>
                     </div>
                   ))}
@@ -224,7 +224,7 @@ export default function DemoBuilderPage() {
                       <p className="font-semibold text-sm text-foreground">{exp.company}</p>
                       <p className="text-xs text-muted-foreground">{exp.role} · {exp.period}</p>
                     </div>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0">
+                    <button className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 shrink-0">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -237,15 +237,15 @@ export default function DemoBuilderPage() {
               <div className="space-y-6">
                 <div className="glass-card p-6 border-emerald-500/20">
                   <div className="flex items-center gap-2 mb-4">
-                    <Globe className="h-4 w-4 text-emerald-400" />
+                    <Globe className="h-4 w-4 text-emerald-600" />
                     <p className="font-semibold text-foreground">Portfolio is live</p>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
                     Your portfolio is publicly accessible at:
                   </p>
                   <div className="flex items-center gap-3 p-3 bg-surface-300/60 rounded-xl">
-                    <Globe className="h-4 w-4 text-brand-400 shrink-0" />
-                    <span className="text-sm text-brand-400 font-medium">showcase.app/p/alex-chen</span>
+                    <Globe className="h-4 w-4 text-brand-600 shrink-0" />
+                    <span className="text-sm text-brand-600 font-medium">showcase.app/p/alex-chen</span>
                     <Link href="/demo/portfolio" className="ml-auto text-muted-foreground hover:text-foreground transition-colors">
                       <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
@@ -262,19 +262,19 @@ export default function DemoBuilderPage() {
           <div className="p-5 border-b border-border/60">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Quality Checklist</p>
-              <span className="text-xs font-bold text-brand-400">{checklistScore}%</span>
+              <span className="text-xs font-bold text-brand-600">{checklistScore}%</span>
             </div>
             <div className="space-y-2.5 mb-4">
               {CHECKLIST.map((item) => (
                 <div key={item.label} className="flex items-center gap-2.5">
                   {item.done ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                   ) : (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-muted-foreground/30 shrink-0" />
                   )}
                   <span className={cn(
                     'text-xs',
-                    item.done ? 'text-foreground/80' : 'text-amber-400 font-medium',
+                    item.done ? 'text-foreground/80' : 'text-amber-600 font-medium',
                   )}>
                     {item.label}
                   </span>
@@ -309,7 +309,7 @@ export default function DemoBuilderPage() {
                 <div className="h-1 bg-white/10 rounded-full w-28 mb-2" />
                 <div className="flex gap-1">
                   {['+24%', '$180k', '3 products', '40%'].map((m) => (
-                    <div key={m} className="text-[7px] bg-brand-500/20 border border-brand-500/20 text-brand-400 px-1 py-0.5 rounded">
+                    <div key={m} className="text-[7px] bg-brand-500/20 border border-brand-500/20 text-brand-600 px-1 py-0.5 rounded">
                       {m}
                     </div>
                   ))}
@@ -341,7 +341,7 @@ export default function DemoBuilderPage() {
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span className="text-xs text-muted-foreground">
             Published at{' '}
-            <Link href="/demo/portfolio" className="text-brand-400 hover:text-brand-300 font-medium">
+            <Link href="/demo/portfolio" className="text-brand-600 hover:text-brand-700 font-medium">
               showcase.app/p/alex-chen
             </Link>
           </span>

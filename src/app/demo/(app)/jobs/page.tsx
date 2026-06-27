@@ -48,11 +48,11 @@ const DEMO_RESUME: ParsedResume = {
 
 const PIPELINE_STAGES = [
   { id: 'saved', label: 'Saved', color: 'text-muted-foreground' },
-  { id: 'tailoring', label: 'Tailoring', color: 'text-brand-400' },
-  { id: 'ready', label: 'Ready', color: 'text-violet-400' },
-  { id: 'applied', label: 'Applied', color: 'text-blue-400' },
-  { id: 'interview', label: 'Interview', color: 'text-amber-400' },
-  { id: 'offer', label: 'Offer', color: 'text-emerald-400' },
+  { id: 'tailoring', label: 'Tailoring', color: 'text-brand-600' },
+  { id: 'ready', label: 'Ready', color: 'text-violet-600' },
+  { id: 'applied', label: 'Applied', color: 'text-blue-600' },
+  { id: 'interview', label: 'Interview', color: 'text-amber-600' },
+  { id: 'offer', label: 'Offer', color: 'text-emerald-600' },
 ]
 
 const DEMO_PIPELINE = [
@@ -65,10 +65,10 @@ const DEMO_PIPELINE = [
 // ── Score badge ───────────────────────────────────────────────────────────────
 function MatchScoreBadge({ score }: { score: number }) {
   const color =
-    score >= 80 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' :
-    score >= 65 ? 'bg-brand-500/15 text-brand-300 border-brand-500/20' :
-    score >= 45 ? 'bg-amber-500/15 text-amber-400 border-amber-500/20' :
-    'bg-red-500/10 text-red-400/80 border-red-500/20'
+    score >= 80 ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20' :
+    score >= 65 ? 'bg-brand-500/15 text-brand-700 border-brand-500/20' :
+    score >= 45 ? 'bg-amber-500/15 text-amber-600 border-amber-500/20' :
+    'bg-red-500/10 text-red-600/80 border-red-500/20'
 
   return (
     <span className={cn('inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border', color)}>
@@ -101,7 +101,7 @@ function JobCard({
       className={cn(
         'w-full text-left p-4 rounded-xl border transition-all duration-150 group cursor-pointer',
         isSelected
-          ? 'bg-brand-500/8 border-brand-500/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+          ? 'bg-brand-500/8 border-brand-500/30'
           : 'bg-surface-100 border-border hover:border-border/80 hover:bg-surface-200'
       )}
     >
@@ -114,7 +114,7 @@ function JobCard({
         </div>
         <button
           onClick={e => { e.stopPropagation(); onSave() }}
-          className={cn('shrink-0 p-1 rounded-md transition-colors', isSaved ? 'text-brand-400' : 'text-muted-foreground/40 hover:text-muted-foreground')}
+          className={cn('shrink-0 p-1 rounded-md transition-colors', isSaved ? 'text-brand-600' : 'text-muted-foreground/40 hover:text-muted-foreground')}
         >
           {isSaved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
         </button>
@@ -179,10 +179,10 @@ function JobDetailPanel({
               <div className="shrink-0 text-center">
                 <div className={cn(
                   'w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold border',
-                  matchScore >= 80 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                  matchScore >= 65 ? 'bg-brand-500/10 border-brand-500/20 text-brand-300' :
-                  matchScore >= 45 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                  'bg-red-500/10 border-red-500/20 text-red-400'
+                  matchScore >= 80 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
+                  matchScore >= 65 ? 'bg-brand-500/10 border-brand-500/20 text-brand-700' :
+                  matchScore >= 45 ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' :
+                  'bg-red-500/10 border-red-500/20 text-red-600'
                 )}>
                   {matchScore}
                 </div>
@@ -208,7 +208,7 @@ function JobDetailPanel({
               </span>
             )}
             {salary && (
-              <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-2.5 py-1">
+              <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-2.5 py-1">
                 <DollarSign className="h-3 w-3" />{salary}
               </span>
             )}
@@ -222,7 +222,7 @@ function JobDetailPanel({
               </Link>
             </Button>
             <Button variant="outline" className="gap-2" onClick={onSave}>
-              {isSaved ? <BookmarkCheck className="h-4 w-4 text-brand-400" /> : <Bookmark className="h-4 w-4" />}
+              {isSaved ? <BookmarkCheck className="h-4 w-4 text-brand-600" /> : <Bookmark className="h-4 w-4" />}
               {isSaved ? 'Saved' : 'Save'}
             </Button>
           </div>
@@ -231,7 +231,7 @@ function JobDetailPanel({
         {matchBreakdown && (
           <div className="rounded-xl border border-border bg-surface-100 p-4 space-y-4">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Target className="h-4 w-4 text-brand-400" />
+              <Target className="h-4 w-4 text-brand-600" />
               Role-content match
             </h3>
             <p className="text-xs text-muted-foreground/60 -mt-2">
@@ -240,7 +240,7 @@ function JobDetailPanel({
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-medium text-emerald-400 mb-2 flex items-center gap-1.5">
+                <p className="text-xs font-medium text-emerald-600 mb-2 flex items-center gap-1.5">
                   <CheckCircle2 className="h-3 w-3" /> Matched
                 </p>
                 <ul className="space-y-1">
@@ -252,7 +252,7 @@ function JobDetailPanel({
                 </ul>
               </div>
               <div>
-                <p className="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1.5">
+                <p className="text-xs font-medium text-amber-600 mb-2 flex items-center gap-1.5">
                   <AlertCircle className="h-3 w-3" /> Gaps
                 </p>
                 <ul className="space-y-1">
@@ -266,7 +266,7 @@ function JobDetailPanel({
             </div>
             {matchBreakdown.opportunities.length > 0 && (
               <div className="border-t border-border pt-3">
-                <p className="text-xs font-medium text-brand-300 mb-2 flex items-center gap-1.5">
+                <p className="text-xs font-medium text-brand-700 mb-2 flex items-center gap-1.5">
                   <TrendingUp className="h-3 w-3" /> Opportunities
                 </p>
                 <ul className="space-y-1.5">
@@ -292,7 +292,7 @@ function JobDetailPanel({
             <ul className="space-y-2">
               {sd.responsibilities.map((r, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <ChevronRight className="h-4 w-4 text-brand-400/50 shrink-0 mt-0.5" />{r}
+                  <ChevronRight className="h-4 w-4 text-brand-600/50 shrink-0 mt-0.5" />{r}
                 </li>
               ))}
             </ul>
@@ -320,7 +320,7 @@ function JobDetailPanel({
         <div className="flex items-center gap-2 text-xs text-muted-foreground/40 pb-4">
           <Clock className="h-3 w-3" />
           Posted {daysAgo(job.posted_at)}
-          <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400/70 border border-amber-500/20 text-[10px]">
+          <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600/70 border border-amber-500/20 text-[10px]">
             Demo listing
           </span>
         </div>
@@ -340,9 +340,9 @@ function PipelineView() {
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Applications', value: applied, color: 'text-blue-400' },
-          { label: 'Interviews', value: interviews, color: 'text-amber-400' },
-          { label: 'Offers', value: offers, color: 'text-emerald-400' },
+          { label: 'Applications', value: applied, color: 'text-blue-600' },
+          { label: 'Interviews', value: interviews, color: 'text-amber-600' },
+          { label: 'Offers', value: offers, color: 'text-emerald-600' },
         ].map(stat => (
           <div key={stat.label} className="rounded-xl border border-border bg-surface-100 p-4 text-center">
             <p className={cn('text-2xl font-bold', stat.color)}>{stat.value}</p>
@@ -449,14 +449,14 @@ export default function DemoJobsPage() {
               >
                 {t === 'for-you' ? 'For You' : t.charAt(0).toUpperCase() + t.slice(1)}
                 {t === 'pipeline' && DEMO_PIPELINE.length > 0 && (
-                  <span className="ml-1.5 text-[10px] bg-brand-500/20 text-brand-300 rounded-full px-1.5 py-0.5">
+                  <span className="ml-1.5 text-[10px] bg-brand-500/20 text-brand-700 rounded-full px-1.5 py-0.5">
                     {DEMO_PIPELINE.length}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          <Badge variant="outline" className="text-[10px] text-amber-400/70 border-amber-500/20 bg-amber-500/5">
+          <Badge variant="outline" className="text-[10px] text-amber-600/70 border-amber-500/20 bg-amber-500/5">
             Demo listings
           </Badge>
         </div>

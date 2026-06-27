@@ -79,7 +79,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         </Link>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.06) 70%, transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.08) 30%, rgba(40,20,70,0.12) 50%, rgba(40,20,70,0.08) 70%, transparent)' }}
         />
       </div>
 
@@ -95,14 +95,14 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
               className={cn(
                 'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group overflow-hidden',
                 active
-                  ? 'nav-active text-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                  ? 'nav-active'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               )}
             >
               <Icon
                 className={cn(
                   'h-4 w-4 shrink-0 relative z-10 transition-colors',
-                  active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80'
+                  active ? 'text-brand-700' : 'text-muted-foreground/60 group-hover:text-foreground/80'
                 )}
               />
               <span className="relative z-10 tracking-wide">{label}</span>
@@ -117,16 +117,15 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
           <div
             className="relative rounded-xl overflow-hidden p-4"
             style={{
-              background: 'linear-gradient(135deg, color-mix(in oklch, var(--color-brand-700) 28%, transparent), color-mix(in oklch, var(--color-surface-200) 70%, transparent))',
+              background: 'linear-gradient(135deg, var(--color-brand-50), var(--color-surface-100))',
               border: '1px solid color-mix(in oklch, var(--color-brand-500) 22%, transparent)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
             }}
           >
             <div
               className="pointer-events-none absolute inset-0 opacity-40"
-              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-400) 20%, transparent), transparent)' }}
+              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-300) 25%, transparent), transparent)' }}
             />
-            <p className="relative text-xs font-semibold text-brand-200 mb-1 tracking-wide">Showcase Pro</p>
+            <p className="relative text-xs font-semibold text-brand-700 mb-1 tracking-wide">Showcase Pro</p>
             <p className="relative text-xs text-muted-foreground leading-relaxed mb-3">
               Unlock full AI generation, job matching, Tailor Studio, and public portfolios.
             </p>
@@ -156,7 +155,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       <div className="px-2.5 pb-3 relative">
         <div
           className="mb-3 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.06) 70%, transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.08) 30%, rgba(40,20,70,0.12) 50%, rgba(40,20,70,0.08) 70%, transparent)' }}
         />
 
         <div className="space-y-0.5 mb-2">
@@ -170,11 +169,11 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 className={cn(
                   'relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 group overflow-hidden',
                   active
-                    ? 'nav-active text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                    ? 'nav-active'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 )}
               >
-                <Icon className={cn('h-4 w-4 shrink-0 relative z-10', active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
+                <Icon className={cn('h-4 w-4 shrink-0 relative z-10', active ? 'text-brand-700' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
                 <span className="relative z-10">{label}</span>
               </Link>
             )
@@ -186,7 +185,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
           <div className="relative">
             <button
               onClick={() => setUserMenuOpen((v) => !v)}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-white/[0.04] group"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-secondary group"
             >
               <div className="relative shrink-0">
                 <div
@@ -222,13 +221,13 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 className="absolute bottom-full left-0 right-0 mb-1 rounded-xl overflow-hidden"
                 style={{
                   background: 'var(--color-surface-100)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 -8px 32px rgba(0,0,0,0.5)',
+                  border: '1px solid var(--color-border)',
+                  boxShadow: '0 -8px 32px rgba(40,20,70,0.12)',
                 }}
               >
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-red-400 hover:bg-red-500/5 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-red-600 hover:bg-red-500/5 transition-colors"
                 >
                   <LogOut className="h-3.5 w-3.5 shrink-0" />
                   Sign out
@@ -248,7 +247,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         className="hidden lg:flex flex-col w-60 shrink-0 h-screen sticky top-0 relative"
         style={{
           background: 'linear-gradient(180deg, var(--color-surface-50) 0%, var(--color-surface-0) 100%)',
-          borderRight: '1px solid rgba(255,255,255,0.05)',
+          borderRight: '1px solid var(--color-border)',
         }}
       >
         {sidebarContent}
@@ -257,14 +256,14 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       {/* Mobile header */}
       <div
         className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 backdrop-blur-xl border-b"
-        style={{ background: 'color-mix(in oklch, var(--color-background) 92%, transparent)', borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{ background: 'color-mix(in oklch, var(--color-background) 92%, transparent)', borderColor: 'var(--color-border)' }}
       >
         <Link href="/dashboard" className="flex items-center gap-2">
           <Logo size="sm" />
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
@@ -278,7 +277,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
             className="relative w-64 h-full overflow-y-auto"
             style={{
               background: 'linear-gradient(180deg, var(--color-surface-50) 0%, var(--color-surface-0) 100%)',
-              borderRight: '1px solid rgba(255,255,255,0.05)',
+              borderRight: '1px solid var(--color-border)',
             }}
           >
             <div className="pt-14">

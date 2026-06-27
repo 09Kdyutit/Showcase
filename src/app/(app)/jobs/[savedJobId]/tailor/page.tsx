@@ -26,9 +26,9 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
     'border-border bg-surface-100'
 
   const icon =
-    entry.change_type === 'fabrication_risk' ? <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> :
-    entry.evidence_present ? <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> :
-    <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
+    entry.change_type === 'fabrication_risk' ? <AlertTriangle className="h-3.5 w-3.5 text-red-600" /> :
+    entry.evidence_present ? <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> :
+    <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
 
   return (
     <div className={cn('rounded-xl border p-3 space-y-2', riskColor)}>
@@ -40,10 +40,10 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
           </div>
         </div>
         <Badge variant="outline" className={cn('text-[10px] shrink-0', {
-          'text-emerald-400 border-emerald-500/20': entry.change_type === 'rewritten',
-          'text-blue-400 border-blue-500/20': entry.change_type === 'reordered',
-          'text-brand-300 border-brand-500/20': entry.change_type === 'new_from_source',
-          'text-red-400 border-red-500/20': entry.change_type === 'fabrication_risk',
+          'text-emerald-600 border-emerald-500/20': entry.change_type === 'rewritten',
+          'text-blue-600 border-blue-500/20': entry.change_type === 'reordered',
+          'text-brand-700 border-brand-500/20': entry.change_type === 'new_from_source',
+          'text-red-600 border-red-500/20': entry.change_type === 'fabrication_risk',
         })}>
           {entry.change_type.replace(/_/g, ' ')}
         </Badge>
@@ -61,7 +61,7 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={() => onConfirm(true)}
-            className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
           >
             <Check className="h-3 w-3" />
             This is accurate
@@ -69,7 +69,7 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
           <span className="text-muted-foreground/30">·</span>
           <button
             onClick={() => onConfirm(false)}
-            className="flex items-center gap-1 text-[11px] font-medium text-red-400 hover:text-red-300 transition-colors"
+            className="flex items-center gap-1 text-[11px] font-medium text-red-600 hover:text-red-700 transition-colors"
           >
             <X className="h-3 w-3" />
             Not accurate
@@ -77,10 +77,10 @@ function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confir
         </div>
       )}
       {entry.user_confirmed === true && (
-        <p className="text-[11px] text-emerald-400 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmed accurate</p>
+        <p className="text-[11px] text-emerald-600 flex items-center gap-1"><Check className="h-3 w-3" /> Confirmed accurate</p>
       )}
       {entry.user_confirmed === false && (
-        <p className="text-[11px] text-red-400 flex items-center gap-1"><X className="h-3 w-3" /> Flagged  -  needs revision</p>
+        <p className="text-[11px] text-red-600 flex items-center gap-1"><X className="h-3 w-3" /> Flagged  -  needs revision</p>
       )}
     </div>
   )
@@ -122,13 +122,13 @@ function DiffBullet({ bullet, onAccept, onReject }: {
       {/* Tailored */}
       <div className={cn(
         'leading-relaxed font-medium',
-        bullet.needs_user_input ? 'text-amber-300' :
-        bullet.accepted ? 'text-emerald-400' :
+        bullet.needs_user_input ? 'text-amber-700' :
+        bullet.accepted ? 'text-emerald-600' :
         'text-foreground'
       )}>
         {bullet.tailored}
         {bullet.placeholder && (
-          <span className="ml-1 text-amber-400/80 font-normal">{bullet.placeholder}</span>
+          <span className="ml-1 text-amber-600/80 font-normal">{bullet.placeholder}</span>
         )}
       </div>
 
@@ -136,9 +136,9 @@ function DiffBullet({ bullet, onAccept, onReject }: {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className={cn('text-[10px]', {
-            'text-brand-300 border-brand-500/20': bullet.change_type === 'rewritten',
-            'text-blue-400 border-blue-500/20': bullet.change_type === 'reordered',
-            'text-violet-400 border-violet-500/20': bullet.change_type === 'new',
+            'text-brand-700 border-brand-500/20': bullet.change_type === 'rewritten',
+            'text-blue-600 border-blue-500/20': bullet.change_type === 'reordered',
+            'text-violet-600 border-violet-500/20': bullet.change_type === 'new',
           })}>
             {bullet.change_type}
           </Badge>
@@ -152,21 +152,21 @@ function DiffBullet({ bullet, onAccept, onReject }: {
         </div>
         <div className="flex items-center gap-1.5">
           {bullet.accepted ? (
-            <span className="text-[10px] text-emerald-400 flex items-center gap-0.5">
+            <span className="text-[10px] text-emerald-600 flex items-center gap-0.5">
               <Check className="h-2.5 w-2.5" /> Accepted
             </span>
           ) : (
             <>
               <button
                 onClick={onAccept}
-                className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5 transition-colors"
               >
                 <Check className="h-2.5 w-2.5" /> Accept
               </button>
               <span className="text-muted-foreground/30">·</span>
               <button
                 onClick={onReject}
-                className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-0.5 transition-colors"
+                className="text-[10px] text-red-600 hover:text-red-700 flex items-center gap-0.5 transition-colors"
               >
                 <X className="h-2.5 w-2.5" /> Revert
               </button>
@@ -287,7 +287,7 @@ function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => v
           onClick={() => setMode('url')}
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-            mode === 'url' ? 'bg-brand-500/15 text-brand-300' : 'text-muted-foreground hover:text-foreground'
+            mode === 'url' ? 'bg-brand-500/15 text-brand-700' : 'text-muted-foreground hover:text-foreground'
           )}
         >
           <Link2 className="h-3 w-3" /> From URL
@@ -296,7 +296,7 @@ function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => v
           onClick={() => setMode('paste')}
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-            mode === 'paste' ? 'bg-brand-500/15 text-brand-300' : 'text-muted-foreground hover:text-foreground'
+            mode === 'paste' ? 'bg-brand-500/15 text-brand-700' : 'text-muted-foreground hover:text-foreground'
           )}
         >
           <FileText className="h-3 w-3" /> Paste text
@@ -388,10 +388,10 @@ function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => v
 function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchBreakdown }) {
   const [expanded, setExpanded] = useState(false)
   const tier =
-    score >= 80 ? { label: 'Strong Match', color: 'text-emerald-400', bar: 'bg-emerald-500' } :
-    score >= 65 ? { label: 'Good Match',   color: 'text-brand-300',  bar: 'bg-brand-500' } :
-    score >= 45 ? { label: 'Fair Match',   color: 'text-amber-400',  bar: 'bg-amber-500' } :
-                  { label: 'Weak Match',   color: 'text-red-400/80', bar: 'bg-red-500' }
+    score >= 80 ? { label: 'Strong Match', color: 'text-emerald-600', bar: 'bg-emerald-500' } :
+    score >= 65 ? { label: 'Good Match',   color: 'text-brand-700',  bar: 'bg-brand-500' } :
+    score >= 45 ? { label: 'Fair Match',   color: 'text-amber-600',  bar: 'bg-amber-500' } :
+                  { label: 'Weak Match',   color: 'text-red-600/80', bar: 'bg-red-500' }
 
   return (
     <div className="mx-4 mt-4 rounded-xl border border-border bg-surface-100 overflow-hidden">
@@ -420,12 +420,12 @@ function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchB
         <div className="px-4 pb-4 pt-1 grid sm:grid-cols-2 gap-4 border-t border-border">
           <div className="pt-3">
             <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-emerald-400" /> You already match
+              <Check className="h-3.5 w-3.5 text-emerald-600" /> You already match
             </p>
             {breakdown.matched_skills.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {breakdown.matched_skills.slice(0, 12).map(s => (
-                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">{s}</span>
+                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-700">{s}</span>
                 ))}
               </div>
             ) : (
@@ -435,12 +435,12 @@ function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchB
 
           <div className="pt-3">
             <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-400" /> Gaps to close
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Gaps to close
             </p>
             {breakdown.missing_skills.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {breakdown.missing_skills.slice(0, 12).map(s => (
-                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300">{s}</span>
+                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-700">{s}</span>
                 ))}
               </div>
             ) : (
@@ -451,11 +451,11 @@ function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchB
           {breakdown.opportunities.length > 0 && (
             <div className="sm:col-span-2 pt-1 space-y-2">
               <p className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-brand-400" /> What to do about it
+                <Sparkles className="h-3.5 w-3.5 text-brand-600" /> What to do about it
               </p>
               {breakdown.opportunities.map((opp, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <ChevronRight className="h-3.5 w-3.5 text-brand-400/50 shrink-0 mt-0.5" />
+                  <ChevronRight className="h-3.5 w-3.5 text-brand-600/50 shrink-0 mt-0.5" />
                   {opp.description}
                 </div>
               ))}
@@ -727,12 +727,12 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
           {tailored && (
             <>
               {pendingConfirmations > 0 && (
-                <Badge variant="outline" className="text-amber-400 border-amber-500/20 text-[10px]">
+                <Badge variant="outline" className="text-amber-600 border-amber-500/20 text-[10px]">
                   {pendingConfirmations} to review
                 </Badge>
               )}
               {fabricationRisks > 0 && (
-                <Badge variant="outline" className="text-red-400 border-red-500/20 text-[10px]">
+                <Badge variant="outline" className="text-red-600 border-red-500/20 text-[10px]">
                   {fabricationRisks} to fix
                 </Badge>
               )}
@@ -775,8 +775,8 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
 
       {!parsedResume && (
         <div className="mx-4 mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-center gap-3">
-          <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-          <p className="text-sm text-amber-300">
+          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-700">
             Upload your resume first. <Link href="/resume" className="underline">Go to Resume →</Link>
           </p>
         </div>
@@ -790,7 +790,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
         <div className="flex-1 flex items-center justify-center p-8 text-center">
           <div className="max-w-md">
             <div className="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center mx-auto mb-5">
-              <Zap className="h-7 w-7 text-brand-400" />
+              <Zap className="h-7 w-7 text-brand-600" />
             </div>
             <h2 className="text-xl font-bold mb-3">Tailor for {job?.title ?? 'this role'}</h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
@@ -829,7 +829,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       {generating && (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-brand-400 mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-brand-600 mx-auto mb-4" />
             <p className="text-sm font-medium text-foreground mb-1">Generating your application kit</p>
             <p className="text-xs text-muted-foreground">Tailoring your resume · Building Truth Ledger · Preparing interview brief</p>
           </div>
@@ -852,14 +852,14 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left',
                   activeSection === id
-                    ? 'bg-brand-500/10 text-brand-300 border border-brand-500/20'
+                    ? 'bg-brand-500/10 text-brand-700 border border-brand-500/20'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-200'
                 )}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
                 {label}
                 {id === 'truth' && pendingConfirmations > 0 && (
-                  <span className="ml-auto text-[9px] bg-amber-500/20 text-amber-400 rounded-full px-1">
+                  <span className="ml-auto text-[9px] bg-amber-500/20 text-amber-600 rounded-full px-1">
                     {pendingConfirmations}
                   </span>
                 )}
@@ -878,7 +878,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
 
             <div className="mt-auto pt-3 border-t border-border">
               <div className="rounded-lg bg-surface-200 p-3 text-[11px] text-muted-foreground leading-relaxed">
-                <ShieldCheck className="h-3 w-3 text-brand-400 mb-1.5" />
+                <ShieldCheck className="h-3 w-3 text-brand-600 mb-1.5" />
                 Every change is traced to your actual resume. The Truth Ledger shows the source for each statement.
               </div>
             </div>
@@ -893,7 +893,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                   {/* Professional summary */}
                   <section>
                     <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-brand-400" />
+                      <FileText className="h-4 w-4 text-brand-600" />
                       Professional Summary
                     </h2>
                     <div className="rounded-xl border border-border bg-surface-100 p-4">
@@ -909,7 +909,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                         <span key={s + i} className={cn(
                           'text-xs px-2.5 py-1 rounded-lg border',
                           i < 6
-                            ? 'bg-brand-500/10 border-brand-500/20 text-brand-300'
+                            ? 'bg-brand-500/10 border-brand-500/20 text-brand-700'
                             : 'bg-surface-200 border-border text-muted-foreground'
                         )}>
                           {s}
@@ -922,13 +922,13 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                   {tailored.recommended_projects.length > 0 && (
                     <section>
                       <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <Target className="h-4 w-4 text-brand-400" />
+                        <Target className="h-4 w-4 text-brand-600" />
                         Recommended Projects to Highlight
                       </h2>
                       <div className="space-y-2">
                         {tailored.recommended_projects.map(p => (
                           <div key={p} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <ChevronRight className="h-4 w-4 text-brand-400/50" />
+                            <ChevronRight className="h-4 w-4 text-brand-600/50" />
                             {p}
                           </div>
                         ))}
@@ -941,7 +941,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                     <section>
                       <h2 className="text-sm font-semibold text-foreground mb-3">Portfolio Headline</h2>
                       <div className="rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
-                        <p className="text-base font-semibold text-brand-300">{tailored.portfolio_headline}</p>
+                        <p className="text-base font-semibold text-brand-700">{tailored.portfolio_headline}</p>
                       </div>
                     </section>
                   )}
@@ -966,7 +966,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                   {tailored.cover_letter && (
                     <section>
                       <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-brand-400" />
+                        <MessageSquare className="h-4 w-4 text-brand-600" />
                         Cover Letter
                       </h2>
                       <div className="rounded-xl border border-border bg-surface-100 p-4">
@@ -1019,16 +1019,16 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-brand-400" />
+                      <ShieldCheck className="h-4 w-4 text-brand-600" />
                       Truth Ledger
                     </h2>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
-                      {pendingConfirmations > 0 && <span className="text-amber-400">{pendingConfirmations} need review</span>}
-                      {fabricationRisks > 0 && <span className="text-red-400">{fabricationRisks} fabrication risks</span>}
+                      {pendingConfirmations > 0 && <span className="text-amber-600">{pendingConfirmations} need review</span>}
+                      {fabricationRisks > 0 && <span className="text-red-600">{fabricationRisks} fabrication risks</span>}
                     </div>
                   </div>
                   <div className="rounded-xl border border-border bg-surface-100 p-4 text-xs text-muted-foreground/70 leading-relaxed">
-                    <Info className="h-3.5 w-3.5 text-brand-400 inline mr-1.5" />
+                    <Info className="h-3.5 w-3.5 text-brand-600 inline mr-1.5" />
                     Every statement below is traced to a specific part of your resume. Review and confirm any entry marked as requiring confirmation.
                     If a statement doesn&apos;t accurately represent your experience, click &ldquo;Not accurate&rdquo; to flag it.
                   </div>
@@ -1047,11 +1047,11 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               {activeSection === 'interview' && tailored.interview_brief && (
                 <div className="space-y-6">
                   <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-brand-400" />
+                    <BookOpen className="h-4 w-4 text-brand-600" />
                     Interview Brief
                   </h2>
 
-                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-400/80">
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-600/80">
                     Based on your documented experience. STAR stories use only facts from your resume.
                     Research the company independently  -  do not rely solely on this brief.
                   </div>
@@ -1060,7 +1060,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Role Themes</h3>
                     <div className="flex flex-wrap gap-2">
                       {tailored.interview_brief.role_themes.map(t => (
-                        <span key={t} className="text-xs bg-brand-500/10 border border-brand-500/20 text-brand-300 rounded-lg px-2.5 py-1">{t}</span>
+                        <span key={t} className="text-xs bg-brand-500/10 border border-brand-500/20 text-brand-700 rounded-lg px-2.5 py-1">{t}</span>
                       ))}
                     </div>
                   </section>
@@ -1092,7 +1092,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                               ['Result', star.result],
                             ].map(([label, content]) => (
                               <div key={label}>
-                                <p className="text-[10px] font-semibold text-brand-400/70 uppercase tracking-wide">{label}</p>
+                                <p className="text-[10px] font-semibold text-brand-600/70 uppercase tracking-wide">{label}</p>
                                 <p className="text-xs text-muted-foreground">{content}</p>
                               </div>
                             ))}
@@ -1107,7 +1107,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
                     <ul className="space-y-2">
                       {tailored.interview_brief.questions_to_ask.map((q, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <ChevronRight className="h-4 w-4 text-brand-400/50 shrink-0 mt-0.5" />
+                          <ChevronRight className="h-4 w-4 text-brand-600/50 shrink-0 mt-0.5" />
                           {q}
                         </li>
                       ))}
@@ -1116,11 +1116,11 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
 
                   {tailored.interview_brief.skill_gaps_to_address.length > 0 && (
                     <section>
-                      <h3 className="text-xs font-semibold text-red-400/70 uppercase tracking-wide mb-3">Gaps the Interviewer May Probe</h3>
+                      <h3 className="text-xs font-semibold text-red-600/70 uppercase tracking-wide mb-3">Gaps the Interviewer May Probe</h3>
                       <ul className="space-y-2">
                         {tailored.interview_brief.skill_gaps_to_address.map((g, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <AlertCircle className="h-3.5 w-3.5 text-amber-400/60 shrink-0 mt-0.5" />
+                            <AlertCircle className="h-3.5 w-3.5 text-amber-600/60 shrink-0 mt-0.5" />
                             {g}
                           </li>
                         ))}

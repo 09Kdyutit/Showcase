@@ -70,10 +70,10 @@ const FIXES = [
 ]
 
 function scoreColor(score: number): string {
-  if (score >= 80) return 'text-emerald-400'
-  if (score >= 60) return 'text-amber-400'
-  if (score >= 40) return 'text-orange-400'
-  return 'text-red-400'
+  if (score >= 80) return 'text-emerald-600'
+  if (score >= 60) return 'text-amber-600'
+  if (score >= 40) return 'text-orange-600'
+  return 'text-red-600'
 }
 
 function CategoryCard({ cat, index }: { cat: Category; index: number }) {
@@ -119,10 +119,10 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
       </div>
 
       <div className="bg-surface-300/60 rounded-xl p-3 flex items-start gap-2">
-        <Info className="h-3.5 w-3.5 text-brand-400 shrink-0 mt-0.5" />
+        <Info className="h-3.5 w-3.5 text-brand-600 shrink-0 mt-0.5" />
         <p className="text-xs text-foreground/80 flex-1 leading-relaxed">{cat.explanation}</p>
         <button onClick={copyFix} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
-          {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
         </button>
       </div>
     </div>
@@ -182,21 +182,21 @@ export default function DemoAuditPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Role Fit</p>
-                <p className="text-xl font-bold text-emerald-400">91%</p>
+                <p className="text-xl font-bold text-emerald-600">91%</p>
               </div>
               <div className="p-3 rounded-xl bg-brand-500/5 border border-brand-500/20">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Confidence</p>
-                <p className="text-xl font-bold text-brand-400">High</p>
+                <p className="text-xl font-bold text-brand-600">High</p>
               </div>
               <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 col-span-2 sm:col-span-1">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Gaps Found</p>
-                <p className="text-xl font-bold text-amber-400">3 <span className="text-sm font-medium text-muted-foreground">(1 critical, 2 major)</span></p>
+                <p className="text-xl font-bold text-amber-600">3 <span className="text-sm font-medium text-muted-foreground">(1 critical, 2 major)</span></p>
               </div>
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
               You are competitive for Senior IC roles. Fix the 3 critical/major gaps to push above 90 and reach{' '}
-              <span className="text-brand-400 font-medium">&ldquo;Elite&rdquo; territory</span>.
+              <span className="text-brand-600 font-medium">&ldquo;Elite&rdquo; territory</span>.
             </p>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function DemoAuditPage() {
       <div className="glass-card p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center">
-            <AlertCircle className="h-4 w-4 text-red-400" />
+            <AlertCircle className="h-4 w-4 text-red-600" />
           </div>
           <h2 className="font-semibold text-foreground">3 Gaps Costing You Interviews</h2>
         </div>
@@ -233,7 +233,7 @@ export default function DemoAuditPage() {
             >
               <div className={cn(
                 'w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold',
-                gap.severity === 'critical' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400',
+                gap.severity === 'critical' ? 'bg-red-500/20 text-red-600' : 'bg-amber-500/20 text-amber-600',
               )}>
                 {i + 1}
               </div>
@@ -253,7 +253,7 @@ export default function DemoAuditPage() {
       <div className="glass-card p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-7 h-7 rounded-lg bg-brand-500/10 flex items-center justify-center">
-            <Lightbulb className="h-4 w-4 text-brand-400" />
+            <Lightbulb className="h-4 w-4 text-brand-600" />
           </div>
           <h2 className="font-semibold text-foreground">Your Next 3 Fixes</h2>
         </div>
@@ -261,11 +261,11 @@ export default function DemoAuditPage() {
           {FIXES.map((fix, i) => (
             <div key={fix.title} className="flex items-start gap-4 p-4 rounded-xl bg-surface-200/60 border border-border/40">
               <div className="w-7 h-7 rounded-lg bg-brand-500/10 flex items-center justify-center shrink-0">
-                <fix.icon className="h-3.5 w-3.5 text-brand-400" />
+                <fix.icon className="h-3.5 w-3.5 text-brand-600" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-brand-400 uppercase tracking-wider">Fix {i + 1}</span>
+                  <span className="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Fix {i + 1}</span>
                 </div>
                 <p className="font-semibold text-sm text-foreground mb-1">{fix.title}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{fix.description}</p>
@@ -279,7 +279,7 @@ export default function DemoAuditPage() {
       <div className="glass-card p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-            <BarChart3 className="h-4 w-4 text-emerald-400" />
+            <BarChart3 className="h-4 w-4 text-emerald-600" />
           </div>
           <h2 className="font-semibold text-foreground">Bullet Rewrite Example</h2>
         </div>
@@ -287,21 +287,21 @@ export default function DemoAuditPage() {
         <div className="grid sm:grid-cols-2 gap-4">
           {/* Before */}
           <div>
-            <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">Before</p>
+            <p className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-2">Before</p>
             <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
               <p className="text-sm text-foreground/70 italic leading-relaxed">
                 &ldquo;Helped improve checkout flow conversion&rdquo;
               </p>
             </div>
             <div className="mt-2 flex items-center gap-1.5">
-              <AlertCircle className="h-3 w-3 text-red-400" />
-              <p className="text-xs text-red-400">No metric, no ownership, no impact</p>
+              <AlertCircle className="h-3 w-3 text-red-600" />
+              <p className="text-xs text-red-600">No metric, no ownership, no impact</p>
             </div>
           </div>
 
           {/* After */}
           <div>
-            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">After</p>
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2">After</p>
             <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
               <p className="text-sm text-foreground/90 font-medium leading-relaxed">
                 &ldquo;Redesigned 4-step checkout into 2-step flow, increasing completion 24% and recovering ~$180k/month in abandoned orders.&rdquo;
@@ -309,14 +309,14 @@ export default function DemoAuditPage() {
             </div>
             <div className="mt-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                <p className="text-xs text-emerald-400">Specific, owned, measured</p>
+                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                <p className="text-xs text-emerald-600">Specific, owned, measured</p>
               </div>
               <button
                 onClick={copyAfter}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                {afterCopied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                {afterCopied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                 {afterCopied ? 'Copied!' : 'Copy'}
               </button>
             </div>

@@ -81,8 +81,8 @@ function getLevelDot(level: string) {
 }
 
 function getLevelColor(level: string) {
-  if (level === 'Expert') return 'text-brand-400'
-  if (level === 'Advanced') return 'text-violet-400'
+  if (level === 'Expert') return 'text-brand-600'
+  if (level === 'Advanced') return 'text-violet-600'
   return 'text-muted-foreground'
 }
 
@@ -108,7 +108,7 @@ export default function DemoResumePage() {
       <div className="glass-card p-5">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-            <FileText className="h-5 w-5 text-emerald-400" />
+            <FileText className="h-5 w-5 text-emerald-600" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -122,7 +122,7 @@ export default function DemoResumePage() {
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 <Button variant="secondary" size="sm">Replace resume</Button>
               </div>
             </div>
@@ -150,14 +150,14 @@ export default function DemoResumePage() {
                 className={cn(
                   'px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
                   activeTab === tab.id
-                    ? 'border-brand-500 text-brand-400'
+                    ? 'border-brand-500 text-brand-600'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
-                  tab.id === 'weak-bullets' && 'text-amber-400',
+                  tab.id === 'weak-bullets' && 'text-amber-600',
                 )}
               >
                 {tab.label}
                 {tab.id === 'weak-bullets' && (
-                  <span className="ml-1.5 text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">3</span>
+                  <span className="ml-1.5 text-[10px] bg-amber-500/20 text-amber-600 px-1.5 py-0.5 rounded-full">3</span>
                 )}
               </button>
             ))}
@@ -206,8 +206,8 @@ export default function DemoResumePage() {
                     key={skill.name}
                     className={cn(
                       'inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border',
-                      skill.level === 'Expert' && 'bg-brand-500/10 border-brand-500/20 text-brand-300',
-                      skill.level === 'Advanced' && 'bg-violet-500/10 border-violet-500/20 text-violet-300',
+                      skill.level === 'Expert' && 'bg-brand-500/10 border-brand-500/20 text-brand-700',
+                      skill.level === 'Advanced' && 'bg-violet-500/10 border-violet-500/20 text-violet-700',
                       skill.level === 'Intermediate' && 'bg-surface-300 border-border text-muted-foreground',
                     )}
                   >
@@ -307,8 +307,8 @@ export default function DemoResumePage() {
         {activeTab === 'weak-bullets' && (
           <div className="p-6 space-y-4">
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-400/90">
+              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-600/90">
                 3 bullets flagged for missing metrics. Fixing these could push your ProofScore from 84 → 91.
               </p>
             </div>
@@ -330,9 +330,9 @@ export default function DemoResumePage() {
                   {bullet.original}
                 </p>
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-                  <ChevronRight className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <ChevronRight className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1">Suggested Fix</p>
+                    <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider mb-1">Suggested Fix</p>
                     <p className="text-xs text-foreground/80 leading-relaxed">{bullet.fix}</p>
                   </div>
                 </div>

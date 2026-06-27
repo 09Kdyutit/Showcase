@@ -55,7 +55,7 @@ export default function SignupPage() {
     <main className="min-h-screen bg-background flex">
       {/* Left panel */}
       <div className="hidden lg:flex flex-col flex-1 bg-surface-50 border-r border-border p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-500/6 rounded-full blur-3xl" />
 
         {/* Logo */}
@@ -70,9 +70,9 @@ export default function SignupPage() {
           <div className="relative z-10 w-72 space-y-3">
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-5">How it works</p>
             {([
-              { step: '01', title: 'Upload your resume', desc: 'PDF or DOCX  -  we parse everything instantly', color: 'text-brand-400', dot: 'bg-brand-500' },
-              { step: '02', title: 'Get your ProofScore', desc: '11 categories scored, gaps identified', color: 'text-violet-400', dot: 'bg-violet-500' },
-              { step: '03', title: 'Publish your portfolio', desc: 'A link that proves your work, not just lists it', color: 'text-emerald-400', dot: 'bg-emerald-500' },
+              { step: '01', title: 'Upload your resume', desc: 'PDF or DOCX  -  we parse everything instantly', color: 'text-brand-600', dot: 'bg-brand-500' },
+              { step: '02', title: 'Get your ProofScore', desc: '11 categories scored, gaps identified', color: 'text-violet-600', dot: 'bg-violet-500' },
+              { step: '03', title: 'Publish your portfolio', desc: 'A link that proves your work, not just lists it', color: 'text-emerald-600', dot: 'bg-emerald-500' },
             ]).map(({ step, title, desc, color, dot }) => (
               <div key={step} className="glass-card p-4 flex gap-4 items-start">
                 <div className="flex flex-col items-center gap-1 shrink-0">
@@ -97,7 +97,7 @@ export default function SignupPage() {
             <ul className="space-y-2">
               {BENEFITS.map((b) => (
                 <li key={b} className="flex items-start gap-2.5 text-xs text-foreground/70">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-brand-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-brand-600 shrink-0 mt-0.5" />
                   {b}
                 </li>
               ))}
@@ -121,7 +121,7 @@ export default function SignupPage() {
             <h1 className="text-2xl font-bold text-foreground mb-2">Create your account</h1>
             <p className="text-muted-foreground text-sm">
               Already have one?{' '}
-              <Link href="/login" className="text-brand-400 hover:text-brand-300 transition-colors font-medium">
+              <Link href="/login" className="text-brand-600 hover:text-brand-700 transition-colors font-medium">
                 Sign in
               </Link>
             </p>
@@ -175,7 +175,7 @@ export default function SignupPage() {
                 </button>
               </div>
               {password && password.length < 8 && (
-                <p className="text-xs text-red-400">At least 8 characters required</p>
+                <p className="text-xs text-red-600">At least 8 characters required</p>
               )}
             </div>
             <Button type="submit" variant="gradient" size="lg" className="w-full gap-2" loading={loading}>

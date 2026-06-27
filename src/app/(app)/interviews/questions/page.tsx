@@ -30,10 +30,10 @@ interface ScoreResult {
 
 function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => void }) {
   const labelColor =
-    result.label === 'Excellent' ? 'text-emerald-400' :
-    result.label === 'Good' ? 'text-brand-300' :
-    result.label === 'Fair' ? 'text-amber-400' :
-    'text-red-400'
+    result.label === 'Excellent' ? 'text-emerald-600' :
+    result.label === 'Good' ? 'text-brand-700' :
+    result.label === 'Fair' ? 'text-amber-600' :
+    'text-red-600'
 
   const dims = [
     { label: 'Clarity & Context', value: result.clarity },
@@ -58,10 +58,10 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
               strokeDasharray={`${2 * Math.PI * 34}`}
               strokeDashoffset={`${2 * Math.PI * 34 * (1 - result.total / 100)}`}
               className={
-                result.total >= 90 ? 'text-emerald-400' :
-                result.total >= 75 ? 'text-brand-400' :
-                result.total >= 55 ? 'text-amber-400' :
-                'text-red-400'
+                result.total >= 90 ? 'text-emerald-600' :
+                result.total >= 75 ? 'text-brand-600' :
+                result.total >= 55 ? 'text-amber-600' :
+                'text-red-600'
               }
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 0.6s ease' }}
@@ -90,7 +90,7 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
 
       {result.strengths.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">What worked</p>
+          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2">What worked</p>
           <ul className="space-y-1.5">
             {result.strengths.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
 
       {result.improvements.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Strengthen this</p>
+          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2">Strengthen this</p>
           <ul className="space-y-1.5">
             {result.improvements.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -184,7 +184,7 @@ function WrittenPracticeDialog({
         </DialogHeader>
         {question && (
           <div className="space-y-4">
-            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-4">
+            <div className="rounded-xl bg-secondary border border-border p-4">
               <p className="text-sm text-muted-foreground leading-relaxed">{question.text}</p>
               {question.followUp && (
                 <p className="text-xs text-muted-foreground/50 mt-2 italic">Follow-up: {question.followUp}</p>
@@ -199,10 +199,10 @@ function WrittenPracticeDialog({
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   placeholder="Use the STAR method: Situation -- set the scene. Task -- what was your role. Action -- what YOU specifically did. Result -- what happened and what you learned."
-                  className="min-h-[180px] text-sm resize-none bg-white/[0.03] border-white/[0.08] focus:border-brand-500/40"
+                  className="min-h-[180px] text-sm resize-none bg-secondary border-border focus:border-brand-500/40"
                 />
                 <div className="flex items-center justify-between">
-                  <span className={cn('text-xs', wordCount < 30 ? 'text-muted-foreground/40' : 'text-emerald-400')}>
+                  <span className={cn('text-xs', wordCount < 30 ? 'text-muted-foreground/40' : 'text-emerald-600')}>
                     {wordCount} {wordCount === 1 ? 'word' : 'words'}{wordCount < 30 ? ` (min 30)` : ''}
                   </span>
                   <Button
@@ -359,7 +359,7 @@ function SpokenPracticeDialog({
         </DialogHeader>
         {question && (
           <div className="space-y-4">
-            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-4">
+            <div className="rounded-xl bg-secondary border border-border p-4">
               <p className="text-sm text-muted-foreground leading-relaxed">{question.text}</p>
             </div>
 
@@ -367,14 +367,14 @@ function SpokenPracticeDialog({
               <ScoreCard result={result} onRetry={reset} />
             ) : !hasSpeechAPI ? (
               <div className="space-y-3">
-                <p className="text-xs text-amber-400 bg-amber-400/10 rounded-lg px-3 py-2">
+                <p className="text-xs text-amber-600 bg-amber-400/10 rounded-lg px-3 py-2">
                   Voice input is not supported in this browser. Type your spoken answer below.
                 </p>
                 <Textarea
                   value={fallbackAnswer}
                   onChange={(e) => setFallbackAnswer(e.target.value)}
                   placeholder="Type what you would say out loud..."
-                  className="min-h-[140px] text-sm resize-none bg-white/[0.03] border-white/[0.08]"
+                  className="min-h-[140px] text-sm resize-none bg-secondary border-border"
                 />
                 <Button
                   onClick={handleFallbackSubmit}
@@ -427,7 +427,7 @@ function SpokenPracticeDialog({
                 </p>
 
                 {transcript && voiceState !== 'processing' && (
-                  <div className="w-full rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 max-h-32 overflow-y-auto">
+                  <div className="w-full rounded-xl bg-secondary border border-border p-3 max-h-32 overflow-y-auto">
                     <p className="text-xs text-muted-foreground/70 mb-1">Transcript</p>
                     <p className="text-sm text-foreground/80">{transcript}</p>
                   </div>
@@ -457,7 +457,7 @@ function QuestionCard({
   return (
     <div className="glass-card p-5 flex flex-col gap-4 group card-3d">
       <div className="flex items-start gap-3">
-        <span className="shrink-0 w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[10px] text-muted-foreground/50 font-mono mt-0.5">
+        <span className="shrink-0 w-6 h-6 rounded-lg bg-secondary border border-border flex items-center justify-center text-[10px] text-muted-foreground/50 font-mono mt-0.5">
           {index + 1}
         </span>
         <p className="text-sm font-medium text-foreground/90 leading-relaxed flex-1">{question.text}</p>
@@ -506,8 +506,8 @@ export default function QuestionLibraryPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen border-r border-white/[0.05] overflow-y-auto thin-scrollbar">
-        <div className="p-5 border-b border-white/[0.05]">
+      <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen border-r border-border overflow-y-auto thin-scrollbar">
+        <div className="p-5 border-b border-border">
           <Link
             href="/interviews"
             className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground mb-4 transition-colors"
@@ -516,7 +516,7 @@ export default function QuestionLibraryPage() {
             Interview Lab
           </Link>
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-brand-400" />
+            <BookOpen className="h-4 w-4 text-brand-600" />
             <h1 className="text-sm font-semibold">Question Library</h1>
           </div>
           <p className="text-xs text-muted-foreground/50 mt-1">72 behavioral questions, AI-scored</p>
@@ -533,11 +533,11 @@ export default function QuestionLibraryPage() {
                   'w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-150 text-left',
                   activeCategory === cat.id
                     ? 'nav-active text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 )}
               >
                 <span>{cat.label}</span>
-                <span className={cn('text-[11px] font-mono', activeCategory === cat.id ? 'text-brand-300' : 'text-muted-foreground/30')}>
+                <span className={cn('text-[11px] font-mono', activeCategory === cat.id ? 'text-brand-700' : 'text-muted-foreground/30')}>
                   {count}
                 </span>
               </button>
@@ -571,7 +571,7 @@ export default function QuestionLibraryPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-xl font-semibold text-foreground">{activeLabel}</h2>
-            <span className="text-xs font-mono text-muted-foreground/40 bg-white/[0.04] border border-white/[0.06] px-1.5 py-0.5 rounded-md">
+            <span className="text-xs font-mono text-muted-foreground/40 bg-secondary border border-border px-1.5 py-0.5 rounded-md">
               {categoryQuestions.length} questions
             </span>
           </div>

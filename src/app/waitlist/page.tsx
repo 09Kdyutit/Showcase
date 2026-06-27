@@ -115,10 +115,10 @@ const FAQ = [
 
 function ProofScoreWidget() {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 text-left">
+    <div className="rounded-2xl border border-border bg-secondary p-6 text-left">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-brand-400" />
+          <BarChart3 className="h-4 w-4 text-brand-600" />
           <span className="text-sm font-semibold text-foreground">ProofScore™</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -152,7 +152,7 @@ function ProofScoreWidget() {
               <span className="text-[11px] text-muted-foreground">{item.label}</span>
               <span className="text-[11px] font-semibold text-foreground/80">{item.score}</span>
             </div>
-            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
               <div
                 className={cn('h-full rounded-full', item.color)}
                 style={{ width: `${item.score}%` }}
@@ -162,8 +162,8 @@ function ProofScoreWidget() {
         ))}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-white/[0.05]">
-        <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
+      <div className="mt-5 pt-4 border-t border-border">
+        <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
         <div className="space-y-1.5">
           {['3 bullets have no measurable outcome', 'Leadership claims lack team size', 'Project depth: missing problem statement'].map((gap) => (
             <div key={gap} className="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -185,25 +185,25 @@ function HowItWorksFlow() {
       icon: FileText,
       title: 'Upload your resume',
       desc: 'Paste text or upload a file. Showcase parses every role, project, and bullet.',
-      color: 'text-brand-400 bg-brand-500/10',
+      color: 'text-brand-600 bg-brand-500/10',
     },
     {
       icon: Sparkles,
       title: 'Generate your portfolio',
       desc: 'AI rewrites your experience into a polished, role-specific proof-of-work portfolio.',
-      color: 'text-violet-400 bg-violet-500/10',
+      color: 'text-violet-600 bg-violet-500/10',
     },
     {
       icon: BarChart3,
       title: 'Run ProofScore',
       desc: 'Get an honest 0-100 audit across 11 dimensions  -  from proof strength to first impression.',
-      color: 'text-amber-400 bg-amber-500/10',
+      color: 'text-amber-600 bg-amber-500/10',
     },
     {
       icon: Lightbulb,
       title: 'Fix evidence gaps',
       desc: 'See exactly which claims are unsupported, which bullets are vague, and what to do next.',
-      color: 'text-emerald-400 bg-emerald-500/10',
+      color: 'text-emerald-600 bg-emerald-500/10',
     },
   ]
 
@@ -212,7 +212,7 @@ function HowItWorksFlow() {
       {steps.map((s, i) => (
         <div
           key={s.title}
-          className="relative rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-white/[0.12] transition-colors"
+          className="relative rounded-xl border border-border bg-secondary p-6 hover:border-border transition-colors"
         >
           <div className="absolute -top-3 -left-1 text-[10px] font-black text-muted-foreground tabular-nums">
             {String(i + 1).padStart(2, '0')}
@@ -238,11 +238,11 @@ function FAQAccordion() {
       {FAQ.map((item, i) => (
         <div
           key={i}
-          className="border border-white/[0.06] rounded-xl overflow-hidden"
+          className="border border-border rounded-xl overflow-hidden"
         >
           <button
             onClick={() => setOpen(open === i ? null : i)}
-            className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-secondary transition-colors"
           >
             <span className="text-sm font-medium text-foreground/80">{item.q}</span>
             {open === i
@@ -286,7 +286,7 @@ function SuccessState({
   return (
     <div className="text-center">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-        <Check className="h-8 w-8 text-emerald-400" />
+        <Check className="h-8 w-8 text-emerald-600" />
       </div>
 
       <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
@@ -309,7 +309,7 @@ function SuccessState({
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-[9px] font-black text-brand-400">{i + 1}</span>
+              <span className="text-[9px] font-black text-brand-600">{i + 1}</span>
             </div>
             <p className="text-sm text-foreground/65 leading-relaxed">{step}</p>
           </div>
@@ -318,18 +318,18 @@ function SuccessState({
 
       {/* Referral share card */}
       {shareUrl && (
-        <div className="max-w-sm mx-auto rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 text-left">
+        <div className="max-w-sm mx-auto rounded-xl border border-border bg-secondary p-5 text-left">
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Share Showcase</p>
           <p className="text-sm text-foreground/65 mb-4 leading-relaxed">
             Tell a friend who should have a better portfolio. They&apos;ll join with your referral link.
           </p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 min-w-0">
+            <div className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 min-w-0">
               <p className="text-xs text-muted-foreground truncate font-mono">{shareUrl}</p>
             </div>
             <button
               onClick={copyLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-400 hover:bg-brand-500/20 transition-colors shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-600 hover:bg-brand-500/20 transition-colors shrink-0"
             >
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copied!' : 'Copy'}
@@ -438,11 +438,11 @@ function WaitlistContent() {
     <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Nav ──────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo size="sm" />
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-[10px] font-bold text-brand-400 uppercase tracking-widest">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-[10px] font-bold text-brand-600 uppercase tracking-widest">
               Coming Soon
             </span>
           </div>
@@ -466,7 +466,7 @@ function WaitlistContent() {
 
           <button
             onClick={() => scrollToForm('nav_join_beta')}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-violet-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.3)]"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 text-white text-xs font-semibold hover:opacity-90 transition-opacity shadow-glow-sm"
           >
             Join Waitlist
             <ArrowRight className="h-3 w-3" />
@@ -477,7 +477,7 @@ function WaitlistContent() {
       <main>
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-24 pb-24 px-6">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
         <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[1100px] h-[700px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-0 w-[600px] h-[500px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
 
@@ -486,7 +486,7 @@ function WaitlistContent() {
 
             {/* Left  -  copy */}
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-400 mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-600 mb-8">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
                 Waitlist  -  limited spots
               </div>
@@ -515,7 +515,7 @@ function WaitlistContent() {
               <div className="flex flex-wrap items-center gap-3 mb-10">
                 <button
                   onClick={() => scrollToForm('hero_primary')}
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold hover:opacity-90 transition-opacity shadow-[0_0_30px_rgba(99,102,241,0.35)]"
+                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold hover:opacity-90 transition-opacity shadow-glow"
                 >
                   Join the waitlist
                   <ArrowRight className="h-4 w-4" />
@@ -523,7 +523,7 @@ function WaitlistContent() {
                 <a
                   href="#how-it-works"
                   onClick={() => trackMarketingEvent('hero_secondary_cta_clicked', { cta_label: 'see_how_it_works' })}
-                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] text-sm text-muted-foreground hover:text-foreground transition-all"
+                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-secondary border border-border hover:bg-secondary text-sm text-muted-foreground hover:text-foreground transition-all"
                 >
                   See how it works
                 </a>
@@ -552,7 +552,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── Waitlist Form Card ────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]" ref={formCardRef}>
+      <section className="py-24 px-6 border-t border-border" ref={formCardRef}>
         <div className="max-w-xl mx-auto">
 
           {step === 'success' ? (
@@ -587,7 +587,7 @@ function WaitlistContent() {
                 {/* Email  -  required */}
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Email <span className="text-brand-400">*</span>
+                    Email <span className="text-brand-600">*</span>
                   </label>
                   <input
                     id="email"
@@ -596,7 +596,7 @@ function WaitlistContent() {
                     placeholder="you@example.com"
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                     required
                   />
                 </div>
@@ -613,7 +613,7 @@ function WaitlistContent() {
                     placeholder="Alex Chen"
                     value={form.full_name}
                     onChange={(e) => update('full_name', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                   />
                 </div>
 
@@ -628,7 +628,7 @@ function WaitlistContent() {
                     placeholder="Product Designer, SWE, PM, Marketing..."
                     value={form.target_role}
                     onChange={(e) => update('target_role', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
                   />
                 </div>
 
@@ -641,7 +641,7 @@ function WaitlistContent() {
                     id="experience_level"
                     value={form.experience_level}
                     onChange={(e) => update('experience_level', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
                   >
                     <option value="" className="bg-neutral-900">Select your level...</option>
                     <option value="student" className="bg-neutral-900">Student</option>
@@ -662,7 +662,7 @@ function WaitlistContent() {
                     id="user_type"
                     value={form.user_type}
                     onChange={(e) => update('user_type', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
                   >
                     <option value="" className="bg-neutral-900">Select your goal...</option>
                     <option value="job_search" className="bg-neutral-900">Job search portfolio</option>
@@ -682,7 +682,7 @@ function WaitlistContent() {
                     id="biggest_challenge"
                     value={form.biggest_challenge}
                     onChange={(e) => update('biggest_challenge', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
                   >
                     <option value="" className="bg-neutral-900">What is your biggest problem?</option>
                     <option value="weak_resume" className="bg-neutral-900">My resume is weak</option>
@@ -708,7 +708,7 @@ function WaitlistContent() {
                         'w-4.5 h-4.5 rounded-md border-2 transition-all flex items-center justify-center',
                         form.consent
                           ? 'bg-brand-500 border-brand-500'
-                          : 'border-white/[0.2] group-hover:border-brand-500/50 bg-transparent',
+                          : 'border-border group-hover:border-brand-500/50 bg-transparent',
                       )}>
                         {form.consent && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                       </div>
@@ -720,7 +720,7 @@ function WaitlistContent() {
                 </div>
 
                 {/* Privacy note */}
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary border border-border">
                   <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     We never sell your email. We use it only for waitlist notifications and product updates.
@@ -729,7 +729,7 @@ function WaitlistContent() {
 
                 {/* Error */}
                 {error && (
-                  <p className="text-sm text-red-400/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
+                  <p className="text-sm text-red-600/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
                     {error}
                   </p>
                 )}
@@ -741,13 +741,13 @@ function WaitlistContent() {
                   className={cn(
                     'w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-base transition-all',
                     submitting || !form.consent
-                      ? 'bg-white/[0.06] text-muted-foreground cursor-not-allowed'
-                      : 'bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:opacity-90 shadow-[0_0_30px_rgba(99,102,241,0.3)]',
+                      ? 'bg-secondary text-muted-foreground cursor-not-allowed'
+                      : 'bg-gradient-to-r from-brand-500 to-brand-400 text-white hover:opacity-90 shadow-glow',
                   )}
                 >
                   {submitting ? (
                     <>
-                      <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      <div className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
                       Joining...
                     </>
                   ) : (
@@ -764,7 +764,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── How it works ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 px-6 border-t border-white/[0.05]">
+      <section id="how-it-works" className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">How it works</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
@@ -778,7 +778,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── Built for ────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto" ref={audienceSectionRef}>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Built for</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
@@ -791,7 +791,7 @@ function WaitlistContent() {
               'An early-career professional translating day-to-day work into measurable evidence',
               'A career switcher connecting previous experience to a new target role',
             ].map((s) => (
-              <div key={s} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-sm text-foreground/70 leading-relaxed">
+              <div key={s} className="rounded-xl border border-border bg-secondary p-5 text-sm text-foreground/70 leading-relaxed">
                 {s}
               </div>
             ))}
@@ -803,13 +803,13 @@ function WaitlistContent() {
       </section>
 
       {/* ── Comparison ───────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto" ref={comparisonSectionRef}>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why not just use ChatGPT or a template?</p>
           <h2 className="text-3xl font-black text-foreground mb-10 tracking-tight max-w-lg">
             Showcase combines what those tools do separately
           </h2>
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] divide-y divide-white/[0.06]">
+          <div className="rounded-2xl border border-border bg-secondary divide-y divide-border">
             {[
               { alt: 'Résumé template', does: 'Formats claims. Does not check whether they are supported.' },
               { alt: 'Website builder', does: 'Displays what you already know how to write  -  you still start from a blank page.' },
@@ -817,7 +817,7 @@ function WaitlistContent() {
               { alt: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
             ].map((row) => (
               <div key={row.alt} className={cn('flex flex-col sm:flex-row gap-2 sm:gap-6 p-5', row.isShowcase && 'bg-brand-500/[0.04]')}>
-                <p className={cn('text-sm font-bold w-44 shrink-0', row.isShowcase ? 'text-brand-400' : 'text-foreground/70')}>{row.alt}</p>
+                <p className={cn('text-sm font-bold w-44 shrink-0', row.isShowcase ? 'text-brand-600' : 'text-foreground/70')}>{row.alt}</p>
                 <p className="text-sm text-foreground/60 leading-relaxed">{row.does}</p>
               </div>
             ))}
@@ -826,7 +826,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── Pricing ──────────────────────────────────────────────── */}
-      <section id="pricing" className="py-24 px-6 border-t border-white/[0.05]">
+      <section id="pricing" className="py-24 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto" ref={pricingSectionRef}>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight text-center">
@@ -842,7 +842,7 @@ function WaitlistContent() {
               onClick={() => { setBilling('monthly'); trackMarketingEvent('billing_period_selected', { billing_period: 'monthly' }) }}
               className={cn(
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                !isAnnual ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground hover:text-foreground',
+                !isAnnual ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               Monthly
@@ -851,11 +851,11 @@ function WaitlistContent() {
               onClick={() => { setBilling('annual'); trackMarketingEvent('billing_period_selected', { billing_period: 'annual' }) }}
               className={cn(
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
-                isAnnual ? 'bg-white/[0.08] text-foreground' : 'text-muted-foreground hover:text-foreground',
+                isAnnual ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               Annual
-              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                 Save $30
               </span>
             </button>
@@ -863,7 +863,7 @@ function WaitlistContent() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Free */}
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-8 flex flex-col">
+            <div className="rounded-2xl border border-border bg-secondary p-8 flex flex-col">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Free</p>
               <div className="flex items-baseline gap-1 mb-2">
                 <span className="text-4xl font-black text-foreground">$0</span>
@@ -884,8 +884,8 @@ function WaitlistContent() {
             <div className="relative rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/[0.06] to-white/[0.02] p-8 flex flex-col overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" />
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-brand-400 uppercase tracking-widest">Showcase Pro</p>
-                <span className="text-[10px] font-bold text-brand-300 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                <p className="text-xs font-bold text-brand-600 uppercase tracking-widest">Showcase Pro</p>
+                <span className="text-[10px] font-bold text-brand-700 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
                   {isAnnual ? 'Best value' : 'Most popular'}
                 </span>
               </div>
@@ -895,7 +895,7 @@ function WaitlistContent() {
                     <span className="text-4xl font-black text-foreground">$12.50</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
-                  <p className="text-sm text-emerald-400 font-medium mb-1">$150 billed annually  -  save $30</p>
+                  <p className="text-sm text-emerald-600 font-medium mb-1">$150 billed annually  -  save $30</p>
                   <p className="text-sm text-muted-foreground line-through mb-6">$180/year if monthly</p>
                 </>
               ) : (
@@ -910,14 +910,14 @@ function WaitlistContent() {
               <ul className="space-y-3 mb-8 flex-1">
                 {PRO_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
-                    <Check className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => scrollToForm('pricing_card')}
-                className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(99,102,241,0.3)]"
+                className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-glow-sm"
               >
                 <Zap className="h-4 w-4" />
                 Join the waitlist for early access
@@ -929,7 +929,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── Why beta users matter ─────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -945,7 +945,7 @@ function WaitlistContent() {
               </p>
               <button
                 onClick={() => scrollToForm('beta_explainer')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(99,102,241,0.25)]"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-glow-sm"
               >
                 Join the waitlist
                 <ArrowRight className="h-4 w-4" />
@@ -957,28 +957,28 @@ function WaitlistContent() {
                   icon: ShieldCheck,
                   title: 'We never invent experience',
                   desc: 'Showcase only uses what you provide. No fake projects, employers, metrics, or certifications  -  ever.',
-                  color: 'text-emerald-400 bg-emerald-500/10',
+                  color: 'text-emerald-600 bg-emerald-500/10',
                 },
                 {
                   icon: Lock,
                   title: 'You control what gets published',
                   desc: 'Nothing goes live without your review. Every portfolio starts as a private draft.',
-                  color: 'text-brand-400 bg-brand-500/10',
+                  color: 'text-brand-600 bg-brand-500/10',
                 },
                 {
                   icon: FileText,
                   title: 'Resume files stay private by default',
                   desc: 'Uploaded resumes are not publicly accessible. You decide what portions to include.',
-                  color: 'text-violet-400 bg-violet-500/10',
+                  color: 'text-violet-600 bg-violet-500/10',
                 },
                 {
                   icon: Lightbulb,
                   title: 'No dark patterns, no fake scarcity',
                   desc: 'We are not counting down a timer or inventing a waitlist number. Just honest early access.',
-                  color: 'text-amber-400 bg-amber-500/10',
+                  color: 'text-amber-600 bg-amber-500/10',
                 },
               ].map((item) => (
-                <div key={item.title} className="flex items-start gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                <div key={item.title} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-secondary">
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', item.color)}>
                     <item.icon className="h-4 w-4" />
                   </div>
@@ -994,7 +994,7 @@ function WaitlistContent() {
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────── */}
-      <section id="faq" className="py-24 px-6 border-t border-white/[0.05]">
+      <section id="faq" className="py-24 px-6 border-t border-border">
         <div className="max-w-2xl mx-auto">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
           <h2 className="text-3xl font-black text-foreground mb-12 tracking-tight text-center">Questions answered</h2>
@@ -1003,9 +1003,9 @@ function WaitlistContent() {
       </section>
 
       {/* ── Bottom CTA ───────────────────────────────────────────── */}
-      <section className="py-32 px-6 border-t border-white/[0.05]">
+      <section className="py-32 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.08),transparent)]" />
             <div className="relative z-10">
@@ -1017,7 +1017,7 @@ function WaitlistContent() {
               </p>
               <button
                 onClick={() => scrollToForm('final_cta')}
-                className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-violet-500 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-[0_0_40px_rgba(99,102,241,0.35)]"
+                className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-glow"
               >
                 Join the waitlist
                 <ArrowRight className="h-4 w-4" />
@@ -1029,7 +1029,7 @@ function WaitlistContent() {
       </main>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="py-10 px-6 border-t border-white/[0.05]">
+      <footer className="py-10 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>

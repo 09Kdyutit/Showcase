@@ -106,8 +106,8 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
   if (status === 'done') {
     return (
       <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-        <File className="h-4 w-4 text-emerald-400 shrink-0" />
-        <p className="text-xs text-emerald-400 flex-1 truncate">{fileName}</p>
+        <File className="h-4 w-4 text-emerald-600 shrink-0" />
+        <p className="text-xs text-emerald-600 flex-1 truncate">{fileName}</p>
         <Badge variant="success">Text extracted</Badge>
         <button onClick={() => { setStatus('idle'); setFileName(null) }} className="text-muted-foreground hover:text-foreground" aria-label="Remove file">
           <X className="h-3.5 w-3.5" />
@@ -120,8 +120,8 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
     return (
       <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
         <div className="flex items-center gap-2">
-          <File className="h-4 w-4 text-amber-400 shrink-0" />
-          <p className="text-xs font-medium text-amber-400">{fileName}</p>
+          <File className="h-4 w-4 text-amber-600 shrink-0" />
+          <p className="text-xs font-medium text-amber-600">{fileName}</p>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
           {errorMessage ?? 'Could not extract text automatically. Open your file, select all text (Cmd+A), and paste it in the box below.'}
@@ -159,7 +159,7 @@ export function FileUploadZone({ onText }: { onText: (text: string) => void }) {
         {status === 'uploading' ? (
           <>
             <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
-              <Upload className="h-4 w-4 text-brand-400 animate-bounce" />
+              <Upload className="h-4 w-4 text-brand-600 animate-bounce" />
             </div>
             <p className="text-sm text-muted-foreground">Extracting text…</p>
           </>

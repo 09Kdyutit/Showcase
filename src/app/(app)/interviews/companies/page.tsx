@@ -82,12 +82,12 @@ const KNOWN_COMPANIES = [
 // ── Color helpers ─────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
-  FAANG: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  Growth: 'bg-brand-500/10 text-brand-300 border-brand-500/20',
-  Enterprise: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  Finance: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  FAANG: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  Growth: 'bg-brand-500/10 text-brand-700 border-brand-500/20',
+  Enterprise: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  Finance: 'bg-violet-500/10 text-violet-600 border-violet-500/20',
   Startup: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  Healthcare: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+  Healthcare: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
   Other: 'bg-white/5 text-muted-foreground border-white/10',
 }
 
@@ -134,10 +134,10 @@ function PracticeDialog({
   }
 
   const labelColor = result
-    ? result.label === 'Excellent' ? 'text-emerald-400'
-    : result.label === 'Good' ? 'text-brand-300'
-    : result.label === 'Fair' ? 'text-amber-400'
-    : 'text-red-400' : ''
+    ? result.label === 'Excellent' ? 'text-emerald-600'
+    : result.label === 'Good' ? 'text-brand-700'
+    : result.label === 'Fair' ? 'text-amber-600'
+    : 'text-red-600' : ''
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
@@ -147,7 +147,7 @@ function PracticeDialog({
         </DialogHeader>
         {question && (
           <div className="space-y-4">
-            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-4 space-y-2">
+            <div className="rounded-xl bg-secondary border border-border p-4 space-y-2">
               <span className={cn('inline-flex text-[10px] font-semibold px-1.5 py-0.5 rounded-full border', CATEGORY_COLORS[question.category] ?? CATEGORY_COLORS.Other)}>
                 {question.category}
               </span>
@@ -181,7 +181,7 @@ function PracticeDialog({
                 </div>
                 {result.improvements.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Strengthen</p>
+                    <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2">Strengthen</p>
                     <ul className="space-y-1 text-sm text-muted-foreground">
                       {result.improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-amber-500 shrink-0">--</span>{s}</li>)}
                     </ul>
@@ -195,10 +195,10 @@ function PracticeDialog({
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   placeholder="Use the STAR method: Situation, Task, Action, Result..."
-                  className="min-h-[160px] text-sm resize-none bg-white/[0.03] border-white/[0.08] focus:border-brand-500/40"
+                  className="min-h-[160px] text-sm resize-none bg-secondary border-border focus:border-brand-500/40"
                 />
                 <div className="flex items-center justify-between">
-                  <span className={cn('text-xs', wordCount < 20 ? 'text-muted-foreground/40' : 'text-emerald-400')}>{wordCount} words</span>
+                  <span className={cn('text-xs', wordCount < 20 ? 'text-muted-foreground/40' : 'text-emerald-600')}>{wordCount} words</span>
                   <Button onClick={handleSubmit} disabled={submitting || wordCount < 20} variant="gradient" size="sm" className="gap-1.5">
                     {submitting ? 'Scoring...' : 'Get Feedback'}<ChevronRight className="h-3.5 w-3.5" />
                   </Button>
@@ -240,7 +240,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold">{prep.name}</h1>
               {prep.generated && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border bg-brand-500/10 border-brand-500/20 text-brand-300">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border bg-brand-500/10 border-brand-500/20 text-brand-700">
                   <Sparkles className="h-2.5 w-2.5" />
                   AI Generated
                 </span>
@@ -264,7 +264,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
           <ul className="space-y-2">
             {prep.keyFocus.map((f, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-brand-400 mt-0.5 shrink-0">+</span>{f}
+                <span className="text-brand-600 mt-0.5 shrink-0">+</span>{f}
               </li>
             ))}
           </ul>
@@ -275,7 +275,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
           <ul className="space-y-2">
             {prep.uniqueTips.map((t, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-amber-400 mt-0.5 shrink-0">*</span>{t}
+                <span className="text-amber-600 mt-0.5 shrink-0">*</span>{t}
               </li>
             ))}
           </ul>
@@ -289,7 +289,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
           {prep.questions.map((q) => (
             <div key={q.id} className="glass-card rounded-2xl overflow-hidden">
               <button
-                className="w-full p-4 flex items-start gap-3 text-left hover:bg-white/[0.02] transition-colors"
+                className="w-full p-4 flex items-start gap-3 text-left hover:bg-secondary transition-colors"
                 onClick={() => setExpandedQ(expandedQ === q.id ? null : q.id)}
               >
                 <span className={cn('shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border mt-0.5 whitespace-nowrap', CATEGORY_COLORS[q.category] ?? CATEGORY_COLORS.Other)}>
@@ -302,7 +302,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
               </button>
 
               {expandedQ === q.id && (
-                <div className="px-4 pb-4 space-y-3 border-t border-white/[0.05] pt-3">
+                <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
                   <p className="text-xs text-muted-foreground/60 italic leading-relaxed">Tip: {q.tip}</p>
                   <div className="flex gap-2">
                     <Button size="sm" variant="gradient" className="h-8 text-xs gap-1.5 flex-1" onClick={() => setPracticeQ(q)}>
@@ -393,7 +393,7 @@ export default function CompanyPrepPage() {
           Interview Lab
         </Link>
         <div className="flex items-center gap-2 mb-1">
-          <Building2 className="h-5 w-5 text-brand-400" />
+          <Building2 className="h-5 w-5 text-brand-600" />
           <h1 className="text-xl font-bold">Company Prep</h1>
         </div>
         <p className="text-sm text-muted-foreground/60">
@@ -414,7 +414,7 @@ export default function CompanyPrepPage() {
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true) }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Type any company name -- Google, McKinsey, your local startup..."
-              className="w-full bg-white/[0.04] border border-white/[0.1] rounded-xl pl-10 pr-24 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 transition-colors"
+              className="w-full bg-secondary border border-border rounded-xl pl-10 pr-24 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 transition-colors"
             />
             {query && (
               <button
@@ -443,7 +443,7 @@ export default function CompanyPrepPage() {
               className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-50"
               style={{
                 background: 'var(--color-surface-100)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--color-border)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               }}
             >
@@ -452,7 +452,7 @@ export default function CompanyPrepPage() {
                   key={s}
                   type="button"
                   onMouseDown={() => loadCompany(s)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-white/[0.05] transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-secondary transition-colors"
                 >
                   <div
                     className="w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0"
@@ -484,8 +484,8 @@ export default function CompanyPrepPage() {
                 className={cn(
                   'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border',
                   catFilter === f
-                    ? 'bg-brand-500/15 text-brand-300 border-brand-500/20'
-                    : 'text-muted-foreground border-white/[0.06] hover:border-white/[0.12] hover:text-foreground'
+                    ? 'bg-brand-500/15 text-brand-700 border-brand-500/20'
+                    : 'text-muted-foreground border-border hover:border-border hover:text-foreground'
                 )}
               >
                 {f === 'all' ? 'All' : f}
@@ -519,14 +519,14 @@ export default function CompanyPrepPage() {
       </div>
 
       {/* "Try any company" examples */}
-      <div className="rounded-2xl border border-dashed border-white/[0.08] p-5">
+      <div className="rounded-2xl border border-dashed border-border p-5">
         <p className="text-xs text-muted-foreground/40 mb-3">You can search for any company, including:</p>
         <div className="flex flex-wrap gap-2">
           {['Palantir', 'Rippling', 'Scale AI', 'McKinsey', 'Goldman Sachs', 'Tesla', 'Coinbase', 'Datadog', 'Snowflake', 'Your local startup'].map((name) => (
             <button
               key={name}
               onClick={() => loadCompany(name)}
-              className="text-xs px-2.5 py-1 rounded-lg border border-white/[0.07] text-muted-foreground/50 hover:text-muted-foreground hover:border-white/[0.15] transition-colors"
+              className="text-xs px-2.5 py-1 rounded-lg border border-border text-muted-foreground/50 hover:text-muted-foreground hover:border-border transition-colors"
             >
               {name}
             </button>

@@ -101,7 +101,7 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           {isPro ? (
             <>
-              <div className="flex items-center gap-2 text-emerald-400 text-sm">
+              <div className="flex items-center gap-2 text-emerald-600 text-sm">
                 <CheckCircle2 className="h-4 w-4" />
                 Active Pro subscription
               </div>
@@ -154,7 +154,7 @@ export default function BillingPage() {
                       <span className="text-4xl font-bold text-foreground">$12.50</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
-                    <p className="text-sm text-emerald-400 font-medium mt-1">$150 billed annually  -  save $30</p>
+                    <p className="text-sm text-emerald-600 font-medium mt-1">$150 billed annually  -  save $30</p>
                   </>
                 ) : (
                   <div className="flex items-baseline gap-1">
@@ -173,7 +173,7 @@ export default function BillingPage() {
                   'px-3 py-2.5 rounded-lg text-sm font-semibold transition-all',
                   billingCycle === 'monthly'
                     ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_20px_rgba(99,70,200,0.4)]'
-                    : 'text-brand-300 hover:text-brand-200'
+                    : 'text-brand-700 hover:text-brand-200'
                 )}
               >
                 Monthly
@@ -184,13 +184,13 @@ export default function BillingPage() {
                   'relative px-3 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2',
                   billingCycle === 'annual'
                     ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_20px_rgba(99,70,200,0.4)]'
-                    : 'text-brand-300 hover:text-brand-200'
+                    : 'text-brand-700 hover:text-brand-200'
                 )}
               >
                 Annual
                 <span className={cn(
                   'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                  billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-brand-500/10 border border-brand-500/30 text-brand-300'
+                  billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-brand-500/10 border border-brand-500/30 text-brand-700'
                 )}>
                   Save $30
                 </span>
@@ -200,7 +200,7 @@ export default function BillingPage() {
             <ul className="space-y-2.5 mb-8">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
-                  <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
                   {f}
                 </li>
               ))}

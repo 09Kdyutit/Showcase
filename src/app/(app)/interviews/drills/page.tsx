@@ -151,7 +151,7 @@ export default function DrillsPage() {
                     <CardContent className="space-y-2">
                       {result.checks.map((c, i) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
-                          {c.passed ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />}
+                          {c.passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />}
                           <span className={c.passed ? 'text-foreground' : 'text-muted-foreground'}>{c.label}</span>
                         </div>
                       ))}

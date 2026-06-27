@@ -16,6 +16,7 @@ import { CompanyMarquee } from '@/components/landing/company-marquee'
 import { TrackedSection } from '@/components/landing/tracked-section'
 import { TrackedLink } from '@/components/landing/tracked-link'
 import { ViewTracker } from '@/components/landing/view-tracker'
+import { SectionLabel } from '@/components/shared/section-label'
 
 const FLOW_STEPS = [
   { icon: FileText, step: '01', title: 'Upload your resume', desc: 'Paste or upload your resume. Showcase parses it instantly  -  skills, projects, experience, all of it.' },
@@ -49,10 +50,10 @@ export default function LandingPage() {
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Background grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:64px_64px]" />
         {/* Ambient glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[700px] bg-brand-500/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-brand-400/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-brand-500/4 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
@@ -107,7 +108,7 @@ export default function LandingPage() {
           >
             {['No credit card required', 'Free ProofScore preview', 'Setup in 5 minutes'].map((item) => (
               <span key={item} className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-brand-400" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-brand-600" />
                 {item}
               </span>
             ))}
@@ -141,7 +142,7 @@ export default function LandingPage() {
                     {/* Identity */}
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-400 flex items-center justify-center">
                           <span className="text-white text-xs font-bold">MT</span>
                         </div>
                         <div>
@@ -167,12 +168,12 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
                         <p className="text-xs font-semibold text-foreground/80 mb-1">Internal Analytics Dashboard</p>
-                        <p className="text-xs text-emerald-400 font-medium mb-1.5">Built solo · shipped in 6-week internship</p>
+                        <p className="text-xs text-emerald-600 font-medium mb-1.5">Built solo · shipped in 6-week internship</p>
                         <p className="text-xs text-muted-foreground/70 leading-relaxed">Operations team manually compiled reports in spreadsheets. Built a dashboard pulling live data instead. Outcome not yet quantified  -  flagged below.</p>
                       </div>
                       <div className="bg-surface-300/60 rounded-xl p-3 border border-border/60">
                         <p className="text-xs font-semibold text-foreground/80 mb-1">Course Scheduler App</p>
-                        <p className="text-xs text-brand-400 font-medium mb-1.5">Class project · Python + SQLite</p>
+                        <p className="text-xs text-brand-600 font-medium mb-1.5">Class project · Python + SQLite</p>
                         <p className="text-xs text-muted-foreground/70 leading-relaxed">Built a scheduling tool for 40 classmates after registration conflicts caused repeated enrollment errors.</p>
                       </div>
                     </div>
@@ -190,7 +191,7 @@ export default function LandingPage() {
                       <div className="relative w-28 h-28">
                         <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-xl" />
                         <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
-                          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
+                          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(40,20,70,0.08)" strokeWidth="10" />
                           <circle
                             cx="60" cy="60" r="50" fill="none"
                             stroke="url(#hero-score-gradient)" strokeWidth="10"
@@ -206,7 +207,7 @@ export default function LandingPage() {
                           </defs>
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-3xl font-black text-amber-400">68</span>
+                          <span className="text-3xl font-black text-amber-600">68</span>
                           <span className="text-[10px] text-muted-foreground/60">/ 100</span>
                         </div>
                       </div>
@@ -255,7 +256,7 @@ export default function LandingPage() {
             <div className="grid sm:grid-cols-3 gap-6">
               <div className="glass-card p-6">
                 <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-                  <Target className="h-4.5 w-4.5 text-brand-400 h-[18px] w-[18px]" />
+                  <Target className="h-4.5 w-4.5 text-brand-600 h-[18px] w-[18px]" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Built around your real work</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -264,7 +265,7 @@ export default function LandingPage() {
               </div>
               <div className="glass-card p-6 border-brand-500/20">
                 <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-                  <BarChart3 className="h-[18px] w-[18px] text-brand-400" />
+                  <BarChart3 className="h-[18px] w-[18px] text-brand-600" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">ProofScore tells you exactly what is weak</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -273,7 +274,7 @@ export default function LandingPage() {
               </div>
               <div className="glass-card p-6">
                 <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-                  <TrendingUp className="h-[18px] w-[18px] text-brand-400" />
+                  <TrendingUp className="h-[18px] w-[18px] text-brand-600" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">A public page recruiters will actually open</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -292,8 +293,8 @@ export default function LandingPage() {
 
       {/* ─── How it works ─────────────────────────────────────── */}
       <section id="how-it-works" className="py-32 px-4 sm:px-6 max-w-6xl mx-auto">
-        <AnimatedSection className="text-center mb-16">
-          <Badge variant="outline" className="mb-4">How it works</Badge>
+        <AnimatedSection className="flex flex-col items-center text-center mb-16">
+          <SectionLabel number="02" className="mb-4">How it works</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance mb-4">
             From resume to portfolio in minutes
           </h2>
@@ -309,7 +310,7 @@ export default function LandingPage() {
                 <div className="glass-card p-6 h-full transition-all duration-300 hover:border-brand-500/20 hover:shadow-glow-sm hover:-translate-y-1">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center group-hover:bg-brand-500/20 transition-colors">
-                      <Icon className="h-5 w-5 text-brand-400" />
+                      <Icon className="h-5 w-5 text-brand-600" />
                     </div>
                     <span className="text-4xl font-black text-muted-foreground/10 group-hover:text-muted-foreground/20 transition-colors">
                       {step}
@@ -331,7 +332,7 @@ export default function LandingPage() {
       <AnimatedSection>
         <TrackedSection event="audience_section_viewed" id="built-for" className="py-24 px-4 sm:px-6 bg-surface-50/30 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <Badge variant="outline" className="mb-4">Built for</Badge>
+            <SectionLabel number="03" className="mb-4">Built for</SectionLabel>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10 text-balance max-w-2xl">
               Early-career job seekers who have real work to show but no clear way to prove it
             </h2>
@@ -379,7 +380,7 @@ export default function LandingPage() {
                 'Hiring risk gaps that could cost you the interview',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-foreground/80">
-                  <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
                   {item}
                 </li>
               ))}
@@ -409,7 +410,7 @@ export default function LandingPage() {
                         {sev}
                       </Badge>
                       <span
-                        className={`text-sm font-bold ${score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400'}`}
+                        className={`text-sm font-bold ${score >= 80 ? 'text-emerald-600' : score >= 60 ? 'text-amber-600' : 'text-red-600'}`}
                       >
                         {score}
                       </span>
@@ -431,8 +432,8 @@ export default function LandingPage() {
 
       {/* ─── Pricing ──────────────────────────────────────────── */}
       <TrackedSection event="pricing_viewed" id="pricing" className="py-32 px-4 sm:px-6 max-w-5xl mx-auto">
-        <AnimatedSection className="text-center mb-16">
-          <Badge variant="outline" className="mb-4">Simple pricing</Badge>
+        <AnimatedSection className="flex flex-col items-center text-center mb-16">
+          <SectionLabel number="04" className="mb-4">Simple pricing</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
             Start free, upgrade when you are ready
           </h2>
@@ -485,7 +486,7 @@ export default function LandingPage() {
               <div className="relative">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-sm font-semibold text-brand-400 uppercase tracking-wider mb-2">Pro</p>
+                    <p className="text-sm font-semibold text-brand-600 uppercase tracking-wider mb-2">Pro</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-bold">$15</span>
                       <span className="text-muted-foreground">/month</span>
@@ -506,7 +507,7 @@ export default function LandingPage() {
                     'Priority AI processing',
                   ].map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
-                      <CheckCircle2 className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -540,7 +541,7 @@ export default function LandingPage() {
             <div className="glass-card p-6 space-y-4 h-full">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-sm font-medium text-red-400">Without Showcase</span>
+                <span className="text-sm font-medium text-red-600">Without Showcase</span>
               </div>
               <div className="space-y-3">
                 <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-red-500/30">
@@ -559,9 +560,9 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2 pt-1">
                   <div className="h-6 w-6 rounded-full bg-red-500/10 flex items-center justify-center">
-                    <span className="text-red-400 text-xs font-bold">✕</span>
+                    <span className="text-red-600 text-xs font-bold">✕</span>
                   </div>
-                  <p className="text-xs text-red-400/80">Recruiter closes tab in 8 seconds. No callback.</p>
+                  <p className="text-xs text-red-600/80">Recruiter closes tab in 8 seconds. No callback.</p>
                 </div>
               </div>
             </div>
@@ -571,7 +572,7 @@ export default function LandingPage() {
             <div className="glass-card p-6 space-y-4 border-emerald-500/20 h-full">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-sm font-medium text-emerald-400">With Showcase</span>
+                <span className="text-sm font-medium text-emerald-600">With Showcase</span>
               </div>
               <div className="space-y-3">
                 <div className="bg-surface-300 rounded-lg p-4 border-l-2 border-emerald-500/30">
@@ -591,7 +592,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="bg-amber-500/[0.06] border border-amber-500/20 rounded-lg p-4">
-                  <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">ProofScore flag</p>
+                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">ProofScore flag</p>
                   <p className="text-sm text-foreground/80">
                     Outcome is not quantified yet. Add a number  -  hours saved, report turnaround time, or
                     adoption  -  before this goes out.
@@ -599,9 +600,9 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2 pt-1">
                   <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <Star className="h-3 w-3 text-emerald-400 fill-emerald-400" />
+                    <Star className="h-3 w-3 text-emerald-600 fill-emerald-400" />
                   </div>
-                  <p className="text-xs text-emerald-400/80">A recruiter can see exactly what was built, why, and what to ask about in the interview.</p>
+                  <p className="text-xs text-emerald-600/80">A recruiter can see exactly what was built, why, and what to ask about in the interview.</p>
                 </div>
               </div>
             </div>
@@ -615,10 +616,10 @@ export default function LandingPage() {
           <div className="glass-card p-8 sm:p-12 border-emerald-500/10 bg-emerald-500/[0.015]">
             <div className="flex flex-col sm:flex-row items-start gap-8">
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Shield className="h-6 w-6 text-emerald-400" />
+                <Shield className="h-6 w-6 text-emerald-600" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-emerald-400 uppercase tracking-widest mb-3">
+                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-3">
                   Built on Trust
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-balance">

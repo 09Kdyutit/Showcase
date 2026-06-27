@@ -51,7 +51,7 @@ export default function ProofScorePage() {
 
         <div className="glass-card p-6 sm:p-8 mb-12 border-emerald-500/10 bg-emerald-500/[0.02]">
           <div className="flex items-start gap-4">
-            <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-foreground mb-1">How the score is calculated</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -69,7 +69,7 @@ export default function ProofScorePage() {
         <div className="space-y-3 mb-16">
           {CATEGORIES.map(({ name, desc }) => (
             <div key={name} className="glass-card p-5 flex items-start gap-4">
-              <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-1" />
+              <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-1" />
               <div>
                 <p className="text-sm font-semibold text-foreground mb-1">{name}</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>

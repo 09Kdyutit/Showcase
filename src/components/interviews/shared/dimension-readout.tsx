@@ -30,19 +30,19 @@ export function DimensionReadoutView({ dimensions }: { dimensions: DimensionRead
     <div>
       <div className="grid sm:grid-cols-3 gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-emerald-400 mb-2">Strong ({strong.length})</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-emerald-600 mb-2">Strong ({strong.length})</p>
           <div className="space-y-1.5">
             {strong.length > 0 ? strong.map((d) => <DimensionPill key={d.id} d={d} />) : <p className="text-xs text-muted-foreground">None yet</p>}
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-blue-400 mb-2">Developing ({developing.length})</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-blue-600 mb-2">Developing ({developing.length})</p>
           <div className="space-y-1.5">
             {developing.length > 0 ? developing.map((d) => <DimensionPill key={d.id} d={d} />) : <p className="text-xs text-muted-foreground">None yet</p>}
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-amber-400 mb-2">Focus Here ({focus.length})</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-amber-600 mb-2">Focus Here ({focus.length})</p>
           <div className="space-y-1.5">
             {focus.length > 0 ? focus.map((d) => <DimensionPill key={d.id} d={d} />) : <p className="text-xs text-muted-foreground">None yet</p>}
           </div>

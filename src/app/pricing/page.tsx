@@ -74,14 +74,14 @@ export default function PricingPage() {
         </div>
 
         {/* Billing toggle */}
-        <div className="grid grid-cols-2 max-w-xs mx-auto gap-2 mb-12 p-1 rounded-2xl bg-black/30 border border-white/10">
+        <div className="grid grid-cols-2 max-w-xs mx-auto gap-2 mb-12 p-1 rounded-2xl bg-secondary border border-border">
           <button
             onClick={() => setBilling('monthly')}
             className={cn(
               'px-4 py-3 rounded-xl text-sm font-semibold transition-all',
               !isAnnual
-                ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_24px_rgba(99,70,200,0.45)]'
-                : 'text-brand-300 hover:text-brand-200',
+                ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-glow-sm'
+                : 'text-brand-700 hover:text-brand-200',
             )}
           >
             Monthly
@@ -91,14 +91,14 @@ export default function PricingPage() {
             className={cn(
               'relative px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2',
               isAnnual
-                ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_24px_rgba(99,70,200,0.45)]'
-                : 'text-brand-300 hover:text-brand-200',
+                ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-glow-sm'
+                : 'text-brand-700 hover:text-brand-200',
             )}
           >
             Annual
             <span className={cn(
               'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-              isAnnual ? 'bg-white/20 text-white' : 'bg-brand-500/10 border border-brand-500/30 text-brand-300',
+              isAnnual ? 'bg-secondary text-foreground' : 'bg-brand-500/10 border border-brand-500/30 text-brand-700',
             )}>
               Save $30
             </span>
@@ -143,7 +143,7 @@ export default function PricingPage() {
             <div className="relative flex flex-col flex-1">
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-brand-400 uppercase tracking-wider">Showcase Pro</p>
+                  <p className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Showcase Pro</p>
                   <Badge variant="pro">{isAnnual ? 'Best value' : 'Most popular'}</Badge>
                 </div>
                 {isAnnual ? (
@@ -152,7 +152,7 @@ export default function PricingPage() {
                       <span className="text-5xl font-bold">$12.50</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
-                    <p className="text-sm text-emerald-400 font-medium mb-1">
+                    <p className="text-sm text-emerald-600 font-medium mb-1">
                       $150 billed annually  -  save $30 vs monthly
                     </p>
                     <p className="text-sm text-muted-foreground line-through opacity-50">$180/year if monthly</p>
@@ -170,7 +170,7 @@ export default function PricingPage() {
               <ul className="space-y-3 mb-8 flex-1">
                 {PRO_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
-                    <CheckCircle2 className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -184,8 +184,8 @@ export default function PricingPage() {
                   </TrackedLink>
                 </Button>
                 <div className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                  <p className="text-xs text-emerald-400/90 text-center">7-day refund policy  -  no questions asked</p>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <p className="text-xs text-emerald-600/90 text-center">7-day refund policy  -  no questions asked</p>
                 </div>
                 <p className="text-xs text-muted-foreground/60 text-center">Secure payment via Stripe</p>
               </div>

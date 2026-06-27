@@ -58,8 +58,8 @@ const BAND_LABELS: Record<string, string> = {
   interview_ready: 'Interview Ready', strong: 'Strong',
 }
 const BAND_COLORS: Record<string, string> = {
-  starting: 'text-red-400', building: 'text-orange-400', practicing: 'text-yellow-400',
-  interview_ready: 'text-emerald-400', strong: 'text-emerald-400',
+  starting: 'text-red-600', building: 'text-orange-600', practicing: 'text-yellow-600',
+  interview_ready: 'text-emerald-600', strong: 'text-emerald-600',
 }
 
 const DIMENSION_ICONS: Record<string, LucideIcon> = {
@@ -91,18 +91,18 @@ const STOP_WORDS = new Set([
 // ── Helper functions ──────────────────────────────────────────────────────────
 
 function scoreLabel(score: number): { label: string; color: string; bg: string } {
-  if (score >= 80) return { label: 'Strong', color: 'text-emerald-400', bg: 'bg-emerald-500' }
-  if (score >= 65) return { label: 'Good', color: 'text-yellow-400', bg: 'bg-yellow-500' }
-  if (score >= 50) return { label: 'Moderate', color: 'text-orange-400', bg: 'bg-orange-500' }
-  return { label: 'Needs Improvement', color: 'text-red-400', bg: 'bg-red-500' }
+  if (score >= 80) return { label: 'Strong', color: 'text-emerald-600', bg: 'bg-emerald-500' }
+  if (score >= 65) return { label: 'Good', color: 'text-yellow-600', bg: 'bg-yellow-500' }
+  if (score >= 50) return { label: 'Moderate', color: 'text-orange-600', bg: 'bg-orange-500' }
+  return { label: 'Needs Improvement', color: 'text-red-600', bg: 'bg-red-500' }
 }
 
 function fillerQuality(count: number, wordCount: number): { label: string; color: string } {
   const rate = wordCount > 0 ? count / wordCount : 0
-  if (rate < 0.015) return { label: 'Excellent control', color: 'text-emerald-400' }
-  if (rate < 0.04) return { label: 'Good', color: 'text-yellow-400' }
-  if (rate < 0.08) return { label: 'Work on reducing', color: 'text-orange-400' }
-  return { label: 'Needs focused practice', color: 'text-red-400' }
+  if (rate < 0.015) return { label: 'Excellent control', color: 'text-emerald-600' }
+  if (rate < 0.04) return { label: 'Good', color: 'text-yellow-600' }
+  if (rate < 0.08) return { label: 'Work on reducing', color: 'text-orange-600' }
+  return { label: 'Needs focused practice', color: 'text-red-600' }
 }
 
 function computeDelivery(transcript: TranscriptSegment[]) {
@@ -323,11 +323,11 @@ export default function InterviewResultsPage() {
               <div className="grid sm:grid-cols-2 gap-5">
                 {latestEvaluation.result?.strengths?.length > 0 && (
                   <div className="space-y-2.5">
-                    <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">What you did well</p>
+                    <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">What you did well</p>
                     <ul className="space-y-2">
                       {latestEvaluation.result.strengths.map((s, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />{s}
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />{s}
                         </li>
                       ))}
                     </ul>
@@ -335,11 +335,11 @@ export default function InterviewResultsPage() {
                 )}
                 {latestEvaluation.result?.topFixes?.length > 0 && (
                   <div className="space-y-2.5">
-                    <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Next steps</p>
+                    <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider">Next steps</p>
                     <ul className="space-y-2">
                       {latestEvaluation.result.topFixes.map((fix, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
-                          <AlertCircle className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />{fix}
+                          <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />{fix}
                         </li>
                       ))}
                     </ul>
@@ -523,7 +523,7 @@ export default function InterviewResultsPage() {
                       onClick={() => setExpandedCoaching((prev) => {
                         const next = new Set(prev); if (next.has(q.id)) next.delete(q.id); else next.add(q.id); return next
                       })}
-                      className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 transition-colors"
                     >
                       <Sparkles className="h-3 w-3" />
                       AI coaching
@@ -534,20 +534,20 @@ export default function InterviewResultsPage() {
                       <div className="rounded-xl border border-brand-500/20 bg-brand-500/[0.04] p-4 space-y-5">
                         {coaching.strongMoments.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">What worked</p>
+                            <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">What worked</p>
                             {coaching.strongMoments.map((m, i) => (
                               <div key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />{m.note}
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />{m.note}
                               </div>
                             ))}
                           </div>
                         )}
                         {coaching.weakMoments.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-orange-400 uppercase tracking-wider">What to fix</p>
+                            <p className="text-[11px] font-semibold text-orange-600 uppercase tracking-wider">What to fix</p>
                             {coaching.weakMoments.map((m, i) => (
                               <div key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                                <AlertCircle className="h-3.5 w-3.5 text-orange-400 shrink-0 mt-0.5" />{m.note}
+                                <AlertCircle className="h-3.5 w-3.5 text-orange-600 shrink-0 mt-0.5" />{m.note}
                               </div>
                             ))}
                           </div>
@@ -564,7 +564,7 @@ export default function InterviewResultsPage() {
                         )}
                         {coaching.suggestedStructure && (
                           <div className="space-y-2 border-t border-border/40 pt-4">
-                            <p className="text-[11px] font-semibold text-brand-400 uppercase tracking-wider">How a stronger answer sounds</p>
+                            <p className="text-[11px] font-semibold text-brand-600 uppercase tracking-wider">How a stronger answer sounds</p>
                             <p className="text-sm text-foreground leading-relaxed italic bg-brand-500/5 rounded-lg p-3">
                               &ldquo;{coaching.suggestedStructure}&rdquo;
                             </p>
@@ -604,7 +604,7 @@ export default function InterviewResultsPage() {
                     <div className="space-y-1 pt-2 border-t border-border/60">
                       {retryResult.comparison.observations.map((o, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs">
-                          {o.changed ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" /> : <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
+                          {o.changed ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
                           <span className={o.changed ? 'text-foreground' : 'text-muted-foreground'}>{o.label}</span>
                         </div>
                       ))}
@@ -636,7 +636,7 @@ export default function InterviewResultsPage() {
                 </Link>
               ))}
             </div>
-            <Link href="/interviews/drills" className="text-xs text-brand-400 hover:underline inline-flex items-center gap-1">
+            <Link href="/interviews/drills" className="text-xs text-brand-600 hover:underline inline-flex items-center gap-1">
               See all drills <ArrowRight className="h-3 w-3" />
             </Link>
           </CardContent>

@@ -66,7 +66,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold text-brand-400 uppercase tracking-widest mb-1.5">Dashboard</p>
+          <p className="text-xs font-semibold text-brand-600 uppercase tracking-widest mb-1.5">Dashboard</p>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">
             {profile?.full_name ? `Hey, ${profile.full_name.split(' ')[0]}.` : 'Welcome back.'}
           </h1>
@@ -126,12 +126,12 @@ export default async function DashboardPage() {
               >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
                   done
-                    ? 'bg-emerald-500/20 text-emerald-400'
+                    ? 'bg-emerald-500/20 text-emerald-600'
                     : 'bg-surface-300 text-muted-foreground/60'
                 }`}>
                   {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
                 </div>
-                <span className={`text-xs font-medium ${done ? 'text-emerald-400/80 line-through decoration-emerald-500/30' : 'text-foreground/80'}`}>
+                <span className={`text-xs font-medium ${done ? 'text-emerald-600/80 line-through decoration-emerald-500/30' : 'text-foreground/80'}`}>
                   {label}
                 </span>
               </Link>
@@ -170,7 +170,7 @@ export default async function DashboardPage() {
           </div>
           <p className="text-4xl font-bold stat-number text-foreground">{portfolios.length}</p>
           <p className="text-xs text-muted-foreground mt-1.5">
-            <span className="text-emerald-400">{portfolios.filter(p => p.status === 'published').length}</span> published
+            <span className="text-emerald-600">{portfolios.filter(p => p.status === 'published').length}</span> published
           </p>
         </div>
 
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
           ) : (
             <>
               <p className="text-2xl font-bold stat-number text-muted-foreground/30">0</p>
-              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-400">
+              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-600">
                 <Link href="/resume">Upload one →</Link>
               </Button>
             </>
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
           ) : (
             <>
               <p className="text-sm font-medium text-foreground">Free</p>
-              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-400">
+              <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs text-brand-600">
                 <Link href="/billing">Upgrade →</Link>
               </Button>
             </>
@@ -233,11 +233,11 @@ export default async function DashboardPage() {
         <div className="lg:col-span-1 glass-card overflow-hidden relative" style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
           <div className="h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
           <div className="p-6">
-            <p className="text-[10px] font-semibold text-brand-400 uppercase tracking-widest mb-4">Next best action</p>
+            <p className="text-[10px] font-semibold text-brand-600 uppercase tracking-widest mb-4">Next best action</p>
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: 'color-mix(in oklch, var(--color-brand-500) 12%, transparent)', border: '1px solid color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
-                <nextAction.icon className="h-5 w-5 text-brand-400" />
+                <nextAction.icon className="h-5 w-5 text-brand-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-foreground mb-1">{nextAction.label}</p>
@@ -261,7 +261,7 @@ export default async function DashboardPage() {
               {latestAudit ? 'ProofScore breakdown' : 'What ProofScore measures'}
             </p>
             {latestAudit && (
-              <Button asChild variant="ghost" size="sm" className="text-xs text-brand-400 hover:text-brand-300">
+              <Button asChild variant="ghost" size="sm" className="text-xs text-brand-600 hover:text-brand-700">
                 <Link href="/audit">View full audit →</Link>
               </Button>
             )}
@@ -278,11 +278,11 @@ export default async function DashboardPage() {
                         style={{ width: `${cat.score}%` }}
                       />
                     </div>
-                    <span className={`text-xs font-medium w-6 text-right ${cat.score >= 80 ? 'text-emerald-400' : cat.score >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
+                    <span className={`text-xs font-medium w-6 text-right ${cat.score >= 80 ? 'text-emerald-600' : cat.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
                       {Math.round(cat.score)}
                     </span>
-                    {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                    {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400/60 shrink-0" />}
+                    {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />}
+                    {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600/60 shrink-0" />}
                   </div>
                 ))}
               </div>
@@ -313,7 +313,7 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Your portfolios</p>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-brand-400 hover:text-brand-300">
+            <Button asChild variant="ghost" size="sm" className="text-xs text-brand-600 hover:text-brand-700">
               <Link href="/builder">View all →</Link>
             </Button>
           </div>

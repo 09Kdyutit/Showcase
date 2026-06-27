@@ -114,7 +114,7 @@ function BetaFeedbackContent() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <Logo size="sm" />
@@ -127,7 +127,7 @@ function BetaFeedbackContent() {
         {step === 'success' ? (
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-              <Check className="h-8 w-8 text-emerald-400" />
+              <Check className="h-8 w-8 text-emerald-600" />
             </div>
             <h1 className="text-3xl font-black text-foreground mb-3 tracking-tight">
               Thank you.
@@ -142,7 +142,7 @@ function BetaFeedbackContent() {
             )}
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-foreground hover:bg-white/[0.07] transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-secondary border border-border text-sm text-foreground hover:bg-secondary transition-all"
             >
               Back to Showcase
               <ArrowRight className="h-3.5 w-3.5" />
@@ -151,7 +151,7 @@ function BetaFeedbackContent() {
         ) : (
           <>
             <div className="mb-10">
-              <p className="text-[10px] font-bold text-brand-400 uppercase tracking-[0.2em] mb-3">Beta feedback</p>
+              <p className="text-[10px] font-bold text-brand-600 uppercase tracking-[0.2em] mb-3">Beta feedback</p>
               <h1 className="text-3xl font-black text-foreground mb-3 tracking-tight">
                 How did Showcase feel?
               </h1>
@@ -165,7 +165,7 @@ function BetaFeedbackContent() {
               {!inviteToken && (
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Your email <span className="text-brand-400">*</span>
+                    Your email <span className="text-brand-600">*</span>
                   </label>
                   <input
                     id="email"
@@ -173,7 +173,7 @@ function BetaFeedbackContent() {
                     placeholder="you@example.com"
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
-                    className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all"
+                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all"
                   />
                 </div>
               )}
@@ -193,7 +193,7 @@ function BetaFeedbackContent() {
                         'rounded-lg py-2.5 text-sm font-bold transition-all',
                         form.rating === n
                           ? 'bg-brand-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]'
-                          : 'bg-white/[0.04] border border-white/[0.08] text-muted-foreground hover:border-brand-500/30 hover:text-foreground',
+                          : 'bg-secondary border border-border text-muted-foreground hover:border-brand-500/30 hover:text-foreground',
                       )}
                     >
                       {n}
@@ -201,7 +201,7 @@ function BetaFeedbackContent() {
                   ))}
                 </div>
                 {form.rating && (
-                  <p className="text-xs text-brand-400 mt-2 font-medium">{RATING_LABELS[form.rating]}</p>
+                  <p className="text-xs text-brand-600 mt-2 font-medium">{RATING_LABELS[form.rating]}</p>
                 )}
               </div>
 
@@ -217,7 +217,7 @@ function BetaFeedbackContent() {
                   placeholder="What felt useful, smooth, or impressive?"
                   rows={3}
                   maxLength={2000}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
+                  className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
                 />
               </div>
 
@@ -233,7 +233,7 @@ function BetaFeedbackContent() {
                   placeholder="What was unclear, unexpected, or frustrating?"
                   rows={3}
                   maxLength={2000}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
+                  className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
                 />
               </div>
 
@@ -249,7 +249,7 @@ function BetaFeedbackContent() {
                   placeholder="Features, content, or capabilities you expected but did not find"
                   rows={3}
                   maxLength={2000}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
+                  className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
                 />
               </div>
 
@@ -265,7 +265,7 @@ function BetaFeedbackContent() {
                   placeholder="Describe anything that broke, errored, or behaved unexpectedly"
                   rows={2}
                   maxLength={2000}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
+                  className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
                 />
               </div>
 
@@ -287,9 +287,9 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.would_recommend === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                          : 'bg-white/[0.04] border-white/[0.08] text-muted-foreground hover:border-white/[0.14]',
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600'
+                          : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
                     >
                       {opt.label}
@@ -316,9 +316,9 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.published_portfolio === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-white/[0.06] border-white/[0.15] text-foreground'
-                          : 'bg-white/[0.04] border-white/[0.08] text-muted-foreground hover:border-white/[0.14]',
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                            : 'bg-secondary border-border text-foreground'
+                          : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
                     >
                       {opt.label}
@@ -345,9 +345,9 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.sent_to_recruiter === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                            : 'bg-white/[0.06] border-white/[0.15] text-foreground'
-                          : 'bg-white/[0.04] border-white/[0.08] text-muted-foreground hover:border-white/[0.14]',
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                            : 'bg-secondary border-border text-foreground'
+                          : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
                     >
                       {opt.label}
@@ -368,7 +368,7 @@ function BetaFeedbackContent() {
                   placeholder="e.g. $10/month for unlimited portfolios, $20 one-time for a PDF export, nothing until I get a job..."
                   rows={2}
                   maxLength={500}
-                  className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
+                  className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/30 outline-none transition-all resize-none"
                 />
               </div>
 
@@ -398,7 +398,7 @@ function BetaFeedbackContent() {
                         'w-4 h-4 rounded border-2 transition-all flex items-center justify-center',
                         (form[field] as boolean)
                           ? 'bg-brand-500 border-brand-500'
-                          : 'border-white/[0.2] group-hover:border-brand-500/50',
+                          : 'border-border group-hover:border-brand-500/50',
                       )}>
                         {(form[field] as boolean) && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
                       </div>
@@ -410,7 +410,7 @@ function BetaFeedbackContent() {
 
               {/* Error */}
               {error && (
-                <p className="text-sm text-red-400/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
+                <p className="text-sm text-red-600/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
                   {error}
                 </p>
               )}
@@ -422,7 +422,7 @@ function BetaFeedbackContent() {
                 className={cn(
                   'w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-base transition-all',
                   submitting
-                    ? 'bg-white/[0.06] text-muted-foreground/40 cursor-not-allowed'
+                    ? 'bg-secondary text-muted-foreground/40 cursor-not-allowed'
                     : 'bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:opacity-90 shadow-[0_0_30px_rgba(99,102,241,0.3)]',
                 )}
               >

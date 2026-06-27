@@ -384,8 +384,8 @@ export default function ResumePage() {
               {parsed.weak_bullets?.length > 0 && (
                 <div className="glass-card p-4 border-amber-500/15">
                   <div className="flex items-center gap-2 mb-3">
-                    <AlertCircle className="h-4 w-4 text-amber-400" />
-                    <h3 className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
                       Weak bullets ({parsed.weak_bullets.length})
                     </h3>
                   </div>
@@ -398,7 +398,7 @@ export default function ResumePage() {
                           className="text-muted-foreground/40 hover:text-muted-foreground shrink-0"
                         >
                           {copiedField === `weak-${i}` ? (
-                            <Check className="h-3 w-3 text-emerald-400" />
+                            <Check className="h-3 w-3 text-emerald-600" />
                           ) : (
                             <Copy className="h-3 w-3" />
                           )}
@@ -413,8 +413,8 @@ export default function ResumePage() {
               {parsed.missing_proof?.length > 0 && (
                 <div className="glass-card p-4 border-red-500/15">
                   <div className="flex items-center gap-2 mb-3">
-                    <AlertCircle className="h-4 w-4 text-red-400" />
-                    <h3 className="text-xs font-semibold text-red-400 uppercase tracking-wider">Missing proof</h3>
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <h3 className="text-xs font-semibold text-red-600 uppercase tracking-wider">Missing proof</h3>
                   </div>
                   <div className="space-y-1">
                     {parsed.missing_proof.slice(0, 4).map((p, i) => (
@@ -429,13 +429,13 @@ export default function ResumePage() {
               {/* Possible case studies */}
               {parsed.possible_case_studies?.length > 0 && (
                 <div className="glass-card p-4 border-brand-500/15">
-                  <h3 className="text-xs font-semibold text-brand-400 uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-brand-600 uppercase tracking-wider mb-3">
                     Possible case studies
                   </h3>
                   <div className="space-y-1">
                     {parsed.possible_case_studies.map((cs, i) => (
                       <div key={i} className="flex items-start gap-2 text-xs text-foreground/70">
-                        <span className="text-brand-400">→</span>
+                        <span className="text-brand-600">→</span>
                         {cs}
                       </div>
                     ))}

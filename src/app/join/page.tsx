@@ -58,7 +58,7 @@ function JoinForm() {
             boxShadow: '0 0 40px color-mix(in oklch, var(--color-brand-500) 35%, transparent)',
           }}
         >
-          <CheckCircle2 className="h-7 w-7 text-brand-400" />
+          <CheckCircle2 className="h-7 w-7 text-brand-600" />
         </div>
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-foreground">You're on the list.</h2>
@@ -78,7 +78,7 @@ function JoinForm() {
         onChange={(e) => setName(e.target.value)}
         placeholder="Your name"
         autoComplete="name"
-        className="w-full rounded-xl px-4 py-3.5 text-sm bg-white/[0.04] border border-white/[0.08] text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
+        className="w-full rounded-xl px-4 py-3.5 text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
       />
       <input
         type="email"
@@ -87,18 +87,18 @@ function JoinForm() {
         placeholder="Your email address"
         autoComplete="email"
         required
-        className="w-full rounded-xl px-4 py-3.5 text-sm bg-white/[0.04] border border-white/[0.08] text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
+        className="w-full rounded-xl px-4 py-3.5 text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/20 transition-all"
       />
 
       {error && (
-        <p className="text-xs text-red-400 text-center">{error}</p>
+        <p className="text-xs text-red-600 text-center">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={submitting || !email.trim()}
         className={cn(
-          'w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98]',
+          'w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold  transition-all duration-200 active:scale-[0.98]',
           'disabled:opacity-40 disabled:pointer-events-none',
         )}
         style={{
@@ -154,7 +154,7 @@ function BackgroundOrbs() {
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(40,20,70,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(40,20,70,0.06) 1px, transparent 1px)',
           backgroundSize: '80px 80px',
         }}
       />
@@ -236,7 +236,7 @@ export default function JoinPage() {
           {FEATURES.map((f) => (
             <span
               key={f}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full text-muted-foreground/50 border border-white/[0.06]"
+              className="text-[11px] font-medium px-2.5 py-1 rounded-full text-muted-foreground/50 border border-border"
             >
               {f}
             </span>
@@ -244,7 +244,7 @@ export default function JoinPage() {
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px mb-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 50%, transparent)' }} />
+        <div className="w-full h-px mb-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.10) 50%, transparent)' }} />
 
         {/* Form */}
         <div className="w-full">

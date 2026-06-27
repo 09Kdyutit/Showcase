@@ -11,10 +11,10 @@ export function PracticeResources({ drills }: { drills: DrillDefinition[] }) {
       <div className="grid grid-cols-1 gap-2">
         <Link
           href="/interviews/questions"
-          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-brand-500/20 hover:bg-brand-500/5 transition-all group"
+          className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-brand-500/20 hover:bg-brand-500/5 transition-all group"
         >
           <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center shrink-0">
-            <BookOpen className="h-3.5 w-3.5 text-brand-400" />
+            <BookOpen className="h-3.5 w-3.5 text-brand-600" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground group-hover:text-brand-200 transition-colors">Question Library</p>
@@ -24,10 +24,10 @@ export function PracticeResources({ drills }: { drills: DrillDefinition[] }) {
 
         <Link
           href="/interviews/companies"
-          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all group"
+          className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all group"
         >
           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-            <Building2 className="h-3.5 w-3.5 text-emerald-400" />
+            <Building2 className="h-3.5 w-3.5 text-emerald-600" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground group-hover:text-emerald-200 transition-colors">Company Prep</p>
@@ -37,10 +37,10 @@ export function PracticeResources({ drills }: { drills: DrillDefinition[] }) {
 
         <Link
           href="/interviews/drills"
-          className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-amber-500/20 hover:bg-amber-500/5 transition-all group"
+          className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-amber-500/20 hover:bg-amber-500/5 transition-all group"
         >
           <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-            <Dumbbell className="h-3.5 w-3.5 text-amber-400" />
+            <Dumbbell className="h-3.5 w-3.5 text-amber-600" />
           </div>
           <div>
             <p className="text-sm font-medium text-foreground group-hover:text-amber-200 transition-colors">Communication Drills</p>

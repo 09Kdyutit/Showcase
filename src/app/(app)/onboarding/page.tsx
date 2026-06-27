@@ -279,7 +279,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-background p-6 py-12">
       <div className="w-full max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-600 mb-4">
             <CheckCircle2 className="h-3.5 w-3.5" />
             Resume parsed
           </div>
@@ -308,14 +308,14 @@ export default function OnboardingPage() {
           {/* Extracted summary grid */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <Briefcase className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+              <Briefcase className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{parsed?.experience?.length ?? 0} experience entries</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">{metricsFound} quantified achievements found</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <FolderKanban className="h-4 w-4 text-violet-400 shrink-0 mt-0.5" />
+              <FolderKanban className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{parsed?.projects?.length ?? 0} projects detected</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">
@@ -324,14 +324,14 @@ export default function OnboardingPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Sparkles className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+              <Sparkles className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{parsed?.skills?.length ?? 0} skills</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">{parsed?.skills?.slice(0, 4).join(', ') || ' - '}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Link2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <Link2 className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-semibold text-foreground">{[linkedin, github, website].filter(Boolean).length} links found</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">{[linkedin && 'LinkedIn', github && 'GitHub', website && 'Website'].filter(Boolean).join(', ') || 'None  -  add later if you have them'}</p>
@@ -342,9 +342,9 @@ export default function OnboardingPage() {
           {/* Missing evidence */}
           {needsConfirmation.length > 0 && (
             <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-amber-400">{needsConfirmation.length} item{needsConfirmation.length === 1 ? '' : 's'} need real numbers or context</p>
+                <p className="text-xs font-semibold text-amber-600">{needsConfirmation.length} item{needsConfirmation.length === 1 ? '' : 's'} need real numbers or context</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">We won&apos;t invent these  -  you can add them after your portfolio is built. Nothing blocks you from generating now.</p>
               </div>
             </div>
@@ -360,7 +360,7 @@ export default function OnboardingPage() {
               <div className="text-xs text-muted-foreground">
                 Targeting <span className="text-foreground font-medium">{targetRole || 'no role set'}</span> · {industry} · {PORTFOLIO_GOALS.find((g) => g.value === portfolioGoal)?.label}
               </div>
-              <span className="flex items-center gap-1 text-xs text-brand-400 group-hover:text-brand-300 shrink-0">
+              <span className="flex items-center gap-1 text-xs text-brand-600 group-hover:text-brand-700 shrink-0">
                 <Pencil className="h-3 w-3" />
                 Edit extracted details
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${editOpen ? 'rotate-180' : ''}`} />
@@ -381,7 +381,7 @@ export default function OnboardingPage() {
                         key={ind}
                         type="button"
                         onClick={() => setIndustry(ind)}
-                        className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${industry === ind ? 'border-brand-500/50 bg-brand-500/10 text-brand-300' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
+                        className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${industry === ind ? 'border-brand-500/50 bg-brand-500/10 text-brand-700' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
                       >
                         {ind}
                       </button>
@@ -396,7 +396,7 @@ export default function OnboardingPage() {
                         key={g.value}
                         type="button"
                         onClick={() => setPortfolioGoal(g.value)}
-                        className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${portfolioGoal === g.value ? 'border-brand-500/50 bg-brand-500/10 text-brand-300' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
+                        className={`px-2.5 py-1 rounded-lg text-xs border transition-all ${portfolioGoal === g.value ? 'border-brand-500/50 bg-brand-500/10 text-brand-700' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
                       >
                         {g.label}
                       </button>

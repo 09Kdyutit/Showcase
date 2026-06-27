@@ -162,7 +162,7 @@ export default function StoryBankPage() {
                 key={c}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-full border capitalize',
-                  covered ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-border/60 text-muted-foreground'
+                  covered ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600' : 'border-border/60 text-muted-foreground'
                 )}
               >
                 {c.replace(/_/g, ' ')}
@@ -205,7 +205,7 @@ export default function StoryBankPage() {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(s)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(s.id)}><Trash2 className="h-4 w-4 text-red-400" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(s.id)}><Trash2 className="h-4 w-4 text-red-600" /></Button>
                     </div>
                   </div>
                 </CardContent>

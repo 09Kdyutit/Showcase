@@ -40,7 +40,7 @@ const PROJECTS = [
   {
     title: 'Stripe Checkout Redesign',
     accentClass: 'border-brand-500/30 bg-brand-500/[0.02]',
-    metricClass: 'bg-brand-500/10 border-brand-500/20 text-brand-300',
+    metricClass: 'bg-brand-500/10 border-brand-500/20 text-brand-700',
     role: 'Lead Designer',
     year: '2021',
     company: 'Stripe',
@@ -57,7 +57,7 @@ const PROJECTS = [
   {
     title: 'Figma Internal Design System v2',
     accentClass: 'border-violet-500/30 bg-violet-500/[0.02]',
-    metricClass: 'bg-violet-500/10 border-violet-500/20 text-violet-300',
+    metricClass: 'bg-violet-500/10 border-violet-500/20 text-violet-700',
     role: 'Design Lead',
     year: '2023',
     company: 'Figma',
@@ -141,9 +141,9 @@ function getLevelDot(level: string) {
 }
 
 function getLevelLabel(level: string) {
-  if (level === 'Expert') return 'text-brand-400'
-  if (level === 'Advanced') return 'text-violet-400'
-  if (level === 'Proficient') return 'text-emerald-400'
+  if (level === 'Expert') return 'text-brand-600'
+  if (level === 'Advanced') return 'text-violet-600'
+  if (level === 'Proficient') return 'text-emerald-600'
   return 'text-muted-foreground/50'
 }
 
@@ -160,7 +160,7 @@ export default function DemoPortfolioPage() {
     <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Sticky nav ─────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/[0.06]">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.4)]">
@@ -194,7 +194,7 @@ export default function DemoPortfolioPage() {
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
         <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/4 right-0 w-[500px] h-[400px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
 
@@ -208,7 +208,7 @@ export default function DemoPortfolioPage() {
           </div>
 
           {/* Tagline */}
-          <p className="text-xs font-bold text-brand-400 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
+          <p className="text-xs font-bold text-brand-600 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse inline-block" />
             {TAGLINE}
           </p>
@@ -224,7 +224,7 @@ export default function DemoPortfolioPage() {
           </p>
 
           {/* Featured result */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-300 font-medium mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-700 font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             {FEATURED_RESULT}
           </div>
@@ -243,7 +243,7 @@ export default function DemoPortfolioPage() {
               href="https://linkedin.com/in/alex-chen"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.14] text-sm text-muted-foreground hover:text-foreground transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border hover:bg-secondary hover:border-border text-sm text-muted-foreground hover:text-foreground transition-all"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               LinkedIn
@@ -253,7 +253,7 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Proof metrics ──────────────────────────────────────── */}
-      <section className="border-y border-white/[0.06]">
+      <section className="border-y border-border">
         <div className="max-w-5xl mx-auto px-6 py-16">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-0">
             {PROOF.map((p, i) => (
@@ -261,7 +261,7 @@ export default function DemoPortfolioPage() {
                 key={p.label}
                 className={cn(
                   'text-center px-6 py-2',
-                  i < 3 && 'border-r border-white/[0.06]',
+                  i < 3 && 'border-r border-border',
                 )}
               >
                 <p
@@ -288,8 +288,8 @@ export default function DemoPortfolioPage() {
       {/* ── Recruiter summary ──────────────────────────────────── */}
       <section className="py-8 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-            <Globe className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-secondary border border-border">
+            <Globe className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
             <p className="text-sm text-foreground/70 leading-relaxed">{RECRUITER_SUMMARY}</p>
           </div>
         </div>
@@ -313,7 +313,7 @@ export default function DemoPortfolioPage() {
             <div className="space-y-1 pt-1">
               <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-5">Working principles</p>
               {WORKING_PRINCIPLES.map((v) => (
-                <div key={v} className="flex items-start gap-3 py-2.5 border-b border-white/[0.05] last:border-0">
+                <div key={v} className="flex items-start gap-3 py-2.5 border-b border-border last:border-0">
                   <div className="w-1 h-1 rounded-full bg-brand-500/50 shrink-0 mt-2" />
                   <p className="text-sm text-foreground/60 leading-relaxed">{v}</p>
                 </div>
@@ -324,7 +324,7 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Selected Work ──────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Selected work</p>
           <div className="space-y-6">
@@ -370,7 +370,7 @@ export default function DemoPortfolioPage() {
                   {proj.tags.slice(0, 6).map((t) => (
                     <span
                       key={t}
-                      className="px-2.5 py-0.5 bg-white/[0.04] border border-white/[0.07] rounded-full text-[11px] text-muted-foreground/50"
+                      className="px-2.5 py-0.5 bg-secondary border border-border rounded-full text-[11px] text-muted-foreground/50"
                     >
                       {t}
                     </span>
@@ -387,7 +387,7 @@ export default function DemoPortfolioPage() {
                     <p className="text-sm text-foreground/55 leading-relaxed">{proj.process}</p>
                   </div>
                   <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.18] p-5">
-                    <p className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
+                    <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
                     <p className="text-sm text-foreground/90 leading-relaxed font-medium">{proj.outcome}</p>
                   </div>
                 </div>
@@ -398,7 +398,7 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Skills ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Skills & expertise</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -425,7 +425,7 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Experience ─────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-white/[0.05]">
+      <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Experience</p>
           <div className="space-y-0">
@@ -463,7 +463,7 @@ export default function DemoPortfolioPage() {
                     {exp.metrics.map((m) => (
                       <span
                         key={m}
-                        className="text-xs text-emerald-400 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold"
+                        className="text-xs text-emerald-600 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold"
                       >
                         {m}
                       </span>
@@ -477,9 +477,9 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Contact CTA ────────────────────────────────────────── */}
-      <section className="py-32 px-6 border-t border-white/[0.05]">
+      <section className="py-32 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.07),transparent)]" />
             <div className="relative z-10">
@@ -503,7 +503,7 @@ export default function DemoPortfolioPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="py-8 px-6 border-t border-white/[0.05]">
+      <footer className="py-8 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <a
             href="https://showcase.app"

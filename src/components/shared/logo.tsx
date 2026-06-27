@@ -38,7 +38,7 @@ export function Logo({
       {showWordmark && (
         <span
           className={cn(
-            'font-bold tracking-tight bg-gradient-to-r from-brand-400 to-violet-400 bg-clip-text text-transparent',
+            'font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-800 bg-clip-text text-transparent',
             TEXT_SIZE[size]
           )}
         >

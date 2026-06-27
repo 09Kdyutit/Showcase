@@ -28,9 +28,9 @@ interface ResumeOption {
 }
 
 const DIFF_COLOR: Record<string, string> = {
-  'Weekend': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  '1-2 Weeks': 'bg-brand-500/10 text-brand-300 border-brand-500/20',
-  '1 Month': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'Weekend': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  '1-2 Weeks': 'bg-brand-500/10 text-brand-700 border-brand-500/20',
+  '1 Month': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
 }
 
 // ── Project Card ─────────────────────────────────────────────────────────────
@@ -80,14 +80,14 @@ function ProjectCard({ project, index }: { project: ProjectSuggestion; index: nu
 
         {/* Why */}
         <div className="rounded-xl bg-brand-500/5 border border-brand-500/10 p-3">
-          <p className="text-xs font-semibold text-brand-400 uppercase tracking-wider mb-1">Why you need this</p>
+          <p className="text-xs font-semibold text-brand-600 uppercase tracking-wider mb-1">Why you need this</p>
           <p className="text-xs text-muted-foreground leading-relaxed">{project.why}</p>
         </div>
 
         {/* Tech stack */}
         <div className="flex flex-wrap gap-1.5">
           {project.techStack.map((t) => (
-            <span key={t} className="text-[11px] px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.07] text-muted-foreground/70">
+            <span key={t} className="text-[11px] px-2 py-0.5 rounded-lg bg-secondary border border-border text-muted-foreground/70">
               {t}
             </span>
           ))}
@@ -95,14 +95,14 @@ function ProjectCard({ project, index }: { project: ProjectSuggestion; index: nu
 
         {/* Impact */}
         <p className="text-xs text-muted-foreground/60 leading-relaxed">
-          <span className="text-emerald-400 font-semibold">Portfolio impact: </span>
+          <span className="text-emerald-600 font-semibold">Portfolio impact: </span>
           {project.impact}
         </p>
 
         {/* Expand button */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors pt-1 border-t border-white/[0.05]"
+          className="w-full flex items-center justify-between text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors pt-1 border-t border-border"
         >
           <span>How to build it</span>
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -111,11 +111,11 @@ function ProjectCard({ project, index }: { project: ProjectSuggestion; index: nu
 
       {/* Steps (expanded) */}
       {expanded && (
-        <div className="border-t border-white/[0.05] p-5 space-y-4">
+        <div className="border-t border-border p-5 space-y-4">
           <ol className="space-y-2.5">
             {project.steps.map((step, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                <span className="shrink-0 w-5 h-5 rounded-full bg-brand-500/15 border border-brand-500/20 flex items-center justify-center text-[10px] font-bold text-brand-400 mt-0.5">
+                <span className="shrink-0 w-5 h-5 rounded-full bg-brand-500/15 border border-brand-500/20 flex items-center justify-center text-[10px] font-bold text-brand-600 mt-0.5">
                   {i + 1}
                 </span>
                 {step}
@@ -123,14 +123,14 @@ function ProjectCard({ project, index }: { project: ProjectSuggestion; index: nu
             ))}
           </ol>
 
-          <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-3">
+          <div className="rounded-xl bg-secondary border border-border p-3">
             <p className="text-xs text-muted-foreground/40 mb-0.5">Suggested repo</p>
             <p className="text-xs text-foreground/70 font-mono">{project.repoIdea}</p>
           </div>
 
           <div className="flex gap-2">
             <Button onClick={copySteps} variant="outline" size="sm" className="gap-1.5 flex-1">
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copied' : 'Copy Steps'}
             </Button>
           </div>
@@ -145,12 +145,12 @@ function ProjectCard({ project, index }: { project: ProjectSuggestion; index: nu
 function SkeletonCard() {
   return (
     <div className="glass-card rounded-2xl p-5 space-y-3 animate-pulse">
-      <div className="h-3 w-16 bg-white/[0.06] rounded-full" />
-      <div className="h-5 w-2/3 bg-white/[0.08] rounded-lg" />
-      <div className="h-3 w-1/2 bg-white/[0.04] rounded-lg" />
-      <div className="h-16 bg-white/[0.03] rounded-xl border border-white/[0.05]" />
+      <div className="h-3 w-16 bg-secondary rounded-full" />
+      <div className="h-5 w-2/3 bg-secondary rounded-lg" />
+      <div className="h-3 w-1/2 bg-secondary rounded-lg" />
+      <div className="h-16 bg-secondary rounded-xl border border-border" />
       <div className="flex gap-1.5">
-        {[1,2,3].map((i) => <div key={i} className="h-5 w-16 bg-white/[0.04] rounded-lg" />)}
+        {[1,2,3].map((i) => <div key={i} className="h-5 w-16 bg-secondary rounded-lg" />)}
       </div>
     </div>
   )
@@ -237,7 +237,7 @@ export default function ProjectSuggestionsPage() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <FolderGit2 className="h-5 w-5 text-brand-400" />
+              <FolderGit2 className="h-5 w-5 text-brand-600" />
               <h1 className="text-xl font-bold">Project Roadmap</h1>
             </div>
             <p className="text-sm text-muted-foreground/60">
@@ -279,7 +279,7 @@ export default function ProjectSuggestionsPage() {
                 {!useTextInput ? (
                   <div className="space-y-2">
                     {loadingResumes ? (
-                      <div className="h-10 bg-white/[0.04] rounded-xl animate-pulse" />
+                      <div className="h-10 bg-secondary rounded-xl animate-pulse" />
                     ) : (
                       <select
                         value={selectedResumeId}
@@ -304,7 +304,7 @@ export default function ProjectSuggestionsPage() {
                       value={resumeText}
                       onChange={(e) => setResumeText(e.target.value)}
                       placeholder="Paste your resume text here..."
-                      className="min-h-[140px] text-sm resize-none bg-white/[0.03] border-white/[0.08]"
+                      className="min-h-[140px] text-sm resize-none bg-secondary border-border"
                     />
                     {resumes.length > 0 && (
                       <button
@@ -337,7 +337,7 @@ export default function ProjectSuggestionsPage() {
         <div className="space-y-4">
           <div className="glass-card rounded-2xl p-5 text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
-              <Sparkles className="h-4 w-4 text-brand-400 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-brand-600 animate-pulse" />
               <span className="text-sm text-muted-foreground">Analyzing your resume for portfolio gaps...</span>
             </div>
             <p className="text-xs text-muted-foreground/40">This takes about 10 seconds</p>

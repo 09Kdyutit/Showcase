@@ -146,7 +146,7 @@ export default function NewInterviewPage() {
               </div>
               {voiceAvailable ? (
                 !isPro && (
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-brand-300 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-brand-700 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Pro
                   </span>
                 )
@@ -228,7 +228,7 @@ export default function NewInterviewPage() {
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">{t.label}</p>
                   {t.pro && (
-                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand-300 bg-brand-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand-700 bg-brand-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                       <Sparkles className="h-2.5 w-2.5" /> Pro
                     </span>
                   )}
@@ -259,7 +259,7 @@ export default function NewInterviewPage() {
                 )}
               >
                 <span className="capitalize">{d}</span>
-                {locked && <span className="block text-[9px] text-brand-300 font-semibold uppercase">Pro</span>}
+                {locked && <span className="block text-[9px] text-brand-700 font-semibold uppercase">Pro</span>}
               </button>
             )
           })}
@@ -291,7 +291,7 @@ export default function NewInterviewPage() {
         {deliveryMode === 'voice' ? (
           <>
             <p>Your microphone is used only to send your spoken answers to the AI interviewer in real time. A transcript of both sides is saved privately for you; no raw audio recording is stored.</p>
-            {!isPro && <p className="text-brand-300">Live Interview requires Pro  -  you can pick it now and upgrade before you start.</p>}
+            {!isPro && <p className="text-brand-700">Live Interview requires Pro  -  you can pick it now and upgrade before you start.</p>}
           </>
         ) : (
           <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>
