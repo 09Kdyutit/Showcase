@@ -161,16 +161,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Send confirmation email — fire and forget, never block the response
+    // Send confirmation email. Must be awaited — Vercel can freeze the serverless
+    // function the instant a response is returned, so an un-awaited send can get cut
+    // off before the request to Resend ever completes.
     const { subject, html, text } = waitlistConfirmationEmail(data.full_name)
-    resend.emails.send({
-      from: 'Showcase <hello@tryshowcase.ink>',
-      to: data.email,
-      subject,
-      html,
-      text,
-      tags: [{ name: 'type', value: 'waitlist_confirmation' }],
-    }).catch(err => console.error('Resend error:', err))
+    try {
+      await resend.emails.send({
+        from: 'Showcase <hello@tryshowcase.ink>',
+        to: data.email,
+        subject,
+        html,
+        text,
+        tags: [{ name: 'type', value: 'waitlist_confirmation' }],
+      })
+    } catch (err) {
+      console.error('Resend error:', err)
+    }
 
     return NextResponse.json({
       success: true,
