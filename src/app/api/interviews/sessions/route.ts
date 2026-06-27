@@ -6,6 +6,7 @@ import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/l
 import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
 import { generatePersonalizedQuestions } from '@/lib/interviews/gemini/question-gen'
 import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@/lib/interviews/gemini/question-gen'
+import { recordCostEvent, costFromTokens, RATES } from '@/lib/interviews/budget'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -175,9 +176,14 @@ export async function POST(request: NextRequest) {
     )
 
     let aiGeneratedQuestions = undefined
+    let questionGenCost: { model: string; costUsd: number } | null = null
     if (isInterviewAnalysisEnabled()) {
-      // isInterviewAnalysisEnabled() doubles as the gate for any Gemini API call here  - 
-      // same paid-project / key confirmation required.
+      // isInterviewAnalysisEnabled() doubles as the gate for any Gemini API call here  -
+      // same paid-project / key confirmation required. No pre-flight budget check here:
+      // this call is cheap (well under a cent) and already has a graceful static-bank
+      // fallback on any failure, so a budget-exceeded error just degrades quality rather
+      // than blocking session creation  -  the real budget enforcement point is live
+      // voice (see live-token/route.ts), the actual cost driver.
       try {
         const genResult = await generatePersonalizedQuestions({
           sessionType: input.sessionType,
@@ -192,6 +198,10 @@ export async function POST(request: NextRequest) {
           storyBank: storyBankContext,
         })
         aiGeneratedQuestions = genResult.questions
+        questionGenCost = {
+          model: genResult.model,
+          costUsd: costFromTokens(genResult.promptTokenCount, genResult.candidatesTokenCount, RATES.geminiFlashTextInPerM, RATES.geminiFlashTextOutPerM),
+        }
         console.info(`[interviews/sessions] AI generated ${aiGeneratedQuestions.length} questions in ${genResult.latencyMs}ms`)
       } catch (err) {
         console.warn('[interviews/sessions] AI question generation failed, falling back to static bank', err instanceof Error ? err.message : err)
@@ -261,6 +271,13 @@ export async function POST(request: NextRequest) {
     }))
     const { error: questionsError } = await supabase.from('interview_questions').insert(questionRows)
     if (questionsError) throw questionsError
+
+    if (questionGenCost) {
+      await recordCostEvent({
+        userId: user.id, sessionId: session.id, feature: 'question_gen', provider: 'gemini',
+        model: questionGenCost.model, costUsd: questionGenCost.costUsd, estimated: false,
+      })
+    }
 
     return NextResponse.json({ data: session }, { status: 201 })
   } catch (err) {

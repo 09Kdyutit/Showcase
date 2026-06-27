@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { recordCostEvent, estimateLiveVoiceCostUsd } from '@/lib/interviews/budget'
+import { getLiveModel } from '@/lib/interviews/gemini/models'
 
 export async function POST(
   _request: NextRequest,
@@ -13,7 +15,7 @@ export async function POST(
 
     const { data: session, error: fetchError } = await supabase
       .from('interview_sessions')
-      .select('id, status, started_at')
+      .select('id, status, started_at, delivery_mode')
       .eq('id', id)
       .eq('user_id', user.id)
       .maybeSingle()
@@ -34,6 +36,18 @@ export async function POST(
       .select('*')
       .single()
     if (updateError) throw updateError
+
+    // Live voice's actual per-call token usage is never observed by this server (see
+    // the comment in live-token/route.ts) -- this records the same duration-based
+    // estimate used for the pre-flight check, but using the session's REAL elapsed
+    // duration rather than its worst-case max_duration_seconds, so the running ledger
+    // total assertWithinBudget() reads reflects actual usage, not worst-case admission.
+    if (session.delivery_mode === 'voice' && durationSeconds) {
+      await recordCostEvent({
+        userId: user.id, sessionId: id, feature: 'live_voice', provider: 'gemini', model: getLiveModel(),
+        costUsd: estimateLiveVoiceCostUsd(durationSeconds), estimated: true,
+      })
+    }
 
     return NextResponse.json({ data: updated })
   } catch (err) {

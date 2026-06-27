@@ -158,6 +158,8 @@ export interface QuestionGenResult {
   questions: InterviewPlanQuestion[]
   model: string
   latencyMs: number
+  promptTokenCount: number
+  candidatesTokenCount: number
 }
 
 export async function generatePersonalizedQuestions(input: QuestionGenInput): Promise<QuestionGenResult> {
@@ -203,7 +205,13 @@ export async function generatePersonalizedQuestions(input: QuestionGenInput): Pr
       sourceReferences: [],
     }))
 
-    return { questions, model: QUESTION_GEN_MODEL, latencyMs }
+    return {
+      questions,
+      model: QUESTION_GEN_MODEL,
+      latencyMs,
+      promptTokenCount: response.usageMetadata?.promptTokenCount ?? 0,
+      candidatesTokenCount: response.usageMetadata?.candidatesTokenCount ?? 0,
+    }
   } catch (err) {
     if (err instanceof InterviewGeminiSchemaError || err instanceof InterviewGeminiProviderError) throw err
     if (controller.signal.aborted) throw new Error('Question generation timed out')

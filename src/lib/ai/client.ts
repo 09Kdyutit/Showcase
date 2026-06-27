@@ -2,7 +2,7 @@ import 'server-only'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type { z } from 'zod'
-import { openai, MODELS, type ModelTier } from './openai'
+import { openai, MODELS, modelSupportsTemperature, type ModelTier } from './openai'
 import type { PromptSpec } from './prompts/types'
 
 const IS_MOCK_MODE = !process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'development'
@@ -97,7 +97,12 @@ function toUserError(err: unknown): Error {
 // store: false → OpenAI never stores the conversation for training.
 // Resume text and portfolio content are in the prompt but never separately logged.
 
-export async function callStructured<T>(
+export interface StructuredCallUsage {
+  inputTokens: number
+  outputTokens: number
+}
+
+async function callStructuredWithUsage<T>(
   messages: AIMessage[],
   schema: z.ZodType<T>,
   schemaName: string,
@@ -106,11 +111,11 @@ export async function callStructured<T>(
     maxOutputTokens?: number
     temperature?: number
   } = {}
-): Promise<T> {
+): Promise<{ data: T; usage: StructuredCallUsage }> {
   if (IS_MOCK_MODE) {
     console.warn('[AI] Mock mode  -  set OPENAI_API_KEY in .env.local for real responses')
     const raw = getMockResponse(messages)
-    return schema.parse(JSON.parse(raw)) as T
+    return { data: schema.parse(JSON.parse(raw)) as T, usage: { inputTokens: 0, outputTokens: 0 } }
   }
 
   const model = MODELS[options.tier ?? 'main']
@@ -126,7 +131,7 @@ export async function callStructured<T>(
       input,
       text: { format: zodTextFormat(schema, schemaName) },
       max_output_tokens: options.maxOutputTokens ?? 4096,
-      temperature: options.temperature ?? 0.3,
+      ...(modelSupportsTemperature(model) ? { temperature: options.temperature ?? 0.3 } : {}),
       store: false,
     })
   } catch (err) {
@@ -137,7 +142,27 @@ export async function callStructured<T>(
     throw new Error('AI declined to respond. Please rephrase and try again.')
   }
 
-  return response.output_parsed as T
+  return {
+    data: response.output_parsed as T,
+    usage: {
+      inputTokens: response.usage?.input_tokens ?? 0,
+      outputTokens: response.usage?.output_tokens ?? 0,
+    },
+  }
+}
+
+export async function callStructured<T>(
+  messages: AIMessage[],
+  schema: z.ZodType<T>,
+  schemaName: string,
+  options: {
+    tier?: ModelTier
+    maxOutputTokens?: number
+    temperature?: number
+  } = {}
+): Promise<T> {
+  const { data } = await callStructuredWithUsage(messages, schema, schemaName, options)
+  return data
 }
 
 // ── Registry-driven calls ─────────────────────────────────────────────────────
@@ -157,6 +182,7 @@ export interface RunPromptResult<T> {
     provider: 'openai'
     model: string
     schemaName: string
+    usage: StructuredCallUsage
   }
 }
 
@@ -164,7 +190,7 @@ export async function runPrompt<TInput, TOutput>(
   spec: PromptSpec<TInput, TOutput>,
   input: TInput
 ): Promise<RunPromptResult<TOutput>> {
-  const data = await callStructured(
+  const { data, usage } = await callStructuredWithUsage(
     spec.buildMessages(input),
     spec.outputSchema,
     spec.schemaName,
@@ -178,6 +204,7 @@ export async function runPrompt<TInput, TOutput>(
       provider: 'openai',
       model: MODELS[spec.modelTier],
       schemaName: spec.schemaName,
+      usage,
     },
   }
 }

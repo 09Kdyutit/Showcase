@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isProUser } from '@/lib/ai/rate-limit'
 import { isInterviewAnalysisEnabled } from '@/lib/interviews/config'
-import { runInterviewAnalysis } from '@/lib/interviews/gemini/analysis'
+import { runInterviewAnalysis } from '@/lib/interviews/analysis'
+import { interviewAnalysisPrompt } from '@/lib/ai/prompts/interview-analysis'
 import { computeInterviewScore } from '@/lib/interviews/scoring'
-import { getAnalysisModel } from '@/lib/interviews/gemini/models'
 import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
+import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExceededError } from '@/lib/interviews/budget'
 import type { InterviewPlan, TranscriptSegment, SessionType, DimensionId } from '@/lib/interviews/schemas'
 
 /**
- * Runs (or, in this build, honestly declines to run) post-session analysis. As built,
- * isInterviewAnalysisEnabled() is false in every environment (see config.ts)  -  no
- * human has confirmed paid Gemini billing or reviewed ToS. This route's job in that
- * state is to mark the session analysis_status='skipped' and tell the user truthfully
- * that AI evidence analysis isn't available yet, rather than fabricate a score or
- * silently leave the session in 'pending' forever. The enabled branch below is real,
- * complete code  -  it has simply never executed against a live Gemini call in this
- * session, for the reasons documented in src/lib/interviews/gemini/live.ts and
- * analysis.ts.
+ * Runs (or, if isInterviewAnalysisEnabled() is false, honestly declines to run)
+ * post-session analysis. Analysis itself calls OpenAI (gpt-5-mini by default  -  see
+ * src/lib/interviews/analysis.ts and src/lib/ai/openai.ts), not Gemini; the gate flag
+ * names in config.ts are Gemini-named for historical reasons but still apply as the
+ * human attestation required before this feature runs for real. Live voice interviews
+ * are a separate feature on Gemini (src/lib/interviews/gemini/live.ts) and are not
+ * affected by this route. When disabled, this route marks the session
+ * analysis_status='skipped' and tells the user truthfully that scored evaluation isn't
+ * available yet, rather than fabricate a score or silently leave the session pending.
  */
 export async function POST(
   _request: NextRequest,
@@ -77,8 +79,17 @@ export async function POST(
       verifiedPortfolioEvidence = { projects: projects ?? [] }
     }
 
+    // Worst-case estimate (chars/4 ~ tokens) using the prompt spec's own declared
+    // ceilings, so this stays correct automatically if those ceilings ever change.
+    const worstCaseEstimateUsd = costFromTokens(
+      interviewAnalysisPrompt.maxInputCharacters / 4,
+      interviewAnalysisPrompt.maxOutputTokens,
+      RATES.gpt5MiniInPerM, RATES.gpt5MiniOutPerM
+    )
+
     let result
     try {
+      await assertWithinBudget(user.id, worstCaseEstimateUsd, await isProUser(user.id))
       result = await runInterviewAnalysis({
         plan, transcript, verifiedResumeEvidence, verifiedPortfolioEvidence,
         targetJobRequirements: [], dimensionIds,
@@ -88,9 +99,18 @@ export async function POST(
           orderIndex: q.order_index as number,
         })),
       })
+      await recordCostEvent({
+        userId: user.id, sessionId: id, feature: 'analysis', provider: result.meta.provider, model: result.meta.model,
+        costUsd: costFromTokens(result.meta.inputTokens, result.meta.outputTokens, RATES.gpt5MiniInPerM, RATES.gpt5MiniOutPerM),
+        estimated: false,
+      })
     } catch (err) {
       await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
-      console.error('[interviews/analyze] Gemini analysis failed', err instanceof Error ? err.message : err)
+      if (err instanceof BudgetExceededError) {
+        console.error('[interviews/analyze] budget exceeded', err.message)
+        return NextResponse.json({ error: err.message, code: 'BUDGET_EXCEEDED' }, { status: 503 })
+      }
+      console.error('[interviews/analyze] analysis failed', err instanceof Error ? err.message : err)
       return NextResponse.json({ error: 'Analysis failed. Your session data is preserved and you can try again.', code: 'ANALYSIS_FAILED' }, { status: 502 })
     }
 
@@ -107,9 +127,9 @@ export async function POST(
       .from('interview_evaluations')
       .insert({
         user_id: user.id, session_id: id, prompt_id: 'interview-analysis', prompt_version: '1',
-        provider: 'gemini', model: result.meta.model, rubric_id: session.rubric_id, rubric_version: session.rubric_version,
+        provider: result.meta.provider, model: result.meta.model, rubric_id: session.rubric_id, rubric_version: session.rubric_version,
         overall_score: scoreResult.overallScore, readiness_band: scoreResult.readinessBand,
-        result: result.data, analysis_cost_metadata: { latencyMs: result.meta.latencyMs, promptTokenCount: result.meta.promptTokenCount },
+        result: result.data, analysis_cost_metadata: { latencyMs: result.meta.latencyMs },
       })
       .select('*')
       .single()
@@ -128,7 +148,7 @@ export async function POST(
     await supabase.from('interview_sessions').update({ analysis_status: 'completed' }).eq('id', id)
     void questions // referenced for future per-question evaluation linkage; not yet used beyond this build's session-level scoring
 
-    return NextResponse.json({ data: { analysisAvailable: true, evaluation, dimensions: scoreResult.dimensions, model: getAnalysisModel() } })
+    return NextResponse.json({ data: { analysisAvailable: true, evaluation, dimensions: scoreResult.dimensions, model: result.meta.model } })
   } catch (err) {
     console.error('[interviews/sessions/[id]/analyze POST]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Failed to analyze interview session.' }, { status: 500 })

@@ -1,10 +1,15 @@
 #!/usr/bin/env node
-// Real, live test against the actual Gemini API (not a mock) — exercises the full
+// Real, live test against the actual OpenAI API (not a mock) — exercises the full
 // analysis pipeline end to end: complete a real session with real answers, call the
 // real /analyze route, and verify the response is genuinely a valid, schema-shaped
 // evaluation with real evidence citations that map back to real transcript segments.
-// Requires GEMINI_API_KEY + the Interview Lab gate flags to be enabled in .env.local
-// (GEMINI_PAID_PROJECT_CONFIRMED, GEMINI_INTERVIEW_ENABLED, INTERVIEW_ANALYSIS_ENABLED).
+// Analysis runs on OpenAI (gpt-5-mini by default) as of the Gemini->OpenAI interview
+// analysis migration; live voice interviews are a separate feature and remain on
+// Gemini. Requires OPENAI_API_KEY + the Interview Lab gate flags to be enabled in
+// .env.local (GEMINI_PAID_PROJECT_CONFIRMED, GEMINI_INTERVIEW_ENABLED,
+// GEMINI_TERMS_COMPATIBILITY_CONFIRMED, INTERVIEW_ANALYSIS_ENABLED) -- those flags are
+// Gemini-named for historical reasons but still gate this OpenAI-powered path; see the
+// comment in src/lib/interviews/analysis.ts.
 import { chromium } from 'playwright'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -62,13 +67,13 @@ async function main() {
   const detailBefore = await callApi(page, 'GET', `/api/interviews/sessions/${sessionId}`)
   const realSegmentIds = new Set((detailBefore.body?.data?.transcript ?? []).map((t) => t.id))
 
-  console.log('\n── Real Gemini analysis call ──')
+  console.log('\n── Real analysis call (OpenAI, gpt-5-mini by default) ──')
   const analyzeRes = await callApi(page, 'POST', `/api/interviews/sessions/${sessionId}/analyze`)
-  record('Analysis succeeds against the live Gemini API', analyzeRes.status === 200, `got ${analyzeRes.status}: ${JSON.stringify(analyzeRes.body)?.slice(0, 200)}`)
+  record('Analysis succeeds against the live OpenAI API', analyzeRes.status === 200, `got ${analyzeRes.status}: ${JSON.stringify(analyzeRes.body)?.slice(0, 200)}`)
 
   const evaluation = analyzeRes.body?.data?.evaluation
   record('Returns a real evaluation row with a numeric overall_score', typeof evaluation?.overall_score === 'number' && evaluation.overall_score >= 0 && evaluation.overall_score <= 100)
-  record('Returns a real model name (not fabricated)', evaluation?.model === 'gemini-3.5-flash' || /^gemini-/.test(evaluation?.model ?? ''))
+  record('Returns a real model name (not fabricated)', /^gpt-/.test(evaluation?.model ?? ''))
 
   const dimensions = analyzeRes.body?.data?.dimensions ?? []
   record('Returns at least one real dimension score', dimensions.length > 0)

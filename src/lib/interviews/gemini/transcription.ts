@@ -16,6 +16,13 @@ const TRANSCRIPTION_PROMPT =
   'preamble, no quotation marks, no labels. If the audio is silent, unintelligible, ' +
   'or contains no speech, return exactly: [no speech detected]'
 
+export interface TranscriptionResult {
+  text: string
+  model: string
+  promptTokenCount: number
+  candidatesTokenCount: number
+}
+
 /**
  * Transcribes a Recorded Mode answer. Gated the same way as runInterviewAnalysis()
  * (same flag, isInterviewAnalysisEnabled  -  Recorded Mode transcription is part of
@@ -23,7 +30,7 @@ const TRANSCRIPTION_PROMPT =
  * same fail-closed-first, typed-error, abort-on-timeout shape established there.
  * Real audio in, real verbatim text out  -  never a fabricated transcript.
  */
-export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Promise<string> {
+export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Promise<TranscriptionResult> {
   if (!isInterviewAnalysisEnabled()) {
     throw new InterviewGeminiDisabledError('Recorded Mode transcription requires the same analysis gate as scoring  -  see config.ts')
   }
@@ -52,7 +59,12 @@ export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Pr
     })
     const text = response.text?.trim()
     if (!text) throw new InterviewGeminiProviderError()
-    return text
+    return {
+      text,
+      model,
+      promptTokenCount: response.usageMetadata?.promptTokenCount ?? 0,
+      candidatesTokenCount: response.usageMetadata?.candidatesTokenCount ?? 0,
+    }
   } catch (err) {
     if (err instanceof InterviewGeminiProviderError) throw err
     if (controller.signal.aborted) throw new InterviewGeminiTimeoutError()

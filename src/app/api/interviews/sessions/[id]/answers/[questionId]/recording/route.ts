@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { isProUser } from '@/lib/ai/rate-limit'
 import { commitSessionUsage } from '@/lib/interviews/entitlements'
 import { isInterviewRecordingEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
 import { validateAudioUpload, buildAudioStoragePath, CANONICAL_MIME_FOR_EXTENSION } from '@/lib/interviews/audio-validation'
 import { transcribeAudio } from '@/lib/interviews/gemini/transcription'
+import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExceededError } from '@/lib/interviews/budget'
 
 /**
  * Recorded Mode answer upload + transcription. Ownership/session-state/question-
@@ -102,10 +104,31 @@ export async function POST(
     // Transcribe now, synchronously, so the client gets a real answer (or a real
     // failure) in this same response rather than polling for an async job. The
     // recording above is already durably saved regardless of what happens next.
+    // A single recorded answer is generously bounded at 5 minutes for the budget
+    // pre-check (MAX_AUDIO_BYTES already bounds the upload itself) -- this is a
+    // worst-case admission check, the actual cost recorded below uses real usage.
+    const WORST_CASE_ANSWER_SECONDS = 300
+    const worstCaseEstimateUsd = costFromTokens(WORST_CASE_ANSWER_SECONDS * 32, 1500, RATES.geminiFlashAudioInPerM, RATES.geminiFlashTextOutPerM)
+
     let transcript: string
     try {
-      transcript = await transcribeAudio(buffer, CANONICAL_MIME_FOR_EXTENSION[validation.extension])
+      await assertWithinBudget(user.id, worstCaseEstimateUsd, await isProUser(user.id))
+      const result = await transcribeAudio(buffer, CANONICAL_MIME_FOR_EXTENSION[validation.extension])
+      transcript = result.text
+      await recordCostEvent({
+        userId: user.id, sessionId: id, feature: 'transcription', provider: 'gemini', model: result.model,
+        costUsd: costFromTokens(result.promptTokenCount, result.candidatesTokenCount, RATES.geminiFlashAudioInPerM, RATES.geminiFlashTextOutPerM),
+        estimated: false,
+      })
     } catch (err) {
+      if (err instanceof BudgetExceededError) {
+        console.error('[interviews/sessions/[id]/answers/[questionId]/recording] budget exceeded', err.message)
+        return NextResponse.json({
+          data: answer,
+          error: 'Your recording was saved, but transcription is temporarily unavailable (AI budget limit reached). Try again later, or switch to Text Mode.',
+          code: 'BUDGET_EXCEEDED',
+        }, { status: 503 })
+      }
       console.error('[interviews/sessions/[id]/answers/[questionId]/recording] transcription failed', err instanceof Error ? err.message : err)
       return NextResponse.json({
         data: answer,

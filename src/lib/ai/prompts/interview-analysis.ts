@@ -1,10 +1,11 @@
-import type { InterviewPlan, TranscriptSegment, DimensionId } from '../schemas.ts'
-import { DIMENSION_REGISTRY } from '../rubrics.ts'
+import { InterviewAnalysisSchema, type InterviewAnalysis, type InterviewPlan, type TranscriptSegment, type DimensionId } from '@/lib/interviews/schemas'
+import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
+import { definePrompt } from './types'
 
 const MAX_TRANSCRIPT_CHARACTERS = 16_000
 const MAX_EVIDENCE_CHARACTERS = 6_000
 
-export interface AnalysisPromptInput {
+export interface InterviewAnalysisInput {
   plan: InterviewPlan
   transcript: TranscriptSegment[]
   verifiedResumeEvidence: Record<string, unknown>
@@ -16,17 +17,15 @@ export interface AnalysisPromptInput {
 }
 
 /**
- * Builds the post-session analysis prompt. Follows the same untrusted-data discipline
- * as src/lib/ai/prompts/reviewer.ts (the only other Gemini prompt in this codebase):
- * transcript/resume/portfolio/job content is explicitly delimited and the model is
- * told to treat embedded instructions as ordinary data, never commands. Unlike the
- * reviewer prompt, this one's non-negotiable rule set also has to cover the mission's
- * specific constraint that Gemini returns evidence, never a final score  -  restated
- * here as an explicit rule rather than assumed from the schema alone, since a model
- * is more likely to follow an explicit instruction than infer the omission of a field
- * is meaningful.
+ * Builds the post-session analysis prompt. Transcript/resume/portfolio/job content is
+ * explicitly delimited and the model is told to treat embedded instructions as ordinary
+ * data, never commands. The non-negotiable rule set covers this product's specific
+ * constraint that the model returns evidence, never a final score  -  restated here as
+ * an explicit rule rather than assumed from the schema alone, since a model is more
+ * likely to follow an explicit instruction than infer the omission of a field is
+ * meaningful.
  */
-export function buildInterviewAnalysisPrompt(input: AnalysisPromptInput): string {
+function userMessage(input: InterviewAnalysisInput): string {
   const transcriptText = JSON.stringify(
     input.transcript.map((s) => ({ id: s.id, speaker: s.speaker, content: s.content })),
     null, 2
@@ -48,7 +47,7 @@ export function buildInterviewAnalysisPrompt(input: AnalysisPromptInput): string
     .map((q, i) => `q${i} (id=${q.id}): ${q.questionText}`)
     .join('\n')
 
-  return `TASK: Analyze a completed practice-interview transcript. You are a senior interview coach  - 
+  return `TASK: Analyze a completed practice-interview transcript. You are a senior interview coach  -
 your job is to give the candidate the most specific, honest, useful coaching possible. You return
 BOUNDED EVIDENCE ASSESSMENTS for each dimension (the calling system computes the final score from
 your evidence; you never assign one yourself).
@@ -126,7 +125,7 @@ For each question answered, produce one answerAssessment using the questionId fr
 SUMMARY PARAGRAPH:
 Write a 3-5 sentence summaryParagraph giving the candidate an honest, personalized narrative
 overview of their performance in this session. Reference the target role and session type.
-Name 1-2 specific things they did exceptionally well AND 1-2 specific things that held them back  - 
+Name 1-2 specific things they did exceptionally well AND 1-2 specific things that held them back  -
 use real content from their answers (specific topics they covered, specific gaps you noticed).
 Write in second-person, warmly but directly, as a senior interviewer would in feedback.
 This is NOT a generic evaluation  -  it must describe this specific session's actual content.
@@ -146,3 +145,27 @@ and WHY it was effective in an interview context.
 
 Return JSON matching the InterviewAnalysis schema contract exactly.`
 }
+
+export const interviewAnalysisPrompt = definePrompt<InterviewAnalysisInput, InterviewAnalysis>({
+  id: 'interview-analysis',
+  version: '1.0.0',
+  task: 'Post-session interview coaching: per-dimension evidence, per-question coaching, summary, next steps.',
+  routes: ['/api/interviews/sessions/[id]/analyze'],
+  modelTier: 'interviewAnalysis',
+  temperature: 0.1,
+  maxOutputTokens: 8192,
+  maxInputCharacters: MAX_TRANSCRIPT_CHARACTERS + MAX_EVIDENCE_CHARACTERS * 2,
+  outputSchema: InterviewAnalysisSchema,
+  schemaName: 'interview_analysis',
+  invariants: [
+    'Never assigns a final score  -  returns evidence only, scoring is computed deterministically by the caller',
+    'Every cited segment ID must exist in the transcript provided',
+    'Never invents resume/portfolio facts not present in verified evidence',
+    'Delivery mechanics scored only from objective timing/count metadata, never inferred tone/personality',
+    'Never infers or comments on protected characteristics or accommodations',
+  ],
+  reviewPolicy: 'none',
+  buildMessages: (input) => [
+    { role: 'user', content: userMessage(input) },
+  ],
+})

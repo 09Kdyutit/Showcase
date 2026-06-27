@@ -4,6 +4,7 @@ import { isProUser } from '@/lib/ai/rate-limit'
 import { isInterviewLiveEnabled } from '@/lib/interviews/config'
 import { getLiveModel } from '@/lib/interviews/gemini/models'
 import { buildLiveInterviewerSystemInstruction } from '@/lib/interviews/gemini/live-prompt'
+import { assertWithinBudget, estimateLiveVoiceCostUsd, BudgetExceededError } from '@/lib/interviews/budget'
 
 /**
  * Returns the model ID + system instruction needed for a live voice session.
@@ -50,6 +51,22 @@ export async function POST(
         error: 'Voice interviews are not yet available. Please use Text Mode.',
         code: 'LIVE_NOT_ENABLED',
       }, { status: 403 })
+    }
+
+    // Live voice is the dominant Interview Lab cost driver (Gemini Live audio output
+    // is billed far higher than text) and the only feature where this app's server
+    // never observes real per-call token usage (the WebSocket is proxied transparently
+    // by supabase/functions/live-interview-ws). This is therefore the one place a
+    // pre-flight worst-case check actually matters: refuse to even hand out the model
+    // name + system instruction (without which the browser cannot open the live
+    // WebSocket at all) if running the full session length would breach budget.
+    try {
+      await assertWithinBudget(user.id, estimateLiveVoiceCostUsd(session.max_duration_seconds), isPro)
+    } catch (err) {
+      if (err instanceof BudgetExceededError) {
+        return NextResponse.json({ error: err.message, code: 'BUDGET_EXCEEDED' }, { status: 503 })
+      }
+      throw err
     }
 
     const { data: questions, error: questionsError } = await supabase
