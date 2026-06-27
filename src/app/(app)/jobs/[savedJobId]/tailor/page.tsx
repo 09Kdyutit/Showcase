@@ -5,7 +5,7 @@ import {
   Zap, ChevronRight, AlertCircle, AlertTriangle,
   Check, X, FileText, Loader2, ArrowLeft,
   ShieldCheck, BookOpen, MessageSquare, Target, Info,
-  Sparkles, ChevronDown, ChevronUp, Copy,
+  Sparkles, ChevronDown, ChevronUp, Copy, Link2, TrendingUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, apiErrorMessage } from '@/lib/utils'
@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { TailoredResumeOutput } from '@/lib/ai/schemas'
-import type { JobListing, TruthEntry, TailoredBullet, SavedJob } from '@/types/database'
+import type { JobListing, TruthEntry, TailoredBullet, SavedJob, MatchBreakdown } from '@/types/database'
 
 // ── Truth Entry Card ──────────────────────────────────────────────────────────
 function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confirmed: boolean) => void }) {
@@ -181,83 +182,298 @@ function DiffBullet({ bullet, onAccept, onReject }: {
 }
 
 // ── Import Job Dialog ─────────────────────────────────────────────────────────
-function ImportJobDialog({ onConfirm }: { onConfirm: (job: Partial<JobListing>) => void }) {
+interface ImportedJobData {
+  title: string
+  company: string
+  description: string
+  source_url: string | null
+  structured_data: unknown
+  match_score: number | null
+  match_breakdown: MatchBreakdown | null
+}
+
+function ImportJobDialog({ onImported }: { onImported: (savedJobId: string) => void }) {
+  const [mode, setMode] = useState<'url' | 'paste'>('url')
   const [description, setDescription] = useState('')
   const [title, setTitle] = useState('')
   const [company, setCompany] = useState('')
-  const [parsing, setParsing] = useState(false)
+  const [url, setUrl] = useState('')
+  const [fetching, setFetching] = useState(false)
+  const [fetchedFromUrl, setFetchedFromUrl] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  async function handleImport() {
-    if (!description.trim()) return
-    setParsing(true)
+  async function handleFetchUrl() {
+    if (!url.trim()) return
+    setFetching(true)
     try {
       const res = await fetch('/api/jobs/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description, title: title || undefined, company: company || undefined }),
+        body: JSON.stringify({ source_url: url.trim() }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json()
+        toast.error(apiErrorMessage(error, 'Could not import that URL. Try pasting the description instead.'))
+        return
+      }
+      const { data } = (await res.json()) as { data: ImportedJobData }
+      setTitle(data.title)
+      setCompany(data.company)
+      setDescription(data.description)
+      setFetchedFromUrl(true)
+      toast.success('Pulled the job description — review it below, then continue')
+    } catch {
+      toast.error('Could not reach that URL.')
+    } finally {
+      setFetching(false)
+    }
+  }
+
+  async function handleSave() {
+    if (!description.trim()) return
+    setSaving(true)
+    try {
+      // If we already fetched from a URL, re-parsing isn't needed unless the user edited
+      // the text materially — but re-running keeps match score accurate to any edits.
+      const res = await fetch('/api/jobs/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description,
+          title: title || undefined,
+          company: company || undefined,
+          source_url: fetchedFromUrl && url.trim() ? url.trim() : undefined,
+        }),
       })
       if (!res.ok) {
         const { error } = await res.json()
         toast.error(apiErrorMessage(error, 'Import failed'))
         return
       }
-      const { data } = await res.json()
-      onConfirm(data)
+      const { data: importData } = (await res.json()) as { data: ImportedJobData }
+
+      const saveRes = await fetch('/api/jobs/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imported_title: importData.title,
+          imported_company: importData.company,
+          imported_description: importData.description,
+          imported_url: importData.source_url || undefined,
+          match_score: importData.match_score ?? undefined,
+          match_breakdown: importData.match_breakdown ?? undefined,
+        }),
+      })
+      if (!saveRes.ok) {
+        const { error } = await saveRes.json()
+        toast.error(apiErrorMessage(error, 'Could not save this job'))
+        return
+      }
+      const { data: saved } = await saveRes.json()
+      onImported(saved.id)
     } catch {
       toast.error('Import failed')
     } finally {
-      setParsing(false)
+      setSaving(false)
     }
   }
 
+  const busy = fetching || saving
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-muted-foreground mb-1.5 block">Job title (optional)</label>
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Senior Product Manager"
-            className="w-full h-9 px-3 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1.5 block">Company (optional)</label>
-          <input
-            value={company}
-            onChange={e => setCompany(e.target.value)}
-            placeholder="Acme Corp"
-            className="w-full h-9 px-3 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50"
-          />
-        </div>
+      <div className="flex gap-1 p-1 rounded-xl bg-surface-100 border border-border w-fit">
+        <button
+          onClick={() => setMode('url')}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+            mode === 'url' ? 'bg-brand-500/15 text-brand-300' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Link2 className="h-3 w-3" /> From URL
+        </button>
+        <button
+          onClick={() => setMode('paste')}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+            mode === 'paste' ? 'bg-brand-500/15 text-brand-300' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <FileText className="h-3 w-3" /> Paste text
+        </button>
       </div>
-      <div>
-        <label className="text-xs text-muted-foreground mb-1.5 block">Paste the job description *</label>
-        <textarea
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          placeholder="Paste the full job description here..."
-          rows={8}
-          className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50 resize-none"
-        />
-      </div>
-      <Button
-        onClick={handleImport}
-        variant="gradient"
-        disabled={!description.trim() || parsing}
-        className="w-full gap-2"
-      >
-        {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-        {parsing ? 'Parsing job...' : 'Parse & continue'}
-      </Button>
+
+      {mode === 'url' && !fetchedFromUrl && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Job posting URL</label>
+            <div className="flex gap-2">
+              <input
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="https://jobs.company.com/careers/senior-engineer"
+                className="flex-1 h-9 px-3 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50"
+              />
+              <Button onClick={handleFetchUrl} variant="gradient" disabled={!url.trim() || busy} className="gap-2 shrink-0">
+                {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                {fetching ? 'Fetching...' : 'Fetch'}
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground/60 mt-1.5">
+              Works best with direct job board links (Greenhouse, Lever, Workday, LinkedIn, Indeed). If a page blocks fetching, paste the description instead.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {(mode === 'paste' || fetchedFromUrl) && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Job title (optional)</label>
+              <input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Senior Product Manager"
+                className="w-full h-9 px-3 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Company (optional)</label>
+              <input
+                value={company}
+                onChange={e => setCompany(e.target.value)}
+                placeholder="Acme Corp"
+                className="w-full h-9 px-3 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">
+              {fetchedFromUrl ? 'Job description (review/edit, then continue) *' : 'Paste the job description *'}
+            </label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Paste the full job description here..."
+              rows={8}
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface-100 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-brand-500/50 resize-none"
+            />
+          </div>
+          <Button
+            onClick={handleSave}
+            variant="gradient"
+            disabled={!description.trim() || busy}
+            className="w-full gap-2"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {saving ? 'Analyzing match...' : 'Parse & continue'}
+          </Button>
+          {fetchedFromUrl && (
+            <button
+              onClick={() => { setFetchedFromUrl(false); setMode('url') }}
+              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              ← Try a different URL
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }
 
 // ── Main Tailor Studio ────────────────────────────────────────────────────────
+// ── Match & Gaps panel ─────────────────────────────────────────────────────────
+function MatchGapsPanel({ score, breakdown }: { score: number; breakdown: MatchBreakdown }) {
+  const [expanded, setExpanded] = useState(false)
+  const tier =
+    score >= 80 ? { label: 'Strong Match', color: 'text-emerald-400', bar: 'bg-emerald-500' } :
+    score >= 65 ? { label: 'Good Match',   color: 'text-brand-300',  bar: 'bg-brand-500' } :
+    score >= 45 ? { label: 'Fair Match',   color: 'text-amber-400',  bar: 'bg-amber-500' } :
+                  { label: 'Weak Match',   color: 'text-red-400/80', bar: 'bg-red-500' }
+
+  return (
+    <div className="mx-4 mt-4 rounded-xl border border-border bg-surface-100 overflow-hidden">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between gap-4 px-4 py-3.5 text-left"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-surface-200')}>
+            <TrendingUp className={cn('h-4 w-4', tier.color)} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={cn('text-sm font-semibold', tier.color)}>{tier.label}</span>
+              <span className="text-xs text-muted-foreground">{score}/100 against your resume</span>
+            </div>
+            <div className="h-1.5 w-40 bg-surface-300 rounded-full overflow-hidden mt-1.5">
+              <div className={cn('h-full rounded-full', tier.bar)} style={{ width: `${score}%` }} />
+            </div>
+          </div>
+        </div>
+        {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 pt-1 grid sm:grid-cols-2 gap-4 border-t border-border">
+          <div className="pt-3">
+            <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+              <Check className="h-3.5 w-3.5 text-emerald-400" /> You already match
+            </p>
+            {breakdown.matched_skills.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {breakdown.matched_skills.slice(0, 12).map(s => (
+                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">{s}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/60">No direct skill overlap detected yet.</p>
+            )}
+          </div>
+
+          <div className="pt-3">
+            <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-400" /> Gaps to close
+            </p>
+            {breakdown.missing_skills.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {breakdown.missing_skills.slice(0, 12).map(s => (
+                  <span key={s} className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300">{s}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/60">No major skill gaps detected.</p>
+            )}
+          </div>
+
+          {breakdown.opportunities.length > 0 && (
+            <div className="sm:col-span-2 pt-1 space-y-2">
+              <p className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-brand-400" /> What to do about it
+              </p>
+              {breakdown.opportunities.map((opp, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <ChevronRight className="h-3.5 w-3.5 text-brand-400/50 shrink-0 mt-0.5" />
+                  {opp.description}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="sm:col-span-2 text-[11px] text-muted-foreground/50 pt-1">
+            Score is deterministic, based on required skills, experience level, seniority, and relevant projects — not AI-generated, so it won&apos;t change between visits unless your resume does.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function TailorStudioPage({ params }: { params: Promise<{ savedJobId: string }> }) {
   const { savedJobId } = use(params)
+  const router = useRouter()
 
   const [savedJob, setSavedJob] = useState<SavedJob | null>(null)
   const [job, setJob] = useState<JobListing | null>(null)
@@ -485,7 +701,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
           <p className="text-sm text-muted-foreground mb-4">
             Paste the job description below and Showcase will parse it and prepare a tailored application kit from your resume.
           </p>
-          <ImportJobDialog onConfirm={(j) => setJob(j as JobListing)} />
+          <ImportJobDialog onImported={(newSavedJobId) => router.push(`/jobs/${newSavedJobId}/tailor`)} />
         </div>
       </div>
     )
@@ -564,6 +780,10 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
             Upload your resume first. <Link href="/resume" className="underline">Go to Resume →</Link>
           </p>
         </div>
+      )}
+
+      {savedJob?.match_score != null && savedJob.match_breakdown && (
+        <MatchGapsPanel score={savedJob.match_score} breakdown={savedJob.match_breakdown} />
       )}
 
       {!tailored && !generating && (

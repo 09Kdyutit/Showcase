@@ -5,7 +5,7 @@ import {
   Search, MapPin, Briefcase, X, ChevronRight,
   Bookmark, BookmarkCheck, Zap, Building2, Clock, DollarSign,
   Wifi, Users, Target, AlertCircle, CheckCircle2,
-  Star, TrendingUp, Send,
+  Star, TrendingUp, Send, Link2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, apiErrorMessage } from '@/lib/utils'
@@ -851,6 +851,12 @@ export default function JobsPage() {
               Demo listings
             </Badge>
           )}
+          <Button asChild variant="gradient" size="sm" className="gap-1.5 shrink-0">
+            <Link href="/jobs/new/tailor">
+              <Link2 className="h-3.5 w-3.5" />
+              Import a job
+            </Link>
+          </Button>
         </div>
 
         {tab !== 'pipeline' && (
