@@ -1,5 +1,6 @@
 import { AtsReportSchema, type AtsReportOutput } from '../schemas'
 import { definePrompt } from './types'
+import { clampField, untrustedDataNotice } from './shared-rules'
 
 export interface AtsCheckInput {
   resumeText: string
@@ -7,6 +8,9 @@ export interface AtsCheckInput {
 }
 
 const MAX_INPUT_CHARACTERS = 8000
+// The job keywords come from an imported posting (untrusted); cap them so a hostile
+// posting can't pad the prompt past the résumé budget.
+const KEYWORDS_CAP = 1000
 
 const SYSTEM = `You are a resume-parsing and ATS specialist. You inspect resume text for the formatting and structure problems that commonly break automated parsers — unreadable text, contact info in headers/footers, non-standard section headings, unparseable dates, multi-column layouts.
 
@@ -22,11 +26,13 @@ IMPORTANT LIMITATIONS - state these, don't paper over them:
 - Different ATS systems behave differently - this checks for common risks only
 - Report what was tested, not what is guaranteed
 
+${untrustedDataNotice('RESUME TEXT and JOB KEYWORDS')}
+
 RESUME TEXT:
 ${resumeText.slice(0, MAX_INPUT_CHARACTERS)}
 
 JOB KEYWORDS TO CHECK:
-${jobKeywords.join(', ')}
+${clampField(jobKeywords.join(', '), KEYWORDS_CAP)}
 
 WHAT TO ASSESS:
 1. Can text be extracted? (Is there readable text content?)
@@ -70,7 +76,7 @@ Return JSON:
 
 export const atsCheckPrompt = definePrompt<AtsCheckInput, AtsReportOutput>({
   id: 'ats-check',
-  version: '2.1.0',
+  version: '2.2.0',
   task: 'Heuristic ATS-parsing-risk review of resume text against a target job\'s keywords. Explicitly not a real ATS simulation or hiring-probability score.',
   routes: ['/api/ats/check'],
   modelTier: 'fast',
@@ -82,6 +88,7 @@ export const atsCheckPrompt = definePrompt<AtsCheckInput, AtsReportOutput>({
   invariants: [
     'States its own limitations (not a real ATS, not a hiring-probability score)',
     'A keyword is only "supported" if shown in real-experience context, never just listed',
+    'Résumé text and job keywords are labeled as untrusted data, not instructions (injection-resistant)',
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [

@@ -1,6 +1,7 @@
 import type { ParsedResume } from '@/types/database'
 import { RoleMatchSchema, type RoleMatchOutput } from '../schemas'
 import { definePrompt } from './types'
+import { untrustedDataNotice } from './shared-rules'
 
 export interface RoleMatchInput {
   parsedResume: ParsedResume
@@ -26,6 +27,8 @@ ${industry}. Be honest and specific - do not soften the assessment to be encoura
 
 TARGET ROLE: ${targetRole}
 INDUSTRY: ${industry}
+
+${untrustedDataNotice('CANDIDATE BACKGROUND')}
 
 CANDIDATE BACKGROUND:
 ${JSON.stringify(parsedResume, null, 2).slice(0, MAX_INPUT_CHARACTERS)}
@@ -57,7 +60,7 @@ Return JSON:
 
 export const roleMatchPrompt = definePrompt<RoleMatchInput, RoleMatchOutput>({
   id: 'role-match',
-  version: '2.1.0',
+  version: '2.2.0',
   task: 'Assess fit between a parsed resume and a target role/industry, with an honest gap analysis and timeline.',
   routes: ['/api/ai/role-match'],
   modelTier: 'fast',
@@ -69,6 +72,7 @@ export const roleMatchPrompt = definePrompt<RoleMatchInput, RoleMatchOutput>({
   invariants: [
     'No fabricated interviewer-count or persona credential',
     'match_score explicitly labeled as role-content match, never a hiring-probability claim',
+    'The parsed resume is labeled as untrusted data, not instructions (injection-resistant)',
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [
