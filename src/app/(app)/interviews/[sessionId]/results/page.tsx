@@ -326,8 +326,10 @@ export default function InterviewResultsPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight capitalize">
-            {session.session_type.replace(/_/g, ' ')} Results
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'oklch(63% 0.20 255)' }}>Interview Lab · Results</p>
+          <h1 className="text-display text-2xl sm:text-3xl font-semibold text-foreground capitalize">
+            {session.session_type.replace(/_/g, ' ')}{' '}
+            <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>debrief.</em>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{session.target_role}</p>
         </div>
