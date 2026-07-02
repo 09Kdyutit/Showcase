@@ -317,6 +317,14 @@ export default function AuditPage() {
         setSelectedResumeId(data?.[0]?.id ?? null)
         setLoadingResumes(false)
       })
+    // Prefill from the profile so the user isn't re-asked for a role they already gave
+    // us during onboarding - they can still change it per audit.
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      const { data: profile } = await supabase.from('profiles').select('target_role, industry').eq('id', data.user.id).maybeSingle()
+      if (profile?.target_role) setTargetRole((prev) => prev || profile.target_role)
+      if (profile?.industry) setIndustry((prev) => prev || profile.industry)
+    })
   }, [])
 
   const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null

@@ -26,8 +26,25 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Free includes the FIRST portfolio generation - it's the product's core aha moment
+    // (onboarding promises "one click builds your full portfolio from this", and an empty
+    // builder behind a paywall breaks that promise at the moment of first value). Any
+    // generation after the first (regeneration, or a second portfolio) requires Pro.
+    // Server-decided: the client never controls this.
     const isPro = await isProUser(user.id)
-    if (!isPro) return NextResponse.json({ error: 'Pro subscription required', code: 'PRO_REQUIRED' }, { status: 403 })
+    if (!isPro) {
+      const { count } = await supabase
+        .from('portfolios')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .not('ai_generated_at', 'is', null)
+      if ((count ?? 0) > 0) {
+        return NextResponse.json(
+          { error: 'Your free plan includes one AI portfolio generation. Upgrade to Pro to regenerate or build more portfolios.', code: 'PRO_REQUIRED' },
+          { status: 403 }
+        )
+      }
+    }
 
     const rl = await checkRateLimit(user.id, 'portfolio_generated', true)
     if (!rl.allowed) {

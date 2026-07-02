@@ -23,14 +23,14 @@ export function StickyMobileCTA() {
     >
       <div className="bg-surface-50/95 backdrop-blur-xl border-t border-border/60 px-4 py-3">
         <Link
-          href="/waitlist"
+          href="/signup"
           className="flex items-center justify-center gap-2 w-full h-12 rounded-xl font-semibold text-sm text-white"
           style={{ background: 'linear-gradient(135deg, var(--color-brand-500), var(--color-brand-500))' }}
         >
-          Join the Showcase beta
+          Start free
           <ArrowRight className="h-4 w-4" />
         </Link>
-        <p className="text-center text-xs text-muted-foreground/50 mt-2">Private beta - limited spots</p>
+        <p className="text-center text-xs text-muted-foreground mt-2">No credit card required</p>
       </div>
     </div>
   )

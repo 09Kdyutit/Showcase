@@ -78,7 +78,7 @@ export default function CareerServicesPage() {
 
         <div className="glass-card p-8 text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            We are currently in a private beta and have not yet built dedicated cohort or
+            Showcase is early, and we have not yet built dedicated cohort or
             institutional tooling. If you want to explore Showcase for your students, tell us
             about your program and we will follow up directly.
           </p>

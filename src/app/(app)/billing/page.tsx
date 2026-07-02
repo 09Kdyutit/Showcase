@@ -16,7 +16,7 @@ const PRO_FEATURES = [
   'Live AI voice interviews that adapt to your answers',
   '20 voice interviews / month, up to 30 min each',
   'Company-specific interviewers + real interviewer-grade feedback',
-  'Unlimited written practice interviews',
+  '150 written practice interviews / month',
   'Full AI portfolio generation',
   'Complete ProofScore audit (all 11 categories)',
   'Resume bullet improvement',

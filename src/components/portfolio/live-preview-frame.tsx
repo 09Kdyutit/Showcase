@@ -47,7 +47,11 @@ export function LivePreviewFrame({ themeId, portfolio, content, height = 640 }: 
   }, [])
 
   const ThemeComponent = THEME_COMPONENTS[themeId]
-  const zoomStyle: CSSProperties & { zoom?: number } = { width: DESIGN_WIDTH, zoom: scale }
+  // `contain: paint` makes this wrapper the containing block for the themes'
+  // `position: fixed` ambient background layers (every theme has them - correct on the
+  // standalone /p/[slug] page, but without containment they escape the preview and
+  // paint a full-viewport backdrop OVER the builder's sidebar and editor column).
+  const zoomStyle: CSSProperties & { zoom?: number } = { width: DESIGN_WIDTH, zoom: scale, contain: 'paint' }
 
   return (
     <div

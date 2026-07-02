@@ -41,6 +41,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [publishing, setPublishing] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [isPro, setIsPro] = useState(false)
+  const [hasUsedFreeGeneration, setHasUsedFreeGeneration] = useState(false)
   const [resumeText, setResumeText] = useState('')
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
   const [profileMeta, setProfileMeta] = useState<{
@@ -66,13 +67,16 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     if (!portfolioId || !/^[0-9a-f-]{36}$/i.test(portfolioId)) { router.push('/builder'); return }
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const [portfolioRes, subRes, resumeRes, profileRes] = await Promise.all([
+    const [portfolioRes, subRes, resumeRes, profileRes, genCountRes] = await Promise.all([
       supabase.from('portfolios').select('*').eq('id', portfolioId).single(),
       supabase.from('subscriptions').select('status').maybeSingle(),
       supabase.from('resumes').select('raw_text, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle(),
       user
         ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url').eq('id', user.id).single()
         : Promise.resolve({ data: null }),
+      // Display-only signal for the free-tier generation allowance; the server route
+      // re-checks this authoritatively on every generate call.
+      supabase.from('portfolios').select('id', { count: 'exact', head: true }).not('ai_generated_at', 'is', null),
     ])
     if (!portfolioRes.data) { router.push('/builder'); return }
     setPortfolio(portfolioRes.data)
@@ -83,6 +87,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     setContent(c)
     lastSavedRef.current = { title: portfolioRes.data.title, targetRole: portfolioRes.data.target_role ?? '', content: c }
     setIsPro(subRes.data?.status === 'active' || subRes.data?.status === 'trialing')
+    setHasUsedFreeGeneration((genCountRes.count ?? 0) > 0)
     setResumeText(resumeRes.data?.raw_text ?? '')
     setParsedResume((resumeRes.data?.parsed_json as unknown as ParsedResume) ?? null)
     setProfileMeta(profileRes.data ?? null)
@@ -143,7 +148,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   function updateTheme(v: ThemeId) { setTheme(v) }
 
   async function generatePortfolio(confirmOverwrite = false) {
-    if (!isPro) { toast.error('Pro required for AI generation'); return }
+    // Free includes the first generation; regeneration needs Pro. The server enforces
+    // this authoritatively - this check just gives a clear message without a round trip.
+    if (!isPro && hasUsedFreeGeneration) { toast.error('Your free plan includes one AI generation. Upgrade to Pro to regenerate.'); return }
     if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
     if (generatingRef.current) return
     generatingRef.current = true
@@ -212,6 +219,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
         throw new Error(genErr?.message ?? genErr ?? 'Generation failed')
       }
       updateContent(() => data)
+      setHasUsedFreeGeneration(true)
       toast.success('Portfolio generated! Review and edit the content below.')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Generation failed. Please try again.')
@@ -426,11 +434,11 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Editor column */}
                 <div className="space-y-5">
-                  {/* AI Generate */}
-                  {!isPro ? (
+                  {/* AI Generate - free plan includes the first generation */}
+                  {!isPro && hasUsedFreeGeneration ? (
                     <PaywallCard
                       feature="AI Portfolio Generation"
-                      description="Let AI build your full portfolio from your resume in seconds. Upgrade to Pro to unlock."
+                      description="Your free plan includes one AI generation and you've used it. Upgrade to Pro to regenerate or build more portfolios."
                     />
                   ) : (
                     <div className="glass-card p-5">

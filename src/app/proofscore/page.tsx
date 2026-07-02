@@ -89,8 +89,8 @@ export default function ProofScorePage() {
 
         <div className="text-center">
           <Button asChild variant="gradient" size="xl" className="gap-2 shadow-glow">
-            <Link href="/waitlist">
-              Join the private beta
+            <Link href="/signup">
+              Start free
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

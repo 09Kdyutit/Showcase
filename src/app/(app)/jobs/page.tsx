@@ -122,7 +122,8 @@ function JobCard({
             {job.location}
           </span>
         )}
-        {job.work_mode && (
+        {/* Skip work mode when it just repeats the location (e.g. "Remote Remote") */}
+        {job.work_mode && job.work_mode.toLowerCase() !== job.location?.toLowerCase() && (
           <span className="capitalize">{job.work_mode}</span>
         )}
         {job.seniority && (
@@ -220,7 +221,7 @@ function JobDetailPanel({
                 {job.location}
               </span>
             )}
-            {job.work_mode && (
+            {job.work_mode && job.work_mode.toLowerCase() !== job.location?.toLowerCase() && (
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-surface-200 border border-border rounded-lg px-2.5 py-1 capitalize">
                 <Wifi className="h-3 w-3" />
                 {job.work_mode}
@@ -720,8 +721,24 @@ export default function JobsPage() {
     setLoadingRecs(false)
   }, [includeAdjacent])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void fetchJobs(INITIAL_FILTERS); void fetchSavedJobs() }, [fetchJobs, fetchSavedJobs])
+  // Seed the browse search with the user's target role so the default listing is
+  // relevant to them (a software engineer should not land on a wall of unrelated
+  // roles). The user can clear or change the query freely afterwards.
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      void fetchSavedJobs()
+      let seeded = INITIAL_FILTERS
+      if (data.user) {
+        const { data: profile } = await supabase.from('profiles').select('target_role').eq('id', data.user.id).maybeSingle()
+        if (profile?.target_role) {
+          seeded = { ...INITIAL_FILTERS, query: profile.target_role }
+          setFilters(seeded)
+        }
+      }
+      void fetchJobs(seeded)
+    })
+  }, [fetchJobs, fetchSavedJobs])
 
   // Refetch whenever the tab is active or the adjacent-roles toggle changes
   // eslint-disable-next-line react-hooks/set-state-in-effect

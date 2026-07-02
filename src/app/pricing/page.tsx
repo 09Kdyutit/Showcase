@@ -11,6 +11,7 @@ import { TrackedLink } from '@/components/landing/tracked-link'
 
 const FREE_FEATURES = [
   'Resume text parsing',
+  'One AI portfolio generation',
   'Basic ProofScore preview (3 categories)',
   'Draft portfolio (unpublished)',
   '1 portfolio',
@@ -21,7 +22,7 @@ const FREE_FEATURES = [
   'Pipeline with up to 5 active roles',
 ]
 const FREE_LOCKED = [
-  'Full AI generation',
+  'Unlimited AI regeneration',
   'Complete ProofScore (11 categories)',
   'Public portfolio publishing',
   'PDF export',
@@ -40,7 +41,7 @@ const PRO_FEATURES = [
   '20 voice interviews / month, up to 30 minutes each',
   'Company-specific interviews (Google, Meta, Stripe & any company)',
   'Real interviewer-grade feedback after every session',
-  'Unlimited written practice interviews',
+  '150 written practice interviews / month',
   'Full AI portfolio generation from resume',
   'Complete ProofScore audit - all 11 categories',
   'AI resume bullet improvement',
@@ -135,7 +136,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Button asChild variant="secondary" size="lg" className="w-full">
-              <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_page_free_card">Join the private beta</TrackedLink>
+              <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_free_card">Start free</TrackedLink>
             </Button>
           </div>
 
@@ -181,9 +182,9 @@ export default function PricingPage() {
               </ul>
               <div className="space-y-3">
                 <Button asChild variant="gradient" size="lg" className="w-full gap-2 shadow-glow">
-                  <TrackedLink href="/waitlist" event="hero_primary_cta_clicked" ctaLabel="pricing_page_pro_card">
+                  <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_pro_card">
                     <Zap className="h-4 w-4" />
-                    Join the private beta
+                    Start with Pro
                     <ArrowRight className="h-4 w-4" />
                   </TrackedLink>
                 </Button>
