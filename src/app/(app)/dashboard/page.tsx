@@ -78,7 +78,7 @@ export default async function DashboardPage() {
         <div className="entrance flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'oklch(63% 0.20 255)' }}>Dashboard</p>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+            <h1 className="text-display text-[2rem] sm:text-4xl font-semibold text-foreground">
               {profile?.full_name ? `Hey, ${profile.full_name.split(' ')[0]}.` : 'Welcome back.'}
             </h1>
             <p className="text-muted-foreground text-sm mt-1.5">
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
             </div>
             <p className="text-4xl font-bold stat-number text-foreground">{portfolios.length}</p>
             <p className="text-xs text-muted-foreground mt-1.5">
-              <span style={{ color: 'oklch(72% 0.17 160)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
+              <span style={{ color: 'var(--color-verified)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
             </p>
           </div>
 
@@ -303,7 +303,7 @@ export default async function DashboardPage() {
                     asChild
                     variant="gradient"
                     size="sm"
-                    className="gap-1.5"
+                    className="gap-1.5 btn-sheen"
                     style={{ boxShadow: '0 0 18px color-mix(in oklch, var(--color-brand-500) 32%, transparent)' }}
                   >
                     <Link href={nextAction.href}>
@@ -344,10 +344,10 @@ export default async function DashboardPage() {
                           style={{
                             width: `${cat.score}%`,
                             background: cat.score >= 80
-                              ? 'oklch(65% 0.17 160)'
+                              ? 'var(--color-verified)'
                               : cat.score >= 60
-                              ? 'oklch(74% 0.16 85)'
-                              : 'oklch(62% 0.22 25)',
+                              ? 'var(--color-missing)'
+                              : 'var(--color-destructive)',
                             transition: 'width 800ms cubic-bezier(0.22,1,0.36,1)',
                             transitionDelay: `${i * 80 + 300}ms`,
                           }}
@@ -355,12 +355,12 @@ export default async function DashboardPage() {
                       </div>
                       <span
                         className="text-xs font-medium w-6 text-right stat-number"
-                        style={{ color: cat.score >= 80 ? 'oklch(65% 0.17 160)' : cat.score >= 60 ? 'oklch(74% 0.16 85)' : 'oklch(62% 0.22 25)' }}
+                        style={{ color: cat.score >= 80 ? 'var(--color-verified)' : cat.score >= 60 ? 'var(--color-missing)' : 'var(--color-destructive)' }}
                       >
                         {Math.round(cat.score)}
                       </span>
-                      {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 shrink-0" style={{ color: 'oklch(62% 0.22 25)' }} />}
-                      {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 opacity-50" style={{ color: 'oklch(65% 0.17 160)' }} />}
+                      {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--color-destructive)' }} />}
+                      {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 opacity-50" style={{ color: 'var(--color-verified)' }} />}
                     </div>
                   ))}
                 </div>
@@ -424,10 +424,10 @@ export default async function DashboardPage() {
                             style={{
                               width: `${p.proof_score}%`,
                               background: p.proof_score >= 80
-                                ? 'oklch(65% 0.17 160)'
+                                ? 'var(--color-verified)'
                                 : p.proof_score >= 60
-                                ? 'oklch(74% 0.16 85)'
-                                : 'oklch(62% 0.22 25)',
+                                ? 'var(--color-missing)'
+                                : 'var(--color-destructive)',
                               transition: 'width 700ms cubic-bezier(0.22,1,0.36,1)',
                             }}
                           />
