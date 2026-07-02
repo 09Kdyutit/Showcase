@@ -217,14 +217,21 @@ export default function OnboardingPage() {
   // ── Busy screens (analyzing / generating) ──────────────────────────────
   if (phase === 'analyzing' || phase === 'generating') {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center mb-6 animate-pulse">
-          <Sparkles className="h-6 w-6 text-white" />
+      <div className="relative min-h-screen bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 aurora-mesh opacity-40" />
+        <div className="pointer-events-none absolute inset-0 dot-grid opacity-[0.07]" />
+        <div className="relative flex flex-col items-center text-center">
+          <div className="relative mb-7">
+            <span className="orbit-ring" aria-hidden="true" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center breathe-glow">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <p className="text-display text-xl font-semibold text-foreground mb-1.5">{busyMsg}</p>
+          <p className="text-sm text-muted-foreground/70">
+            {phase === 'analyzing' ? 'Reading your résumé and structuring the evidence…' : "Building your full portfolio. This takes 30–60 seconds — don't close this tab."}
+          </p>
         </div>
-        <p className="text-foreground font-medium mb-1">{busyMsg}</p>
-        <p className="text-xs text-muted-foreground/60">
-          {phase === 'analyzing' ? "This takes a few seconds." : "This takes 30-60 seconds. Don't close this tab."}
-        </p>
       </div>
     )
   }
@@ -232,14 +239,23 @@ export default function OnboardingPage() {
   // ── Upload screen ───────────────────────────────────────────────────────
   if (phase === 'upload') {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-xl">
+      <div className="relative min-h-screen bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: 'radial-gradient(oklch(97% 0.004 255 / 0.03) 1px, transparent 1px)', backgroundSize: '46px 46px', maskImage: 'radial-gradient(ellipse 70% 50% at 50% 0%, black, transparent 75%)', WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 0%, black, transparent 75%)' }}
+        />
+        <div className="w-full max-w-xl relative">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Logo size="lg" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Upload your resume</h1>
-            <p className="text-muted-foreground text-sm">We extract everything - role, skills, experience, projects, links - and use it to build your portfolio. No forms to fill out.</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'oklch(63% 0.20 255)' }}>Step 1 of 2 · Your résumé</p>
+            <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
+              Start with what you{' '}
+              <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>already have.</em>
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Drop in your résumé — we extract the role, skills, experience, projects and links, and turn them into structured evidence. No forms to fill out.</p>
           </div>
 
           <div className="glass-card p-8 space-y-4">
@@ -276,15 +292,19 @@ export default function OnboardingPage() {
   const needsConfirmation = [...(parsed?.missing_proof ?? []), ...(parsed?.weak_bullets ?? [])]
 
   return (
-    <div className="min-h-screen bg-background p-6 py-12">
-      <div className="w-full max-w-2xl mx-auto">
+    <div className="relative min-h-screen bg-background p-6 py-12 overflow-hidden">
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
+      <div className="w-full max-w-2xl mx-auto relative">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-4">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Resume parsed
+            Résumé parsed · Step 2 of 2
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Here&apos;s what we found</h1>
-          <p className="text-muted-foreground text-sm">Quick review - nothing here is published yet. One click builds your full portfolio from this.</p>
+          <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
+            Here&apos;s your experience,{' '}
+            <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>structured.</em>
+          </h1>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Nothing here is published yet. Review it, then one click builds your full portfolio from this evidence.</p>
         </div>
 
         <div className="glass-card p-6 space-y-6">

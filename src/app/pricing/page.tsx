@@ -68,12 +68,14 @@ export default function PricingPage() {
       <Navbar />
       <main className="pt-24 pb-32 px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-            Simple, honest pricing
+          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'oklch(63% 0.20 255)' }}>Pricing</p>
+          <h1 className="text-display text-4xl sm:text-[3.25rem] font-semibold tracking-tight mb-4 leading-[1.04] text-balance">
+            Simple, honest{' '}
+            <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>pricing.</em>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
             Free gets you the transformation: a real portfolio draft and your first ProofScore.
-            Pro takes it from draft to shareable - publish it, tailor it per role, and fix every
+            Pro takes it from draft to shareable — publish it, tailor it per role, and fix every
             evidence gap.
           </p>
         </div>
