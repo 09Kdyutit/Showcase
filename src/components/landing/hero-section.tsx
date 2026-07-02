@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { TrackedLink } from './tracked-link'
+import { EvidenceField } from './evidence-field'
+import { ProofAssembly } from './proof-assembly'
 
 const TRUST = ['No credit card required', 'Free ProofScore preview', 'Setup in 5 minutes']
 
@@ -69,9 +71,13 @@ export function HeroSection() {
       </div>
       <div className="absolute inset-0 pointer-events-none hero-grid" style={{ opacity: 0.4 }} />
 
-      <div className="relative max-w-5xl mx-auto px-6 pt-24 pb-24 text-center" style={{ zIndex: 2 }}>
+      {/* The Evidence Field — drifting unproven claims, periodically caught and
+          verified, their trails feeding the proof engine below */}
+      <EvidenceField />
+
+      <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center" style={{ zIndex: 2 }}>
         {/* Brand lockup — the first thing you see */}
-        <div className="flex items-center justify-center gap-3 mb-16" style={{ animation: 'fadeIn 0.7s ease both' }}>
+        <div className="flex items-center justify-center gap-3 mb-9" style={{ animation: 'fadeIn 0.7s ease both' }}>
           <Image src="/logo-icon.png" alt="" width={48} height={48} priority className="select-none drop-shadow-lg" />
           <span className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: '#fff', letterSpacing: '-0.03em' }}>
             Showcase
@@ -79,21 +85,21 @@ export function HeroSection() {
         </div>
 
         {/* Headline — Fraunces serif, blur-to-sharp under the cursor */}
-        <div className="sui-headline relative mb-9" style={{ animation: 'fadeIn 0.9s ease 0.12s both' }}>
+        <div className="sui-headline relative mb-7" style={{ animation: 'fadeIn 0.9s ease 0.12s both' }}>
           <h1 className="sui-headline-base" style={HEADLINE_STYLE} aria-hidden="true">{HEADLINE}</h1>
           <h1 ref={sharpRef} className="sui-headline-sharp" style={HEADLINE_STYLE}>{HEADLINE}</h1>
         </div>
 
         {/* Subtext */}
         <p
-          className="text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed"
+          className="text-lg sm:text-xl max-w-xl mx-auto mb-8 leading-relaxed"
           style={{ color: 'rgba(226,236,255,0.85)', animation: 'fadeIn 0.8s ease 0.24s both' }}
         >
           Upload your résumé — Showcase builds your portfolio, <span style={{ color: '#93c5fd', fontWeight: 600 }}>scores the proof</span> behind every claim, and shows you exactly how to make it stronger. It never invents anything.
         </p>
 
         {/* CTAs — primary is a vibrant blue */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12" style={{ animation: 'fadeIn 0.8s ease 0.34s both' }}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8" style={{ animation: 'fadeIn 0.8s ease 0.34s both' }}>
           <TrackedLink
             href="/signup"
             event="hero_primary_cta_clicked"
@@ -117,7 +123,7 @@ export function HeroSection() {
 
         {/* Trust */}
         <div
-          className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm"
+          className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm mb-9"
           style={{ color: 'rgba(191,219,254,0.75)', animation: 'fadeIn 0.8s ease 0.44s both' }}
         >
           {TRUST.map((t) => (
@@ -126,6 +132,11 @@ export function HeroSection() {
               {t}
             </span>
           ))}
+        </div>
+
+        {/* The Proof Engine — the centerpiece the Evidence Field feeds into */}
+        <div style={{ animation: 'fadeIn 0.9s ease 0.6s both' }}>
+          <ProofAssembly />
         </div>
       </div>
 
