@@ -93,7 +93,8 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
         id: 'more_sessions_for_confidence', priority: 4,
         title: `Practice another ${g.sessionType.replace(/_/g, ' ')} session`,
         reason: `Your readiness for ${g.targetRole} is based on only 1 session - one more will make it a more reliable estimate.`,
-        source: 'sample_size', destination: '/interviews/new',
+        source: 'sample_size',
+        destination: `/interviews/new?sessionType=${g.sessionType}&targetRole=${encodeURIComponent(g.targetRole)}`,
         estimatedMinutes: 12,
       })
     }
@@ -109,7 +110,7 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
           id: `drill_${drills[0].id}`, priority: 3,
           title: `Drill: ${drills[0].label}`,
           reason: `${DIMENSION_REGISTRY[targetedDimension.id]?.label ?? targetedDimension.label} was a low-scoring dimension (${targetedDimension.score}/100) in your last ${g.sessionType.replace(/_/g, ' ')} session.`,
-          source: 'real_weakness', destination: '/interviews/drills',
+          source: 'real_weakness', destination: `/interviews/drills?open=${drills[0].id}`,
           estimatedMinutes: 2,
         })
       }
@@ -152,7 +153,7 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
       id: `overdue_drill_${d.drillType}`, priority: 6,
       title: `Drill: ${d.label}`,
       reason: 'Recommended but not yet attempted.',
-      source: 'evidence_gap', destination: '/interviews/drills',
+      source: 'evidence_gap', destination: `/interviews/drills?open=${d.drillType}`,
       estimatedMinutes: 2,
     })
   }

@@ -10,6 +10,7 @@ import { atsCheckPrompt } from './ats-check'
 import { interviewAnalysisPrompt } from './interview-analysis'
 import { coverLetterPrompt } from './cover-letter'
 import { projectSuggestionsPrompt } from './project-suggestions'
+import { interviewAnswerScorePrompt } from './interview-answer-score'
 import type { PromptSpec } from './types'
 
 // Canonical registry - every active production prompt, keyed by its stable id. This is the
@@ -37,6 +38,7 @@ export const REGISTRY = {
   'interview-analysis': interviewAnalysisPrompt,
   'cover-letter': coverLetterPrompt,
   'project-suggestions': projectSuggestionsPrompt,
+  'interview-answer-score': interviewAnswerScorePrompt,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as const satisfies Record<string, PromptSpec<any, any>>
 
@@ -67,5 +69,6 @@ export {
   interviewAnalysisPrompt,
   coverLetterPrompt,
   projectSuggestionsPrompt,
+  interviewAnswerScorePrompt,
 }
 export type { PromptSpec, ReviewPolicy } from './types'

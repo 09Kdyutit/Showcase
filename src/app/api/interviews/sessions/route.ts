@@ -17,6 +17,10 @@ const createSchema = z.object({
   durationMinutes: z.union([
     z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25), z.literal(30),
   ]).default(15),
+  // Written interviews are question-count driven (5-30 in steps of 5), not timed.
+  questionCount: z.union([
+    z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25), z.literal(30),
+  ]).optional(),
   targetRole: z.string().min(1).max(200),
   targetCompany: z.string().max(200).nullable().optional(),
   savedJobId: z.string().uuid().optional(),
@@ -179,8 +183,11 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Generate questions - AI first, static bank fallback ───────────────────
+    // Written interviews use the user's chosen question count (clamped to the tier ceiling);
+    // voice stays duration-derived. The override drives both AI generation and the plan.
+    const questionCountOverride = input.deliveryMode === 'text' ? input.questionCount : undefined
     const questionCount = Math.min(
-      primaryQuestionCount(input.durationMinutes),
+      questionCountOverride ?? primaryQuestionCount(input.durationMinutes),
       limits.maxPrimaryQuestions,
     )
 
@@ -227,6 +234,7 @@ export async function POST(request: NextRequest) {
       deliveryMode: input.deliveryMode as 'voice' | 'text',
       evidence: { resumeExperience, portfolioProjects },
       aiGeneratedQuestions,
+      questionCountOverride,
       planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })
 

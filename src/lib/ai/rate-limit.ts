@@ -17,6 +17,7 @@ const LIMITS = {
     ats_checked: { max: 1, windowHours: 24 },
     voice_profiled: { max: 1, windowHours: 168 }, // once per week
     resume_pdf_vision: { max: 2, windowHours: 24 },
+    question_scored: { max: 20, windowHours: 24 }, // written/drill practice grading — cheap, frequent
   },
   pro: {
     resume_analyzed: { max: 25, windowHours: 24 },
@@ -32,6 +33,7 @@ const LIMITS = {
     ats_checked: { max: 20, windowHours: 24 },
     voice_profiled: { max: 5, windowHours: 24 },
     resume_pdf_vision: { max: 10, windowHours: 24 },
+    question_scored: { max: 150, windowHours: 24 },
   },
 } as const
 

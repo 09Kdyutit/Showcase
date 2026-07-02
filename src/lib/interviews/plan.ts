@@ -38,6 +38,10 @@ export interface BuildPlanInput {
   /** Pre-generated questions from AI (question-gen.ts). When provided, skips the
    *  static bank lookup entirely and uses these instead. Safety filter still runs. */
   aiGeneratedQuestions?: InterviewPlanQuestion[]
+  /** Written interviews are question-count driven, not time driven: when set, this is the
+   *  exact number of primary questions the user chose (5-30), overriding the duration→count
+   *  mapping. Still clamped by the tier's maxPrimaryQuestions ceiling. */
+  questionCountOverride?: number
   /** Tier-derived hard ceilings (see entitlements/plans.ts). Omitted only by tests
    *  that don't go through the real session-creation route; every real caller must
    *  pass the caller's actual plan limits so Free/Pro question/follow-up counts are
@@ -92,7 +96,8 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   }
 
   const rubric = getRubricProfile(input.sessionType)
-  const targetCount = Math.min(primaryQuestionCount(input.durationMinutes), input.planLimits?.maxPrimaryQuestions ?? Infinity)
+  const baseCount = input.questionCountOverride ?? primaryQuestionCount(input.durationMinutes)
+  const targetCount = Math.min(baseCount, input.planLimits?.maxPrimaryQuestions ?? Infinity)
 
   let candidateQuestions: InterviewPlanQuestion[]
 

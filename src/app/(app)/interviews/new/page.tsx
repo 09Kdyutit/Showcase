@@ -46,8 +46,11 @@ export default function NewInterviewPage() {
     isValidSessionType(prefillSessionType) ? prefillSessionType : 'behavioral'
   )
   const [difficulty, setDifficulty] = useState<typeof DIFFICULTIES[number]>('standard')
-  // Every interview is a fixed 10 minutes — no selection.
+  // Voice interviews run a fixed 10 minutes; written interviews are question-count driven.
   const durationMinutes = 10
+  const [questionCount, setQuestionCount] = useState(10)
+  const FREE_MAX_QUESTIONS = 10
+  const QUESTION_OPTIONS = [5, 10, 15, 20, 25, 30] as const
   const [targetRole, setTargetRole] = useState(searchParams.get('targetRole') ?? '')
   const [targetCompany, setTargetCompany] = useState(searchParams.get('targetCompany') ?? '')
   const [submitting, setSubmitting] = useState(false)
@@ -92,6 +95,7 @@ export default function NewInterviewPage() {
           sessionType, difficulty, durationMinutes, targetRole: targetRole.trim(),
           targetCompany: targetCompany.trim() || undefined,
           deliveryMode, coachingMode: 'guided',
+          ...(deliveryMode === 'text' ? { questionCount } : {}),
           savedJobId: savedJobId ?? undefined,
         }),
       })
@@ -262,15 +266,50 @@ export default function NewInterviewPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">Session length</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3">
-            <span className="text-2xl font-bold text-foreground tabular-nums">10<span className="text-sm font-medium text-muted-foreground ml-1">min</span></span>
-            <p className="text-sm text-muted-foreground">Every interview runs a focused 10 minutes — long enough to go deep, short enough to stay sharp.</p>
-          </div>
-        </CardContent>
-      </Card>
+      {deliveryMode === 'text' ? (
+        <Card>
+          <CardHeader><CardTitle className="text-base">How many questions?</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {QUESTION_OPTIONS.map((n) => {
+                const locked = !isPro && n > FREE_MAX_QUESTIONS
+                const selected = questionCount === n
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      if (locked) { toast.error('More than 10 questions requires Pro.'); return }
+                      setQuestionCount(n)
+                    }}
+                    className={cn(
+                      'relative py-3 rounded-xl border text-center transition-all',
+                      locked ? 'opacity-55 cursor-default border-border/40 text-muted-foreground'
+                        : selected ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
+                    )}
+                  >
+                    <span className="text-lg font-bold tabular-nums">{n}</span>
+                    {locked && <span className="block text-[9px] text-brand-300 font-semibold uppercase">Pro</span>}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Written interviews go at your pace — no timer. Answer all {questionCount} questions, then get your full evidence-based debrief.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Session length</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3">
+              <span className="text-2xl font-bold text-foreground tabular-nums">10<span className="text-sm font-medium text-muted-foreground ml-1">min</span></span>
+              <p className="text-sm text-muted-foreground">Live voice interviews run a focused 10 minutes — long enough to go deep, short enough to stay sharp.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground space-y-1">
         <p>Delivery mode: <span className="text-foreground">{deliveryMode === 'voice' ? 'Live voice' : 'Text'}</span></p>
