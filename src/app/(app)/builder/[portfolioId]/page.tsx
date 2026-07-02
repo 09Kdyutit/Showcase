@@ -60,6 +60,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const generatingRef = useRef(false)
 
   async function load() {
+    // Guard against a non-id route value (e.g. "new") reaching a `.eq('id', …)` query,
+    // which Postgres rejects as an invalid uuid (400). Real portfolios are created on the
+    // /builder index, which then routes here with a real id.
+    if (!portfolioId || !/^[0-9a-f-]{36}$/i.test(portfolioId)) { router.push('/builder'); return }
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const [portfolioRes, subRes, resumeRes, profileRes] = await Promise.all([
@@ -311,10 +315,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const saveIndicator = (
     <div className={cn(
       'flex items-center gap-1.5 text-xs transition-colors duration-200',
-      saveState === 'saved' && 'text-emerald-600/70',
+      saveState === 'saved' && 'text-emerald-400/70',
       saveState === 'saving' && 'text-muted-foreground/60',
       saveState === 'unsaved' && 'text-muted-foreground/50',
-      saveState === 'error' && 'text-red-600',
+      saveState === 'error' && 'text-red-400',
     )}>
       {saveState === 'saved' && <CheckCircle2 className="h-3 w-3" />}
       {saveState === 'saving' && <div className="w-3 h-3 rounded-full border-2 border-current border-t-transparent animate-spin" />}
@@ -405,7 +409,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
               <TabsTrigger value="projects">
                 Projects
                 {projects.length > 0 && (
-                  <span className="ml-1.5 text-[10px] bg-brand-500/20 text-brand-600 px-1.5 py-0.5 rounded-full font-medium">
+                  <span className="ml-1.5 text-xs bg-brand-500/20 text-brand-400 px-1.5 py-0.5 rounded-full font-medium">
                     {projects.length}
                   </span>
                 )}
@@ -545,7 +549,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                             const updated = proof.filter((_, idx) => idx !== i)
                             updateContent(c => ({ ...c, proof: updated }))
                           }}
-                          className="text-muted-foreground/40 hover:text-red-600 transition-colors shrink-0"
+                          className="text-muted-foreground/40 hover:text-red-400 transition-colors shrink-0"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -554,7 +558,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     <button
                       type="button"
                       onClick={() => updateContent(c => ({ ...c, proof: [...(c.proof ?? []), { label: '', value: '' }] }))}
-                      className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       Add metric
@@ -572,7 +576,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       {skills.map((s, i) => (
                         <div key={i} className="flex items-center gap-1 bg-surface-300 rounded-lg px-2 py-1 group">
                           <span className="text-xs text-foreground/80">{s.name}</span>
-                          {s.level === 'Expert' && <span className="text-xs text-brand-600/70">·E</span>}
+                          {s.level === 'Expert' && <span className="text-xs text-brand-400/70">·E</span>}
                           <button
                             type="button"
                             onClick={() => {
@@ -617,7 +621,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     </div>
                     <div className="relative w-10 h-10">
                       <svg viewBox="0 0 40 40" className="w-10 h-10 -rotate-90">
-                        <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(40,20,70,0.10)" strokeWidth="4" />
+                        <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="4" />
                         <circle
                           cx="20" cy="20" r="16" fill="none"
                           stroke={qualityScore >= 80 ? '#10b981' : qualityScore >= 50 ? '#f59e0b' : '#6346c8'}
@@ -628,7 +632,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-foreground">{qualityScore}%</span>
+                        <span className="text-xs font-bold text-foreground">{qualityScore}%</span>
                       </div>
                     </div>
                   </div>
@@ -637,7 +641,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       <div key={label} className="flex items-center gap-2.5">
                         <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-emerald-500/20' : 'bg-surface-300'}`}>
                           {done
-                            ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+                            ? <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
                             : <div className="w-1 h-1 rounded-full bg-surface-400" />
                           }
                         </div>
@@ -701,7 +705,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         updateContent(c => ({ ...c, projects: [...(c.projects ?? []), newProj] }))
                         setActiveProject((projects.length))
                       }}
-                      className="text-brand-600 hover:text-brand-700 transition-colors"
+                      className="text-brand-400 hover:text-brand-300 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -726,7 +730,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       >
                         <p className="text-xs font-medium truncate">{proj.title || `Project ${i + 1}`}</p>
                         {proj.metrics?.length > 0 && (
-                          <p className="text-xs text-emerald-600/70 mt-0.5 truncate">{proj.metrics[0]}</p>
+                          <p className="text-xs text-emerald-400/70 mt-0.5 truncate">{proj.metrics[0]}</p>
                         )}
                       </button>
                     ))
@@ -764,7 +768,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                             updateContent(c => ({ ...c, projects: updated }))
                             setActiveProject(null)
                           }}
-                          className="text-xs text-red-600/60 hover:text-red-600 transition-colors flex items-center gap-1"
+                          className="text-xs text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1"
                         >
                           <Trash2 className="h-3 w-3" />
                           Remove project
@@ -942,7 +946,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                             const updated = experience.filter((_, idx) => idx !== i)
                             updateContent(c => ({ ...c, experience: updated }))
                           }}
-                          className="text-muted-foreground/40 hover:text-red-600 transition-colors"
+                          className="text-muted-foreground/40 hover:text-red-400 transition-colors"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -1034,12 +1038,12 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         </div>
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="text-xs font-semibold text-foreground">{t.name}</p>
-                          {theme === t.id && <CheckCircle2 className="h-3.5 w-3.5 text-brand-600 shrink-0" />}
+                          {theme === t.id && <CheckCircle2 className="h-3.5 w-3.5 text-brand-400 shrink-0" />}
                         </div>
-                        <p className="text-[10px] text-muted-foreground/70 leading-relaxed mb-2 line-clamp-2">{t.description}</p>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-2 line-clamp-2">{t.description}</p>
                         <div className="flex flex-wrap gap-1">
                           {t.recommendedRoles.slice(0, 2).map((r) => (
-                            <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-surface-300 text-muted-foreground/70">{r}</span>
+                            <span key={r} className="text-xs px-1.5 py-0.5 rounded bg-surface-300 text-muted-foreground/70">{r}</span>
                           ))}
                         </div>
                       </button>
@@ -1093,7 +1097,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-foreground">
-                        Status: <span className={portfolio?.status === 'published' ? 'text-emerald-600' : 'text-muted-foreground'}>
+                        Status: <span className={portfolio?.status === 'published' ? 'text-emerald-400' : 'text-muted-foreground'}>
                           {portfolio?.status === 'published' ? 'Published (live)' : 'Draft (private)'}
                         </span>
                       </p>
@@ -1114,10 +1118,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   </div>
                   {portfolio?.status === 'published' && portfolio?.slug && (
                     <div className="flex items-center gap-2 p-3 bg-emerald-500/5 border border-emerald-500/15 rounded-xl">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-emerald-600">Your portfolio is live</p>
-                        <Link href={`/p/${portfolio.slug}`} target="_blank" className="text-xs text-emerald-600/70 hover:text-emerald-600 transition-colors flex items-center gap-1 mt-0.5">
+                        <p className="text-xs font-medium text-emerald-400">Your portfolio is live</p>
+                        <Link href={`/p/${portfolio.slug}`} target="_blank" className="text-xs text-emerald-400/70 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-0.5">
                           showcase.app/p/{portfolio.slug}
                           <ExternalLink className="h-2.5 w-2.5" />
                         </Link>

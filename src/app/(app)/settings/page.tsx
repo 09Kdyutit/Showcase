@@ -147,7 +147,7 @@ export default function SettingsPage() {
                   key={l.value}
                   type="button"
                   onClick={() => setExpLevel(l.value)}
-                  className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 ${expLevel === l.value ? 'border-brand-500/50 bg-brand-500/10 text-brand-700' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs border transition-all duration-150 ${expLevel === l.value ? 'border-brand-500/50 bg-brand-500/10 text-brand-300' : 'border-border bg-surface-100 text-muted-foreground hover:text-foreground'}`}
                 >
                   {l.label}
                 </button>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
 
       {/* Danger zone */}
       <div className="glass-card p-6 space-y-4 border-red-500/10">
-        <h2 className="text-sm font-semibold text-red-600">Danger zone</h2>
+        <h2 className="text-sm font-semibold text-red-400">Danger zone</h2>
         <Separator className="bg-red-500/10" />
         <div className="flex items-center justify-between">
           <div>

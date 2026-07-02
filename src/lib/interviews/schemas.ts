@@ -29,9 +29,7 @@ export type ReadinessBand = (typeof READINESS_BANDS)[number]
 // derived from the registry) so this schema file has no import dependency on the
 // rubric module - the rubric module imports DimensionId from here instead.
 export const DIMENSION_IDS = [
-  'answer_relevance', 'evidence_specificity', 'context_clarity', 'personal_ownership',
-  'action_quality', 'outcome_and_impact', 'answer_structure', 'role_technical_depth',
-  'problem_solving_process', 'follow_up_handling', 'concision', 'delivery_mechanics',
+  'technical', 'communication', 'competency', 'clarity', 'authenticity', 'behaviour',
 ] as const
 export type DimensionId = (typeof DIMENSION_IDS)[number]
 

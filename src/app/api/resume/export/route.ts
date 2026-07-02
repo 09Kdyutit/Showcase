@@ -59,6 +59,19 @@ export async function POST(req: NextRequest) {
     truthMap = (asset.truth_map as typeof truthMap | null) ?? []
     const jobTitle = (asset.saved_jobs as { imported_title?: string } | null)?.imported_title
     filename = jobTitle ? `showcase-resume-${slugify(jobTitle)}` : 'showcase-resume-tailored'
+
+    // Pull the base résumé for the contact header + education — the tailored asset only
+    // holds rewritten summary/skills/experience, so without this the exported doc has no
+    // name, email, or education (which made it useless).
+    if (asset.base_resume_id) {
+      const { data: base } = await supabase
+        .from('resumes')
+        .select('parsed_json')
+        .eq('id', asset.base_resume_id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      parsed = (base?.parsed_json as ParsedResume | null) ?? null
+    }
   } else if (resume_id) {
     const { data: resume, error } = await supabase
       .from('resumes')
@@ -94,7 +107,7 @@ export async function POST(req: NextRequest) {
   // ── Build DOCX ────────────────────────────────────────────────────────────
 
   const doc = content
-    ? buildDocxFromTailored(content)
+    ? buildDocxFromTailored(content, parsed)
     : parsed
     ? buildDocxFromParsed(parsed)
     : null
@@ -137,15 +150,20 @@ export async function POST(req: NextRequest) {
 
 // ── DOCX builders ─────────────────────────────────────────────────────────
 
-function buildDocxFromTailored(c: TailoredContent): Document {
+function buildDocxFromTailored(c: TailoredContent, base: ParsedResume | null): Document {
   const children: Paragraph[] = []
 
-  // Contact placeholder (populated from parsed data in a real flow)
-  children.push(
-    heading1('Professional Summary'),
-    body(c.professional_summary),
-    spacer()
-  )
+  // Contact header from the base résumé — a résumé without a name/email is unusable.
+  if (base?.name) {
+    children.push(new Paragraph({ children: [new TextRun({ text: base.name, bold: true, size: 30 })], alignment: AlignmentType.CENTER }))
+  }
+  const contact = base ? [base.email, base.phone, base.location, base.links?.linkedin, base.links?.github ?? base.links?.website].filter(Boolean).join('  ·  ') : ''
+  if (contact) {
+    children.push(new Paragraph({ children: [new TextRun({ text: contact, size: 20 })], alignment: AlignmentType.CENTER }))
+  }
+  if (base?.name || contact) children.push(spacer())
+
+  children.push(heading1('Professional Summary'), body(c.professional_summary), spacer())
 
   if (c.skills.length > 0) {
     children.push(heading1('Skills'), body(c.skills.join(' · ')), spacer())
@@ -154,21 +172,27 @@ function buildDocxFromTailored(c: TailoredContent): Document {
   if (c.experience.length > 0) {
     children.push(heading1('Experience'))
     for (const exp of c.experience) {
-      children.push(
-        heading2(`${exp.role} - ${exp.company}`),
-        body(exp.period, { italic: true })
-      )
+      children.push(heading2(`${exp.role} - ${exp.company}`), body(exp.period, { italic: true }))
       for (const bullet of exp.tailored_bullets) {
-        if (bullet.accepted !== false) {
-          children.push(bulletPara(bullet.tailored))
-        }
+        if (bullet.accepted !== false) children.push(bulletPara(bullet.tailored))
       }
       children.push(spacer())
     }
   }
 
+  // Education carried over from the base résumé (the tailored asset never had it).
+  if (base?.education?.length) {
+    children.push(heading1('Education'))
+    for (const edu of base.education) {
+      children.push(body(`${edu.degree}${edu.institution ? ` - ${edu.institution}` : ''}${edu.year ? ` (${edu.year})` : ''}`))
+    }
+    children.push(spacer())
+  }
+
+  // The cover letter is a SEPARATE document — starting it on a new page keeps the résumé
+  // clean and the cover letter usable on its own.
   if (c.cover_letter) {
-    children.push(heading1('Cover Letter'), body(c.cover_letter), spacer())
+    children.push(new Paragraph({ children: [], pageBreakBefore: true }), heading1('Cover Letter'), body(c.cover_letter), spacer())
   }
 
   return new Document({

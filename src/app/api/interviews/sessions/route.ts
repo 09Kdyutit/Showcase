@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { buildInterviewPlan, type SessionLength } from '@/lib/interviews/plan'
+import { buildInterviewPlan, primaryQuestionCount } from '@/lib/interviews/plan'
 import { isInterviewLiveEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
 import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
 import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
@@ -14,7 +14,9 @@ const createSchema = z.object({
   deliveryMode: z.enum(DELIVERY_MODES),
   coachingMode: z.enum(COACHING_MODES),
   difficulty: z.enum(DIFFICULTIES).default('standard'),
-  sessionLength: z.enum(['quick', 'standard', 'full']).default('standard'),
+  durationMinutes: z.union([
+    z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25), z.literal(30),
+  ]).default(15),
   targetRole: z.string().min(1).max(200),
   targetCompany: z.string().max(200).nullable().optional(),
   savedJobId: z.string().uuid().optional(),
@@ -58,6 +60,10 @@ export async function POST(request: NextRequest) {
     const { tier } = await resolvePlanContext(supabase, user.id)
     const limits = getPlanLimits(tier)
 
+    // Every interview is a fixed 10 minutes — no more, no less — enforced here regardless
+    // of what the client sends, so the duration can never be manipulated.
+    input.durationMinutes = 10
+
     // Server-authoritative plan/tier gates - the browser's request body is never
     // trusted for any of these, only re-derived facts (subscription status) decide.
     if (!isSessionTypeAllowed(tier, input.sessionType)) {
@@ -69,8 +75,11 @@ export async function POST(request: NextRequest) {
     if (!(limits.coachingModes as readonly string[]).includes(input.coachingMode)) {
       return NextResponse.json({ error: `${input.coachingMode} coaching mode requires Pro.`, code: 'COACHING_MODE_REQUIRES_PRO' }, { status: 403 })
     }
-    if (tier === 'free' && input.sessionLength === 'full') {
-      return NextResponse.json({ error: 'Full-length sessions require Pro. Try Quick or Standard.', code: 'QUESTION_COUNT_EXCEEDS_PLAN' }, { status: 403 })
+    if (input.durationMinutes > limits.maxSessionMinutes) {
+      return NextResponse.json({
+        error: `${input.durationMinutes}-minute interviews require Pro. Your plan allows up to ${limits.maxSessionMinutes} minutes.`,
+        code: 'QUESTION_COUNT_EXCEEDS_PLAN',
+      }, { status: 403 })
     }
 
     // Atomic, race-proof, fail-closed reservation against the real ledger - see
@@ -171,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     // ── Generate questions - AI first, static bank fallback ───────────────────
     const questionCount = Math.min(
-      { quick: 3, standard: 5, full: 8 }[input.sessionLength as SessionLength],
+      primaryQuestionCount(input.durationMinutes),
       limits.maxPrimaryQuestions,
     )
 
@@ -214,7 +223,7 @@ export async function POST(request: NextRequest) {
       targetRole: input.targetRole,
       targetCompany: input.targetCompany ?? null,
       difficulty: input.difficulty,
-      sessionLength: input.sessionLength as SessionLength,
+      durationMinutes: input.durationMinutes,
       deliveryMode: input.deliveryMode as 'voice' | 'text',
       evidence: { resumeExperience, portfolioProjects },
       aiGeneratedQuestions,

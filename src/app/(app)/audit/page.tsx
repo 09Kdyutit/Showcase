@@ -34,7 +34,7 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
             <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
             <h3 className="font-semibold text-sm text-foreground">{cat.name}</h3>
           </div>
-          <Badge variant="outline" className="text-[10px]">Pro</Badge>
+          <Badge variant="outline" className="text-xs">Pro</Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-2">Upgrade to Pro to score this category.</p>
       </div>
@@ -91,7 +91,7 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
       {cat.issues?.length > 0 && (
         <div className="mb-3 space-y-1">
           {cat.issues.slice(0, 2).map((issue, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs text-red-600/80">
+            <div key={i} className="flex items-start gap-2 text-xs text-red-400/80">
               <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
               {issue}
             </div>
@@ -101,17 +101,17 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
 
       {cat.fix && (
         <div className="bg-surface-300/60 rounded-xl p-3 flex items-start gap-2">
-          <Info className="h-3.5 w-3.5 text-brand-600 shrink-0 mt-0.5" />
+          <Info className="h-3.5 w-3.5 text-brand-400 shrink-0 mt-0.5" />
           <p className="text-xs text-foreground/80 flex-1 leading-relaxed">{cat.fix}</p>
           <button onClick={copyFix} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
           </button>
         </div>
       )}
 
       {cat.example && (
         <div className="mt-3 bg-brand-500/5 border border-brand-500/10 rounded-xl p-3">
-          <p className="text-xs text-brand-700 font-medium mb-1">Example</p>
+          <p className="text-xs text-brand-300 font-medium mb-1">Example</p>
           <p className="text-xs text-foreground/70 italic leading-relaxed">&ldquo;{cat.example}&rdquo;</p>
         </div>
       )}
@@ -132,9 +132,9 @@ function Next3Fixes({ priorities }: { priorities: string[] }) {
 
   const ICONS = [Zap, TrendingUp, Target]
   const COLORS = [
-    'text-red-600 bg-red-500/10 border-red-500/20',
-    'text-amber-600 bg-amber-500/10 border-amber-500/20',
-    'text-brand-600 bg-brand-500/10 border-brand-500/20',
+    'text-red-400 bg-red-500/10 border-red-500/20',
+    'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    'text-brand-400 bg-brand-500/10 border-brand-500/20',
   ]
 
   return (
@@ -144,7 +144,7 @@ function Next3Fixes({ priorities }: { priorities: string[] }) {
 
       <div className="flex items-center gap-2.5 mb-5">
         <div className="w-8 h-8 rounded-lg bg-brand-500/15 flex items-center justify-center">
-          <Lightbulb className="h-4 w-4 text-brand-600" />
+          <Lightbulb className="h-4 w-4 text-brand-400" />
         </div>
         <div>
           <h3 className="text-sm font-bold text-foreground">Your Next 3 Fixes</h3>
@@ -189,7 +189,7 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
     <div className="glass-card p-6">
       <div className="flex items-center gap-2.5 mb-5">
         <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-          <Search className="h-4 w-4 text-amber-600" />
+          <Search className="h-4 w-4 text-amber-400" />
         </div>
         <div>
           <h3 className="text-sm font-bold text-foreground">Evidence Gap Finder</h3>
@@ -206,7 +206,7 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
             className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 hover:border-amber-500/25 transition-colors"
           >
             <div className="w-5 h-5 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-[10px] font-bold text-amber-600">{i + 1}</span>
+              <span className="text-xs font-bold text-amber-400">{i + 1}</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">{gap}</p>
           </div>
@@ -245,7 +245,7 @@ function AuditLoadingPanel({ step }: { step: number }) {
             style={{ animationDuration: '1.2s' }}
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-bold text-brand-600">{Math.min(step + 1, 7)}</span>
+            <span className="text-sm font-bold text-brand-400">{Math.min(step + 1, 7)}</span>
             <span className="text-xs text-muted-foreground/60">/7</span>
           </div>
         </div>
@@ -266,7 +266,7 @@ function AuditLoadingPanel({ step }: { step: number }) {
                 isDone ? 'bg-emerald-500/20' : isActive ? 'bg-brand-500/20' : 'bg-surface-300',
               )}>
                 {isDone ? (
-                  <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                 ) : isActive ? (
                   <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
                 ) : (
@@ -281,7 +281,7 @@ function AuditLoadingPanel({ step }: { step: number }) {
                   {label}
                 </p>
                 {isActive && (
-                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">{detail}</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">{detail}</p>
                 )}
               </div>
             </div>
@@ -374,8 +374,8 @@ export default function AuditPage() {
             <Skeleton className="h-16 w-full" />
           ) : resumes.length === 0 ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
-              <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-              <p className="text-sm text-amber-700 flex-1">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              <p className="text-sm text-amber-400 flex-1">
                 Upload your resume first - ProofScore audits it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
@@ -386,7 +386,7 @@ export default function AuditPage() {
             <div className="space-y-1.5">
               <Label htmlFor="resume-select">Resume to audit *</Label>
               <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-200/60 border border-border/60">
-                <FileText className="h-4 w-4 text-emerald-600 shrink-0" />
+                <FileText className="h-4 w-4 text-emerald-400 shrink-0" />
                 {resumes.length > 1 ? (
                   <select
                     id="resume-select"
@@ -465,8 +465,8 @@ export default function AuditPage() {
               <p className="text-muted-foreground text-sm leading-relaxed mb-4">{result.summary}</p>
               {criticalItems.length > 0 && (
                 <div className="flex items-start gap-2 p-3 bg-red-500/5 border border-red-500/15 rounded-xl">
-                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-600/80">
+                  <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-400/80">
                     {criticalItems.length} critical issue{criticalItems.length > 1 ? 's' : ''} found:{' '}
                     {criticalItems.map((c) => c.name).join(', ')}
                   </p>
@@ -505,7 +505,7 @@ export default function AuditPage() {
           {result.categories.filter((c) => c.score !== null && c.score >= 80).length > 0 && (
             <div className="glass-card p-5 border-emerald-500/15 bg-emerald-500/[0.02]">
               <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                 What is already strong
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -538,7 +538,7 @@ export default function AuditPage() {
 
           {/* Project Roadmap CTA */}
           <Link
-            href="/audit/projects"
+            href="/projects"
             className="flex items-center justify-between p-4 rounded-2xl border border-brand-500/15 bg-brand-500/5 hover:bg-brand-500/10 hover:border-brand-500/25 transition-all group"
           >
             <div>
@@ -549,7 +549,7 @@ export default function AuditPage() {
                 AI suggests real projects tailored to your resume -- with step-by-step build guides.
               </p>
             </div>
-            <ArrowRight className="h-4 w-4 text-brand-600 shrink-0 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-4 w-4 text-brand-400 shrink-0 group-hover:translate-x-1 transition-transform" />
           </Link>
 
           {/* Disclaimer */}

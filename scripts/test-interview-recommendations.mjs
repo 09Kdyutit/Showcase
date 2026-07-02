@@ -57,12 +57,12 @@ console.log('\n── Real weakness drives a real drill recommendation, citing t
     hasAnyCompletedSession: true,
     primaryReadinessGroup: {
       targetRole: 'Product Designer', sessionType: 'behavioral', comparableSessionCount: 3,
-      weakDimensionIds: ['outcome_and_impact'],
-      priority: { id: 'outcome_and_impact', label: 'Outcome and Impact', score: 42, weight: 0.15 },
-      strongest: { id: 'answer_relevance', label: 'Answer Relevance', score: 88, weight: 0.12 },
+      weakDimensionIds: ['competency'],
+      priority: { id: 'competency', label: 'Competency', score: 42, weight: 0.25 },
+      strongest: { id: 'communication', label: 'Communication', score: 88, weight: 0.15 },
       dimensions: [
-        { id: 'outcome_and_impact', label: 'Outcome and Impact', score: 42, weight: 0.15 },
-        { id: 'answer_relevance', label: 'Answer Relevance', score: 88, weight: 0.12 },
+        { id: 'competency', label: 'Competency', score: 42, weight: 0.25 },
+        { id: 'communication', label: 'Communication', score: 88, weight: 0.15 },
       ],
     },
   }), 5)

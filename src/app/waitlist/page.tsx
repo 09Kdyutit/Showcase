@@ -118,7 +118,7 @@ function ProofScoreWidget() {
     <div className="rounded-2xl border border-border bg-secondary p-6 text-left">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-brand-600" />
+          <BarChart3 className="h-4 w-4 text-brand-400" />
           <span className="text-sm font-semibold text-foreground">ProofScore™</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -149,8 +149,8 @@ function ProofScoreWidget() {
         ].map((item) => (
           <div key={item.label}>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] text-muted-foreground">{item.label}</span>
-              <span className="text-[11px] font-semibold text-foreground/80">{item.score}</span>
+              <span className="text-xs text-muted-foreground">{item.label}</span>
+              <span className="text-xs font-semibold text-foreground/80">{item.score}</span>
             </div>
             <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
               <div
@@ -163,10 +163,10 @@ function ProofScoreWidget() {
       </div>
 
       <div className="mt-5 pt-4 border-t border-border">
-        <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
+        <p className="text-xs font-bold text-amber-400/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
         <div className="space-y-1.5">
           {['3 bullets have no measurable outcome', 'Leadership claims lack team size', 'Project depth: missing problem statement'].map((gap) => (
-            <div key={gap} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <div key={gap} className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />
               {gap}
             </div>
@@ -185,25 +185,25 @@ function HowItWorksFlow() {
       icon: FileText,
       title: 'Upload your resume',
       desc: 'Paste text or upload a file. Showcase parses every role, project, and bullet.',
-      color: 'text-brand-600 bg-brand-500/10',
+      color: 'text-brand-400 bg-brand-500/10',
     },
     {
       icon: Sparkles,
       title: 'Generate your portfolio',
       desc: 'AI rewrites your experience into a polished, role-specific proof-of-work portfolio.',
-      color: 'text-violet-600 bg-violet-500/10',
+      color: 'text-violet-400 bg-violet-500/10',
     },
     {
       icon: BarChart3,
       title: 'Run ProofScore',
       desc: 'Get an honest 0-100 audit across 11 dimensions - from proof strength to first impression.',
-      color: 'text-amber-600 bg-amber-500/10',
+      color: 'text-amber-400 bg-amber-500/10',
     },
     {
       icon: Lightbulb,
       title: 'Fix evidence gaps',
       desc: 'See exactly which claims are unsupported, which bullets are vague, and what to do next.',
-      color: 'text-emerald-600 bg-emerald-500/10',
+      color: 'text-emerald-400 bg-emerald-500/10',
     },
   ]
 
@@ -214,7 +214,7 @@ function HowItWorksFlow() {
           key={s.title}
           className="relative rounded-xl border border-border bg-secondary p-6 hover:border-border transition-colors"
         >
-          <div className="absolute -top-3 -left-1 text-[10px] font-black text-muted-foreground tabular-nums">
+          <div className="absolute -top-3 -left-1 text-xs font-black text-muted-foreground tabular-nums">
             {String(i + 1).padStart(2, '0')}
           </div>
           <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-4', s.color)}>
@@ -286,7 +286,7 @@ function SuccessState({
   return (
     <div className="text-center">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-        <Check className="h-8 w-8 text-emerald-600" />
+        <Check className="h-8 w-8 text-emerald-400" />
       </div>
 
       <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
@@ -300,7 +300,7 @@ function SuccessState({
 
       {/* What happens next */}
       <div className="text-left max-w-sm mx-auto mb-10 space-y-4">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">What happens next</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">What happens next</p>
         {[
           "You're on the list. Nothing else required from you.",
           'We work on making Showcase the best it can be.',
@@ -309,7 +309,7 @@ function SuccessState({
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-[9px] font-black text-brand-600">{i + 1}</span>
+              <span className="text-[9px] font-black text-brand-400">{i + 1}</span>
             </div>
             <p className="text-sm text-foreground/65 leading-relaxed">{step}</p>
           </div>
@@ -329,7 +329,7 @@ function SuccessState({
             </div>
             <button
               onClick={copyLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-600 hover:bg-brand-500/20 transition-colors shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-400 hover:bg-brand-500/20 transition-colors shrink-0"
             >
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copied!' : 'Copy'}
@@ -442,7 +442,7 @@ function WaitlistContent() {
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo size="sm" />
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-[10px] font-bold text-brand-600 uppercase tracking-widest">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-400 uppercase tracking-widest">
               Coming Soon
             </span>
           </div>
@@ -477,7 +477,7 @@ function WaitlistContent() {
       <main>
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-24 pb-24 px-6">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
         <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[1100px] h-[700px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-0 w-[600px] h-[500px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
 
@@ -486,7 +486,7 @@ function WaitlistContent() {
 
             {/* Left - copy */}
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-600 mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-400 mb-8">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
                 Waitlist - limited spots
               </div>
@@ -587,7 +587,7 @@ function WaitlistContent() {
                 {/* Email - required */}
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Email <span className="text-brand-600">*</span>
+                    Email <span className="text-brand-400">*</span>
                   </label>
                   <input
                     id="email"
@@ -729,7 +729,7 @@ function WaitlistContent() {
 
                 {/* Error */}
                 {error && (
-                  <p className="text-sm text-red-600/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
+                  <p className="text-sm text-red-400/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
                     {error}
                   </p>
                 )}
@@ -766,7 +766,7 @@ function WaitlistContent() {
       {/* ── How it works ─────────────────────────────────────────── */}
       <section id="how-it-works" className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">How it works</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">How it works</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
             From messy resume to proof-of-work portfolio
           </h2>
@@ -780,7 +780,7 @@ function WaitlistContent() {
       {/* ── Built for ────────────────────────────────────────────── */}
       <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto" ref={audienceSectionRef}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Built for</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Built for</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
             Early-career job seekers who have real work to show but no clear way to prove it
           </h2>
@@ -805,7 +805,7 @@ function WaitlistContent() {
       {/* ── Comparison ───────────────────────────────────────────── */}
       <section className="py-24 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto" ref={comparisonSectionRef}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why not just use ChatGPT or a template?</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why not just use ChatGPT or a template?</p>
           <h2 className="text-3xl font-black text-foreground mb-10 tracking-tight max-w-lg">
             Showcase combines what those tools do separately
           </h2>
@@ -817,7 +817,7 @@ function WaitlistContent() {
               { alt: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
             ].map((row) => (
               <div key={row.alt} className={cn('flex flex-col sm:flex-row gap-2 sm:gap-6 p-5', row.isShowcase && 'bg-brand-500/[0.04]')}>
-                <p className={cn('text-sm font-bold w-44 shrink-0', row.isShowcase ? 'text-brand-600' : 'text-foreground/70')}>{row.alt}</p>
+                <p className={cn('text-sm font-bold w-44 shrink-0', row.isShowcase ? 'text-brand-400' : 'text-foreground/70')}>{row.alt}</p>
                 <p className="text-sm text-foreground/60 leading-relaxed">{row.does}</p>
               </div>
             ))}
@@ -828,7 +828,7 @@ function WaitlistContent() {
       {/* ── Pricing ──────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-6 border-t border-border">
         <div className="max-w-4xl mx-auto" ref={pricingSectionRef}>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
           <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight text-center">
             Simple, honest pricing
           </h2>
@@ -855,7 +855,7 @@ function WaitlistContent() {
               )}
             >
               Annual
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                 Save $30
               </span>
             </button>
@@ -884,8 +884,8 @@ function WaitlistContent() {
             <div className="relative rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/[0.06] to-white/[0.02] p-8 flex flex-col overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" />
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-brand-600 uppercase tracking-widest">Showcase Pro</p>
-                <span className="text-[10px] font-bold text-brand-700 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                <p className="text-xs font-bold text-brand-400 uppercase tracking-widest">Showcase Pro</p>
+                <span className="text-xs font-bold text-brand-300 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
                   {isAnnual ? 'Best value' : 'Most popular'}
                 </span>
               </div>
@@ -895,7 +895,7 @@ function WaitlistContent() {
                     <span className="text-4xl font-black text-foreground">$12.50</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
-                  <p className="text-sm text-emerald-600 font-medium mb-1">$150 billed annually - save $30</p>
+                  <p className="text-sm text-emerald-400 font-medium mb-1">$150 billed annually - save $30</p>
                   <p className="text-sm text-muted-foreground line-through mb-6">$180/year if monthly</p>
                 </>
               ) : (
@@ -910,7 +910,7 @@ function WaitlistContent() {
               <ul className="space-y-3 mb-8 flex-1">
                 {PRO_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
-                    <Check className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
+                    <Check className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -933,7 +933,7 @@ function WaitlistContent() {
         <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why join early</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why join early</p>
               <h2 className="text-3xl font-black text-foreground mb-6 tracking-tight">
                 We are not launching to everyone yet - on purpose.
               </h2>
@@ -957,25 +957,25 @@ function WaitlistContent() {
                   icon: ShieldCheck,
                   title: 'We never invent experience',
                   desc: 'Showcase only uses what you provide. No fake projects, employers, metrics, or certifications - ever.',
-                  color: 'text-emerald-600 bg-emerald-500/10',
+                  color: 'text-emerald-400 bg-emerald-500/10',
                 },
                 {
                   icon: Lock,
                   title: 'You control what gets published',
                   desc: 'Nothing goes live without your review. Every portfolio starts as a private draft.',
-                  color: 'text-brand-600 bg-brand-500/10',
+                  color: 'text-brand-400 bg-brand-500/10',
                 },
                 {
                   icon: FileText,
                   title: 'Resume files stay private by default',
                   desc: 'Uploaded resumes are not publicly accessible. You decide what portions to include.',
-                  color: 'text-violet-600 bg-violet-500/10',
+                  color: 'text-violet-400 bg-violet-500/10',
                 },
                 {
                   icon: Lightbulb,
                   title: 'No dark patterns, no fake scarcity',
                   desc: 'We are not counting down a timer or inventing a waitlist number. Just honest early access.',
-                  color: 'text-amber-600 bg-amber-500/10',
+                  color: 'text-amber-400 bg-amber-500/10',
                 },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-secondary">
@@ -996,7 +996,7 @@ function WaitlistContent() {
       {/* ── FAQ ──────────────────────────────────────────────────── */}
       <section id="faq" className="py-24 px-6 border-t border-border">
         <div className="max-w-2xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
           <h2 className="text-3xl font-black text-foreground mb-12 tracking-tight text-center">Questions answered</h2>
           <FAQAccordion />
         </div>

@@ -5,8 +5,8 @@ import { DimensionReadoutView } from '@/components/interviews/shared/dimension-r
 import type { ReadinessGroup } from '@/lib/interviews/readiness'
 
 const TREND_CONFIG = {
-  up: { icon: TrendingUp, label: 'Improving', className: 'text-emerald-600' },
-  down: { icon: TrendingDown, label: 'Declining', className: 'text-amber-600' },
+  up: { icon: TrendingUp, label: 'Improving', className: 'text-emerald-400' },
+  down: { icon: TrendingDown, label: 'Declining', className: 'text-amber-400' },
   flat: { icon: Minus, label: 'Steady', className: 'text-muted-foreground' },
   insufficient_data: { icon: Minus, label: 'Not enough data for a trend yet', className: 'text-muted-foreground' },
 } as const
@@ -53,7 +53,7 @@ export function ReadinessOverview({ groups, primary }: { groups: ReadinessGroup[
         </div>
 
         <details className="mt-4 border-t border-border/60 pt-3">
-          <summary className="text-xs text-brand-600 cursor-pointer hover:underline">How this score was calculated</summary>
+          <summary className="text-xs text-brand-400 cursor-pointer hover:underline">How this score was calculated</summary>
           <div className="mt-3 text-xs text-muted-foreground space-y-1.5">
             <p>Rubric: <span className="text-foreground">{primary.rubricVersion}</span> for {primary.sessionType.replace(/_/g, ' ')}</p>
             <p>Coaching mode: <span className="text-foreground capitalize">{primary.coachingMode}</span> sessions only - other modes are tracked separately, never blended in.</p>

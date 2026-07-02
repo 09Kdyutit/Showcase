@@ -37,6 +37,7 @@ interface GeminiSetupMessage {
     }
     inputAudioTranscription?: Record<string, never>
     outputAudioTranscription?: Record<string, never>
+    contextWindowCompression?: { slidingWindow: Record<string, never> }
   }
 }
 
@@ -44,6 +45,16 @@ interface GeminiRealtimeInputMessage {
   realtimeInput: {
     audio?: { data: string; mimeType: string }
     text?: string
+  }
+}
+
+// Appended to the conversation as context WITHOUT triggering a model response
+// (turnComplete:false) — used to feed the interviewer silent time cues so it paces
+// itself and only wraps up when told, instead of guessing at the clock.
+interface GeminiClientContentMessage {
+  clientContent: {
+    turns: Array<{ role: string; parts: Array<{ text: string }> }>
+    turnComplete: boolean
   }
 }
 
@@ -136,11 +147,52 @@ export class LiveInterviewEngine {
   private pendingCandidateText = ''
   private segments: LiveTranscriptSegment[] = []
 
+  private durationSeconds = 0
+  private noteTimers: ReturnType<typeof setTimeout>[] = []
+
   constructor(
     private readonly questions: LiveQuestionRef[],
     private readonly completionPhrase: string,
-    private readonly callbacks: LiveInterviewCallbacks
-  ) {}
+    private readonly callbacks: LiveInterviewCallbacks,
+    durationSeconds = 0
+  ) {
+    this.durationSeconds = durationSeconds
+  }
+
+  // Send out-of-band context. The Live API only accepts user-role clientContent turns, so
+  // we use role:'user' with turnComplete:false. The danger is sending one while the model is
+  // waiting with no real answer pending — it then treats the note as the candidate's turn
+  // and fabricates a reply. We avoid that by only ever sending the clock AFTER a real
+  // candidate answer (see maybeSendClock), so the model's next response is anchored to a real
+  // turn. Notes are scrubbed from the transcript as a safety net.
+  private sendContext(text: string): void {
+    if (!this.ws || !this.readyToSendAudio) return
+    const msg: GeminiClientContentMessage = {
+      clientContent: { turns: [{ role: 'user', parts: [{ text }] }], turnComplete: false },
+    }
+    try { this.ws.send(JSON.stringify(msg)) } catch { /* ws may be closed */ }
+  }
+
+  // One explicit wrap signal near the very end. Pacing is otherwise handled by the system
+  // prompt; the platform hard-ends the session at 0:00.
+  private scheduleTimeCues(): void {
+    const d = this.durationSeconds
+    if (!d || d < 120) return
+    this.noteTimers.push(setTimeout(() => {
+      this.sendContext(`[[WRAP NOW]] Time is almost up. Finish your current point in one sentence, then invite any final question from the candidate and WAIT for them. Do not invent their reply. After they respond (or if they stay silent), give your warm one-line closing and stop.`)
+      this.callbacks.onDebugEvent?.('wrap-cue sent')
+    }, Math.max(0, (d - 45)) * 1000))
+  }
+
+  // Remove any telemetry / cues the model may have echoed into its speech so they never
+  // appear in the saved or live transcript.
+  private static scrubSpoken(text: string): string {
+    return text
+      .replace(/\[\[[\s\S]*?\]\]/g, '')
+      .replace(/\[(?:director'?s note|stage direction|wrap now|clock)[\s\S]*?\]/gi, '')
+      .replace(/\((?:quiet )?stage direction[\s\S]*?\)/gi, '')
+      .replace(/\s{2,}/g, ' ')
+  }
 
   preInitAudio(): void {
     if (!this.playbackContext) {
@@ -178,9 +230,11 @@ export class LiveInterviewEngine {
     }
   }
 
-  // wsUrl: the Supabase Edge Function URL (wss://...supabase.co/functions/v1/live-interview-ws?jwt=...&session_id=...)
-  // systemInstruction: built server-side and returned by /live-token; sent to Gemini in the setup message.
-  async connect(wsUrl: string, model: string, systemInstruction: string): Promise<void> {
+  // wsUrl: Gemini's constrained Live endpoint with the ephemeral token appended
+  // (wss://generativelanguage.googleapis.com/...BidiGenerateContentConstrained?access_token=...).
+  // The interviewer config + system instruction are LOCKED into the token server-side,
+  // so the browser only sends a minimal setup naming the model.
+  async connect(wsUrl: string, model: string): Promise<void> {
     if (!this.playbackContext) {
       this.playbackContext = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE })
     }
@@ -196,14 +250,11 @@ export class LiveInterviewEngine {
     ws.onopen = () => {
       this.callbacks.onDebugEvent?.('ws:open')
       // Send setup immediately - server expects the setup message right after open.
+      // Config (system instruction, modalities, transcription, context-window
+      // compression) is locked into the ephemeral token, so the browser cannot alter it
+      // and only needs to name the model here.
       const setupMsg: GeminiSetupMessage = {
-        setup: {
-          model: `models/${model}`,
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          generationConfig: { responseModalities: ['AUDIO'] },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {},
-        },
+        setup: { model: `models/${model}` },
       }
       ws.send(JSON.stringify(setupMsg))
       this.callbacks.onDebugEvent?.('setup:sent')
@@ -249,6 +300,7 @@ export class LiveInterviewEngine {
       realtimeInput: { text: 'Please begin the interview now.' },
     }
     this.ws.send(JSON.stringify(msg))
+    this.scheduleTimeCues()
   }
 
   private handleMessage(msg: GeminiServerMessage) {
@@ -308,7 +360,7 @@ export class LiveInterviewEngine {
     const withoutPending = this.segments.filter((s) => !s.pending)
     const preview: LiveTranscriptSegment = {
       speaker: 'interviewer',
-      content: this.pendingInterviewerText.trim(),
+      content: LiveInterviewEngine.scrubSpoken(this.pendingInterviewerText).trim(),
       startMs: this.elapsedMs(),
       endMs: this.elapsedMs(),
       questionId: this.currentQuestionId(),
@@ -322,7 +374,11 @@ export class LiveInterviewEngine {
     const text = this.pendingInterviewerText
     this.pendingInterviewerText = ''
     this.commitSegment('interviewer', text)
-    if (text.includes(this.completionPhrase)) this.callbacks.onInterviewComplete?.()
+    // End on the normal completion phrase OR the misconduct phrase (a distinctive fragment
+    // of it), so a conduct violation the model catches ends the session immediately.
+    if (text.includes(this.completionPhrase) || /ending this interview now|boundary has been crossed/i.test(text)) {
+      this.callbacks.onInterviewComplete?.()
+    }
   }
 
   private flushCandidate() {
@@ -333,7 +389,7 @@ export class LiveInterviewEngine {
   }
 
   private commitSegment(speaker: 'interviewer' | 'candidate', content: string) {
-    const trimmed = content.trim()
+    const trimmed = (speaker === 'interviewer' ? LiveInterviewEngine.scrubSpoken(content) : content).trim()
     if (!trimmed) return
     const endMs = this.elapsedMs()
     const withoutPending = this.segments.filter((s) => !s.pending)
@@ -404,6 +460,8 @@ export class LiveInterviewEngine {
   }
 
   close() {
+    this.noteTimers.forEach(clearTimeout)
+    this.noteTimers = []
     this.flushInterviewer()
     this.flushCandidate()
     this.stopMicCapture()

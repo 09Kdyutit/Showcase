@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle2, Zap, CreditCard, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,10 @@ import { cn } from '@/lib/utils'
 import type { Subscription } from '@/types/database'
 
 const PRO_FEATURES = [
+  'Live AI voice interviews that adapt to your answers',
+  '20 voice interviews / month, up to 30 min each',
+  'Company-specific interviewers + real interviewer-grade feedback',
+  'Unlimited written practice interviews',
   'Full AI portfolio generation',
   'Complete ProofScore audit (all 11 categories)',
   'Resume bullet improvement',
@@ -24,8 +28,10 @@ const PRO_FEATURES = [
 
 export default function BillingPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [sub, setSub] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
+  const [confirming, setConfirming] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>(
@@ -34,11 +40,53 @@ export default function BillingPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('subscriptions').select('*').maybeSingle().then(({ data }) => {
+    const sessionId = searchParams.get('session_id')
+    let cancelled = false
+
+    const fetchSub = async () =>
+      (await supabase.from('subscriptions').select('*').maybeSingle()).data
+    const isProRow = (s: Subscription | null) => s?.status === 'active' || s?.status === 'trialing'
+
+    async function init() {
+      const data = await fetchSub()
+      if (cancelled) return
       setSub(data)
       setLoading(false)
-    })
-  }, [])
+
+      // Returned from a successful Stripe Checkout. The webhook that flips the row to
+      // 'active' can land a few seconds AFTER this redirect, so poll until it does,
+      // then refresh the server layout (so the sidebar updates to Pro) and clean the
+      // URL. The user never has to refresh manually.
+      if (sessionId && !isProRow(data)) {
+        setConfirming(true)
+        for (let i = 0; i < 15 && !cancelled; i++) {
+          await new Promise((r) => setTimeout(r, 2000))
+          const fresh = await fetchSub()
+          if (cancelled) return
+          if (isProRow(fresh)) {
+            setSub(fresh)
+            setConfirming(false)
+            toast.success('Welcome to Showcase Pro! Your account is upgraded.')
+            router.refresh()
+            router.replace('/billing')
+            return
+          }
+        }
+        if (!cancelled) {
+          setConfirming(false)
+          toast.message('Payment received. Your upgrade is finalizing, this can take a moment.')
+          router.replace('/billing')
+        }
+      } else if (sessionId) {
+        // Already Pro on arrival (webhook beat the redirect) — just tidy the URL.
+        router.refresh()
+        router.replace('/billing')
+      }
+    }
+
+    init()
+    return () => { cancelled = true }
+  }, [searchParams, router])
 
   const isPro = sub?.status === 'active' || sub?.status === 'trialing'
 
@@ -88,6 +136,13 @@ export default function BillingPage() {
         <p className="text-muted-foreground text-sm mt-1">Manage your subscription and payment details.</p>
       </div>
 
+      {confirming && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3">
+          <span className="h-4 w-4 rounded-full border-2 border-brand-400/40 border-t-brand-300 animate-spin shrink-0" />
+          <p className="text-sm text-brand-200">Confirming your upgrade with Stripe. This usually takes a few seconds…</p>
+        </div>
+      )}
+
       {/* Current plan */}
       <Card className="bg-surface-100 border-border">
         <CardHeader>
@@ -101,7 +156,7 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           {isPro ? (
             <>
-              <div className="flex items-center gap-2 text-emerald-600 text-sm">
+              <div className="flex items-center gap-2 text-emerald-400 text-sm">
                 <CheckCircle2 className="h-4 w-4" />
                 Active Pro subscription
               </div>
@@ -138,42 +193,39 @@ export default function BillingPage() {
 
       {/* Upgrade card (if free) */}
       {!isPro && (
-        <div className="relative overflow-hidden rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-950/60 to-surface-100 p-8">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none" />
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-surface-50 p-8">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-400/40 to-transparent" />
           <div className="relative">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <Badge variant="pro" className="mb-3">
-                  <Zap className="h-3 w-3" />
-                  Showcase Pro
-                </Badge>
-                {billingCycle === 'annual' ? (
-                  <>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-foreground">$12.50</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </div>
-                    <p className="text-sm text-emerald-600 font-medium mt-1">$150 billed annually - save $30</p>
-                  </>
-                ) : (
+            <div className="mb-6">
+              <Badge variant="pro" className="mb-3">
+                <Zap className="h-3 w-3" />
+                Showcase Pro
+              </Badge>
+              {billingCycle === 'annual' ? (
+                <>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-foreground">$15</span>
+                    <span className="text-4xl font-bold text-foreground">$12.50</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
-                )}
-              </div>
+                  <p className="text-sm text-emerald-400 font-medium mt-1">$150 billed annually - save $30</p>
+                </>
+              ) : (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-foreground">$15</span>
+                  <span className="text-muted-foreground">/month</span>
+                </div>
+              )}
             </div>
 
             {/* Billing cycle toggle */}
-            <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-xl bg-black/30 border border-white/10">
+            <div className="grid grid-cols-2 gap-1.5 mb-6 p-1 rounded-xl bg-secondary border border-border">
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={cn(
                   'px-3 py-2.5 rounded-lg text-sm font-semibold transition-all',
                   billingCycle === 'monthly'
-                    ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_20px_rgba(99,70,200,0.4)]'
-                    : 'text-brand-700 hover:text-brand-200'
+                    ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 Monthly
@@ -183,14 +235,16 @@ export default function BillingPage() {
                 className={cn(
                   'relative px-3 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2',
                   billingCycle === 'annual'
-                    ? 'bg-gradient-to-r from-brand-600 to-violet-600 text-white shadow-[0_0_20px_rgba(99,70,200,0.4)]'
-                    : 'text-brand-700 hover:text-brand-200'
+                    ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 Annual
                 <span className={cn(
-                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                  billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-brand-500/10 border border-brand-500/30 text-brand-700'
+                  'text-xs font-bold px-1.5 py-0.5 rounded-full',
+                  billingCycle === 'annual'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-brand-950 border border-brand-700/40 text-brand-300'
                 )}>
                   Save $30
                 </span>
@@ -200,7 +254,7 @@ export default function BillingPage() {
             <ul className="space-y-2.5 mb-8">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
-                  <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
                   {f}
                 </li>
               ))}
@@ -210,7 +264,7 @@ export default function BillingPage() {
               size="lg"
               onClick={startCheckout}
               loading={checkoutLoading}
-              className="w-full sm:w-auto gap-2 shadow-glow"
+              className="w-full sm:w-auto gap-2"
             >
               <Zap className="h-4 w-4" />
               Upgrade to Pro - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}

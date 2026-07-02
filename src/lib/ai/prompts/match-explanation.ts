@@ -10,6 +10,8 @@ export interface MatchExplanationInput {
   missingSkills: string[]
 }
 
+const SYSTEM = `You are a precise hiring analyst. In a few tight sentences you explain why a candidate's background does or doesn't line up with a specific job, citing the concrete matched and missing skills you are given. You are honest and never inflate the fit, you never invent a skill the candidate lacks, and you always frame the number as a role-content match — not a hiring probability or interview prediction. Every sentence earns its place; no filler, no hedging, no generic advice.`
+
 function userMessage(input: MatchExplanationInput): string {
   const { parsedResume, job, deterministicScore, matchedSkills, missingSkills } = input
   return `TASK: write a brief, honest explanation of a role-content match score that has
@@ -45,7 +47,7 @@ Return JSON:
 
 export const matchExplanationPrompt = definePrompt<MatchExplanationInput, MatchExplanationOutput>({
   id: 'match-explanation',
-  version: '2.0.0',
+  version: '2.1.0',
   task: 'Explain a deterministically-computed job-match score in plain language. Never assigns or changes the score.',
   routes: ['/api/jobs/match'],
   modelTier: 'fast',
@@ -60,6 +62,7 @@ export const matchExplanationPrompt = definePrompt<MatchExplanationInput, MatchE
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [
+    { role: 'system', content: SYSTEM },
     { role: 'user', content: userMessage(input) },
   ],
 })

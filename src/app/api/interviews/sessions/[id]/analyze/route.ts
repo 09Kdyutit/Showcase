@@ -8,6 +8,7 @@ import { computeInterviewScore } from '@/lib/interviews/scoring'
 import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
 import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExceededError } from '@/lib/interviews/budget'
 import type { InterviewPlan, TranscriptSegment, SessionType, DimensionId } from '@/lib/interviews/schemas'
+import { buildExchanges } from '@/lib/interviews/conversation'
 
 /**
  * Runs (or, if isInterviewAnalysisEnabled() is false, honestly declines to run)
@@ -90,14 +91,27 @@ export async function POST(
     let result
     try {
       await assertWithinBudget(user.id, worstCaseEstimateUsd, await isProUser(user.id))
+      // Coaching must cover EVERY real answer. A live interview asks adaptive questions
+      // that never match the planned list, so we anchor answerAssessments to the actual
+      // conversation exchanges (keyed by interviewer segment id) instead of planned
+      // questions. Fall back to planned questions only for older text sessions with no
+      // reconstructable exchanges.
+      // Cap the per-answer coaching at 16 exchanges: a long (30-min) interview can have 20+
+      // exchanges, and one detailed coaching block each overflows the model's output budget
+      // and fails the whole analysis. The dimension scores still reflect the FULL transcript;
+      // only per-answer coaching is bounded. 16 covers the vast majority of sessions.
+      const exchanges = buildExchanges(transcript).slice(0, 16)
+      const assessable = exchanges.length > 0
+        ? exchanges.map((e, i) => ({ id: e.id, questionText: e.question || 'Opening', orderIndex: i }))
+        : (questions ?? []).map((q) => ({
+            id: q.id as string,
+            questionText: q.question_text as string,
+            orderIndex: q.order_index as number,
+          }))
       result = await runInterviewAnalysis({
         plan, transcript, verifiedResumeEvidence, verifiedPortfolioEvidence,
         targetJobRequirements: [], dimensionIds,
-        questions: (questions ?? []).map((q) => ({
-          id: q.id as string,
-          questionText: q.question_text as string,
-          orderIndex: q.order_index as number,
-        })),
+        questions: assessable,
       })
       await recordCostEvent({
         userId: user.id, sessionId: id, feature: 'analysis', provider: result.meta.provider, model: result.meta.model,
@@ -110,8 +124,9 @@ export async function POST(
         console.error('[interviews/analyze] budget exceeded', err.message)
         return NextResponse.json({ error: err.message, code: 'BUDGET_EXCEEDED' }, { status: 503 })
       }
-      console.error('[interviews/analyze] analysis failed', err instanceof Error ? err.message : err)
-      return NextResponse.json({ error: 'Analysis failed. Your session data is preserved and you can try again.', code: 'ANALYSIS_FAILED' }, { status: 502 })
+      const m = err instanceof Error ? (err.message || String(err)) : String(err)
+      console.error('[interviews/analyze] analysis failed', m, err)
+      return NextResponse.json({ error: `Analysis failed: ${m}`, code: 'ANALYSIS_FAILED' }, { status: 502 })
     }
 
     let scoreResult
@@ -119,8 +134,9 @@ export async function POST(
       scoreResult = computeInterviewScore(sessionType, result.data, transcript)
     } catch (err) {
       await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
-      console.error('[interviews/analyze] scoring rejected the analysis (likely a fabricated citation)', err instanceof Error ? err.message : err)
-      return NextResponse.json({ error: 'Analysis could not be verified and was discarded. Your session data is preserved.', code: 'ANALYSIS_REJECTED' }, { status: 502 })
+      const m = err instanceof Error ? (err.message || String(err)) : String(err)
+      console.error('[interviews/analyze] scoring rejected the analysis', m, err)
+      return NextResponse.json({ error: `Scoring failed: ${m}`, code: 'ANALYSIS_REJECTED' }, { status: 502 })
     }
 
     const { data: evaluation, error: evalError } = await supabase
@@ -150,7 +166,15 @@ export async function POST(
 
     return NextResponse.json({ data: { analysisAvailable: true, evaluation, dimensions: scoreResult.dimensions, model: result.meta.model } })
   } catch (err) {
-    console.error('[interviews/sessions/[id]/analyze POST]', err instanceof Error ? err.message : err)
-    return NextResponse.json({ error: 'Failed to analyze interview session.' }, { status: 500 })
+    const msg = err instanceof Error ? (err.message || String(err)) : String(err)
+    console.error('[interviews/sessions/[id]/analyze POST]', msg, err)
+    // Mark failed so the results page shows a clear "retry" state instead of being stuck on
+    // 'running' (which renders the confusing generic "not available" message). Best-effort.
+    try {
+      const { id } = await params
+      const supabase = await createClient()
+      await supabase.from('interview_sessions').update({ analysis_status: 'failed' }).eq('id', id)
+    } catch { /* ignore */ }
+    return NextResponse.json({ error: `Analysis failed: ${msg}`, code: 'ANALYSIS_ERROR' }, { status: 500 })
   }
 }

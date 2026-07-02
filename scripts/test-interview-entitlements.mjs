@@ -13,17 +13,20 @@ function record(label, ok, detail) {
 }
 
 console.log('── Plan limits match the published Free/Pro policy ──')
-record('Free: 3 sessions/period', FREE_PLAN_LIMITS.sessionsPerPeriod === 3)
+// Pricing model (see plans.ts rationale): text is cheap (~$0.03/session) so the caps
+// are high; voice is the metered cost-bearing resource and the upgrade reason.
+record('Free: 5 text sessions/period', FREE_PLAN_LIMITS.sessionsPerPeriod === 5)
 record('Free: 0 audio sessions (text-only)', FREE_PLAN_LIMITS.audioSessionsPerPeriod === 0)
 record('Free: 8 primary questions max', FREE_PLAN_LIMITS.maxPrimaryQuestions === 8)
 record('Free: 2 adaptive follow-ups max', FREE_PLAN_LIMITS.maxAdaptiveFollowUps === 2)
 record('Free: 1 retry per session (not a period pool)', FREE_PLAN_LIMITS.retriesPerPeriod === 'per_session_one')
-record('Pro: 30 sessions/period', PRO_PLAN_LIMITS.sessionsPerPeriod === 30)
-record('Pro: 15 audio sessions/period', PRO_PLAN_LIMITS.audioSessionsPerPeriod === 15)
+record('Pro: 150 sessions/period (high fair-use cap, not literally unlimited)', PRO_PLAN_LIMITS.sessionsPerPeriod === 150)
+record('Pro: 20 audio sessions/period (metered, margin-safe)', PRO_PLAN_LIMITS.audioSessionsPerPeriod === 20)
 record('Pro: 15 primary questions max', PRO_PLAN_LIMITS.maxPrimaryQuestions === 15)
 record('Pro: 5 adaptive follow-ups max', PRO_PLAN_LIMITS.maxAdaptiveFollowUps === 5)
-record('Pro: 30 retries/period (a real number, not "unlimited")', PRO_PLAN_LIMITS.retriesPerPeriod === 30)
+record('Pro: retries are a real number, not "unlimited"', Number.isFinite(PRO_PLAN_LIMITS.retriesPerPeriod) && PRO_PLAN_LIMITS.retriesPerPeriod === 100)
 record('Pro audio allowance is NOT advertised as unlimited', PRO_PLAN_LIMITS.audioSessionsPerPeriod < 1000)
+record('Pro session cap is a finite fair-use number', Number.isFinite(PRO_PLAN_LIMITS.sessionsPerPeriod))
 
 console.log('\n── Session-type gating ──')
 record('Free can access recruiter_screen', isSessionTypeAllowed('free', 'recruiter_screen'))

@@ -47,10 +47,10 @@ const ACTIVITY = [
 ]
 
 const STATS = [
-  { label: 'ProofScore', value: '84', color: 'text-emerald-600' },
+  { label: 'ProofScore', value: '84', color: 'text-emerald-400' },
   { label: 'Portfolios', value: '2', color: 'text-foreground' },
-  { label: 'Role Fit', value: '91%', color: 'text-brand-600' },
-  { label: 'Profile Complete', value: '87%', color: 'text-violet-600' },
+  { label: 'Role Fit', value: '91%', color: 'text-brand-400' },
+  { label: 'Profile Complete', value: '87%', color: 'text-violet-400' },
 ]
 
 export default function DemoDashboardPage() {
@@ -103,15 +103,15 @@ export default function DemoDashboardPage() {
             <div className="w-full space-y-2 pt-2">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Role Fit</span>
-                <span className="text-emerald-600 font-semibold">91%</span>
+                <span className="text-emerald-400 font-semibold">91%</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Confidence</span>
-                <span className="text-emerald-600 font-semibold">High</span>
+                <span className="text-emerald-400 font-semibold">High</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Gaps Found</span>
-                <span className="text-amber-600 font-semibold">3</span>
+                <span className="text-amber-400 font-semibold">3</span>
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="w-full gap-1.5 mt-1">
@@ -129,21 +129,21 @@ export default function DemoDashboardPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
               </div>
-              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Next Best Action</p>
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Next Best Action</p>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center shrink-0">
-                <TrendingUp className="h-5 w-5 text-brand-600" />
+                <TrendingUp className="h-5 w-5 text-brand-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground mb-1">Strengthen Proof Strength</p>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                   Only 2 of 8 bullets have metrics. Adding 3 more could push your ProofScore from{' '}
-                  <span className="text-amber-600 font-semibold">84 → 91</span>.
+                  <span className="text-amber-400 font-semibold">84 → 91</span>.
                   Recruiters skip unproven claims - numbers make you real.
                 </p>
                 <Button asChild variant="gradient" size="sm" className="gap-1.5">
@@ -167,11 +167,11 @@ export default function DemoDashboardPage() {
                       style={{ width: `${cat.score}%` }}
                     />
                   </div>
-                  <span className={`text-xs font-medium w-6 text-right ${cat.score >= 80 ? 'text-emerald-600' : cat.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <span className={`text-xs font-medium w-6 text-right ${cat.score >= 80 ? 'text-emerald-400' : cat.score >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
                     {cat.score}
                   </span>
-                  {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0" />}
-                  {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600/60 shrink-0" />}
+                  {cat.severity === 'critical' && <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />}
+                  {cat.severity === 'minor' && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400/60 shrink-0" />}
                 </div>
               ))}
             </div>
@@ -189,14 +189,14 @@ export default function DemoDashboardPage() {
           <CardContent className="space-y-3">
             {SETUP_STEPS.map((step) => (
               <Link key={step.label} href={step.href} className="flex items-center gap-3 group">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span className="text-sm text-foreground/80 group-hover:text-foreground transition-colors truncate">{step.label}</span>
               </Link>
             ))}
             <div className="pt-2 border-t border-border/60">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">All steps complete</span>
-                <span className="text-emerald-600 font-semibold">4 / 4</span>
+                <span className="text-emerald-400 font-semibold">4 / 4</span>
               </div>
               <div className="mt-2 h-1.5 bg-surface-300 rounded-full overflow-hidden">
                 <div className="h-full w-full rounded-full bg-emerald-500" />
@@ -253,7 +253,7 @@ export default function DemoDashboardPage() {
                   <p className="text-xs text-foreground/80 leading-relaxed">{item.label}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Clock className="h-3 w-3 text-muted-foreground/50" />
-                    <p className="text-[10px] text-muted-foreground/50">{item.time}</p>
+                    <p className="text-xs text-muted-foreground/50">{item.time}</p>
                   </div>
                 </div>
               </div>

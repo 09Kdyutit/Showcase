@@ -8,6 +8,8 @@ import { matchExplanationPrompt } from './match-explanation'
 import { tailorApplicationPrompt } from './tailor-application'
 import { atsCheckPrompt } from './ats-check'
 import { interviewAnalysisPrompt } from './interview-analysis'
+import { coverLetterPrompt } from './cover-letter'
+import { projectSuggestionsPrompt } from './project-suggestions'
 import type { PromptSpec } from './types'
 
 // Canonical registry - every active production prompt, keyed by its stable id. This is the
@@ -33,6 +35,8 @@ export const REGISTRY = {
   'tailor-application': tailorApplicationPrompt,
   'ats-check': atsCheckPrompt,
   'interview-analysis': interviewAnalysisPrompt,
+  'cover-letter': coverLetterPrompt,
+  'project-suggestions': projectSuggestionsPrompt,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as const satisfies Record<string, PromptSpec<any, any>>
 
@@ -61,5 +65,7 @@ export {
   tailorApplicationPrompt,
   atsCheckPrompt,
   interviewAnalysisPrompt,
+  coverLetterPrompt,
+  projectSuggestionsPrompt,
 }
 export type { PromptSpec, ReviewPolicy } from './types'

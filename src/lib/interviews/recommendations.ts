@@ -108,7 +108,7 @@ export function computeNextActions(input: HubActionInput, limit = 3): Recommende
         actions.push({
           id: `drill_${drills[0].id}`, priority: 3,
           title: `Drill: ${drills[0].label}`,
-          reason: `${DIMENSION_REGISTRY[targetedDimension.id].label} was a low-scoring dimension (${targetedDimension.score}/100) in your last ${g.sessionType.replace(/_/g, ' ')} session.`,
+          reason: `${DIMENSION_REGISTRY[targetedDimension.id]?.label ?? targetedDimension.label} was a low-scoring dimension (${targetedDimension.score}/100) in your last ${g.sessionType.replace(/_/g, ' ')} session.`,
           source: 'real_weakness', destination: '/interviews/drills',
           estimatedMinutes: 2,
         })

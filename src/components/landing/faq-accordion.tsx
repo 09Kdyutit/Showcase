@@ -77,7 +77,7 @@ export function FaqAccordion() {
             <div className={cn(
               'w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-200',
               open === i
-                ? 'bg-brand-500/15 text-brand-600'
+                ? 'bg-brand-500/15 text-brand-400'
                 : 'bg-surface-300 text-muted-foreground/50'
             )}>
               {open === i

@@ -36,6 +36,11 @@ const FREE_LOCKED = [
 ]
 const PRO_FEATURES = [
   'Everything in Free',
+  'Live AI voice interviews - talk to an interviewer that adapts to your answers',
+  '20 voice interviews / month, up to 30 minutes each',
+  'Company-specific interviews (Google, Meta, Stripe & any company)',
+  'Real interviewer-grade feedback after every session',
+  'Unlimited written practice interviews',
   'Full AI portfolio generation from resume',
   'Complete ProofScore audit - all 11 categories',
   'AI resume bullet improvement',
@@ -46,7 +51,6 @@ const PRO_FEATURES = [
   'Personalized job feed with explainable match scores',
   'Tailor Studio - role-specific resume in one click',
   'Truth Ledger - every change traced to your real experience',
-  'Interview evidence brief with STAR story mapping',
   'ATS readiness check and export validation',
   'Full application pipeline with stage tracking',
   'Cover letter and recruiter note generation',
@@ -81,7 +85,7 @@ export default function PricingPage() {
               'px-4 py-3 rounded-xl text-sm font-semibold transition-all',
               !isAnnual
                 ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-glow-sm'
-                : 'text-brand-700 hover:text-brand-200',
+                : 'text-brand-300 hover:text-brand-200',
             )}
           >
             Monthly
@@ -92,13 +96,13 @@ export default function PricingPage() {
               'relative px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2',
               isAnnual
                 ? 'bg-gradient-to-r from-brand-600 to-brand-400 text-white shadow-glow-sm'
-                : 'text-brand-700 hover:text-brand-200',
+                : 'text-brand-300 hover:text-brand-200',
             )}
           >
             Annual
             <span className={cn(
-              'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-              isAnnual ? 'bg-secondary text-foreground' : 'bg-brand-500/10 border border-brand-500/30 text-brand-700',
+              'text-xs font-bold px-1.5 py-0.5 rounded-full',
+              isAnnual ? 'bg-secondary text-foreground' : 'bg-brand-500/10 border border-brand-500/30 text-brand-300',
             )}>
               Save $30
             </span>
@@ -143,7 +147,7 @@ export default function PricingPage() {
             <div className="relative flex flex-col flex-1">
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-brand-600 uppercase tracking-wider">Showcase Pro</p>
+                  <p className="text-sm font-semibold text-brand-400 uppercase tracking-wider">Showcase Pro</p>
                   <Badge variant="pro">{isAnnual ? 'Best value' : 'Most popular'}</Badge>
                 </div>
                 {isAnnual ? (
@@ -152,7 +156,7 @@ export default function PricingPage() {
                       <span className="text-5xl font-bold">$12.50</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
-                    <p className="text-sm text-emerald-600 font-medium mb-1">
+                    <p className="text-sm text-emerald-400 font-medium mb-1">
                       $150 billed annually - save $30 vs monthly
                     </p>
                     <p className="text-sm text-muted-foreground line-through opacity-50">$180/year if monthly</p>
@@ -170,7 +174,7 @@ export default function PricingPage() {
               <ul className="space-y-3 mb-8 flex-1">
                 {PRO_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
-                    <CheckCircle2 className="h-4 w-4 text-brand-600 mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
@@ -184,8 +188,8 @@ export default function PricingPage() {
                   </TrackedLink>
                 </Button>
                 <div className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <p className="text-xs text-emerald-600/90 text-center">7-day refund policy - no questions asked</p>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <p className="text-xs text-emerald-400/90 text-center">7-day refund policy - no questions asked</p>
                 </div>
                 <p className="text-xs text-muted-foreground/60 text-center">Secure payment via Stripe</p>
               </div>

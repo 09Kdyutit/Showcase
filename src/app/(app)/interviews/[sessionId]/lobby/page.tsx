@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { Clock, FileText, Mic, RotateCcw } from 'lucide-react'
+import { Clock, FileText, Mic, RotateCcw, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -95,7 +95,7 @@ export default function InterviewLobbyPage() {
 
       {isResuming && (
         <div className="rounded-xl border border-brand-500/30 bg-brand-500/5 p-4 text-sm text-foreground flex items-start gap-3">
-          <RotateCcw className="h-4 w-4 mt-0.5 text-brand-600 shrink-0" />
+          <RotateCcw className="h-4 w-4 mt-0.5 text-brand-400 shrink-0" />
           <div>
             <p className="font-medium">Resuming your session</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
@@ -116,16 +116,17 @@ export default function InterviewLobbyPage() {
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            {session.planned_question_count} questions, up to {minutes} minutes
+            Up to {minutes} minutes. It runs for the full time you chose, not a fixed number of questions.
           </div>
           {session.delivery_mode === 'voice' ? (
             <>
-              <p>Delivery mode: <span className="text-foreground">Live voice</span> - your AI interviewer speaks each question aloud and listens to your spoken answers. You&apos;ll need to allow microphone access.</p>
+              <p>Delivery mode: <span className="text-foreground">Live voice</span>. Your AI interviewer talks with you, asks follow-ups based on your answers, and keeps the conversation going for the whole session. You&apos;ll need to allow microphone access.</p>
+              <p className="flex items-start gap-2 text-brand-300"><Globe className="h-3.5 w-3.5 shrink-0 mt-0.5" /><span><span className="font-semibold">Speak any language.</span> Answer in English, Spanish, Hindi, Mandarin, Arabic — anything — and your interviewer understands and replies fluently, with zero friction.</span></p>
               <p>A transcript is stored privately and visible only to you. No raw audio recording is stored.</p>
             </>
           ) : (
             <>
-              <p>Delivery mode: <span className="text-foreground">Text</span> - type your answers, no microphone needed.</p>
+              <p>Delivery mode: <span className="text-foreground">Text</span>. Type your answers, no microphone needed.</p>
               <p>Your transcript is stored privately and visible only to you.</p>
             </>
           )}

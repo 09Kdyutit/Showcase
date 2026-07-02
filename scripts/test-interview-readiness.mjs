@@ -18,7 +18,7 @@ function session(overrides) {
     sessionId: crypto.randomUUID(), targetRole: 'Product Designer', sessionType: 'behavioral',
     coachingMode: 'guided', completedAt: new Date().toISOString(),
     evaluation: { overallScore: 70, rubricVersion: RUBRIC_REGISTRY_VERSION, createdAt: new Date().toISOString() },
-    dimensionScores: [{ dimensionId: 'answer_relevance', score: 70 }],
+    dimensionScores: [{ dimensionId: 'communication', score: 70 }],
     ...overrides,
   }
 }

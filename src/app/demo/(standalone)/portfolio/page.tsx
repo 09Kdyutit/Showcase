@@ -40,7 +40,7 @@ const PROJECTS = [
   {
     title: 'Stripe Checkout Redesign',
     accentClass: 'border-brand-500/30 bg-brand-500/[0.02]',
-    metricClass: 'bg-brand-500/10 border-brand-500/20 text-brand-700',
+    metricClass: 'bg-brand-500/10 border-brand-500/20 text-brand-300',
     role: 'Lead Designer',
     year: '2021',
     company: 'Stripe',
@@ -57,7 +57,7 @@ const PROJECTS = [
   {
     title: 'Figma Internal Design System v2',
     accentClass: 'border-violet-500/30 bg-violet-500/[0.02]',
-    metricClass: 'bg-violet-500/10 border-violet-500/20 text-violet-700',
+    metricClass: 'bg-violet-500/10 border-violet-500/20 text-violet-400',
     role: 'Design Lead',
     year: '2023',
     company: 'Figma',
@@ -141,9 +141,9 @@ function getLevelDot(level: string) {
 }
 
 function getLevelLabel(level: string) {
-  if (level === 'Expert') return 'text-brand-600'
-  if (level === 'Advanced') return 'text-violet-600'
-  if (level === 'Proficient') return 'text-emerald-600'
+  if (level === 'Expert') return 'text-brand-400'
+  if (level === 'Advanced') return 'text-violet-400'
+  if (level === 'Proficient') return 'text-emerald-400'
   return 'text-muted-foreground/50'
 }
 
@@ -164,7 +164,7 @@ export default function DemoPortfolioPage() {
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.4)]">
-              <span className="text-white text-[11px] font-bold">{INITIALS}</span>
+              <span className="text-white text-xs font-bold">{INITIALS}</span>
             </div>
             <span className="font-semibold text-sm text-foreground truncate">{NAME}</span>
             <span className="text-xs text-muted-foreground/50 hidden sm:inline truncate">
@@ -194,7 +194,7 @@ export default function DemoPortfolioPage() {
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(40,20,70,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(40,20,70,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
         <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/4 right-0 w-[500px] h-[400px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
 
@@ -208,7 +208,7 @@ export default function DemoPortfolioPage() {
           </div>
 
           {/* Tagline */}
-          <p className="text-xs font-bold text-brand-600 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
+          <p className="text-xs font-bold text-brand-400 uppercase tracking-[0.18em] mb-6 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse inline-block" />
             {TAGLINE}
           </p>
@@ -224,7 +224,7 @@ export default function DemoPortfolioPage() {
           </p>
 
           {/* Featured result */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-700 font-medium mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 text-sm text-emerald-400 font-medium mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             {FEATURED_RESULT}
           </div>
@@ -289,7 +289,7 @@ export default function DemoPortfolioPage() {
       <section className="py-8 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-secondary border border-border">
-            <Globe className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
+            <Globe className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
             <p className="text-sm text-foreground/70 leading-relaxed">{RECRUITER_SUMMARY}</p>
           </div>
         </div>
@@ -298,7 +298,7 @@ export default function DemoPortfolioPage() {
       {/* ── About ──────────────────────────────────────────────── */}
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">About</p>
+          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">About</p>
           <div className="grid lg:grid-cols-[1fr_260px] gap-16 items-start">
             <div className="space-y-6">
               {ABOUT_PARAS.map((para, i) => (
@@ -311,7 +311,7 @@ export default function DemoPortfolioPage() {
               ))}
             </div>
             <div className="space-y-1 pt-1">
-              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-5">Working principles</p>
+              <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-5">Working principles</p>
               {WORKING_PRINCIPLES.map((v) => (
                 <div key={v} className="flex items-start gap-3 py-2.5 border-b border-border last:border-0">
                   <div className="w-1 h-1 rounded-full bg-brand-500/50 shrink-0 mt-2" />
@@ -326,7 +326,7 @@ export default function DemoPortfolioPage() {
       {/* ── Selected Work ──────────────────────────────────────── */}
       <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Selected work</p>
+          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Selected work</p>
           <div className="space-y-6">
             {PROJECTS.map((proj, i) => (
               <article
@@ -339,7 +339,7 @@ export default function DemoPortfolioPage() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-[10px] font-black text-muted-foreground/25 tabular-nums">
+                      <span className="text-xs font-black text-muted-foreground/25 tabular-nums">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <h3 className="text-2xl font-black text-foreground tracking-tight">{proj.title}</h3>
@@ -370,7 +370,7 @@ export default function DemoPortfolioPage() {
                   {proj.tags.slice(0, 6).map((t) => (
                     <span
                       key={t}
-                      className="px-2.5 py-0.5 bg-secondary border border-border rounded-full text-[11px] text-muted-foreground/50"
+                      className="px-2.5 py-0.5 bg-secondary border border-border rounded-full text-xs text-muted-foreground/50"
                     >
                       {t}
                     </span>
@@ -387,7 +387,7 @@ export default function DemoPortfolioPage() {
                     <p className="text-sm text-foreground/55 leading-relaxed">{proj.process}</p>
                   </div>
                   <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.18] p-5">
-                    <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
+                    <p className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
                     <p className="text-sm text-foreground/90 leading-relaxed font-medium">{proj.outcome}</p>
                   </div>
                 </div>
@@ -400,11 +400,11 @@ export default function DemoPortfolioPage() {
       {/* ── Skills ─────────────────────────────────────────────── */}
       <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Skills & expertise</p>
+          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Skills & expertise</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {Object.entries(SKILLS_BY_CATEGORY).map(([category, skills]) => (
               <div key={category}>
-                <p className="text-[10px] font-bold text-muted-foreground/35 uppercase tracking-[0.15em] mb-4">{category}</p>
+                <p className="text-xs font-bold text-muted-foreground/35 uppercase tracking-[0.15em] mb-4">{category}</p>
                 <div className="space-y-3">
                   {skills.map((s) => (
                     <div key={s.name} className="flex items-center justify-between gap-2">
@@ -412,7 +412,7 @@ export default function DemoPortfolioPage() {
                         <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', getLevelDot(s.level))} />
                         <span className="text-sm text-foreground/75">{s.name}</span>
                       </div>
-                      <span className={cn('text-[10px] font-semibold', getLevelLabel(s.level))}>
+                      <span className={cn('text-xs font-semibold', getLevelLabel(s.level))}>
                         {s.level}
                       </span>
                     </div>
@@ -427,7 +427,7 @@ export default function DemoPortfolioPage() {
       {/* ── Experience ─────────────────────────────────────────── */}
       <section className="py-24 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Experience</p>
+          <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-[0.2em] mb-12">Experience</p>
           <div className="space-y-0">
             {EXPERIENCE.map((exp, i) => (
               <div key={exp.company} className="flex gap-8">
@@ -463,7 +463,7 @@ export default function DemoPortfolioPage() {
                     {exp.metrics.map((m) => (
                       <span
                         key={m}
-                        className="text-xs text-emerald-600 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold"
+                        className="text-xs text-emerald-400 bg-emerald-500/8 border border-emerald-500/15 px-2.5 py-1 rounded-lg font-semibold"
                       >
                         {m}
                       </span>

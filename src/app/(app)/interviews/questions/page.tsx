@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useCallback, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { Mic, MicOff, Square, ChevronRight, BookOpen, RotateCcw, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -30,10 +30,10 @@ interface ScoreResult {
 
 function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => void }) {
   const labelColor =
-    result.label === 'Excellent' ? 'text-emerald-600' :
-    result.label === 'Good' ? 'text-brand-700' :
-    result.label === 'Fair' ? 'text-amber-600' :
-    'text-red-600'
+    result.label === 'Excellent' ? 'text-emerald-400' :
+    result.label === 'Good' ? 'text-brand-300' :
+    result.label === 'Fair' ? 'text-amber-400' :
+    'text-red-400'
 
   const dims = [
     { label: 'Clarity & Context', value: result.clarity },
@@ -58,10 +58,10 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
               strokeDasharray={`${2 * Math.PI * 34}`}
               strokeDashoffset={`${2 * Math.PI * 34 * (1 - result.total / 100)}`}
               className={
-                result.total >= 90 ? 'text-emerald-600' :
-                result.total >= 75 ? 'text-brand-600' :
-                result.total >= 55 ? 'text-amber-600' :
-                'text-red-600'
+                result.total >= 90 ? 'text-emerald-400' :
+                result.total >= 75 ? 'text-brand-400' :
+                result.total >= 55 ? 'text-amber-400' :
+                'text-red-400'
               }
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 0.6s ease' }}
@@ -90,7 +90,7 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
 
       {result.strengths.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2">What worked</p>
+          <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">What worked</p>
           <ul className="space-y-1.5">
             {result.strengths.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ function ScoreCard({ result, onRetry }: { result: ScoreResult; onRetry: () => vo
 
       {result.improvements.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2">Strengthen this</p>
+          <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Strengthen this</p>
           <ul className="space-y-1.5">
             {result.improvements.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -144,9 +144,10 @@ function WrittenPracticeDialog({
     setResult(null)
   }
 
-  useEffect(() => {
-    if (!open) { setAnswer(''); setResult(null) }
-  }, [open])
+  function handleClose() {
+    reset()
+    onClose()
+  }
 
   const wordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0
 
@@ -177,7 +178,7 @@ function WrittenPracticeDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose() }}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">Written Practice</DialogTitle>
@@ -202,7 +203,7 @@ function WrittenPracticeDialog({
                   className="min-h-[180px] text-sm resize-none bg-secondary border-border focus:border-brand-500/40"
                 />
                 <div className="flex items-center justify-between">
-                  <span className={cn('text-xs', wordCount < 30 ? 'text-muted-foreground/40' : 'text-emerald-600')}>
+                  <span className={cn('text-xs', wordCount < 30 ? 'text-muted-foreground/40' : 'text-emerald-400')}>
                     {wordCount} {wordCount === 1 ? 'word' : 'words'}{wordCount < 30 ? ` (min 30)` : ''}
                   </span>
                   <Button
@@ -229,6 +230,14 @@ function WrittenPracticeDialog({
 
 type VoiceState = 'idle' | 'recording' | 'processing' | 'done'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSpeechRecognition(): any {
+  if (typeof window === 'undefined') return null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = window as any
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
+}
+
 function SpokenPracticeDialog({
   question,
   open,
@@ -241,31 +250,16 @@ function SpokenPracticeDialog({
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [transcript, setTranscript] = useState('')
   const [result, setResult] = useState<ScoreResult | null>(null)
-  const [hasSpeechAPI, setHasSpeechAPI] = useState(true)
   const [fallbackAnswer, setFallbackAnswer] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
 
-  useEffect(() => {
-    if (!open) {
-      stopRecording()
-      setVoiceState('idle')
-      setTranscript('')
-      setResult(null)
-      setFallbackAnswer('')
-    }
-  }, [open])
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function getSpeechRecognition(): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any
-    return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
-  }
-
-  useEffect(() => {
-    if (!getSpeechRecognition()) setHasSpeechAPI(false)
-  }, [])
+  // SSR-safe client-only capability check without a mount effect
+  const hasSpeechAPI = useSyncExternalStore(
+    () => () => {},
+    () => Boolean(getSpeechRecognition()),
+    () => true,
+  )
 
   function stopRecording() {
     if (recognitionRef.current) {
@@ -309,7 +303,7 @@ function SpokenPracticeDialog({
     setVoiceState('recording')
   }
 
-  const scoreAnswer = useCallback(async (text: string) => {
+  async function scoreAnswer(text: string) {
     if (!question || text.trim().split(/\s+/).length < 10) {
       setVoiceState('idle')
       toast.error('Not enough speech detected -- try again.')
@@ -333,7 +327,7 @@ function SpokenPracticeDialog({
       toast.error('Scoring failed -- check your connection.')
       setVoiceState('idle')
     }
-  }, [question])
+  }
 
   async function handleFallbackSubmit() {
     if (fallbackAnswer.trim().split(/\s+/).length < 30) {
@@ -352,7 +346,7 @@ function SpokenPracticeDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { stopRecording(); onClose() } }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { stopRecording(); reset(); onClose() } }}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">Spoken Practice</DialogTitle>
@@ -367,7 +361,7 @@ function SpokenPracticeDialog({
               <ScoreCard result={result} onRetry={reset} />
             ) : !hasSpeechAPI ? (
               <div className="space-y-3">
-                <p className="text-xs text-amber-600 bg-amber-400/10 rounded-lg px-3 py-2">
+                <p className="text-xs text-amber-400 bg-amber-400/10 rounded-lg px-3 py-2">
                   Voice input is not supported in this browser. Type your spoken answer below.
                 </p>
                 <Textarea
@@ -457,7 +451,7 @@ function QuestionCard({
   return (
     <div className="glass-card p-5 flex flex-col gap-4 group card-3d">
       <div className="flex items-start gap-3">
-        <span className="shrink-0 w-6 h-6 rounded-lg bg-secondary border border-border flex items-center justify-center text-[10px] text-muted-foreground/50 font-mono mt-0.5">
+        <span className="shrink-0 w-6 h-6 rounded-lg bg-secondary border border-border flex items-center justify-center text-xs text-muted-foreground/50 font-mono mt-0.5">
           {index + 1}
         </span>
         <p className="text-sm font-medium text-foreground/90 leading-relaxed flex-1">{question.text}</p>
@@ -516,7 +510,7 @@ export default function QuestionLibraryPage() {
             Interview Lab
           </Link>
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-brand-600" />
+            <BookOpen className="h-4 w-4 text-brand-400" />
             <h1 className="text-sm font-semibold">Question Library</h1>
           </div>
           <p className="text-xs text-muted-foreground/50 mt-1">72 behavioral questions, AI-scored</p>
@@ -537,7 +531,7 @@ export default function QuestionLibraryPage() {
                 )}
               >
                 <span>{cat.label}</span>
-                <span className={cn('text-[11px] font-mono', activeCategory === cat.id ? 'text-brand-700' : 'text-muted-foreground/30')}>
+                <span className={cn('text-xs font-mono', activeCategory === cat.id ? 'text-brand-300' : 'text-muted-foreground/30')}>
                   {count}
                 </span>
               </button>

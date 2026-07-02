@@ -26,11 +26,6 @@ const SESSION_TYPES = [
 
 const FREE_DIFFICULTIES = ['foundational', 'standard'] as const
 const DIFFICULTIES = ['foundational', 'standard', 'challenging'] as const
-const LENGTHS = [
-  { value: 'quick', label: 'Quick', desc: '~5-7 min' },
-  { value: 'standard', label: 'Standard', desc: '~12-15 min' },
-  { value: 'full', label: 'Full', desc: 'maximum allowed' },
-] as const
 
 type DeliveryMode = 'voice' | 'text'
 
@@ -51,7 +46,8 @@ export default function NewInterviewPage() {
     isValidSessionType(prefillSessionType) ? prefillSessionType : 'behavioral'
   )
   const [difficulty, setDifficulty] = useState<typeof DIFFICULTIES[number]>('standard')
-  const [sessionLength, setSessionLength] = useState<typeof LENGTHS[number]['value']>('quick')
+  // Every interview is a fixed 10 minutes — no selection.
+  const durationMinutes = 10
   const [targetRole, setTargetRole] = useState(searchParams.get('targetRole') ?? '')
   const [targetCompany, setTargetCompany] = useState(searchParams.get('targetCompany') ?? '')
   const [submitting, setSubmitting] = useState(false)
@@ -93,7 +89,7 @@ export default function NewInterviewPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionType, difficulty, sessionLength, targetRole: targetRole.trim(),
+          sessionType, difficulty, durationMinutes, targetRole: targetRole.trim(),
           targetCompany: targetCompany.trim() || undefined,
           deliveryMode, coachingMode: 'guided',
           savedJobId: savedJobId ?? undefined,
@@ -146,12 +142,12 @@ export default function NewInterviewPage() {
               </div>
               {voiceAvailable ? (
                 !isPro && (
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-brand-700 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-xs font-medium uppercase tracking-wide text-brand-300 bg-brand-500/15 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Pro
                   </span>
                 )
               ) : (
-                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground bg-surface-200 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground bg-surface-200 px-2 py-0.5 rounded-full">
                   Coming Soon
                 </span>
               )}
@@ -228,7 +224,7 @@ export default function NewInterviewPage() {
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">{t.label}</p>
                   {t.pro && (
-                    <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-brand-700 bg-brand-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                    <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-brand-300 bg-brand-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                       <Sparkles className="h-2.5 w-2.5" /> Pro
                     </span>
                   )}
@@ -259,7 +255,7 @@ export default function NewInterviewPage() {
                 )}
               >
                 <span className="capitalize">{d}</span>
-                {locked && <span className="block text-[9px] text-brand-700 font-semibold uppercase">Pro</span>}
+                {locked && <span className="block text-[9px] text-brand-300 font-semibold uppercase">Pro</span>}
               </button>
             )
           })}
@@ -268,21 +264,11 @@ export default function NewInterviewPage() {
 
       <Card>
         <CardHeader><CardTitle className="text-base">Session length</CardTitle></CardHeader>
-        <CardContent className="flex gap-2">
-          {LENGTHS.map((l) => (
-            <button
-              key={l.value}
-              type="button"
-              onClick={() => setSessionLength(l.value)}
-              className={cn(
-                'flex-1 text-sm py-2 rounded-xl border transition-all',
-                sessionLength === l.value ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
-              )}
-            >
-              <span className="font-medium">{l.label}</span>
-              <span className="block text-[11px] opacity-70">{l.desc}</span>
-            </button>
-          ))}
+        <CardContent>
+          <div className="flex items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3">
+            <span className="text-2xl font-bold text-foreground tabular-nums">10<span className="text-sm font-medium text-muted-foreground ml-1">min</span></span>
+            <p className="text-sm text-muted-foreground">Every interview runs a focused 10 minutes — long enough to go deep, short enough to stay sharp.</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -291,7 +277,7 @@ export default function NewInterviewPage() {
         {deliveryMode === 'voice' ? (
           <>
             <p>Your microphone is used only to send your spoken answers to the AI interviewer in real time. A transcript of both sides is saved privately for you; no raw audio recording is stored.</p>
-            {!isPro && <p className="text-brand-700">Live Interview requires Pro - you can pick it now and upgrade before you start.</p>}
+            {!isPro && <p className="text-brand-300">Live Interview requires Pro - you can pick it now and upgrade before you start.</p>}
           </>
         ) : (
           <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>

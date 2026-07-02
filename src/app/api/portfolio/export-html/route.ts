@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { PortfolioContent } from '@/types/database'
 import { coerceThemeId } from '@/lib/portfolio/themes'
+import { PRESETS } from '@/components/portfolio/themes/presets'
+
+// Accent + dark/light for the 30 preset-engine themes, derived from their configs so the
+// static HTML export matches the live render's palette without a second source of truth.
+const PRESET_ACCENTS: Record<string, string> = Object.fromEntries(PRESETS.map((p) => [p.id, p.palette.accent]))
+const PRESET_DARK_IDS: string[] = PRESETS.filter((p) => p.mode === 'dark').map((p) => p.id)
 
 // POST /api/portfolio/export-html
 // Body: { portfolioId: string }
@@ -90,8 +96,8 @@ function generatePortfolioHtml(
     'clean-editorial': '#18181b',
     'magazine': '#e85d2a',
   }
-  const accent = (content as { accentColor?: string }).accentColor ?? themeAccents[theme] ?? '#e91e8c'
-  const isDark = ['cinematic-dark','executive-dark','neon-night','glassmorphism','bento','creative-case-study'].includes(theme)
+  const accent = (content as { accentColor?: string }).accentColor ?? themeAccents[theme] ?? PRESET_ACCENTS[theme] ?? '#e91e8c'
+  const isDark = ['cinematic-dark','executive-dark','neon-night','glassmorphism','bento','creative-case-study'].includes(theme) || PRESET_DARK_IDS.includes(theme)
 
   const bg = isDark ? '#050508' : '#fafafa'
   const textPrimary = isDark ? '#ffffff' : '#0a0a0a'

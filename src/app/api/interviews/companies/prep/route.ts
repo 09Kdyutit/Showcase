@@ -12,6 +12,42 @@ export interface GeneratedCompanyData {
   questions: { id: string; text: string; category: string; tip: string }[]
 }
 
+// Generic-but-genuinely-useful prep, returned whenever AI generation is unavailable
+// (env not configured) OR fails for any reason. The "Get prep" button must always
+// return usable data — it never hard-fails to a 500.
+function genericPrep(companyName: string) {
+  return {
+    name: companyName,
+    category: 'Other',
+    interviewStyle: `${companyName} uses behavioral interviews focused on your past experience and problem-solving approach. Expect STAR-format behavioral questions and a role-specific technical assessment.`,
+    keyFocus: [
+      'Culture fit and team collaboration',
+      'Relevant domain expertise for the role',
+      'Problem-solving approach and communication',
+      'Past impact and measurable outcomes',
+      'Growth mindset and learning orientation',
+    ],
+    uniqueTips: [
+      `Research ${companyName}'s mission, recent news, and product direction before your interview`,
+      'Prepare 3-4 strong STAR stories you can adapt to different behavioral questions',
+      'Know why you want to work at this company specifically -- generic answers fail',
+      'Ask thoughtful questions about the team, product roadmap, and success metrics',
+    ],
+    questions: [
+      { id: 'gen-001', text: `Why do you want to work at ${companyName} specifically?`, category: 'Motivation', tip: 'Be specific to this company -- their mission, product, or market position. Generic answers signal you applied everywhere.' },
+      { id: 'gen-002', text: 'Tell me about the most impactful project you have worked on. What was your specific contribution?', category: 'Impact', tip: 'Lead with the outcome first, then explain what you did. Quantify the impact whenever possible.' },
+      { id: 'gen-003', text: 'Describe a time you had to learn something new quickly to deliver on a deadline.', category: 'Adaptability', tip: 'Show the process of fast learning -- what you did, how you validated your understanding, and what you shipped.' },
+      { id: 'gen-004', text: 'Tell me about a conflict with a colleague and how you resolved it.', category: 'Collaboration', tip: 'Show empathy AND resolution. Interviewers want to see you can navigate interpersonal friction constructively.' },
+      { id: 'gen-005', text: 'Describe a failure and what you learned from it.', category: 'Self-Awareness', tip: 'Own the failure clearly. Companies penalize people who deflect or minimize -- they want to see real reflection and growth.' },
+      { id: 'gen-006', text: 'How do you prioritize when you have more work than you can complete?', category: 'Prioritization', tip: 'Show a framework, not just instinct. Talk about stakeholder communication, impact vs effort, and explicit tradeoffs.' },
+      { id: 'gen-007', text: 'Tell me about a time you had to influence someone without formal authority.', category: 'Influence', tip: 'Show you understand what motivates others. Lead with data, shared goals, and credibility -- not persistence.' },
+      { id: 'gen-008', text: 'Where do you want to be in 3-5 years, and how does this role fit that path?', category: 'Career Goals', tip: 'Show ambition and self-awareness. Connect your growth trajectory to what you can contribute at this company.' },
+    ],
+    curated: false,
+    generated: false,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -39,47 +75,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true') {
-      return NextResponse.json({
-        data: {
-          name: companyName,
-          category: 'Other',
-          interviewStyle: `${companyName} uses behavioral interviews focused on your past experience and problem-solving approach. Expect STAR-format behavioral questions and role-specific technical assessment.`,
-          keyFocus: [
-            'Culture fit and team collaboration',
-            'Relevant domain expertise for the role',
-            'Problem-solving approach and communication',
-            'Past impact and measurable outcomes',
-            'Growth mindset and learning orientation',
-          ],
-          uniqueTips: [
-            `Research ${companyName}'s mission, recent news, and product direction before your interview`,
-            'Prepare 3-4 strong STAR stories you can adapt to different behavioral questions',
-            'Know why you want to work at this company specifically -- generic answers fail',
-            'Ask thoughtful questions about the team, product roadmap, and success metrics',
-          ],
-          questions: [
-            { id: 'gen-001', text: `Why do you want to work at ${companyName} specifically?`, category: 'Motivation', tip: 'Be specific to this company -- their mission, product, or market position. Generic answers signal you applied everywhere.' },
-            { id: 'gen-002', text: 'Tell me about the most impactful project you have worked on. What was your specific contribution?', category: 'Impact', tip: 'Lead with the outcome first, then explain what you did. Quantify the impact whenever possible.' },
-            { id: 'gen-003', text: 'Describe a time you had to learn something new quickly to deliver on a deadline.', category: 'Adaptability', tip: 'Show the process of fast learning -- what you did, how you validated your understanding, and what you shipped.' },
-            { id: 'gen-004', text: 'Tell me about a conflict with a colleague and how you resolved it.', category: 'Collaboration', tip: 'Show empathy AND resolution. Interviewers want to see you can navigate interpersonal friction constructively.' },
-            { id: 'gen-005', text: 'Describe a failure and what you learned from it.', category: 'Self-Awareness', tip: 'Own the failure clearly. Companies penalize people who deflect or minimize -- they want to see real reflection and growth.' },
-            { id: 'gen-006', text: 'How do you prioritize when you have more work than you can complete?', category: 'Prioritization', tip: 'Show a framework, not just instinct. Talk about stakeholder communication, impact vs effort, and explicit tradeoffs.' },
-            { id: 'gen-007', text: 'Tell me about a time you had to influence someone without formal authority.', category: 'Influence', tip: 'Show you understand what motivates others. Lead with data, shared goals, and credibility -- not persistence.' },
-            { id: 'gen-008', text: 'Where do you want to be in 3-5 years, and how does this role fit that path?', category: 'Career Goals', tip: 'Show ambition and self-awareness. Connect your growth trajectory to what you can contribute at this company.' },
-          ],
-          curated: false,
-          generated: false,
-        },
-      })
+      return NextResponse.json({ data: genericPrep(companyName) })
     }
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
+    const systemInstruction = [
+      'You are an expert career coach and technical recruiter with deep, current knowledge of how specific tech companies actually interview.',
+      'You give candidates accurate, specific, non-generic prep. You sharply distinguish what is genuinely known about a company from reasonable inference: for well-known companies, use real, widely-documented patterns; for lesser-known ones, infer from their industry, size, and stage and keep claims general rather than inventing specifics.',
+      'You NEVER fabricate hard facts you are unsure of -- no invented interviewer names, no made-up exact round counts, no fake Glassdoor quotes, no fictional "leadership principles" a company doesn\'t actually have. When unsure, you give sound role- and stage-appropriate guidance instead of a confident fabrication.',
+      'Every focus area, tip, and question is specific and actionable -- something a candidate could prepare against tonight.',
+    ].join(' ')
+
     const prompt = [
-      `You are an expert career coach and recruiter with deep knowledge of tech company interview processes.`,
-      `Generate detailed, accurate interview preparation data for: ${companyName}`,
+      `Generate accurate, specific interview-preparation data for: ${companyName}`,
       '',
-      'Based on what you know about this company (its culture, values, interview reputation, glassdoor feedback, and hiring patterns), generate:',
+      'Use what is genuinely known about this company -- its culture, values, interview format, and documented hiring patterns. Where you lack reliable specifics, infer responsibly from its industry, size, and stage, and keep those points general rather than inventing details.',
       '',
       'Respond ONLY with valid JSON, no markdown:',
       '{',
@@ -103,37 +114,50 @@ export async function POST(request: NextRequest) {
       'Do NOT be generic -- every data point should be specific to this company.',
     ].join('\n')
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    })
-
-    const raw = response.text?.trim() ?? ''
-    const jsonStr = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
-
-    let parsed: Omit<GeneratedCompanyData, 'name'>
+    // Any AI failure (provider error, quota, safety block, or unparseable output) must
+    // degrade to usable generic prep, never a 500 the user sees as a broken button.
     try {
-      parsed = JSON.parse(jsonStr)
-    } catch {
-      console.error('[companies/prep] JSON parse failed for', companyName, raw.slice(0, 200))
-      return NextResponse.json({ error: 'Could not generate prep data -- try again' }, { status: 500 })
-    }
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: { systemInstruction, temperature: 0.4, responseMimeType: 'application/json' },
+      })
 
-    return NextResponse.json({
-      data: {
-        name: companyName,
-        category: parsed.category ?? 'Other',
-        interviewStyle: parsed.interviewStyle ?? '',
-        keyFocus: parsed.keyFocus ?? [],
-        uniqueTips: parsed.uniqueTips ?? [],
-        questions: (parsed.questions ?? []).slice(0, 10).map((q, i) => ({
-          ...q,
+      const raw = response.text?.trim() ?? ''
+      const jsonStr = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
+      const parsed = JSON.parse(jsonStr) as Omit<GeneratedCompanyData, 'name'>
+
+      const questions = (parsed.questions ?? [])
+        .filter((q) => q && typeof q.text === 'string' && q.text.trim())
+        .slice(0, 10)
+        .map((q, i) => ({
           id: q.id ?? `gen-${String(i + 1).padStart(3, '0')}`,
-        })),
-        curated: false,
-        generated: true,
-      },
-    })
+          text: q.text,
+          category: q.category ?? 'General',
+          tip: q.tip ?? '',
+        }))
+
+      // If the model returned something unusable, fall back rather than show an empty page.
+      if (!parsed.interviewStyle || questions.length === 0) {
+        return NextResponse.json({ data: genericPrep(companyName) })
+      }
+
+      return NextResponse.json({
+        data: {
+          name: companyName,
+          category: parsed.category ?? 'Other',
+          interviewStyle: parsed.interviewStyle,
+          keyFocus: parsed.keyFocus ?? [],
+          uniqueTips: parsed.uniqueTips ?? [],
+          questions,
+          curated: false,
+          generated: true,
+        },
+      })
+    } catch (aiErr) {
+      console.error('[companies/prep] AI generation failed for', companyName, aiErr)
+      return NextResponse.json({ data: genericPrep(companyName) })
+    }
   } catch (err) {
     console.error('[companies/prep]', err)
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })

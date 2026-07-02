@@ -35,7 +35,7 @@ export function Navbar() {
       <div
         className={cn(
           'max-w-5xl mx-auto rounded-full border border-border bg-card/95 backdrop-blur-xl transition-shadow duration-300',
-          scrolled ? 'shadow-[0_8px_24px_rgba(40,20,70,0.08)]' : 'shadow-[0_1px_2px_rgba(40,20,70,0.04)]'
+          scrolled ? 'shadow-[0_8px_32px_oklch(0%_0_0/0.5)]' : 'shadow-[0_1px_3px_oklch(0%_0_0/0.25)]'
         )}
       >
         <div className="px-4 sm:px-5 h-14 flex items-center justify-between">
@@ -96,7 +96,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden max-w-5xl mx-auto mt-2 rounded-3xl border border-border bg-card/98 backdrop-blur-xl shadow-[0_8px_24px_rgba(40,20,70,0.08)] p-4 flex flex-col gap-1.5">
+        <div className="md:hidden max-w-5xl mx-auto mt-2 rounded-3xl border border-border bg-card/98 backdrop-blur-xl shadow-[0_8px_32px_oklch(0%_0_0/0.5)] p-4 flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <Link
               key={link.href}

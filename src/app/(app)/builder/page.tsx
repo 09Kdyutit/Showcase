@@ -52,7 +52,7 @@ export default async function BuilderPage() {
       {portfolios.length === 0 ? (
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center gap-5">
           <div className="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center">
-            <Plus className="h-8 w-8 text-brand-600" />
+            <Plus className="h-8 w-8 text-brand-400" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-2">No portfolios yet</h2>

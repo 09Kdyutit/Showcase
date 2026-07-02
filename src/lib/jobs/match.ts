@@ -13,7 +13,8 @@ export const SENIORITY_RANK: Record<Seniority, number> = {
 
 function extractYearsFromRequirements(requirements: string[]): number | null {
   for (const req of requirements) {
-    const m = req.match(/(\d+)\+?\s*(?:-|-)\s*(\d+)?\s*year/i) ?? req.match(/(\d+)\+?\s*year/i)
+    // Ranges may use hyphen, en dash, em dash, or "to" ("2-4", "2–4", "2 to 4")
+    const m = req.match(/(\d+)\+?\s*(?:[-–—]|to)\s*(\d+)?\s*year/i) ?? req.match(/(\d+)\+?\s*year/i)
     if (m) return parseInt(m[1], 10)
   }
   return null

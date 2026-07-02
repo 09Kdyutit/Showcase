@@ -112,7 +112,7 @@ export default function DrillsPage() {
                     {d.record?.best_score != null && <Badge variant="info">{d.record.best_score}</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1.5">{d.objective}</p>
-                  <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> ~{d.timeLimitSeconds}s</span>
                     {d.record && <span>{d.record.attempt_count} attempt{d.record.attempt_count === 1 ? '' : 's'}</span>}
                   </div>
@@ -151,7 +151,7 @@ export default function DrillsPage() {
                     <CardContent className="space-y-2">
                       {result.checks.map((c, i) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
-                          {c.passed ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />}
+                          {c.passed ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />}
                           <span className={c.passed ? 'text-foreground' : 'text-muted-foreground'}>{c.label}</span>
                         </div>
                       ))}

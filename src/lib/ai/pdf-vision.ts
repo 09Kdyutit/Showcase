@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai'
 // or garbled (multi-column designer layouts where the text stream order is wrong).
 // Requires GEMINI_API_KEY and GEMINI_PRIVATE_DATA_ENABLED=true - if either is absent, returns ''.
 export async function extractPdfViaVision(buffer: Buffer): Promise<string> {
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true') {
+  if (!process.env.GEMINI_API_KEY) {
     return ''
   }
 
@@ -14,7 +14,7 @@ export async function extractPdfViaVision(buffer: Buffer): Promise<string> {
   const base64 = buffer.toString('base64')
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-lite',
+    model: 'gemini-2.5-flash',
     contents: [
       {
         role: 'user',

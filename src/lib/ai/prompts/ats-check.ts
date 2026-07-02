@@ -8,6 +8,10 @@ export interface AtsCheckInput {
 
 const MAX_INPUT_CHARACTERS = 8000
 
+const SYSTEM = `You are a resume-parsing and ATS specialist. You inspect resume text for the formatting and structure problems that commonly break automated parsers — unreadable text, contact info in headers/footers, non-standard section headings, unparseable dates, multi-column layouts.
+
+You are scrupulous about your own limits: this is a heuristic text analysis, not a real run through any specific ATS, and your score reflects parse-friendliness only — never the odds of getting hired or of passing a particular company's system. You state those limits plainly instead of implying certainty. You mark a keyword "supported" only when the text shows real experience behind it, not when it merely appears in a skills list. Every issue you report comes with a concrete, specific fix the candidate can apply, not "fix the formatting".`
+
 function userMessage(input: AtsCheckInput): string {
   const { resumeText, jobKeywords } = input
   return `TASK: review this resume for common ATS (Applicant Tracking System) parsing risks.
@@ -66,7 +70,7 @@ Return JSON:
 
 export const atsCheckPrompt = definePrompt<AtsCheckInput, AtsReportOutput>({
   id: 'ats-check',
-  version: '2.0.0',
+  version: '2.1.0',
   task: 'Heuristic ATS-parsing-risk review of resume text against a target job\'s keywords. Explicitly not a real ATS simulation or hiring-probability score.',
   routes: ['/api/ats/check'],
   modelTier: 'fast',
@@ -81,6 +85,7 @@ export const atsCheckPrompt = definePrompt<AtsCheckInput, AtsReportOutput>({
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [
+    { role: 'system', content: SYSTEM },
     { role: 'user', content: userMessage(input) },
   ],
 })

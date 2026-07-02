@@ -2,7 +2,7 @@ import 'server-only'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type { z } from 'zod'
-import { openai, MODELS, modelSupportsTemperature, type ModelTier } from './openai'
+import { openai, MODELS, modelSupportsTemperature, isReasoningModel, type ModelTier } from './openai'
 import type { PromptSpec } from './prompts/types'
 
 const IS_MOCK_MODE = !process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'development'
@@ -132,6 +132,9 @@ async function callStructuredWithUsage<T>(
       text: { format: zodTextFormat(schema, schemaName) },
       max_output_tokens: options.maxOutputTokens ?? 4096,
       ...(modelSupportsTemperature(model) ? { temperature: options.temperature ?? 0.3 } : {}),
+      // Reasoning models stay smart but answer fast at 'low' effort — avoids the multi-second
+      // "thinking" delay that made post-session grading feel sluggish.
+      ...(isReasoningModel(model) ? { reasoning: { effort: 'low' as const } } : {}),
       store: false,
     })
   } catch (err) {

@@ -69,7 +69,7 @@ export default function DemoBillingPage() {
           </div>
 
           <div className="flex items-start gap-2 mb-5 p-3 rounded-xl bg-surface-200/40">
-            <Shield className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+            <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground/80">
               Secure billing via Stripe - your card is never stored by Showcase.
             </p>
@@ -95,7 +95,7 @@ export default function DemoBillingPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-foreground">{item.used}</span>
                 <span className="text-xs text-muted-foreground">of</span>
-                <Badge variant="pro" className="text-[10px] px-2">{item.limit}</Badge>
+                <Badge variant="pro" className="text-xs px-2">{item.limit}</Badge>
               </div>
             </div>
           ))}
@@ -111,7 +111,7 @@ export default function DemoBillingPage() {
           <div className="grid sm:grid-cols-2 gap-2.5">
             {PRO_FEATURES.map((feature) => (
               <div key={feature} className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                 <span className="text-sm text-foreground/80">{feature}</span>
               </div>
             ))}
@@ -133,7 +133,7 @@ export default function DemoBillingPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button className="text-xs text-brand-600 hover:text-brand-700 transition-colors font-medium">
+          <button className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium">
             Contact support
           </button>
           <span className="text-muted-foreground/30 text-xs">·</span>

@@ -20,6 +20,7 @@ export interface LiveTokenRequest {
   userId: string
   maxDurationSeconds: number
   targetRole: string
+  targetCompany?: string | null
   questions: LiveInterviewQuestion[]
 }
 
@@ -42,7 +43,10 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
 
   const client = getInterviewGeminiTokenClient()
   const model = getLiveModel()
-  const systemInstruction = buildLiveInterviewerSystemInstruction(request.questions, request.targetRole)
+  const systemInstruction = buildLiveInterviewerSystemInstruction(request.questions, request.targetRole, {
+    company: request.targetCompany,
+    durationMinutes: Math.round(request.maxDurationSeconds / 60),
+  })
 
   // A new-session window of maxDurationSeconds (capped, same hard ceiling
   // getMaxSessionMinutes() enforces everywhere else) plus a small buffer for the
@@ -69,9 +73,12 @@ export async function createLiveEphemeralToken(request: LiveTokenRequest): Promi
           model,
           config: {
             responseModalities: [Modality.AUDIO],
-            systemInstruction,
+            systemInstruction: { parts: [{ text: systemInstruction }] },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
+            // Keeps the session alive for the full interview instead of terminating
+            // abruptly when the context window fills.
+            contextWindowCompression: { slidingWindow: {} },
           },
         },
         lockAdditionalFields: [],

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { extractPdfViaVision, isGarbledPdfText } from '@/lib/ai/pdf-vision'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB - stays under typical serverless body limits
 
@@ -76,31 +75,25 @@ export async function POST(request: NextRequest) {
       }
 
       // Trigger vision fallback if:
-      //   a) text layer is nearly empty (scanned / outlined-font PDF), OR
-      //   b) text looks garbled (multi-column designer layout - pdf-parse reads in render
-      //      order, not logical reading order, producing a jumble of tiny fragments).
-      // Vision reads the page as an image, so it handles both cases perfectly.
+      //   a) text layer is thin / empty (scanned or outlined-font PDF), OR
+      //   b) text looks garbled (multi-column designer layout where pdf-parse reads in
+      //      render order producing a jumble of tiny fragments).
+      // Vision is infrastructure, not a premium feature — no rate limit gate here.
       const cleanedText = text.replace(/\n{3,}/g, '\n\n').trim()
-      if (cleanedText.length < 150 || isGarbledPdfText(cleanedText)) {
-        const isPro = await isProUser(user.id)
-        const rl = await checkRateLimit(user.id, 'resume_pdf_vision', isPro)
-        if (rl.allowed) {
-          try {
-            const visionText = await withTimeout(extractPdfViaVision(buffer))
-            if (visionText.length >= 50) {
-              text = visionText
-              usedVisionFallback = true
-              await supabase.from('usage_events').insert({
-                user_id: user.id,
-                event_name: 'resume_pdf_vision',
-                metadata: { is_pro: isPro },
-              })
-            }
-          } catch (visionErr) {
-            console.error('[resume/extract-text] vision fallback also failed:', visionErr instanceof Error ? visionErr.message : visionErr)
+      if (cleanedText.length < 300 || isGarbledPdfText(cleanedText)) {
+        try {
+          const visionText = await withTimeout(extractPdfViaVision(buffer))
+          if (visionText.length >= 50) {
+            text = visionText
+            usedVisionFallback = true
+            await supabase.from('usage_events').insert({
+              user_id: user.id,
+              event_name: 'resume_pdf_vision',
+              metadata: { triggered_by: cleanedText.length < 300 ? 'thin_text' : 'garbled_text', text_before: cleanedText.length },
+            })
           }
-        } else {
-          console.error('[resume/extract-text] vision fallback skipped - rate limited:', rl.reason)
+        } catch (visionErr) {
+          console.error('[resume/extract-text] vision fallback failed:', visionErr instanceof Error ? visionErr.message : visionErr)
         }
       }
     } else if (isDocx) {

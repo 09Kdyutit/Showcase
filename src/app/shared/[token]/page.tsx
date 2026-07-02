@@ -61,7 +61,7 @@ export default async function SharedReportPage({ params }: SharedReportPageProps
               <p className="text-sm text-muted-foreground mb-2">Competencies practiced</p>
               <div className="flex flex-wrap gap-1.5">
                 {report.competencies.map((c) => (
-                  <span key={c} className="text-[11px] px-2 py-0.5 rounded-full bg-surface-200 text-muted-foreground capitalize">{c.replace(/_/g, ' ')}</span>
+                  <span key={c} className="text-xs px-2 py-0.5 rounded-full bg-surface-200 text-muted-foreground capitalize">{c.replace(/_/g, ' ')}</span>
                 ))}
               </div>
             </div>

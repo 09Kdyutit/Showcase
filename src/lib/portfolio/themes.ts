@@ -3,6 +3,10 @@
 // wrong. Every read goes through coerceThemeId() so an invalid value always degrades to a
 // real theme instead of crashing the page or silently rendering nothing.
 
+// Relative + extension (not the @/ alias) so Node's --experimental-strip-types test
+// scripts can resolve this module too (scripts/test-portfolio-themes.mjs).
+import { PRESETS } from '../../components/portfolio/themes/presets.ts'
+
 export const THEME_IDS = [
   'cinematic-dark',
   'executive-dark',
@@ -14,6 +18,11 @@ export const THEME_IDS = [
   'minimal-3d',
   'bento',
   'magazine',
+  // 30 preset-engine themes (see ../../components/portfolio/themes/preset-theme.tsx + presets.ts)
+  'quantum-noir', 'aurora-veil', 'nebula', 'obsidian-gold', 'cyber-mint', 'ultraviolet',
+  'solaris', 'holographic', 'carbon', 'vapor', 'titanium', 'magma', 'synthwave', 'onyx-pro',
+  'bioluminescence', 'eclipse', 'cosmos', 'slate-terminal', 'rose-noir', 'iris', 'arctic-glass',
+  'monolith', 'sterling', 'prism', 'glacier', 'apex', 'voltage', 'frost', 'helix', 'midnight-press',
 ] as const
 
 export type ThemeId = (typeof THEME_IDS)[number]
@@ -30,7 +39,7 @@ export interface ThemeMeta {
   badge?: string
 }
 
-export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
+const BUILTIN_THEME_REGISTRY = {
   'cinematic-dark': {
     id: 'cinematic-dark',
     name: 'Cinematic Dark',
@@ -108,6 +117,24 @@ export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
     swatch: { bg: '#f7f3ee', accent: '#e85d2a', text: '#0a0a0a' },
     badge: 'Hot',
   },
+} satisfies Record<string, ThemeMeta>
+
+// Merge the 30 preset-engine themes, derived directly from their preset configs so the
+// picker metadata can never drift from what actually renders.
+const PRESET_THEME_REGISTRY = Object.fromEntries(
+  PRESETS.map((p) => [p.id, {
+    id: p.id as ThemeId,
+    name: p.name,
+    description: p.description,
+    recommendedRoles: p.recommendedRoles,
+    swatch: { bg: p.palette.bg, accent: p.palette.accent, text: p.palette.text },
+    badge: p.badge,
+  } satisfies ThemeMeta])
+) as Record<ThemeId, ThemeMeta>
+
+export const THEME_REGISTRY: Record<ThemeId, ThemeMeta> = {
+  ...BUILTIN_THEME_REGISTRY,
+  ...PRESET_THEME_REGISTRY,
 }
 
 /** Treat the pre-theme-system legacy default ('dark') as an alias for Executive Dark. */

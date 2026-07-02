@@ -4,9 +4,21 @@ import { getRubricProfile } from './rubrics.ts'
 import { filterUnsafeQuestions } from './question-safety.ts'
 import { getMaxSessionMinutes } from './config.ts'
 
-export type SessionLength = 'quick' | 'standard' | 'full'
+// Valid interview lengths, in minutes. Voice and text both use these.
+export const DURATION_TIERS = [5, 10, 15, 20, 25, 30] as const
+export type DurationMinutes = (typeof DURATION_TIERS)[number]
 
-const QUESTION_COUNT_BY_LENGTH: Record<SessionLength, number> = { quick: 5, standard: 8, full: 12 }
+// Number of backbone topics to plan for a given length. The live interviewer treats
+// these as topics to cover and layers adaptive follow-ups on top, so longer sessions
+// get more ground to cover, not just more time on the same few questions.
+export function primaryQuestionCount(durationMinutes: number): number {
+  if (durationMinutes <= 5) return 3
+  if (durationMinutes <= 10) return 5
+  if (durationMinutes <= 15) return 7
+  if (durationMinutes <= 20) return 9
+  if (durationMinutes <= 25) return 11
+  return 13
+}
 
 export interface PlanEvidenceInput {
   portfolioProjects?: { id: string; title: string }[]
@@ -20,7 +32,7 @@ export interface BuildPlanInput {
   targetRole: string
   targetCompany: string | null
   difficulty: Difficulty
-  sessionLength: SessionLength
+  durationMinutes: number
   evidence: PlanEvidenceInput
   deliveryMode?: 'voice' | 'text'
   /** Pre-generated questions from AI (question-gen.ts). When provided, skips the
@@ -73,8 +85,14 @@ function buildSourceReferences(sessionType: SessionType, evidence: PlanEvidenceI
  * interview_sessions.session_plan before any live interaction begins.
  */
 export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
+  // Fail closed with a clear message rather than letting NaN flow into question-count
+  // selection or the final schema parse
+  if (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0) {
+    throw new Error(`durationMinutes must be a positive number (got ${input.durationMinutes})`)
+  }
+
   const rubric = getRubricProfile(input.sessionType)
-  const targetCount = Math.min(QUESTION_COUNT_BY_LENGTH[input.sessionLength], input.planLimits?.maxPrimaryQuestions ?? Infinity)
+  const targetCount = Math.min(primaryQuestionCount(input.durationMinutes), input.planLimits?.maxPrimaryQuestions ?? Infinity)
 
   let candidateQuestions: InterviewPlanQuestion[]
 
@@ -121,10 +139,9 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   }
 
   const tierCeilingMinutes = Math.min(getMaxSessionMinutes(), input.planLimits?.maxSessionMinutes ?? getMaxSessionMinutes())
-  const maxDurationSeconds = Math.min(
-    tierCeilingMinutes * 60,
-    input.sessionLength === 'quick' ? 12 * 60 : input.sessionLength === 'standard' ? 25 * 60 : tierCeilingMinutes * 60
-  )
+  // Honour the requested length, clamped to the plan/global ceiling. A free user who
+  // somehow requests 30 is capped to their 25-minute limit rather than rejected.
+  const maxDurationSeconds = Math.min(tierCeilingMinutes, Math.max(5, input.durationMinutes)) * 60
 
   const plan: InterviewPlan = {
     sessionType: input.sessionType,

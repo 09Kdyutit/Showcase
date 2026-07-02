@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { Search, ArrowLeft, ChevronDown, ChevronUp, Mic, ChevronRight, Building2, Sparkles, Loader2, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { COMPANIES, type CompanyCategory } from '@/lib/interviews/companies'
+import { CompanyLogo } from '@/components/interviews/shared/company-logo'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,11 +28,6 @@ interface CompanyPrep {
   questions: CompanyQuestion[]
   curated?: boolean
   generated?: boolean
-}
-
-interface ScoreResult {
-  clarity: number; action: number; impact: number; structure: number
-  total: number; label: string; strengths: string[]; improvements: string[]
 }
 
 // ── Suggestion list (for search autocomplete) ────────────────────────────────
@@ -82,141 +77,27 @@ const KNOWN_COMPANIES = [
 // ── Color helpers ─────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, string> = {
-  FAANG: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  Growth: 'bg-brand-500/10 text-brand-700 border-brand-500/20',
-  Enterprise: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  Finance: 'bg-violet-500/10 text-violet-600 border-violet-500/20',
+  FAANG: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  Growth: 'bg-brand-500/10 text-brand-300 border-brand-500/20',
+  Enterprise: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  Finance: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
   Startup: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
   Healthcare: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
   Other: 'bg-white/5 text-muted-foreground border-white/10',
 }
 
-function avatarGradient(name: string) {
-  const hues = [210, 185, 145, 35, 270, 320, 60, 195]
-  const h1 = hues[name.charCodeAt(0) % hues.length]
-  const h2 = hues[(name.charCodeAt(1) ?? 3) % hues.length]
-  return `linear-gradient(135deg, oklch(55% 0.2 ${h1}), oklch(50% 0.18 ${h2}))`
-}
-
-function initials(name: string) {
-  return name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-}
-
-// ── Practice Dialog ───────────────────────────────────────────────────────────
-
-function PracticeDialog({
-  companyName, question, open, onClose,
-}: {
-  companyName: string; question: CompanyQuestion | null; open: boolean; onClose: () => void
-}) {
-  const [answer, setAnswer] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<ScoreResult | null>(null)
-
-  useEffect(() => { if (!open) { setAnswer(''); setResult(null) } }, [open])
-
-  const wordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0
-
-  async function handleSubmit() {
-    if (!question || wordCount < 20) { toast.error('Write at least 20 words.'); return }
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/interviews/questions/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionText: question.text, answerText: answer }),
-      })
-      const json = await res.json()
-      if (!res.ok) { toast.error(json.error ?? 'Scoring failed.'); return }
-      setResult(json.data)
-    } catch { toast.error('Connection error.') }
-    finally { setSubmitting(false) }
-  }
-
-  const labelColor = result
-    ? result.label === 'Excellent' ? 'text-emerald-600'
-    : result.label === 'Good' ? 'text-brand-700'
-    : result.label === 'Fair' ? 'text-amber-600'
-    : 'text-red-600' : ''
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-base">{companyName} -- Practice</DialogTitle>
-        </DialogHeader>
-        {question && (
-          <div className="space-y-4">
-            <div className="rounded-xl bg-secondary border border-border p-4 space-y-2">
-              <span className={cn('inline-flex text-[10px] font-semibold px-1.5 py-0.5 rounded-full border', CATEGORY_COLORS[question.category] ?? CATEGORY_COLORS.Other)}>
-                {question.category}
-              </span>
-              <p className="text-sm text-muted-foreground leading-relaxed">{question.text}</p>
-              <p className="text-xs text-muted-foreground/40 italic">Tip: {question.tip}</p>
-            </div>
-
-            {result ? (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-3xl font-bold stat-number">{result.total}<span className="text-lg text-muted-foreground font-normal">/100</span></p>
-                  <p className={cn('text-sm font-semibold', labelColor)}>{result.label}</p>
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { label: 'Clarity & Context', v: result.clarity },
-                    { label: 'Action Specificity', v: result.action },
-                    { label: 'Measurable Impact', v: result.impact },
-                    { label: 'STAR Structure', v: result.structure },
-                  ].map((d) => (
-                    <div key={d.label}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">{d.label}</span>
-                        <span className="font-medium">{d.v}/25</span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                        <div className="h-full rounded-full bg-brand-500 transition-all duration-500" style={{ width: `${(d.v / 25) * 100}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {result.improvements.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2">Strengthen</p>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {result.improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-amber-500 shrink-0">--</span>{s}</li>)}
-                    </ul>
-                  </div>
-                )}
-                <Button onClick={() => { setAnswer(''); setResult(null) }} variant="outline" size="sm" className="w-full">Try Again</Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Textarea
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  placeholder="Use the STAR method: Situation, Task, Action, Result..."
-                  className="min-h-[160px] text-sm resize-none bg-secondary border-border focus:border-brand-500/40"
-                />
-                <div className="flex items-center justify-between">
-                  <span className={cn('text-xs', wordCount < 20 ? 'text-muted-foreground/40' : 'text-emerald-600')}>{wordCount} words</span>
-                  <Button onClick={handleSubmit} disabled={submitting || wordCount < 20} variant="gradient" size="sm" className="gap-1.5">
-                    {submitting ? 'Scoring...' : 'Get Feedback'}<ChevronRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 // ── Company Detail ───────────────────────────────────────────────────────────
 
 function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void }) {
+  const router = useRouter()
   const [expandedQ, setExpandedQ] = useState<string | null>(null)
-  const [practiceQ, setPracticeQ] = useState<CompanyQuestion | null>(null)
+
+  // Launch a real, AI-graded voice interview framed around this company. Reuses the
+  // standard create -> lobby -> live flow; the live interviewer is company-aware.
+  function startVoiceInterview() {
+    const params = new URLSearchParams({ targetCompany: prep.name })
+    router.push(`/interviews/new?${params.toString()}`)
+  }
 
   const catColor = CATEGORY_COLORS[prep.category] ?? CATEGORY_COLORS.Other
 
@@ -230,23 +111,18 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
         </button>
 
         <div className="flex items-center gap-4 mb-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-bold text-white shrink-0"
-            style={{ background: avatarGradient(prep.name), boxShadow: `0 0 20px ${avatarGradient(prep.name).includes('210') ? 'var(--color-brand-500)' : 'rgba(0,0,0,0)'}40` }}
-          >
-            {initials(prep.name)}
-          </div>
+          <CompanyLogo name={prep.name} className="w-14 h-14 rounded-2xl" textClass="text-lg" />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold">{prep.name}</h1>
               {prep.generated && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border bg-brand-500/10 border-brand-500/20 text-brand-700">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded-full border bg-brand-500/10 border-brand-500/20 text-brand-300">
                   <Sparkles className="h-2.5 w-2.5" />
                   AI Generated
                 </span>
               )}
             </div>
-            <span className={cn('inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border mt-1', catColor)}>
+            <span className={cn('inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border mt-1', catColor)}>
               {prep.category}
             </span>
           </div>
@@ -257,6 +133,26 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
         </div>
       </div>
 
+      {/* Primary CTA: AI voice interview as this company */}
+      <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6" style={{ background: 'linear-gradient(135deg, oklch(54% 0.23 255 / 0.14), oklch(54% 0.23 255 / 0.04))', border: '1px solid oklch(54% 0.23 255 / 0.28)' }}>
+        <div className="absolute -top-16 -right-10 w-48 h-48 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, oklch(54% 0.23 255 / 0.18), transparent 70%)', filter: 'blur(20px)' }} />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <Mic className="h-4 w-4 text-brand-300" />
+              Practice a live voice interview with {prep.name}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed max-w-xl">
+              Talk to an AI interviewer that runs it like {prep.name} does — it adapts to your answers,
+              asks real follow-ups, and afterwards grades you like a real interviewer. Pick your length (5–30 min) on the next screen.
+            </p>
+          </div>
+          <Button onClick={startVoiceInterview} variant="gradient" size="lg" className="gap-2 shrink-0">
+            Start interview <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Focus + Tips */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="glass-card p-5 rounded-2xl space-y-3">
@@ -264,7 +160,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
           <ul className="space-y-2">
             {prep.keyFocus.map((f, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-brand-600 mt-0.5 shrink-0">+</span>{f}
+                <span className="text-brand-400 mt-0.5 shrink-0">+</span>{f}
               </li>
             ))}
           </ul>
@@ -275,16 +171,19 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
           <ul className="space-y-2">
             {prep.uniqueTips.map((t, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="text-amber-600 mt-0.5 shrink-0">*</span>{t}
+                <span className="text-amber-400 mt-0.5 shrink-0">*</span>{t}
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* Questions */}
+      {/* Questions — preview of what they tend to ask (you'll practice these live) */}
       <div>
-        <h3 className="text-sm font-semibold mb-3">{prep.questions.length} Interview Questions</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold">Questions {prep.name} tends to ask</h3>
+          <span className="text-xs text-muted-foreground/60">{prep.questions.length} examples</span>
+        </div>
         <div className="space-y-2">
           {prep.questions.map((q) => (
             <div key={q.id} className="glass-card rounded-2xl overflow-hidden">
@@ -292,7 +191,7 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
                 className="w-full p-4 flex items-start gap-3 text-left hover:bg-secondary transition-colors"
                 onClick={() => setExpandedQ(expandedQ === q.id ? null : q.id)}
               >
-                <span className={cn('shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded border mt-0.5 whitespace-nowrap', CATEGORY_COLORS[q.category] ?? CATEGORY_COLORS.Other)}>
+                <span className={cn('shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded border mt-0.5 whitespace-nowrap', CATEGORY_COLORS[q.category] ?? CATEGORY_COLORS.Other)}>
                   {q.category}
                 </span>
                 <p className="text-sm text-foreground/90 flex-1 leading-relaxed">{q.text}</p>
@@ -302,30 +201,23 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
               </button>
 
               {expandedQ === q.id && (
-                <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-                  <p className="text-xs text-muted-foreground/60 italic leading-relaxed">Tip: {q.tip}</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="gradient" className="h-8 text-xs gap-1.5 flex-1" onClick={() => setPracticeQ(q)}>
-                      Practice Written <ChevronRight className="h-3 w-3" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 flex-1" onClick={() => setPracticeQ(q)}>
-                      <Mic className="h-3 w-3" />
-                      Speak Answer
-                    </Button>
-                  </div>
+                <div className="px-4 pb-4 border-t border-border pt-3">
+                  <p className="text-xs text-muted-foreground/60 italic leading-relaxed">How to nail it: {q.tip}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
+        <button
+          onClick={startVoiceInterview}
+          className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-brand-200 transition-colors hover:bg-brand-500/10"
+          style={{ border: '1px solid oklch(54% 0.23 255 / 0.25)' }}
+        >
+          <Mic className="h-4 w-4" />
+          Practice these live with the {prep.name} interviewer
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
-
-      <PracticeDialog
-        companyName={prep.name}
-        question={practiceQ}
-        open={!!practiceQ}
-        onClose={() => setPracticeQ(null)}
-      />
     </div>
   )
 }
@@ -334,20 +226,17 @@ function CompanyDetail({ prep, onBack }: { prep: CompanyPrep; onBack: () => void
 
 export default function CompanyPrepPage() {
   const [query, setQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedPrep, setSelectedPrep] = useState<CompanyPrep | null>(null)
   const [loading, setLoading] = useState(false)
   const [catFilter, setCatFilter] = useState<CompanyCategory | 'all'>('all')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Autocomplete
-  useEffect(() => {
-    if (query.length < 1) { setSuggestions([]); return }
+  // Autocomplete — derived from the query, no effect needed
+  const suggestions = useMemo(() => {
+    if (query.length < 1) return []
     const q = query.toLowerCase()
-    const matches = KNOWN_COMPANIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8)
-    setSuggestions(matches)
-    setShowSuggestions(matches.length > 0)
+    return KNOWN_COMPANIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8)
   }, [query])
 
   async function loadCompany(name: string) {
@@ -393,7 +282,7 @@ export default function CompanyPrepPage() {
           Interview Lab
         </Link>
         <div className="flex items-center gap-2 mb-1">
-          <Building2 className="h-5 w-5 text-brand-600" />
+          <Building2 className="h-5 w-5 text-brand-400" />
           <h1 className="text-xl font-bold">Company Prep</h1>
         </div>
         <p className="text-sm text-muted-foreground/60">
@@ -410,7 +299,7 @@ export default function CompanyPrepPage() {
             <input
               ref={inputRef}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); setShowSuggestions(true) }}
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true) }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Type any company name -- Google, McKinsey, your local startup..."
@@ -419,7 +308,7 @@ export default function CompanyPrepPage() {
             {query && (
               <button
                 type="button"
-                onClick={() => { setQuery(''); setSuggestions([]) }}
+                onClick={() => setQuery('')}
                 className="absolute right-20 top-1/2 -translate-y-1/2 p-1 text-muted-foreground/30 hover:text-muted-foreground/60"
               >
                 <X className="h-3.5 w-3.5" />
@@ -454,12 +343,7 @@ export default function CompanyPrepPage() {
                   onMouseDown={() => loadCompany(s)}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-secondary transition-colors"
                 >
-                  <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                    style={{ background: avatarGradient(s) }}
-                  >
-                    {initials(s)}
-                  </div>
+                  <CompanyLogo name={s} className="w-6 h-6 rounded-md" textClass="text-[9px]" />
                   <span className="text-foreground/80">{s}</span>
                 </button>
               ))}
@@ -484,7 +368,7 @@ export default function CompanyPrepPage() {
                 className={cn(
                   'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border',
                   catFilter === f
-                    ? 'bg-brand-500/15 text-brand-700 border-brand-500/20'
+                    ? 'bg-brand-500/15 text-brand-300 border-brand-500/20'
                     : 'text-muted-foreground border-border hover:border-border hover:text-foreground'
                 )}
               >
@@ -501,15 +385,10 @@ export default function CompanyPrepPage() {
               onClick={() => loadCompany(company.name)}
               className="glass-card rounded-2xl p-4 flex flex-col items-start gap-2.5 text-left hover:border-brand-500/20 hover:shadow-glow-sm transition-all duration-200 group card-3d"
             >
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: avatarGradient(company.name) }}
-              >
-                {company.initials}
-              </div>
+              <CompanyLogo name={company.name} className="w-9 h-9 rounded-xl" textClass="text-xs" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate group-hover:text-brand-200 transition-colors">{company.name}</p>
-                <span className={cn('inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full border mt-1', CATEGORY_COLORS[company.category])}>
+                <span className={cn('inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded-full border mt-1', CATEGORY_COLORS[company.category])}>
                   {company.category}
                 </span>
               </div>

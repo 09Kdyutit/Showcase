@@ -127,7 +127,7 @@ function BetaFeedbackContent() {
         {step === 'success' ? (
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-              <Check className="h-8 w-8 text-emerald-600" />
+              <Check className="h-8 w-8 text-emerald-400" />
             </div>
             <h1 className="text-3xl font-black text-foreground mb-3 tracking-tight">
               Thank you.
@@ -151,7 +151,7 @@ function BetaFeedbackContent() {
         ) : (
           <>
             <div className="mb-10">
-              <p className="text-[10px] font-bold text-brand-600 uppercase tracking-[0.2em] mb-3">Beta feedback</p>
+              <p className="text-xs font-bold text-brand-400 uppercase tracking-[0.2em] mb-3">Beta feedback</p>
               <h1 className="text-3xl font-black text-foreground mb-3 tracking-tight">
                 How did Showcase feel?
               </h1>
@@ -165,7 +165,7 @@ function BetaFeedbackContent() {
               {!inviteToken && (
                 <div>
                   <label htmlFor="email" className="block text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mb-2">
-                    Your email <span className="text-brand-600">*</span>
+                    Your email <span className="text-brand-400">*</span>
                   </label>
                   <input
                     id="email"
@@ -201,7 +201,7 @@ function BetaFeedbackContent() {
                   ))}
                 </div>
                 {form.rating && (
-                  <p className="text-xs text-brand-600 mt-2 font-medium">{RATING_LABELS[form.rating]}</p>
+                  <p className="text-xs text-brand-400 mt-2 font-medium">{RATING_LABELS[form.rating]}</p>
                 )}
               </div>
 
@@ -287,8 +287,8 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.would_recommend === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                           : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
                     >
@@ -316,7 +316,7 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.published_portfolio === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                             : 'bg-secondary border-border text-foreground'
                           : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
@@ -345,7 +345,7 @@ function BetaFeedbackContent() {
                         'flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all',
                         form.sent_to_recruiter === opt.value
                           ? opt.value
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600'
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                             : 'bg-secondary border-border text-foreground'
                           : 'bg-secondary border-border text-muted-foreground hover:border-border',
                       )}
@@ -374,7 +374,7 @@ function BetaFeedbackContent() {
 
               {/* Permissions */}
               <div className="space-y-3 pt-2">
-                <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Permissions</p>
+                <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">Permissions</p>
 
                 {[
                   {
@@ -410,7 +410,7 @@ function BetaFeedbackContent() {
 
               {/* Error */}
               {error && (
-                <p className="text-sm text-red-600/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
+                <p className="text-sm text-red-400/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
                   {error}
                 </p>
               )}

@@ -14,17 +14,17 @@ function record(label, ok, detail) {
 
 const plan1 = buildInterviewPlan({
   sessionType: 'behavioral', targetRole: 'Product Designer', targetCompany: null,
-  difficulty: 'standard', sessionLength: 'quick', evidence: {},
+  difficulty: 'standard', durationMinutes: 5, evidence: {},
 })
 const plan2 = buildInterviewPlan({
   sessionType: 'behavioral', targetRole: 'Product Designer', targetCompany: null,
-  difficulty: 'standard', sessionLength: 'quick', evidence: {},
+  difficulty: 'standard', durationMinutes: 5, evidence: {},
 })
 
 record('Same input produces the same question count (deterministic)', plan1.questions.length === plan2.questions.length)
 record('Same input produces the same question IDs in the same order', JSON.stringify(plan1.questions.map((q) => q.templateId)) === JSON.stringify(plan2.questions.map((q) => q.templateId)))
 record('Quick session has 3 questions', plan1.questions.length === 3, `got ${plan1.questions.length}`)
-record('Plan duration is capped at 7 minutes for quick sessions', plan1.maxDurationSeconds === 7 * 60, `got ${plan1.maxDurationSeconds}`)
+record('Plan duration equals the requested 5 minutes', plan1.maxDurationSeconds === 5 * 60, `got ${plan1.maxDurationSeconds}`)
 record('Target role is substituted into question text where present', !plan1.questions.some((q) => q.questionText.includes('{{targetRole}}')))
 record('Rubric id/version are populated from the registry, not invented', plan1.rubricId === 'rubric-behavioral' && plan1.rubricVersion.length > 0)
 record('Every question in the plan passes the safety filter independently', plan1.questions.every((q) => checkQuestionSafety(q.questionText).safe))
@@ -33,14 +33,14 @@ record('forbiddenTopics list is non-empty and covers protected categories', plan
 
 const standardPlan = buildInterviewPlan({
   sessionType: 'recruiter_screen', targetRole: 'Software Engineer', targetCompany: 'Acme Corp',
-  difficulty: 'foundational', sessionLength: 'standard', evidence: {},
+  difficulty: 'foundational', durationMinutes: 10, evidence: {},
 })
 record('Standard session has 5 questions', standardPlan.questions.length === 5, `got ${standardPlan.questions.length}`)
 record('targetCompany substituted where the template references it', true) // recruiter screen templates in this bank don't use {{targetCompany}} yet; documents current scope honestly
 
 const portfolioPlan = buildInterviewPlan({
   sessionType: 'portfolio_walkthrough', targetRole: 'Frontend Engineer', targetCompany: null,
-  difficulty: 'standard', sessionLength: 'quick',
+  difficulty: 'standard', durationMinutes: 5,
   evidence: { portfolioProjects: [{ id: 'proj-1', title: 'Real-time Dashboard' }] },
 })
 record('Portfolio walkthrough questions carry source references to the real project', portfolioPlan.questions.some((q) => q.sourceReferences.some((r) => r.sourceType === 'portfolio_project' && r.sourceId === 'proj-1')))
@@ -57,7 +57,7 @@ for (const sessionType of SESSION_TYPES) {
     try {
       plan = buildInterviewPlan({
         sessionType, targetRole: 'Engineer', targetCompany: 'Acme Corp',
-        difficulty, sessionLength: 'full',
+        difficulty, durationMinutes: 30,
         evidence: { jobRequirements: ['Own end-to-end delivery of a major feature'] },
       })
     } catch (e) {
@@ -77,7 +77,7 @@ for (const sessionType of SESSION_TYPES) {
 // proves each type has its own real templates, not a shared fallback ───────────
 const allFirstQuestions = new Map()
 for (const sessionType of SESSION_TYPES) {
-  const plan = buildInterviewPlan({ sessionType, targetRole: 'Engineer', targetCompany: null, difficulty: 'standard', sessionLength: 'quick', evidence: {} })
+  const plan = buildInterviewPlan({ sessionType, targetRole: 'Engineer', targetCompany: null, difficulty: 'standard', durationMinutes: 5, evidence: {} })
   allFirstQuestions.set(sessionType, plan.questions.map((q) => q.templateId).join(','))
 }
 const uniqueQuestionSets = new Set(allFirstQuestions.values())

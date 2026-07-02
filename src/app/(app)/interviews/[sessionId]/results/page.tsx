@@ -5,27 +5,22 @@ import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import {
-  Trash2, Info, Share2, Copy, X, RotateCcw, CheckCircle2, MinusCircle,
+  Trash2, Info, Share2, Copy, X, CheckCircle2, MinusCircle,
   Dumbbell, ArrowRight, ChevronDown, ChevronUp, Sparkles, AlertCircle,
-  Target, Search, FileText, User, Zap, TrendingUp, LayoutList,
-  Code2, BrainCircuit, MessageCircle, Timer, Mic, RefreshCw,
+  Target, User, TrendingUp, LayoutList,
+  Code2, MessageCircle, RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Textarea } from '@/components/ui/textarea'
 import { apiErrorMessage } from '@/lib/utils'
+import { buildExchanges } from '@/lib/interviews/conversation'
 import { recommendDrillsForDimensions } from '@/lib/interviews/drills'
 import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
 import type { LucideIcon } from 'lucide-react'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface RetryComparison {
-  originalWordCount: number; retryWordCount: number; wordCountDelta: number
-  observations: { label: string; changed: boolean }[]
-}
-interface RetryResult { retryAnswer: { answer_text: string }; previousAnswer: { answer_text: string }; comparison: RetryComparison }
 interface Share { id: string; scope: 'completion_only' | 'full_summary'; expires_at: string; revoked_at: string | null; access_count: number; created_at: string }
 interface TranscriptSegment { id: string; speaker: string; content: string; question_id: string | null }
 interface Question { id: string; question_text: string; order_index: number; competency: string }
@@ -58,15 +53,17 @@ const BAND_LABELS: Record<string, string> = {
   interview_ready: 'Interview Ready', strong: 'Strong',
 }
 const BAND_COLORS: Record<string, string> = {
-  starting: 'text-red-600', building: 'text-orange-600', practicing: 'text-yellow-600',
-  interview_ready: 'text-emerald-600', strong: 'text-emerald-600',
+  starting: 'text-red-400', building: 'text-orange-400', practicing: 'text-yellow-600',
+  interview_ready: 'text-emerald-400', strong: 'text-emerald-400',
 }
 
 const DIMENSION_ICONS: Record<string, LucideIcon> = {
-  answer_relevance: Target, evidence_specificity: Search, context_clarity: FileText,
-  personal_ownership: User, action_quality: Zap, outcome_and_impact: TrendingUp,
-  answer_structure: LayoutList, role_technical_depth: Code2, problem_solving_process: BrainCircuit,
-  follow_up_handling: MessageCircle, concision: Timer, delivery_mechanics: Mic,
+  technical: Code2,
+  communication: MessageCircle,
+  competency: Target,
+  clarity: LayoutList,
+  authenticity: User,
+  behaviour: TrendingUp,
 }
 
 const FILLER_PATTERNS = [
@@ -91,18 +88,18 @@ const STOP_WORDS = new Set([
 // ── Helper functions ──────────────────────────────────────────────────────────
 
 function scoreLabel(score: number): { label: string; color: string; bg: string } {
-  if (score >= 80) return { label: 'Strong', color: 'text-emerald-600', bg: 'bg-emerald-500' }
+  if (score >= 80) return { label: 'Strong', color: 'text-emerald-400', bg: 'bg-emerald-500' }
   if (score >= 65) return { label: 'Good', color: 'text-yellow-600', bg: 'bg-yellow-500' }
-  if (score >= 50) return { label: 'Moderate', color: 'text-orange-600', bg: 'bg-orange-500' }
-  return { label: 'Needs Improvement', color: 'text-red-600', bg: 'bg-red-500' }
+  if (score >= 50) return { label: 'Moderate', color: 'text-orange-400', bg: 'bg-orange-500' }
+  return { label: 'Needs Improvement', color: 'text-red-400', bg: 'bg-red-500' }
 }
 
 function fillerQuality(count: number, wordCount: number): { label: string; color: string } {
   const rate = wordCount > 0 ? count / wordCount : 0
-  if (rate < 0.015) return { label: 'Excellent control', color: 'text-emerald-600' }
+  if (rate < 0.015) return { label: 'Excellent control', color: 'text-emerald-400' }
   if (rate < 0.04) return { label: 'Good', color: 'text-yellow-600' }
-  if (rate < 0.08) return { label: 'Work on reducing', color: 'text-orange-600' }
-  return { label: 'Needs focused practice', color: 'text-red-600' }
+  if (rate < 0.08) return { label: 'Work on reducing', color: 'text-orange-400' }
+  return { label: 'Needs focused practice', color: 'text-red-400' }
 }
 
 function computeDelivery(transcript: TranscriptSegment[]) {
@@ -128,12 +125,12 @@ function computeDelivery(transcript: TranscriptSegment[]) {
   return { fillerCount, wordCount, keywords }
 }
 
-function computeResponseDistribution(questions: Question[], transcript: TranscriptSegment[]) {
-  const counts = questions.map((q) => {
-    const seg = transcript.find((t) => t.question_id === q.id && t.speaker === 'candidate')
-    if (!seg?.content) return null
-    return seg.content.trim().split(/\s+/).filter(Boolean).length
-  }).filter((n): n is number => n !== null)
+function computeResponseDistribution(transcript: TranscriptSegment[]) {
+  // Count every actual candidate turn, not per planned question — a live interview is a
+  // free conversation that never maps cleanly onto the fixed question list.
+  const counts = transcript
+    .filter((t) => t.speaker === 'candidate' && t.content?.trim())
+    .map((t) => t.content.trim().split(/\s+/).filter(Boolean).length)
 
   return {
     under50: counts.filter((n) => n < 50).length,
@@ -143,6 +140,20 @@ function computeResponseDistribution(questions: Question[], transcript: Transcri
     avg: counts.length > 0 ? Math.round(counts.reduce((a, b) => a + b, 0) / counts.length) : 0,
   }
 }
+
+// Remove anything that should never reach the user: leaked internal segment-id anchors
+// like "(07caaae3)" or "(8055b391, c23af6df)", and any timing "[DIRECTOR'S NOTE …]"
+// cues that slipped into a spoken turn.
+function clean(text: string): string {
+  return (text ?? '')
+    .replace(/\[director'?s note[\s\S]*?\]/gi, '')
+    .replace(/\s*\(\s*[0-9a-f]{6,}(?:\s*,\s*[0-9a-f]{6,})*\s*\)/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+// The conversation is reconstructed by the shared buildExchanges (same logic the analyzer
+// uses), so each displayed exchange's id matches the questionId of its coaching assessment.
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -183,10 +194,6 @@ export default function InterviewResultsPage() {
   const [shares, setShares] = useState<Share[]>([])
   const [creatingShare, setCreatingShare] = useState(false)
   const [newShareLink, setNewShareLink] = useState<string | null>(null)
-  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
-  const [retryText, setRetryText] = useState('')
-  const [submittingRetry, setSubmittingRetry] = useState(false)
-  const [retryResults, setRetryResults] = useState<Record<string, RetryResult>>({})
   const [expandedCoaching, setExpandedCoaching] = useState<Set<string>>(new Set())
 
   async function loadShares() {
@@ -195,19 +202,38 @@ export default function InterviewResultsPage() {
     if (res.ok) setShares(json.data ?? [])
   }
 
-  async function runAnalysis() {
+  // Grading must happen on every completed session. We auto-run here (the user always
+  // lands on this page after an interview) and retry transient failures up to 3x, so a
+  // flaky AI/network call never leaves a session ungraded. A 403 (Pro/entitlement) is
+  // permanent and not retried; everything else is.
+  async function runAnalysis(attempt = 1): Promise<void> {
     setAnalyzing(true)
-    const analyzeRes = await fetch(`/api/interviews/sessions/${params.sessionId}/analyze`, { method: 'POST' })
-    const analyzeJson = await analyzeRes.json()
-    if (analyzeRes.ok) {
-      if (analyzeJson.message) setAnalysisMessage(analyzeJson.message)
-      const refreshed = await fetch(`/api/interviews/sessions/${params.sessionId}`)
-      const refreshedJson = await refreshed.json()
-      if (refreshed.ok) setDetail(refreshedJson.data)
-    } else {
-      toast.error(apiErrorMessage(analyzeJson.error, 'Scoring failed. Try again.'))
+    try {
+      const analyzeRes = await fetch(`/api/interviews/sessions/${params.sessionId}/analyze`, { method: 'POST' })
+      const analyzeJson = await analyzeRes.json().catch(() => ({}))
+      if (analyzeRes.ok) {
+        if (analyzeJson.message) setAnalysisMessage(analyzeJson.message)
+        const refreshed = await fetch(`/api/interviews/sessions/${params.sessionId}`)
+        const refreshedJson = await refreshed.json()
+        if (refreshed.ok) setDetail(refreshedJson.data)
+        setAnalyzing(false)
+        return
+      }
+      if (analyzeRes.status === 403) {
+        toast.error(apiErrorMessage(analyzeJson.error, 'Scoring requires Pro.'))
+        setAnalyzing(false)
+        return
+      }
+      throw new Error(analyzeJson.error || `analyze ${analyzeRes.status}`)
+    } catch (err) {
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 1500 * attempt))
+        return runAnalysis(attempt + 1)
+      }
+      console.error('[results] analysis failed after retries', err)
+      toast.error('Scoring is taking longer than expected. Tap "Retry scoring" below.')
+      setAnalyzing(false)
     }
-    setAnalyzing(false)
   }
 
   useEffect(() => {
@@ -218,24 +244,16 @@ export default function InterviewResultsPage() {
       setDetail(json.data)
       setLoading(false)
       if (json.data.session.status === 'completed') loadShares()
-      if (json.data.session.analysis_status === 'pending') await runAnalysis()
+      // Auto-grade whenever a completed session hasn't been scored yet (pending, failed,
+      // or never started). 'running' is left alone (already in flight); 'completed'/'skipped' are done.
+      const st = json.data.session.analysis_status
+      if (json.data.session.status === 'completed' && (st === 'pending' || st === 'failed' || st == null)) {
+        await runAnalysis()
+      }
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.sessionId])
-
-  async function handleSubmitRetry(questionId: string) {
-    if (!retryText.trim()) { toast.error('Write a retry answer first.'); return }
-    setSubmittingRetry(true)
-    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/answers/${questionId}/retry`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answerText: retryText.trim() }),
-    })
-    const json = await res.json()
-    if (!res.ok) { toast.error(apiErrorMessage(json.error, 'Could not submit retry.')); setSubmittingRetry(false); return }
-    setRetryResults((prev) => ({ ...prev, [questionId]: json.data }))
-    setRetryingQuestionId(null); setRetryText(''); setSubmittingRetry(false)
-  }
 
   async function handleDeleteSession() {
     if (!confirm('Delete this session, transcript, and all answers permanently?')) return
@@ -246,7 +264,7 @@ export default function InterviewResultsPage() {
   }
 
   const delivery = useMemo(() => detail ? computeDelivery(detail.transcript) : null, [detail])
-  const responseDist = useMemo(() => detail ? computeResponseDistribution(detail.questions, detail.transcript) : null, [detail])
+  const responseDist = useMemo(() => detail ? computeResponseDistribution(detail.transcript) : null, [detail])
 
   if (loading || !detail) {
     return (
@@ -256,11 +274,18 @@ export default function InterviewResultsPage() {
     )
   }
 
-  const { session, questions, transcript, latestEvaluation, dimensionScores } = detail
-  const weakDimensionIds = dimensionScores.filter((d) => d.score < 70).sort((a, b) => a.score - b.score).map((d) => d.dimension_id)
+  const { session, transcript, latestEvaluation, dimensionScores } = detail
   const answerAssessments = latestEvaluation?.result?.answerAssessments ?? []
   const assessmentByQuestionId = new Map(answerAssessments.map((a) => [a.questionId, a]))
   const hasAnalysis = !!latestEvaluation
+  const conversation = buildExchanges(transcript)
+  // Drills target the candidate's lowest-scoring dimensions. If everything cleared 70,
+  // still surface their weakest two so recommendations reflect how they actually did
+  // rather than falling back to generic advice.
+  const sortedDims = [...dimensionScores].sort((a, b) => a.score - b.score)
+  const trulyWeak = sortedDims.filter((d) => d.score < 70)
+  const hasWeak = trulyWeak.length > 0
+  const weakDimensionIds = (hasWeak ? trulyWeak : sortedDims.slice(0, 2)).map((d) => d.dimension_id)
 
   return (
     <div className="max-w-3xl mx-auto p-6 lg:p-10 space-y-6">
@@ -294,7 +319,7 @@ export default function InterviewResultsPage() {
                   ? 'AI scoring ran into an error. Your transcript is saved - you can retry below.'
                   : 'AI scoring wasn\'t available when this session completed.'}</p>
               </div>
-              <Button size="sm" onClick={runAnalysis} className="gap-2"><RefreshCw className="h-3.5 w-3.5" /> Run AI Scoring</Button>
+              <Button size="sm" onClick={() => runAnalysis()} className="gap-2"><RefreshCw className="h-3.5 w-3.5" /> Run AI Scoring</Button>
             </div>
           ) : latestEvaluation ? (
             <div className="space-y-6">
@@ -315,7 +340,7 @@ export default function InterviewResultsPage() {
               {/* Summary paragraph */}
               {latestEvaluation.result?.summaryParagraph && (
                 <p className="text-sm text-muted-foreground leading-relaxed border-l-2 border-brand-500/40 pl-4 italic">
-                  {latestEvaluation.result.summaryParagraph}
+                  {clean(latestEvaluation.result.summaryParagraph)}
                 </p>
               )}
 
@@ -323,11 +348,11 @@ export default function InterviewResultsPage() {
               <div className="grid sm:grid-cols-2 gap-5">
                 {latestEvaluation.result?.strengths?.length > 0 && (
                   <div className="space-y-2.5">
-                    <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">What you did well</p>
+                    <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">What you did well</p>
                     <ul className="space-y-2">
                       {latestEvaluation.result.strengths.map((s, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />{s}
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />{clean(s)}
                         </li>
                       ))}
                     </ul>
@@ -335,11 +360,11 @@ export default function InterviewResultsPage() {
                 )}
                 {latestEvaluation.result?.topFixes?.length > 0 && (
                   <div className="space-y-2.5">
-                    <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider">Next steps</p>
+                    <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Next steps</p>
                     <ul className="space-y-2">
                       {latestEvaluation.result.topFixes.map((fix, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex gap-2.5 leading-relaxed">
-                          <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />{fix}
+                          <AlertCircle className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />{clean(fix)}
                         </li>
                       ))}
                     </ul>
@@ -383,7 +408,7 @@ export default function InterviewResultsPage() {
                           <div className="flex items-center gap-2 shrink-0">
                             <span className={`text-xs font-medium ${color}`}>{scoreL}</span>
                             {d.confidence && (
-                              <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
+                              <span className="text-xs text-muted-foreground/50 hidden sm:inline">
                                 {d.confidence === 'low' ? '· low data' : d.confidence === 'high' ? '· high data' : ''}
                               </span>
                             )}
@@ -467,7 +492,7 @@ export default function InterviewResultsPage() {
                         title={`${count} mention${count !== 1 ? 's' : ''}`}
                       >
                         {word}
-                        {i < 8 && <span className="ml-1.5 opacity-70 text-[10px]">{count}</span>}
+                        {i < 8 && <span className="ml-1.5 opacity-70 text-xs">{count}</span>}
                       </div>
                     )
                   })}
@@ -491,28 +516,30 @@ export default function InterviewResultsPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-7">
-          {questions.map((q) => {
-            const answer = transcript.find((t) => t.question_id === q.id && t.speaker === 'candidate')
-            const coaching = assessmentByQuestionId.get(q.id)
-            const retryResult = retryResults[q.id]
-            const coachingOpen = expandedCoaching.has(q.id)
+          {conversation.map((pair, idx) => {
+            // Coaching is keyed by the exchange id (the interviewer segment id the analyzer
+            // assessed), so it maps 1:1 to this real exchange. Positional fallback covers any
+            // id drift so every answer still shows its coaching.
+            const coaching = assessmentByQuestionId.get(pair.id) ?? answerAssessments[idx]
+            const rowKey = `${idx}`
+            const coachingOpen = expandedCoaching.has(rowKey)
             const hasCoaching = coaching && (
               coaching.strongMoments.length > 0 || coaching.weakMoments.length > 0 ||
               coaching.missingEvidence.length > 0 || coaching.suggestedStructure
             )
 
             return (
-              <div key={q.id} className="space-y-3 pb-7 border-b border-border/40 last:border-0 last:pb-0">
-                {/* Question */}
+              <div key={rowKey} className="space-y-3 pb-7 border-b border-border/40 last:border-0 last:pb-0">
+                {/* What the interviewer actually asked */}
                 <div className="flex items-start gap-2.5">
-                  <span className="text-[11px] font-mono text-muted-foreground/50 mt-1 shrink-0 w-6">Q{q.order_index + 1}</span>
-                  <p className="text-sm font-medium text-foreground">{q.question_text}</p>
+                  <span className="text-xs font-mono text-muted-foreground/50 mt-1 shrink-0 w-6">Q{idx + 1}</span>
+                  <p className="text-sm font-medium text-foreground">{pair.question || 'Opening'}</p>
                 </div>
 
-                {/* Answer */}
+                {/* What you actually said */}
                 <div className="ml-8">
                   <p className="text-sm text-muted-foreground bg-surface-100 rounded-xl p-3.5 leading-relaxed">
-                    {answer?.content ?? <span className="italic opacity-50">(not answered)</span>}
+                    {pair.answer}
                   </p>
                 </div>
 
@@ -521,9 +548,9 @@ export default function InterviewResultsPage() {
                   <div className="ml-8 space-y-2">
                     <button
                       onClick={() => setExpandedCoaching((prev) => {
-                        const next = new Set(prev); if (next.has(q.id)) next.delete(q.id); else next.add(q.id); return next
+                        const next = new Set(prev); if (next.has(rowKey)) next.delete(rowKey); else next.add(rowKey); return next
                       })}
-                      className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
                     >
                       <Sparkles className="h-3 w-3" />
                       AI coaching
@@ -534,82 +561,45 @@ export default function InterviewResultsPage() {
                       <div className="rounded-xl border border-brand-500/20 bg-brand-500/[0.04] p-4 space-y-5">
                         {coaching.strongMoments.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">What worked</p>
+                            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">What worked</p>
                             {coaching.strongMoments.map((m, i) => (
                               <div key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />{m.note}
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />{clean(m.note)}
                               </div>
                             ))}
                           </div>
                         )}
                         {coaching.weakMoments.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-orange-600 uppercase tracking-wider">What to fix</p>
+                            <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider">What to fix</p>
                             {coaching.weakMoments.map((m, i) => (
                               <div key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                                <AlertCircle className="h-3.5 w-3.5 text-orange-600 shrink-0 mt-0.5" />{m.note}
+                                <AlertCircle className="h-3.5 w-3.5 text-orange-400 shrink-0 mt-0.5" />{clean(m.note)}
                               </div>
                             ))}
                           </div>
                         )}
                         {coaching.missingEvidence.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Missing from your answer</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Missing from your answer</p>
                             {coaching.missingEvidence.map((m, i) => (
                               <div key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
-                                <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />{m}
+                                <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />{clean(m)}
                               </div>
                             ))}
                           </div>
                         )}
                         {coaching.suggestedStructure && (
                           <div className="space-y-2 border-t border-border/40 pt-4">
-                            <p className="text-[11px] font-semibold text-brand-600 uppercase tracking-wider">How a stronger answer sounds</p>
+                            <p className="text-xs font-semibold text-brand-400 uppercase tracking-wider">How a stronger answer sounds</p>
                             <p className="text-sm text-foreground leading-relaxed italic bg-brand-500/5 rounded-lg p-3">
-                              &ldquo;{coaching.suggestedStructure}&rdquo;
+                              &ldquo;{clean(coaching.suggestedStructure)}&rdquo;
                             </p>
-                            <p className="text-[10px] text-muted-foreground/60">This is an example, not a script - adapt it to your actual experience.</p>
+                            <p className="text-xs text-muted-foreground/60">This is an example, not a script. Adapt it to your actual experience.</p>
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
-                )}
-
-                {/* Retry this answer */}
-                {session.status === 'completed' && answer && (
-                  <div className="ml-8">
-                    {!retryResult && retryingQuestionId !== q.id && (
-                      <Button size="sm" variant="ghost" onClick={() => { setRetryingQuestionId(q.id); setRetryText('') }} className="gap-1.5 h-7 text-xs">
-                        <RotateCcw className="h-3 w-3" /> Retry this answer
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {retryingQuestionId === q.id && (
-                  <div className="ml-8 space-y-2 pl-3 border-l-2 border-brand-500/30">
-                    <Textarea value={retryText} onChange={(e) => setRetryText(e.target.value)} placeholder="Try answering again…" className="min-h-[100px]" maxLength={10000} />
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => setRetryingQuestionId(null)}>Cancel</Button>
-                      <Button size="sm" onClick={() => handleSubmitRetry(q.id)} disabled={submittingRetry}>{submittingRetry ? 'Comparing…' : 'Submit Retry'}</Button>
-                    </div>
-                  </div>
-                )}
-
-                {retryResult && (
-                  <div className="ml-8 rounded-xl border border-border/60 bg-surface-100 p-3 space-y-2">
-                    <p className="text-xs font-medium text-foreground">Your retry</p>
-                    <p className="text-sm text-foreground">{retryResult.retryAnswer.answer_text}</p>
-                    <div className="space-y-1 pt-2 border-t border-border/60">
-                      {retryResult.comparison.observations.map((o, i) => (
-                        <div key={i} className="flex items-start gap-2 text-xs">
-                          {o.changed ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
-                          <span className={o.changed ? 'text-foreground' : 'text-muted-foreground'}>{o.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground pt-1">Objective text comparison - your original answer is preserved.</p>
                   </div>
                 )}
               </div>
@@ -624,9 +614,9 @@ export default function InterviewResultsPage() {
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Dumbbell className="h-4 w-4" /> Practice Next</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              {weakDimensionIds.length > 0
+              {hasWeak
                 ? 'Drills targeting your lowest-scoring dimensions from this session.'
-                : hasAnalysis ? 'You scored well across every dimension - general recommendations below.' : 'General practice recommendations.'}
+                : hasAnalysis ? 'You did well overall. These sharpen your relatively weaker areas from this session.' : 'General practice recommendations.'}
             </p>
             <div className="grid sm:grid-cols-3 gap-2">
               {recommendDrillsForDimensions(weakDimensionIds).map((d) => (
@@ -636,7 +626,7 @@ export default function InterviewResultsPage() {
                 </Link>
               ))}
             </div>
-            <Link href="/interviews/drills" className="text-xs text-brand-600 hover:underline inline-flex items-center gap-1">
+            <Link href="/interviews/drills" className="text-xs text-brand-400 hover:underline inline-flex items-center gap-1">
               See all drills <ArrowRight className="h-3 w-3" />
             </Link>
           </CardContent>

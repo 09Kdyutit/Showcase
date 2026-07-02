@@ -48,7 +48,13 @@ export async function getOrCreateStripeCustomer(
     .single()
 
   if (sub?.stripe_customer_id) {
-    return sub.stripe_customer_id
+    // Verify the customer still exists in the current Stripe mode (test vs live IDs differ)
+    try {
+      await stripe.customers.retrieve(sub.stripe_customer_id)
+      return sub.stripe_customer_id
+    } catch {
+      // Customer doesn't exist in this mode (e.g. test-mode ID used with live key) — fall through to create
+    }
   }
 
   const customer = await stripe.customers.create({

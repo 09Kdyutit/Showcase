@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -58,12 +58,12 @@ function JoinForm() {
             boxShadow: '0 0 40px color-mix(in oklch, var(--color-brand-500) 35%, transparent)',
           }}
         >
-          <CheckCircle2 className="h-7 w-7 text-brand-600" />
+          <CheckCircle2 className="h-7 w-7 text-brand-400" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-foreground">You're on the list.</h2>
+          <h2 className="text-xl font-semibold text-foreground">You&apos;re on the list.</h2>
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-            We'll reach out when your spot opens. Keep an eye on your inbox.
+            We&apos;ll reach out when your spot opens. Keep an eye on your inbox.
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ function JoinForm() {
       />
 
       {error && (
-        <p className="text-xs text-red-600 text-center">{error}</p>
+        <p className="text-xs text-red-400 text-center">{error}</p>
       )}
 
       <button
@@ -154,7 +154,7 @@ function BackgroundOrbs() {
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(40,20,70,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(40,20,70,0.06) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
           backgroundSize: '80px 80px',
         }}
       />
@@ -176,9 +176,6 @@ const FEATURES = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function JoinPage() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center relative"
@@ -186,12 +183,7 @@ export default function JoinPage() {
     >
       <BackgroundOrbs />
 
-      <div
-        className={cn(
-          'relative z-10 flex flex-col items-center text-center px-5 w-full max-w-sm transition-all duration-700',
-          mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        )}
-      >
+      <div className="relative z-10 flex flex-col items-center text-center px-5 w-full max-w-sm animate-slide-up">
         {/* Logo mark */}
         <div className="mb-8">
           <div
@@ -236,7 +228,7 @@ export default function JoinPage() {
           {FEATURES.map((f) => (
             <span
               key={f}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full text-muted-foreground/50 border border-border"
+              className="text-xs font-medium px-2.5 py-1 rounded-full text-muted-foreground/50 border border-border"
             >
               {f}
             </span>
@@ -244,7 +236,7 @@ export default function JoinPage() {
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px mb-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.10) 50%, transparent)' }} />
+        <div className="w-full h-px mb-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.10) 50%, transparent)' }} />
 
         {/* Form */}
         <div className="w-full">
@@ -257,7 +249,7 @@ export default function JoinPage() {
         </div>
 
         {/* Footer -- legal only, no app links */}
-        <p className="mt-8 text-[10px] text-muted-foreground/30 leading-relaxed">
+        <p className="mt-8 text-xs text-muted-foreground/30 leading-relaxed">
           By requesting access you agree to our{' '}
           <a href="/privacy" target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-muted-foreground/50 transition-colors">
             Privacy Policy

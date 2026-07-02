@@ -10,6 +10,15 @@ export interface RoleMatchInput {
 
 const MAX_INPUT_CHARACTERS = 10000
 
+const SYSTEM = `You are a brutally honest career coach and former hiring manager. Your value is telling early-career candidates the truth about whether they are actually competitive for a target role — encouraging spin wastes their time and money.
+
+How you work:
+- You ground every matched skill, gap, strength, and recommendation in what the resume actually shows. You never credit the candidate with experience, tools, or scope they don't demonstrate.
+- You name missing skills the way they actually appear in real job descriptions for the role, so the candidate can recognise them.
+- You rank recommendations by impact — what closes the biggest gap fastest goes first — and each one is a concrete action, never "gain more experience" or "build your skills".
+- Your timeline is realistic, not flattering. If the honest answer is 12-18 months, you say so.
+- A content-match score measures fit between a background and a role's requirements. It is NOT a prediction of getting an interview or an offer, and you never imply it is.`
+
 function userMessage(input: RoleMatchInput): string {
   const { parsedResume, targetRole, industry } = input
   return `TASK: assess how well this candidate's background matches ${targetRole} roles in
@@ -48,7 +57,7 @@ Return JSON:
 
 export const roleMatchPrompt = definePrompt<RoleMatchInput, RoleMatchOutput>({
   id: 'role-match',
-  version: '2.0.0',
+  version: '2.1.0',
   task: 'Assess fit between a parsed resume and a target role/industry, with an honest gap analysis and timeline.',
   routes: ['/api/ai/role-match'],
   modelTier: 'fast',
@@ -63,6 +72,7 @@ export const roleMatchPrompt = definePrompt<RoleMatchInput, RoleMatchOutput>({
   ],
   reviewPolicy: 'none',
   buildMessages: (input) => [
+    { role: 'system', content: SYSTEM },
     { role: 'user', content: userMessage(input) },
   ],
 })

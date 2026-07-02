@@ -24,7 +24,7 @@ export default function DemoOnboardingPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-xl">
         {/* Demo banner */}
-        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 text-xs text-amber-600 font-medium flex items-center gap-2">
+        <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 text-xs text-amber-400 font-medium flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
           Demo mode - static sample data for visual QA only
         </div>
@@ -42,7 +42,7 @@ export default function DemoOnboardingPage() {
         <div className="flex items-center gap-2 mb-8">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2 flex-1">
-              <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-all duration-200 ${i === 0 ? 'bg-brand-500/20 text-brand-600 border border-brand-500/40' : 'bg-surface-200 text-muted-foreground/40'}`}>
+              <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-all duration-200 ${i === 0 ? 'bg-brand-500/20 text-brand-400 border border-brand-500/40' : 'bg-surface-200 text-muted-foreground/40'}`}>
                 {i + 1}
               </div>
               <span className={`text-xs font-medium transition-colors ${i === 0 ? 'text-foreground' : 'text-muted-foreground/50'}`}>{s}</span>
@@ -75,7 +75,7 @@ export default function DemoOnboardingPage() {
                     <p className="text-sm font-medium">{lvl.label}</p>
                     <p className="text-xs opacity-70">{lvl.desc}</p>
                   </div>
-                  {lvl.selected && <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0" />}
+                  {lvl.selected && <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0" />}
                 </div>
               ))}
             </div>
@@ -87,7 +87,7 @@ export default function DemoOnboardingPage() {
               {INDUSTRIES.map((ind) => (
                 <div
                   key={ind}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${ind === 'Technology' ? 'border-brand-500/50 bg-brand-500/10 text-brand-700' : 'border-border bg-surface-100 text-muted-foreground'}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm border ${ind === 'Technology' ? 'border-brand-500/50 bg-brand-500/10 text-brand-300' : 'border-border bg-surface-100 text-muted-foreground'}`}
                 >
                   {ind}
                 </div>

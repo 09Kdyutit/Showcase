@@ -62,7 +62,7 @@ export function ImageUploader({ label, value, slot, onUpload, onRemove, classNam
       <div className="flex items-center justify-between">
         <label className="text-xs font-medium text-surface-300">{label}</label>
         {value && (
-          <button onClick={onRemove} className="text-xs text-surface-500 hover:text-red-600 transition-colors flex items-center gap-1">
+          <button onClick={onRemove} className="text-xs text-surface-500 hover:text-red-400 transition-colors flex items-center gap-1">
             <X className="h-3 w-3" /> Remove
           </button>
         )}
@@ -97,13 +97,13 @@ export function ImageUploader({ label, value, slot, onUpload, onRemove, classNam
               <div className="text-xs text-surface-500">
                 <span className="font-medium text-surface-300">Upload</span> or drag & drop
               </div>
-              {hint && <div className="text-[10px] text-surface-600">{hint}</div>}
+              {hint && <div className="text-xs text-surface-600">{hint}</div>}
             </>
           )}
         </div>
       )}
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
 
       <input ref={inputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onFileChange} className="hidden" />
     </div>

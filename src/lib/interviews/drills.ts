@@ -286,7 +286,7 @@ Requirements:
         },
         {
           label: 'Mentions a decision you personally made (not just a task)',
-          passed: has(lower, /\bI\s+(decided|chose|determined|proposed|pushed for|recommended|suggested|insisted|opted|picked|made the call)\b/),
+          passed: has(text, /\bI\s+(decided|chose|determined|proposed|pushed for|recommended|suggested|insisted|opted|picked|made the call)\b/i),
         },
         {
           label: 'States what changed or happened because of your specific action',
@@ -575,7 +575,7 @@ Requirements:
         },
         {
           label: 'Uses first-person ownership in the failure (not passive voice or circumstance-as-subject)',
-          passed: has(lower, /\bI\s+(misjudged|underestimated|failed|missed|didn'?t|made|assumed|was (too|wrong|overconfident|late)|should have|could have)\b/),
+          passed: has(text, /\bI\s+(misjudged|underestimated|failed|missed|didn'?t|made|assumed|was (too|wrong|overconfident|late)|should have|could have)\b/i),
         },
         {
           label: 'States a specific lesson (more than "I learned communication is important")',
@@ -622,7 +622,7 @@ Red flags that will fail this drill:
         },
         {
           label: 'Names what YOU personally did to move toward resolution',
-          passed: has(text, FIRST_PERSON_PAST_VERB) || has(lower, /\bI\s+(suggested|proposed|asked|listened|scheduled|set up|reached out|initiated|brought|offered|tried|worked)\b/),
+          passed: has(text, FIRST_PERSON_PAST_VERB) || has(text, /\bI\s+(suggested|proposed|asked|listened|scheduled|set up|reached out|initiated|brought|offered|tried|worked)\b/i),
         },
         {
           label: 'States a resolution - even a partial one',
@@ -727,8 +727,24 @@ export function getDrillDefinition(id: string): DrillDefinition | undefined {
  *  dimensions from recent evaluations), never to inflate engagement - mission's
  *  explicit "recommended from actual session weaknesses" requirement. Falls back to
  *  foundational drills only when there is no real weakness data yet. */
+// The results scorecard is now six high-level categories; map each to the concrete drill
+// competencies that train it so weak categories still surface relevant drills.
+const CATEGORY_TO_DRILL_COMPETENCIES: Record<string, string[]> = {
+  technical: ['role_technical_depth', 'problem_solving_process'],
+  communication: ['concision', 'answer_relevance', 'self_presentation'],
+  competency: ['personal_ownership', 'outcome_and_impact'],
+  clarity: ['context_clarity', 'answer_structure'],
+  authenticity: ['personal_ownership', 'outcome_and_impact'],
+  behaviour: ['follow_up_handling', 'self_presentation'],
+}
+
 export function recommendDrillsForDimensions(weakDimensionIds: string[], limit = 3): DrillDefinition[] {
-  const matched = DRILL_CATALOG.filter((d) => weakDimensionIds.includes(d.competency))
+  // Accept either the six scorecard categories or raw drill-competency ids (back-compat).
+  const wanted = new Set<string>()
+  for (const id of weakDimensionIds) {
+    (CATEGORY_TO_DRILL_COMPETENCIES[id] ?? [id]).forEach((c) => wanted.add(c))
+  }
+  const matched = DRILL_CATALOG.filter((d) => wanted.has(d.competency))
   if (matched.length > 0) return matched.slice(0, limit)
   return DRILL_CATALOG.filter((d) => d.id === 'star_structure' || d.id === 'intro_60s' || d.id === 'quantify_impact').slice(0, limit)
 }

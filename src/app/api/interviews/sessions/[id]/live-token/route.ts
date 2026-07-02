@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isProUser } from '@/lib/ai/rate-limit'
 import { isInterviewLiveEnabled } from '@/lib/interviews/config'
-import { getLiveModel } from '@/lib/interviews/gemini/models'
-import { buildLiveInterviewerSystemInstruction } from '@/lib/interviews/gemini/live-prompt'
+import { createLiveEphemeralToken } from '@/lib/interviews/gemini/live'
 import { assertWithinBudget, estimateLiveVoiceCostUsd, BudgetExceededError } from '@/lib/interviews/budget'
+
+// Browser connects DIRECTLY to Gemini's constrained Live endpoint with the ephemeral
+// token — no Supabase Edge Function proxy in the audio path (that proxy's wall-clock
+// limit was killing sessions mid-interview with a 1006 abnormal close). The real API
+// key is never exposed: the token is server-minted, single-use, time-boxed, and has
+// the interviewer config + system instruction locked in.
+const GEMINI_LIVE_WS_URL =
+  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage' +
+  '.v1alpha.GenerativeService.BidiGenerateContentConstrained'
 
 /**
  * Returns the model ID + system instruction needed for a live voice session.
@@ -28,7 +36,7 @@ export async function POST(
 
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')
-      .select('id, user_id, status, delivery_mode, max_duration_seconds, target_role')
+      .select('id, user_id, status, delivery_mode, max_duration_seconds, target_role, target_company')
       .eq('id', id)
       .eq('user_id', user.id)
       .maybeSingle()
@@ -79,13 +87,19 @@ export async function POST(
       return NextResponse.json({ error: 'This session has no planned questions.', code: 'NO_QUESTIONS' }, { status: 409 })
     }
 
-    const model = getLiveModel()
-    const systemInstruction = buildLiveInterviewerSystemInstruction(
-      questions.map((q) => ({ questionText: q.question_text, competency: q.competency })),
-      session.target_role,
-    )
+    const tokenResult = await createLiveEphemeralToken({
+      sessionId: id,
+      userId: user.id,
+      maxDurationSeconds: session.max_duration_seconds,
+      targetRole: session.target_role,
+      targetCompany: session.target_company,
+      questions: questions.map((q) => ({ questionText: q.question_text, competency: q.competency })),
+    })
 
-    return NextResponse.json({ data: { model, systemInstruction } })
+    // Browser opens: `${wsUrl}?access_token=${token}` straight to Gemini — no proxy.
+    return NextResponse.json({
+      data: { token: tokenResult.ephemeralToken, model: tokenResult.model, wsUrl: GEMINI_LIVE_WS_URL },
+    })
   } catch (err) {
     console.error('[interviews/sessions/[id]/live-token POST]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Failed to prepare live session.' }, { status: 500 })

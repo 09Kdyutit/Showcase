@@ -23,12 +23,11 @@ export const MODELS = {
   main: process.env.OPENAI_MODEL_MAIN ?? 'gpt-4o',
   // Premium: optional final-polish pass only - not used automatically
   premium: process.env.OPENAI_MODEL_PREMIUM ?? 'gpt-4o',
-  // Interview analysis: post-session coaching/evidence assessment. gpt-5-mini chosen
-  // deliberately over the gpt-5.5 flagship - flagship pricing ($5/$30 per 1M tokens) is
-  // ~16x/12x gpt-5-mini's ($0.25/$2), and gpt-5-mini is priced at or below what this task
-  // cost on Gemini 2.5 Flash before this migration. Live voice interviews stay on Gemini
-  // (its native-audio pricing is ~5-10x cheaper than OpenAI's Realtime API equivalent) -
-  // this tier is for the text-only post-session analysis call alone.
+  // Interview analysis: post-session coaching/evidence assessment. gpt-5-mini for its
+  // nuanced judgment (calibrated scoring, spotting weak moments, non-generic feedback) — but
+  // run at reasoning.effort='low' (see client.ts) so it stays sharp WITHOUT the 20-30s
+  // "thinking" delay that made grading feel slow. Best of both: smart and fast. Live voice
+  // interviews stay on Gemini.
   interviewAnalysis: process.env.OPENAI_MODEL_INTERVIEW_ANALYSIS ?? 'gpt-5-mini',
 } as const
 
@@ -43,4 +42,11 @@ const REASONING_TIER_MODEL_PREFIXES = ['o1', 'o3', 'o4-mini', 'gpt-5-mini', 'gpt
 
 export function modelSupportsTemperature(model: string): boolean {
   return !REASONING_TIER_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix))
+}
+
+// A reasoning-tier model (gpt-5-mini, o-series, …). These accept a `reasoning.effort` dial;
+// turning it down keeps the model's capability but cuts the seconds it spends "thinking"
+// before answering — the difference between a fast and a slow post-session analysis.
+export function isReasoningModel(model: string): boolean {
+  return REASONING_TIER_MODEL_PREFIXES.some((prefix) => model.startsWith(prefix))
 }

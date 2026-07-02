@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
+import { Geist, Geist_Mono, Fraunces, Fredoka } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
@@ -19,6 +19,13 @@ const fraunces = Fraunces({
   subsets: ['latin'],
   style: ['normal', 'italic'],
   axes: ['opsz', 'SOFT', 'WONK'],
+})
+
+// Rounded/curvy display font for hero emphasis.
+const fredoka = Fredoka({
+  variable: '--font-rounded',
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -60,23 +67,23 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#f7f3ec',
+  themeColor: '#0e0e14',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${fredoka.variable}`}>
       <body className="min-h-screen bg-background text-foreground antialiased">
         {children}
         <Analytics />
         <Toaster
-          theme="light"
+          theme="dark"
           position="bottom-right"
           toastOptions={{
             style: {
-              background: 'var(--color-surface-200)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-foreground)',
+              background: 'oklch(14% 0.009 255)',
+              border: '1px solid oklch(24% 0.011 255)',
+              color: 'oklch(97% 0.004 255)',
             },
           }}
         />

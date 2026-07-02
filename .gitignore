@@ -39,8 +39,8 @@ yarn-error.log*
 # supabase CLI local cache (contains live DB connection strings)
 supabase/.temp
 
-# claude code agent worktrees
-.claude/worktrees
+# claude code local agent config (worktrees, locally installed skills)
+.claude/
 
 # typescript
 *.tsbuildinfo
@@ -51,3 +51,6 @@ next-env.d.ts
 
 # prompt-eval run outputs — regenerate with npm run eval:prompts / test:multi-model
 /evals/results
+
+# locally installed agent skills (design tooling, not app code)
+.github/skills/

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
   LayoutDashboard, FileText, Briefcase, BarChart3, Settings, CreditCard,
-  LogOut, Zap, Menu, X, Search, MessageSquare, ChevronUp,
+  LogOut, Zap, Menu, X, Search, MessageSquare, ChevronUp, Compass, Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +20,9 @@ const NAV_ITEMS = [
   { href: '/resume', icon: FileText, label: 'Resume' },
   { href: '/builder', icon: Briefcase, label: 'Portfolio' },
   { href: '/audit', icon: BarChart3, label: 'ProofScore' },
+  { href: '/projects', icon: Lightbulb, label: 'Project Ideas' },
   { href: '/jobs', icon: Search, label: 'Jobs' },
+  { href: '/opportunities', icon: Compass, label: 'Opportunities' },
   { href: '/interviews', icon: MessageSquare, label: 'Interview Lab' },
 ]
 
@@ -60,7 +62,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       {/* Ambient top glow */}
       <div
         className="pointer-events-none absolute top-0 left-0 right-0 h-64 opacity-50"
-        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklch, var(--color-brand-500) 18%, transparent), transparent)' }}
+        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklch, var(--color-brand-500) 24%, transparent), transparent)' }}
       />
 
       {/* Logo */}
@@ -70,7 +72,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
           {isPro && (
             <Badge
               variant="pro"
-              className="ml-auto text-[10px] px-1.5 py-0.5"
+              className="ml-auto text-xs px-1.5 py-0.5"
               style={{ boxShadow: '0 0 10px color-mix(in oklch, var(--color-brand-500) 40%, transparent)' }}
             >
               PRO
@@ -79,7 +81,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         </Link>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.08) 30%, rgba(40,20,70,0.12) 50%, rgba(40,20,70,0.08) 70%, transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, oklch(97% 0.004 255 / 0.04) 30%, oklch(97% 0.004 255 / 0.07) 50%, oklch(97% 0.004 255 / 0.04) 70%, transparent)' }}
         />
       </div>
 
@@ -102,7 +104,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
               <Icon
                 className={cn(
                   'h-4 w-4 shrink-0 relative z-10 transition-colors',
-                  active ? 'text-brand-700' : 'text-muted-foreground/60 group-hover:text-foreground/80'
+                  active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80'
                 )}
               />
               <span className="relative z-10 tracking-wide">{label}</span>
@@ -117,16 +119,16 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
           <div
             className="relative rounded-xl overflow-hidden p-4"
             style={{
-              background: 'linear-gradient(135deg, var(--color-brand-50), var(--color-surface-100))',
-              border: '1px solid color-mix(in oklch, var(--color-brand-500) 22%, transparent)',
+              background: 'linear-gradient(135deg, var(--color-surface-300), color-mix(in oklch, var(--color-brand-900) 70%, var(--color-surface-200)))',
+              border: '1px solid color-mix(in oklch, var(--color-brand-500) 28%, transparent)',
             }}
           >
             <div
-              className="pointer-events-none absolute inset-0 opacity-40"
-              style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-300) 25%, transparent), transparent)' }}
+              className="pointer-events-none absolute inset-0 opacity-60"
+              style={{ background: 'radial-gradient(ellipse 100% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-500) 16%, transparent), transparent)' }}
             />
-            <p className="relative text-xs font-semibold text-brand-700 mb-1 tracking-wide">Showcase Pro</p>
-            <p className="relative text-xs text-muted-foreground leading-relaxed mb-3">
+            <p className="relative text-xs font-semibold text-brand-300 mb-1 tracking-wide">Showcase Pro</p>
+            <p className="relative text-xs text-foreground/50 leading-relaxed mb-3">
               Unlock full AI generation, job matching, Tailor Studio, and public portfolios.
             </p>
             <Button
@@ -143,7 +145,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
             </Button>
             <Link
               href="/billing?plan=monthly"
-              className="relative block text-[11px] text-center text-muted-foreground/50 hover:text-muted-foreground mt-2 transition-colors"
+              className="relative block text-xs text-center text-muted-foreground/50 hover:text-muted-foreground mt-2 transition-colors"
             >
               or $15/mo billed monthly
             </Link>
@@ -155,7 +157,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       <div className="px-2.5 pb-3 relative">
         <div
           className="mb-3 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(40,20,70,0.08) 30%, rgba(40,20,70,0.12) 50%, rgba(40,20,70,0.08) 70%, transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, oklch(97% 0.004 255 / 0.04) 30%, oklch(97% 0.004 255 / 0.07) 50%, oklch(97% 0.004 255 / 0.04) 70%, transparent)' }}
         />
 
         <div className="space-y-0.5 mb-2">
@@ -173,7 +175,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 )}
               >
-                <Icon className={cn('h-4 w-4 shrink-0 relative z-10', active ? 'text-brand-700' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
+                <Icon className={cn('h-4 w-4 shrink-0 relative z-10', active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
                 <span className="relative z-10">{label}</span>
               </Link>
             )
@@ -206,7 +208,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 <p className="text-xs font-medium text-foreground/90 truncate">
                   {profile.full_name ?? profile.email?.split('@')[0]}
                 </p>
-                <p className="text-[10px] text-muted-foreground/50 truncate">{profile.email}</p>
+                <p className="text-xs text-muted-foreground/50 truncate">{profile.email}</p>
               </div>
               <ChevronUp
                 className={cn(
@@ -217,22 +219,32 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
             </button>
 
             {userMenuOpen && (
-              <div
-                className="absolute bottom-full left-0 right-0 mb-1 rounded-xl overflow-hidden"
-                style={{
-                  background: 'var(--color-surface-100)',
-                  border: '1px solid var(--color-border)',
-                  boxShadow: '0 -8px 32px rgba(40,20,70,0.12)',
-                }}
-              >
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-red-600 hover:bg-red-500/5 transition-colors"
+              <>
+                {/* Click-away backdrop so the menu closes when you click elsewhere */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute bottom-full left-0 right-0 mb-2 rounded-xl overflow-hidden z-50"
+                  style={{
+                    background: 'var(--color-surface-200)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 12px 36px oklch(0% 0 0 / 0.6)',
+                    animation: 'fadeIn 0.14s ease both',
+                    transformOrigin: 'bottom',
+                  }}
                 >
-                  <LogOut className="h-3.5 w-3.5 shrink-0" />
-                  Sign out
-                </button>
-              </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground hover:text-red-400 hover:bg-red-500/8 transition-colors"
+                  >
+                    <LogOut className="h-3.5 w-3.5 shrink-0" />
+                    Sign out
+                  </button>
+                </div>
+              </>
             )}
           </div>
         )}

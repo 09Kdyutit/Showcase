@@ -18,7 +18,11 @@ function assert(cond, label, detail = '') {
   }
 }
 
-assert(THEME_IDS.length === 3, 'Exactly 3 themes registered', `(got ${THEME_IDS.length})`)
+// The registry grew from 3 hand-built themes to 10 built-ins + 30 preset-engine themes.
+// Don't hardcode the count — assert internal consistency instead.
+assert(THEME_IDS.length >= 3, 'At least the 3 core themes registered', `(got ${THEME_IDS.length})`)
+assert(new Set(THEME_IDS).size === THEME_IDS.length, 'No duplicate theme ids')
+assert(Object.keys(THEME_REGISTRY).length === THEME_IDS.length, 'THEME_REGISTRY covers every THEME_ID exactly', `(registry ${Object.keys(THEME_REGISTRY).length} vs ids ${THEME_IDS.length})`)
 assert((THEME_IDS).includes('executive-dark'), 'executive-dark is registered')
 assert((THEME_IDS).includes('clean-editorial'), 'clean-editorial is registered')
 assert((THEME_IDS).includes('creative-case-study'), 'creative-case-study is registered')

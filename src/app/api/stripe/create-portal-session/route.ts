@@ -13,7 +13,7 @@ export async function POST() {
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!sub?.stripe_customer_id) {
       return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
@@ -25,7 +25,11 @@ export async function POST() {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (err) {
+  } catch (err: unknown) {
+    const stripeErr = err as { type?: string; code?: string; message?: string }
+    if (stripeErr?.code === 'resource_missing' || stripeErr?.message?.includes('No such customer')) {
+      return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
+    }
     console.error('[create-portal-session]', err)
     return NextResponse.json({ error: 'Failed to open billing portal' }, { status: 500 })
   }

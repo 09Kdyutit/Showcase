@@ -12,6 +12,8 @@ const LIMITS = {
     job_imported: { max: 3, windowHours: 24 },
     job_matched: { max: 5, windowHours: 24 },
     job_tailored: { max: 1, windowHours: 24 },
+    cover_letter: { max: 3, windowHours: 24 },
+    project_suggested: { max: 3, windowHours: 24 },
     ats_checked: { max: 1, windowHours: 24 },
     voice_profiled: { max: 1, windowHours: 168 }, // once per week
     resume_pdf_vision: { max: 2, windowHours: 24 },
@@ -25,6 +27,8 @@ const LIMITS = {
     job_imported: { max: 50, windowHours: 24 },
     job_matched: { max: 100, windowHours: 24 },
     job_tailored: { max: 15, windowHours: 24 },
+    cover_letter: { max: 40, windowHours: 24 },
+    project_suggested: { max: 30, windowHours: 24 },
     ats_checked: { max: 20, windowHours: 24 },
     voice_profiled: { max: 5, windowHours: 24 },
     resume_pdf_vision: { max: 10, windowHours: 24 },

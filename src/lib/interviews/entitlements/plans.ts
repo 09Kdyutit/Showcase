@@ -14,9 +14,14 @@ export interface InterviewPlanLimits {
   coachingModes: readonly string[]
 }
 
+// Pricing model rationale: text interviews cost ~$0.03 each (no audio), live voice
+// costs ~$0.017/min (Gemini Live audio out). So we make the cheap thing feel unlimited
+// and meter only the expensive thing. Free is a real, useful text-only experience that
+// makes the voice interviewer the obvious reason to upgrade; Pro is "unlimited" text
+// (a high fair-use cap to stop abuse) plus a generous, margin-safe voice allowance.
 export const FREE_PLAN_LIMITS: InterviewPlanLimits = {
-  sessionsPerPeriod: 3,
-  audioSessionsPerPeriod: 0,
+  sessionsPerPeriod: 5,            // text interviews / month
+  audioSessionsPerPeriod: 0,       // voice is the upgrade reason — none on free
   maxPrimaryQuestions: 8,
   maxAdaptiveFollowUps: 2,
   maxSessionMinutes: 25,
@@ -26,12 +31,16 @@ export const FREE_PLAN_LIMITS: InterviewPlanLimits = {
 }
 
 export const PRO_PLAN_LIMITS: InterviewPlanLimits = {
-  sessionsPerPeriod: 30,
-  audioSessionsPerPeriod: 15,
+  // 150 total/month reads as "unlimited" to any real user (5/day, every day) while
+  // capping pathological abuse. Voice is the metered, cost-bearing resource: 20/month
+  // at an avg ~15-min session is ~$5 COGS against $15 revenue (~65% margin), and the
+  // pathological worst case is still covered by the live-voice spend-budget gate.
+  sessionsPerPeriod: 150,
+  audioSessionsPerPeriod: 20,
   maxPrimaryQuestions: 15,
   maxAdaptiveFollowUps: 5,
   maxSessionMinutes: 45,
-  retriesPerPeriod: 30,
+  retriesPerPeriod: 100,
   difficulties: ['foundational', 'standard', 'challenging'],
   // 'pressure' coaching mode does not exist in this codebase (schemas.ts COACHING_MODES
   // is only ['guided', 'realistic']) - implementing distinct Live/Written interviewer

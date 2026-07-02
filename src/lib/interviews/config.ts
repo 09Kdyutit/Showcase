@@ -69,8 +69,8 @@ export function isRawAudioRetentionAllowedPlatformWide(): boolean {
  *  them" per the mission. Every session-creation route clamps to this regardless of
  *  what the client requests. */
 export function getMaxSessionMinutes(): number {
-  const n = Number(process.env.INTERVIEW_MAX_SESSION_MINUTES ?? '20')
-  return Number.isFinite(n) && n > 0 ? Math.min(n, 30) : 20 // 30-minute absolute hard ceiling, no env can exceed it
+  const n = Number(process.env.INTERVIEW_MAX_SESSION_MINUTES ?? '30')
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 30) : 30 // 30-minute absolute hard ceiling, no env can exceed it
 }
 
 export function getMaxConcurrentSessions(): number {

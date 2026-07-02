@@ -1,9 +1,17 @@
 #!/usr/bin/env node --experimental-strip-types
 // Deterministic tests for the interview scoring engine — the trust boundary between
-// Gemini's bounded evidence and the stored score. No AI calls; everything here is
+// the model's bounded evidence and the stored score. No AI calls; everything here is
 // pure arithmetic and validation against hand-built fixture data.
+//
+// Semantics under test (current design):
+//  - Weights come from the server rubric registry, never the model response.
+//  - Fabricated/nonexistent citation IDs are STRIPPED (sanitized), never stored —
+//    LLMs reliably mangle database UUIDs, so a hard throw failed every real analysis.
+//    Scores come from ratingEvidence; citations are display metadata.
+//  - Dimensions not assessed at all are excluded and weights renormalized.
 // Run via: npm run test:interview-scoring
-import { computeInterviewScore, validateCitations, InvalidCitationError } from '../src/lib/interviews/scoring.ts'
+import { computeInterviewScore, sanitizeCitations } from '../src/lib/interviews/scoring.ts'
+import { DIMENSION_IDS } from '../src/lib/interviews/schemas.ts'
 
 let PASS = 0, FAIL = 0
 function record(label, ok, detail) {
@@ -16,20 +24,22 @@ const REAL_SEGMENTS = [
   { id: 'seg-2', speaker: 'candidate', startMs: 5000, endMs: 10000, content: 'We reduced latency by 40%.', sourceMode: 'text' },
 ]
 
-// ── Case 1: deterministic same-input-same-output ────────────────────────────
+function dim(dimensionId, ratingEvidence, citedSegmentIds, confidence = 'high') {
+  return { dimensionId, ratingEvidence, citedSegmentIds, explanation: `Assessment for ${dimensionId}.`, missingEvidence: [], confidence }
+}
+
+// ── Case 1: deterministic same-input-same-output across all 6 dimensions ─────
 const goodAnalysis = {
   answerAssessments: [],
   topFixes: ['Add more outcome detail'],
   strengths: ['Clear ownership'],
   dimensionAssessments: [
-    { dimensionId: 'answer_relevance', ratingEvidence: 80, citedSegmentIds: ['seg-1'], explanation: 'Addressed the question directly.', missingEvidence: [], confidence: 'high' },
-    { dimensionId: 'evidence_specificity', ratingEvidence: 70, citedSegmentIds: ['seg-2'], explanation: 'Gave a specific metric.', missingEvidence: [], confidence: 'medium' },
-    { dimensionId: 'context_clarity', ratingEvidence: 60, citedSegmentIds: ['seg-1'], explanation: 'Mostly clear.', missingEvidence: [], confidence: 'medium' },
-    { dimensionId: 'personal_ownership', ratingEvidence: 90, citedSegmentIds: ['seg-1'], explanation: 'Clear "I led".', missingEvidence: [], confidence: 'high' },
-    { dimensionId: 'action_quality', ratingEvidence: 65, citedSegmentIds: ['seg-1'], explanation: 'Some reasoning.', missingEvidence: [], confidence: 'medium' },
-    { dimensionId: 'outcome_and_impact', ratingEvidence: 75, citedSegmentIds: ['seg-2'], explanation: 'Quantified result.', missingEvidence: [], confidence: 'high' },
-    { dimensionId: 'answer_structure', ratingEvidence: 55, citedSegmentIds: ['seg-1'], explanation: 'Reasonably organized.', missingEvidence: [], confidence: 'medium' },
-    { dimensionId: 'follow_up_handling', ratingEvidence: 50, citedSegmentIds: ['seg-1'], explanation: 'Adequate.', missingEvidence: [], confidence: 'low' },
+    dim('technical', 62, ['seg-1']),
+    dim('communication', 74, ['seg-1']),
+    dim('competency', 81, ['seg-1', 'seg-2']),
+    dim('clarity', 68, ['seg-2'], 'medium'),
+    dim('authenticity', 77, ['seg-1'], 'medium'),
+    dim('behaviour', 70, ['seg-2'], 'low'),
   ],
 }
 
@@ -38,52 +48,62 @@ const result2 = computeInterviewScore('behavioral', goodAnalysis, REAL_SEGMENTS)
 record('Same input produces the exact same overall score (deterministic)', result1.overallScore === result2.overallScore, `${result1.overallScore} vs ${result2.overallScore}`)
 record('Overall score is a whole number, not a decimal', Number.isInteger(result1.overallScore))
 record('Overall score is in range 0-100', result1.overallScore >= 0 && result1.overallScore <= 100)
-record('Readiness band matches the score', result1.readinessBand === (result1.overallScore >= 35 && result1.overallScore < 55 ? 'building' : result1.readinessBand))
+record('All 6 assessed dimensions are included', result1.dimensions.length === 6, `got ${result1.dimensions.length}`)
+record('Included weights sum to 1 after normalization', Math.abs(result1.dimensions.reduce((s, d) => s + d.weight, 0) - 1) < 0.001)
+record('Overall score is bounded by min/max dimension scores', result1.overallScore >= 62 && result1.overallScore <= 81, `got ${result1.overallScore}`)
 
-// ── Case 2: fabricated citation must fail closed, not silently drop ─────────
+// ── Case 2: fabricated citation is stripped, never stored ────────────────────
 const fabricatedAnalysis = {
   ...goodAnalysis,
-  dimensionAssessments: [
-    { dimensionId: 'answer_relevance', ratingEvidence: 95, citedSegmentIds: ['seg-FABRICATED-999'], explanation: 'Looks great.', missingEvidence: [], confidence: 'high' },
-  ],
+  dimensionAssessments: goodAnalysis.dimensionAssessments.map((d) =>
+    d.dimensionId === 'competency'
+      ? { ...d, citedSegmentIds: ['seg-FABRICATED-999', 'seg-2'] }
+      : d
+  ),
 }
-let threwInvalidCitation = false
-try {
-  computeInterviewScore('behavioral', fabricatedAnalysis, REAL_SEGMENTS)
-} catch (err) {
-  threwInvalidCitation = err instanceof InvalidCitationError
-}
-record('A fabricated/nonexistent segment citation throws InvalidCitationError (fails closed)', threwInvalidCitation)
+const fabricatedResult = computeInterviewScore('behavioral', fabricatedAnalysis, REAL_SEGMENTS)
+const competencyDim = fabricatedResult.dimensions.find((d) => d.dimensionId === 'competency')
+record('Fabricated segment citation is stripped from stored evidence', !competencyDim.evidenceSegmentIds.includes('seg-FABRICATED-999'), JSON.stringify(competencyDim.evidenceSegmentIds))
+record('Real citation on the same dimension survives the strip', competencyDim.evidenceSegmentIds.includes('seg-2'))
+record('Stripping a citation does not change the deterministic score', fabricatedResult.overallScore === result1.overallScore, `${fabricatedResult.overallScore} vs ${result1.overallScore}`)
 
-// ── Case 3: dimension with zero evidence is excluded, not scored on nothing ──
-const noEvidenceAnalysis = {
+// sanitizeCitations is independently callable and covers answer assessments too
+const sanitized = sanitizeCitations({
   ...goodAnalysis,
-  dimensionAssessments: [
-    { dimensionId: 'answer_relevance', ratingEvidence: 80, citedSegmentIds: [], explanation: 'No citation given.', missingEvidence: ['nothing cited'], confidence: 'low' },
-    { dimensionId: 'evidence_specificity', ratingEvidence: 70, citedSegmentIds: ['seg-2'], explanation: 'Has evidence.', missingEvidence: [], confidence: 'high' },
-  ],
-}
-const resultNoEvidence = computeInterviewScore('behavioral', noEvidenceAnalysis, REAL_SEGMENTS)
-record('Dimension with zero cited evidence is excluded from scoring', resultNoEvidence.excludedDimensions.some((e) => e.dimensionId === 'answer_relevance' && e.reason === 'no transcript evidence cited'))
-record('Remaining weights are renormalized (single included dimension carries full weight=1)', resultNoEvidence.dimensions.length === 1 && Math.abs(resultNoEvidence.dimensions[0].weight - 1) < 0.001, JSON.stringify(resultNoEvidence.dimensions))
+  answerAssessments: [{
+    questionId: 'q-1', citedSegmentIds: ['seg-1', 'seg-NOPE'],
+    strongMoments: [{ segmentId: 'seg-NOPE', note: 'fabricated' }, { segmentId: 'seg-2', note: 'real' }],
+    weakMoments: [{ segmentId: 'seg-NOPE', note: 'fabricated' }],
+  }],
+}, REAL_SEGMENTS)
+record('sanitizeCitations strips fabricated ids from answer assessments', !sanitized.answerAssessments[0].citedSegmentIds.includes('seg-NOPE'))
+record('sanitizeCitations drops strong moments with fabricated segment ids', sanitized.answerAssessments[0].strongMoments.length === 1 && sanitized.answerAssessments[0].strongMoments[0].segmentId === 'seg-2')
+record('sanitizeCitations nulls (not drops) weak-moment fabricated segment ids', sanitized.answerAssessments[0].weakMoments.length === 1 && sanitized.answerAssessments[0].weakMoments[0].segmentId === null)
 
-// ── Case 4: Gemini cannot alter rubric weights — server always uses its own registry ─
-const analysisAttemptingWeightOverride = {
+// ── Case 3: dimension not assessed is excluded and weights renormalize ───────
+const partialAnalysis = {
   ...goodAnalysis,
-  // A model response cannot include a "weights" field that the schema would even
-  // accept — InterviewDimensionAssessmentSchema has no weight field at all. This case
-  // documents that fact rather than testing for it being ignored (it cannot be sent).
+  dimensionAssessments: goodAnalysis.dimensionAssessments.filter((d) => d.dimensionId !== 'technical'),
 }
-record('InterviewDimensionAssessment schema has no weight field — Gemini structurally cannot supply one', !('weight' in analysisAttemptingWeightOverride.dimensionAssessments[0]))
+const partialResult = computeInterviewScore('behavioral', partialAnalysis, REAL_SEGMENTS)
+record('Unassessed dimension is excluded with an explicit reason', partialResult.excludedDimensions.some((e) => e.dimensionId === 'technical' && e.reason === 'not assessed in this analysis'))
+record('Remaining 5 dimensions renormalize to weight sum 1', partialResult.dimensions.length === 5 && Math.abs(partialResult.dimensions.reduce((s, d) => s + d.weight, 0) - 1) < 0.001)
 
-// ── Case 5: validateCitations is independently callable and matches computeInterviewScore's check ─
-let validateThrew = false
+// ── Case 4: zero assessed dimensions fails closed ────────────────────────────
+let threwOnEmpty = false
 try {
-  validateCitations(fabricatedAnalysis, REAL_SEGMENTS)
+  computeInterviewScore('behavioral', { ...goodAnalysis, dimensionAssessments: [] }, REAL_SEGMENTS)
 } catch {
-  validateThrew = true
+  threwOnEmpty = true
 }
-record('validateCitations() independently rejects the same fabricated citation', validateThrew)
+record('Analysis with zero assessed dimensions throws (fails closed, no invented score)', threwOnEmpty)
+
+// ── Case 5: the model structurally cannot supply weights ─────────────────────
+record('Dimension assessments carry no weight field — the model structurally cannot set one', !('weight' in goodAnalysis.dimensionAssessments[0]))
+
+// ── Case 6: fixture dimension ids match the real registry ───────────────────
+const fixtureIds = new Set(goodAnalysis.dimensionAssessments.map((d) => d.dimensionId))
+record('Fixture covers exactly the registered dimension ids', DIMENSION_IDS.every((id) => fixtureIds.has(id)) && fixtureIds.size === DIMENSION_IDS.length, JSON.stringify([...fixtureIds]))
 
 console.log(`\n  Interview scoring test: ${PASS} passed, ${FAIL} failed\n`)
 process.exit(FAIL > 0 ? 1 : 0)

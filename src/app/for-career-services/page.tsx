@@ -47,7 +47,7 @@ export default function CareerServicesPage() {
 
         <div className="glass-card p-6 sm:p-8 mb-16 border-emerald-500/10 bg-emerald-500/[0.02]">
           <div className="flex items-start gap-4">
-            <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-foreground mb-1">A boundary worth stating plainly</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -63,15 +63,15 @@ export default function CareerServicesPage() {
         <h2 className="text-2xl font-bold tracking-tight mb-6">What this is not</h2>
         <ul className="space-y-2.5 text-sm text-muted-foreground mb-16">
           <li className="flex items-start gap-3">
-            <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
             Not a guarantee of placement, interviews, or any specific hiring outcome for your students.
           </li>
           <li className="flex items-start gap-3">
-            <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
             Not a replacement for advisor judgment - ProofScore flags gaps, it does not coach.
           </li>
           <li className="flex items-start gap-3">
-            <CheckCircle2 className="h-4 w-4 text-brand-600 shrink-0 mt-0.5" />
+            <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
             Not a current LinkedIn or campus career-system integration - students bring their résumé directly.
           </li>
         </ul>

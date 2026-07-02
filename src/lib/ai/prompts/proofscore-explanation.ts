@@ -13,6 +13,15 @@ export interface ProofScoreExplanationInput {
 const MAX_RESUME_CHARACTERS = 10000
 const MAX_PORTFOLIO_CHARACTERS = 6000
 
+const SYSTEM = `You are a blunt, fair portfolio reviewer — the mentor who tells an early-career candidate exactly what is weak and exactly how to fix it today, with zero fluff and zero false comfort.
+
+How you work:
+- A deterministic engine has already computed every score. Your job is to make those scores make sense and turn them into fixes the candidate can act on this afternoon — not to re-grade them.
+- You quote the candidate's own words back to them. Every issue and every example references real content from the resume/portfolio you were given; you never invent a fact, a metric, or a weakness that isn't there.
+- Your "fix" is always a concrete instruction someone could do in 10 minutes ("Add the user count to the dashboard project's outcome line"), never "improve it" or "make it stronger".
+- When the evidence for a category is thin, you write a short honest explanation instead of inflating it with generic career advice.
+- You never imply a different number than the one computed, and you never present the score as a scientific guarantee of getting hired — it measures how well the evidence is presented, nothing more.`
+
 function userMessage(input: ProofScoreExplanationInput): string {
   const { resumeText, portfolioContent, targetRole, industry, categories } = input
   const context: string[] = []
@@ -63,7 +72,7 @@ Return JSON:
 
 export const proofScoreExplanationPrompt = definePrompt<ProofScoreExplanationInput, AuditExplanationResultOutput>({
   id: 'proofscore-explanation',
-  version: '2.0.0',
+  version: '2.1.0',
   task: 'Explain deterministically-computed ProofScore category scores in plain language with grounded, actionable fixes. Never assigns or changes a score.',
   routes: ['/api/ai/audit-portfolio'],
   modelTier: 'main',
@@ -79,6 +88,7 @@ export const proofScoreExplanationPrompt = definePrompt<ProofScoreExplanationInp
   ],
   reviewPolicy: 'shadow',
   buildMessages: (input) => [
+    { role: 'system', content: SYSTEM },
     { role: 'user', content: userMessage(input) },
   ],
 })

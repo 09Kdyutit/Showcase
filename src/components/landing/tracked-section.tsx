@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useTrackOnView } from '@/lib/marketing/track-client'
 import type { MarketingEvent } from '@/lib/marketing/events'
 
@@ -11,16 +11,18 @@ export function TrackedSection({
   event,
   className,
   id,
+  style,
   children,
 }: {
   event: MarketingEvent
   className?: string
   id?: string
+  style?: CSSProperties
   children: ReactNode
 }) {
   const ref = useTrackOnView<HTMLDivElement>(event)
   return (
-    <div ref={ref} id={id} className={className}>
+    <div ref={ref} id={id} className={className} style={style}>
       {children}
     </div>
   )

@@ -100,7 +100,12 @@ export function computeReadinessGroups(sessions: ReadinessInputSession[]): Readi
 
     const byDimension = new Map<DimensionId, number[]>()
     for (const s of recent) {
-      for (const d of s.dimensionScores) byDimension.set(d.dimensionId, [...(byDimension.get(d.dimensionId) ?? []), d.score])
+      // Skip dimension ids not in the current registry - stored rows from sessions
+      // scored under an older rubric generation would otherwise crash the whole readout.
+      for (const d of s.dimensionScores) {
+        if (!DIMENSION_REGISTRY[d.dimensionId]) continue
+        byDimension.set(d.dimensionId, [...(byDimension.get(d.dimensionId) ?? []), d.score])
+      }
     }
     const weights = getRubricProfile(sessionType).weights
     const dimensions: DimensionReadout[] = [...byDimension.entries()].map(([id, scores]) => ({

@@ -13,6 +13,15 @@ export interface PortfolioGenerationInput {
 
 const MAX_INPUT_CHARACTERS = 16000
 
+const SYSTEM = `You are an elite portfolio writer and former hiring manager who has reviewed thousands of early-career candidates. You turn a person's already-extracted, fact-checked resume into a portfolio that survives a 10-second recruiter skim: instantly clear on what they do, how good they are, and why someone should talk to them.
+
+How you work:
+- You are obsessed with specificity and evidence. A concrete noun beats a vague one; a real number beats an adjective; "shorter and true" beats "longer and padded".
+- You would rather ship three honest sentences than pad to a paragraph. Verbosity is visual clutter, not thoroughness — and every field renders at real UI size with a hard length budget you must respect.
+- You never invent facts, numbers, methods, backstory, or work-mode preferences. A portfolio that overstates is worse than one that underwhelms, because it collapses the moment a recruiter asks a follow-up. When a fact would strengthen the page but isn't in the source, you leave a "[Add: …]" placeholder instead of guessing.
+- You write in plain, confident, professional English — never marketing-speak, never "passionate/results-driven/dynamic", never first-person "I am…" openers.
+- You reframe and restructure real achievements (including turning a strong experience bullet into a full case study) but you never attribute a skill to a project the source doesn't tie to that project.`
+
 function userMessage(input: PortfolioGenerationInput): string {
   const { parsedResume, targetRole, industry, portfolioGoal, links } = input
   return `TASK: Transform the parsed resume data below into a complete portfolio draft for a
@@ -154,7 +163,7 @@ Return complete JSON:
 
 export const portfolioGenerationPrompt = definePrompt<PortfolioGenerationInput, PortfolioContentOutput>({
   id: 'portfolio-generation',
-  version: '3.0.0',
+  version: '3.1.0',
   task: 'Generate a complete portfolio draft (hero, bio, skills, experience, case studies, proof, contact) from parsed resume facts, role-specific and evidence-only.',
   routes: ['/api/ai/generate-portfolio'],
   modelTier: 'main',
@@ -172,6 +181,7 @@ export const portfolioGenerationPrompt = definePrompt<PortfolioGenerationInput, 
   ],
   reviewPolicy: 'shadow',
   buildMessages: (input) => [
+    { role: 'system', content: SYSTEM },
     { role: 'user', content: userMessage(input) },
   ],
 })

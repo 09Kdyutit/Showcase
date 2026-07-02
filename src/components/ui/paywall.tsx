@@ -14,10 +14,10 @@ export function PaywallCard({ feature, description, className }: PaywallProps) {
   const router = useRouter()
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-brand-500/20 bg-gradient-to-br from-brand-50 to-card p-6 ${className}`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-950 to-card p-6 ${className}`}>
       <div className="relative flex flex-col items-center text-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500/10 border border-brand-500/20">
-          <Lock className="h-5 w-5 text-brand-600" />
+          <Lock className="h-5 w-5 text-brand-400" />
         </div>
         <div>
           <h3 className="font-semibold text-foreground mb-1">{feature}</h3>
@@ -46,7 +46,7 @@ export function PaywallInline({ feature }: { feature: string }) {
       <span className="text-muted-foreground">{feature} requires</span>
       <button
         onClick={() => router.push('/billing')}
-        className="text-brand-600 hover:text-brand-700 font-medium transition-colors"
+        className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
       >
         Pro →
       </button>

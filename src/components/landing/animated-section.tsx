@@ -43,10 +43,10 @@ export function AnimatedSection({
   const reduceMotion = usePrefersReducedMotion()
   return (
     <motion.div
-      initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={reduceMotion ? { duration: 0 } : { duration: 0.65, ease: EASE, delay }}
+      initial={reduceMotion ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 40, filter: 'blur(8px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '-90px' }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.75, ease: EASE, delay }}
       className={className}
     >
       {children}
@@ -86,11 +86,12 @@ export function StaggerChild({
   return (
     <motion.div
       variants={{
-        hidden: reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 },
+        hidden: reduceMotion ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 30, filter: 'blur(7px)' },
         visible: {
           opacity: 1,
           y: 0,
-          transition: reduceMotion ? { duration: 0 } : { duration: 0.55, ease: EASE },
+          filter: 'blur(0px)',
+          transition: reduceMotion ? { duration: 0 } : { duration: 0.6, ease: EASE },
         },
       }}
       className={className}
