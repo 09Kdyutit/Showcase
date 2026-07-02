@@ -792,7 +792,10 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
             <div className="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center mx-auto mb-5">
               <Zap className="h-7 w-7 text-brand-400" />
             </div>
-            <h2 className="text-xl font-bold mb-3">Tailor for {job?.title ?? 'this role'}</h2>
+            <h2 className="text-display text-2xl sm:text-3xl font-semibold mb-3 text-balance">
+              Tailored for{' '}
+              <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>{job?.title ?? 'this role'}</em>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
               Showcase will rewrite your resume to foreground the experience most relevant to this role - using only your existing evidence, never fabricating facts.
             </p>
