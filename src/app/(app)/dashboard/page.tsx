@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp, Briefcase } from 'lucide-react'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Spotlight } from '@/components/ui/spotlight'
+import { Tilt3D } from '@/components/ui/tilt-3d'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
@@ -171,102 +172,112 @@ export default async function DashboardPage() {
         {/* ── Stats row ── */}
         <div className="entrance entrance-delay-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* ProofScore */}
-          <div
-            className="col-span-2 lg:col-span-1 glass-card card-3d p-6 flex flex-col items-center gap-2 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 35%, var(--color-surface-100)))',
-            }}
-          >
-            <div className="pointer-events-none absolute inset-0 opacity-15 dot-grid" />
-            {proofScore !== null ? (
-              <ProofScoreRing score={proofScore} size="md" animate />
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-2">
-                <div
-                  className="w-24 h-24 rounded-full border-2 flex items-center justify-center"
-                  style={{
-                    borderColor: 'var(--color-surface-400)',
-                    background: 'color-mix(in oklch, var(--color-brand-500) 5%, transparent)',
-                  }}
-                >
-                  <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
+          <Tilt3D className="col-span-2 lg:col-span-1">
+            <div
+              className="glass-card p-6 flex flex-col items-center gap-2 relative overflow-hidden h-full"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 35%, var(--color-surface-100)))',
+              }}
+            >
+              <div className="pointer-events-none absolute inset-0 opacity-15 dot-grid" />
+              {proofScore !== null ? (
+                <div className="tilt-layer">
+                  <ProofScoreRing score={proofScore} size="md" animate />
                 </div>
-                <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/audit">Get ProofScore</Link>
-                </Button>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3 py-2 tilt-layer-sm">
+                  <div
+                    className="w-24 h-24 rounded-full border-2 flex items-center justify-center"
+                    style={{
+                      borderColor: 'var(--color-surface-400)',
+                      background: 'color-mix(in oklch, var(--color-brand-500) 5%, transparent)',
+                    }}
+                  >
+                    <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/audit">Get ProofScore</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Tilt3D>
 
           {/* Portfolios */}
-          <div className="glass-card card-3d p-6 relative overflow-hidden">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Portfolios</p>
-              <Briefcase className="h-3.5 w-3.5 text-muted-foreground/25" />
+          <Tilt3D>
+            <div className="glass-card p-6 relative overflow-hidden h-full">
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Portfolios</p>
+                <Briefcase className="h-3.5 w-3.5 text-muted-foreground/25" />
+              </div>
+              <p className="text-4xl font-bold stat-number text-foreground tilt-layer-sm">{portfolios.length}</p>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                <span style={{ color: 'var(--color-verified)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
+              </p>
             </div>
-            <p className="text-4xl font-bold stat-number text-foreground">{portfolios.length}</p>
-            <p className="text-xs text-muted-foreground mt-1.5">
-              <span style={{ color: 'var(--color-verified)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
-            </p>
-          </div>
+          </Tilt3D>
 
           {/* Resume */}
-          <div className="glass-card card-3d p-6 relative overflow-hidden">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Resume</p>
-              <FileText className="h-3.5 w-3.5 text-muted-foreground/25" />
+          <Tilt3D>
+            <div className="glass-card p-6 relative overflow-hidden h-full">
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Resume</p>
+                <FileText className="h-3.5 w-3.5 text-muted-foreground/25" />
+              </div>
+              {latestResume ? (
+                <>
+                  <p className="text-sm font-semibold text-foreground truncate leading-snug">{latestResume.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    {new Date(latestResume.created_at).toLocaleDateString()}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-bold stat-number text-muted-foreground/20">0</p>
+                  <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs" style={{ color: 'oklch(63% 0.20 255)' }}>
+                    <Link href="/resume">Upload one →</Link>
+                  </Button>
+                </>
+              )}
             </div>
-            {latestResume ? (
-              <>
-                <p className="text-sm font-semibold text-foreground truncate leading-snug">{latestResume.title}</p>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  {new Date(latestResume.created_at).toLocaleDateString()}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-2xl font-bold stat-number text-muted-foreground/20">0</p>
-                <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs" style={{ color: 'oklch(63% 0.20 255)' }}>
-                  <Link href="/resume">Upload one →</Link>
-                </Button>
-              </>
-            )}
-          </div>
+          </Tilt3D>
 
           {/* Subscription */}
-          <div
-            className="glass-card card-3d p-6 relative overflow-hidden"
-            style={isPro ? { borderColor: 'color-mix(in oklch, var(--color-brand-500) 30%, transparent)' } : {}}
-          >
-            {isPro && (
-              <div
-                className="pointer-events-none absolute inset-0 opacity-30"
-                style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-500) 22%, transparent), transparent)' }}
-              />
-            )}
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Plan</p>
-              <Zap className="h-3.5 w-3.5 text-muted-foreground/25" />
+          <Tilt3D>
+            <div
+              className="glass-card p-6 relative overflow-hidden h-full"
+              style={isPro ? { borderColor: 'color-mix(in oklch, var(--color-brand-500) 30%, transparent)' } : {}}
+            >
+              {isPro && (
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-30"
+                  style={{ background: 'radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in oklch, var(--color-brand-500) 22%, transparent), transparent)' }}
+                />
+              )}
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Plan</p>
+                <Zap className="h-3.5 w-3.5 text-muted-foreground/25" />
+              </div>
+              {isPro ? (
+                <>
+                  <Badge variant="pro" className="mb-2" style={{ boxShadow: '0 0 12px color-mix(in oklch, var(--color-brand-500) 40%, transparent)' }}>Pro</Badge>
+                  <p className="text-xs text-muted-foreground">
+                    {subscription?.current_period_end
+                      ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
+                      : 'Active'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground">Free</p>
+                  <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs" style={{ color: 'oklch(63% 0.20 255)' }}>
+                    <Link href="/billing">Upgrade →</Link>
+                  </Button>
+                </>
+              )}
             </div>
-            {isPro ? (
-              <>
-                <Badge variant="pro" className="mb-2" style={{ boxShadow: '0 0 12px color-mix(in oklch, var(--color-brand-500) 40%, transparent)' }}>Pro</Badge>
-                <p className="text-xs text-muted-foreground">
-                  {subscription?.current_period_end
-                    ? `Renews ${new Date(subscription.current_period_end).toLocaleDateString()}`
-                    : 'Active'}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-foreground">Free</p>
-                <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs" style={{ color: 'oklch(63% 0.20 255)' }}>
-                  <Link href="/billing">Upgrade →</Link>
-                </Button>
-              </>
-            )}
-          </div>
+          </Tilt3D>
         </div>
 
         {/* ── Main content row ── */}

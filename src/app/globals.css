@@ -162,6 +162,13 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--color-surface-400); }
 }
 
+/* Animatable angle for holographic/conic borders (must be top-level, not in @layer) */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @layer components {
 
   /* ── Surfaces ── */
@@ -835,6 +842,70 @@
     0%   { transform: scale(0.92); }
     60%  { transform: scale(1.04); }
     100% { transform: scale(1); }
+  }
+
+  /* ── Interactive 3D tilt: cards lean toward the cursor in real perspective.
+     The <Tilt3D> client sets --rx/--ry/--gx/--gy; CSS does the rest. ─────── */
+  .tilt-3d {
+    perspective: 1000px;
+    perspective-origin: center;
+  }
+  .tilt-3d-inner {
+    position: relative;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .tilt-3d[data-active="true"] .tilt-3d-inner { transition: transform 0.08s linear; }
+  /* Moving specular glare that tracks the cursor across the surface */
+  .tilt-3d-inner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      140px circle at var(--gx, 50%) var(--gy, 0%),
+      oklch(100% 0 0 / 0.10),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .tilt-3d[data-active="true"] .tilt-3d-inner::after { opacity: 1; }
+  /* Content can lift off the surface for real depth */
+  .tilt-layer { transform: translateZ(38px); transform-style: preserve-3d; }
+  .tilt-layer-sm { transform: translateZ(20px); }
+
+  /* ── Holographic rotating border: a slow conic sheen around premium surfaces ── */
+  .holo-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .holo-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.25px;
+    background: conic-gradient(
+      from var(--angle),
+      transparent 0deg,
+      color-mix(in oklch, var(--color-brand-400) 90%, transparent) 70deg,
+      color-mix(in oklch, oklch(70% 0.20 300) 90%, transparent) 130deg,
+      color-mix(in oklch, var(--color-verified) 80%, transparent) 200deg,
+      transparent 300deg
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: border-spin 6s linear infinite;
+    pointer-events: none;
+    /* Edge-only ring, so it sits above the card's opaque bg without touching inset content */
+    z-index: 2;
   }
 
   /* ── Button sheen: a single soft light sweep on hover (premium, not flashy) ── */

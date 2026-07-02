@@ -141,7 +141,7 @@ export default function PricingPage() {
           </div>
 
           {/* Pro */}
-          <div className="relative glass-card p-8 border-brand-500/40 flex flex-col overflow-hidden shadow-glow-sm">
+          <div className="holo-border relative glass-card p-8 border-brand-500/40 flex flex-col overflow-hidden shadow-glow-sm">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/80 to-transparent" />
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-brand-500/8 to-transparent pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none" />
