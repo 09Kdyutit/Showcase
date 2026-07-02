@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-01",
+  "updated_at": "2026-07-02",
   "release_target": "controlled production beta",
   "requirements": [
     {
@@ -504,10 +504,10 @@
       "id": "IL-NOT-STARTED-VISUALQA",
       "area": "visual-qa",
       "description": "Visual QA screenshot review across Interview Lab's ~25 UI states",
-      "status": "PARTIAL",
+      "status": "PASS",
       "release_blocking": false,
-      "evidence": "Screenshots captured and visually inspected for the Hub specifically: new-user empty state (desktop), returning-user state with real 2-session readiness data (desktop + mobile 390px), job-specific banner (desktop + mobile 390px), tablet 768px, and the honest failed-analysis state. One real bug found this way (the mobile CTA overflow above) and fixed. NOT exhaustively re-screenshotted: the ~20 other pre-existing Interview Lab screens (lobby, live room text+voice, results, story-bank, drills, new-interview wizard) untouched by this pass — those were visually reviewed in the prior session when they were built, not re-screenshotted now.",
-      "blocker": "Acceptable for this Hub-scoped pass; a full-app visual sweep was out of scope for this change and was not claimed."
+      "evidence": "RESOLVED 2026-07-02: full-app visual QA sweep executed (not just Interview Lab): every public page + fresh-signup -> resume parse -> portfolio generation -> builder flow + all authenticated surfaces captured at desktop (1440px) and mobile (390px), scroll-position captures for animation-gated sections, screenshots individually inspected. Found and fixed: builder live-preview fixed-position paint escape (P1), free-tier first-value paywall (P0 product defect), jobs default-relevance + duplicate chips, ProofScore prefill, stale beta CTAs, unlimited-interviews claim, WCAG contrast on landing/pricing/interview-hub. Mobile: zero horizontal overflow on all checked pages.",
+      "blocker": null
     },
     {
       "id": "IL-NOT-STARTED-DEPLOY",
@@ -530,10 +530,10 @@
       "id": "IL-NOT-STARTED-COST-MODEL",
       "area": "cost-control",
       "description": "Interview Lab cost-model document (growth/interviews/cost-model.md)",
-      "status": "NOT_STARTED",
+      "status": "PASS",
       "release_blocking": false,
-      "evidence": null,
-      "blocker": "The mission required a cost-model document with per-action Gemini cost estimates, average Free/Pro monthly costs, margin risk at $15/mo, and daily/monthly global exposure. Not yet written. The per-user entitlement limits now enforce hard session/audio/retry ceilings which bound per-user exposure, but the aggregate cost model and daily/monthly global budget circuit-breaker math are not documented."
+      "evidence": "RESOLVED 2026-07-02: growth/interviews/cost-model.md written from the code's real RATES (budget.ts) and plan limits (plans.ts): per-action costs (text session ~$0.02-0.04 all-in, live voice ~$0.017/min, retries/drills $0), Free/Pro monthly exposure incl. worst-case and pathological rows, margin math (realistic Pro ~91%, ceiling ~27%, pathological negative -> why budget gates exist), and the four server-side backstops (atomic reservations, spend budgets w/ recommended production values, 30-min hard ceiling, kill switch). interview_cost_events ledger (migration 028, now applied live) records real spend for reconciliation.",
+      "blocker": null
     },
     {
       "id": "IL-NOT-STARTED-ATOMIC-FREE-RETRY",

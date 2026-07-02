@@ -62,7 +62,9 @@ async function main() {
   // session was created server-side with the real price ID, not a placeholder) ──
   await page.waitForSelector('#cardNumber', { timeout: 15000 })
   const checkoutText = await page.locator('body').innerText()
-  record('Checkout session shows the correct product and price', checkoutText.includes('Showcase Pro') && checkoutText.includes('$15.00'), checkoutText.slice(0, 80))
+  // The billing page defaults to annual, so the session may be $150.00/yr or $15.00/mo -
+  // both are real configured prices; anything else means a wrong/placeholder price ID.
+  record('Checkout session shows the correct product and price', checkoutText.includes('Showcase Pro') && (checkoutText.includes('$15.00') || checkoutText.includes('$150.00')), checkoutText.slice(0, 80))
 
   // ── 5. Confirm the hosted payment form is fillable with a real test card ──
   await page.fill('#cardNumber', '4242424242424242')
