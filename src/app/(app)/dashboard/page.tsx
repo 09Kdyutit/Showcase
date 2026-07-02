@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp, Briefcase } from 'lucide-react'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
+import { Spotlight } from '@/components/ui/spotlight'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
@@ -57,11 +58,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative min-h-full">
-      {/* Ambient glow — top left */}
-      <div
-        className="pointer-events-none absolute top-0 left-0 right-0 h-[480px] opacity-50"
-        style={{ background: 'radial-gradient(ellipse 55% 40% at 10% 0%, color-mix(in oklch, var(--color-brand-500) 18%, transparent), transparent)' }}
-      />
+      {/* Ambient aurora — a slow living light field behind the workspace */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[540px] aurora-mesh opacity-55" />
       {/* Subtle perspective grid */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -273,11 +271,8 @@ export default async function DashboardPage() {
 
         {/* ── Main content row ── */}
         <div className="entrance entrance-delay-4 grid lg:grid-cols-3 gap-6">
-          {/* Next action */}
-          <div
-            className="lg:col-span-1 glass-card card-3d overflow-hidden relative"
-            style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 22%, transparent)' }}
-          >
+          {/* Next action — cursor-lit hero card */}
+          <Spotlight className="lg:col-span-1 overflow-hidden relative rounded-2xl">
             <div className="h-px" style={{ background: 'linear-gradient(90deg, transparent, oklch(54% 0.230 255 / 0.6), transparent)' }} />
             <div className="p-6">
               <p
@@ -314,7 +309,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Spotlight>
 
           {/* ProofScore breakdown */}
           <div className="lg:col-span-2 glass-card overflow-hidden">

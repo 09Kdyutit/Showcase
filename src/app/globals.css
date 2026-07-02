@@ -802,6 +802,41 @@
     color: var(--color-paper-foreground);
   }
 
+  /* ── Aurora mesh: a slow, living light field for ambient backgrounds.
+     Drifts gently behind hero/dashboard content — premium, never distracting. ── */
+  .aurora-mesh {
+    background:
+      radial-gradient(38% 44% at 18% 12%, color-mix(in oklch, var(--color-brand-500) 24%, transparent), transparent 70%),
+      radial-gradient(32% 40% at 82% 8%,  color-mix(in oklch, oklch(62% 0.22 285) 20%, transparent), transparent 68%),
+      radial-gradient(46% 50% at 60% 40%, color-mix(in oklch, var(--color-verified) 9%, transparent), transparent 72%);
+    background-size: 180% 180%;
+    animation: aurora-drift 22s ease-in-out infinite;
+    filter: blur(8px);
+  }
+  @keyframes aurora-drift {
+    0%,100% { background-position: 0% 50%, 100% 50%, 50% 0%; }
+    50%     { background-position: 100% 50%, 0% 50%, 50% 100%; }
+  }
+
+  /* ── Evidence trail that draws itself in on reveal (the signature motif) ── */
+  .evidence-trail.trail-draw::before {
+    transform-origin: top;
+    animation: trail-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .evidence-trail.trail-draw::after {
+    animation: trail-tip 0.4s ease-out 0.55s both;
+  }
+  @keyframes trail-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes trail-tip  { from { width: 0; opacity: 0; } to { opacity: 1; } }
+
+  /* ── Number that lands with a soft settle (pair with count-up JS) ── */
+  .settle-pop { animation: settle-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes settle-pop {
+    0%   { transform: scale(0.92); }
+    60%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
   /* ── Button sheen: a single soft light sweep on hover (premium, not flashy) ── */
   .btn-sheen {
     position: relative;
