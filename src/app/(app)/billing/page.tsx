@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
 import type { Subscription } from '@/types/database'
 
 const PRO_FEATURES = [
@@ -130,11 +131,14 @@ export default function BillingPage() {
   }
 
   return (
+    <PageShell>
     <div className="p-6 max-w-3xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Billing</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your subscription and payment details.</p>
-      </div>
+      <PageHeader
+        eyebrow="Billing"
+        title="Invest in your"
+        titleAccent="career."
+        description="Manage your subscription and payment details."
+      />
 
       {confirming && (
         <div className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3">
@@ -293,5 +297,6 @@ export default function BillingPage() {
         ))}
       </div>
     </div>
+    </PageShell>
   )
 }

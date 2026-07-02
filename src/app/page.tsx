@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Lock, Star } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Lock } from 'lucide-react'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
 import { Badge } from '@/components/ui/badge'
@@ -17,23 +17,20 @@ import { TrackedLink } from '@/components/landing/tracked-link'
 import { ViewTracker } from '@/components/landing/view-tracker'
 import { SectionLabel } from '@/components/shared/section-label'
 import { HeroSection } from '@/components/landing/hero-section'
+import { ProductShowcase } from '@/components/landing/product-showcase'
+import { FeatureBento } from '@/components/landing/feature-bento'
+import { PersonaCards } from '@/components/landing/persona-cards'
+import { BeforeAfter } from '@/components/landing/before-after'
 import { TypewriterSection } from '@/components/landing/typewriter-section'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { SpotlightCard } from '@/components/landing/spotlight-card'
 import { TrustSection } from '@/components/landing/trust-section'
 
-const FEATURES = [
-  { icon: 'Zap', title: 'AI Portfolio Builder', desc: 'Turns your resume into structured, evidence-based case studies. No design skills needed.' },
-  { icon: 'BarChart3', title: 'ProofScore Audit', desc: '11-category hiring-readiness score. Tells you exactly what is weak and how to fix it.' },
-  { icon: 'Search', title: 'Job Matching', desc: 'Browse roles scored against your real evidence. Find jobs where you actually qualify.' },
-  { icon: 'Target', title: 'Tailor Studio', desc: 'One click to create a role-specific resume kit, traced back to your Truth Ledger.' },
-  { icon: 'MessageSquare', title: 'Interview Lab', desc: 'AI-powered practice. Get scored on STAR structure, clarity, and evidence strength.' },
-  { icon: 'Shield', title: 'Truth Ledger', desc: 'Every claim is logged. Every AI change is sourced. Nothing fabricated, ever.' },
-] as const
-
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    // overflow-x-clip (not hidden): hidden creates a scroll container that silently
+    // kills every position:sticky descendant (the How-it-works stage); clip doesn't.
+    <div className="min-h-screen bg-background text-foreground overflow-x-clip">
       {/* Grain texture overlay */}
       <div className="grain-overlay" aria-hidden="true" />
 
@@ -45,33 +42,8 @@ export default function LandingPage() {
         {/* ── Hero ── */}
         <HeroSection />
 
-        {/* ── Stats strip ── */}
-        <AnimatedSection>
-          <div className="max-w-6xl mx-auto px-6">
-            <hr className="divider-dashed" />
-            <div className="py-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {[
-                { n: '11', label: 'audit categories' },
-                { n: '5 min', label: 'average setup time' },
-                { n: '1 link', label: 'to share everything' },
-                { n: '0', label: 'fabrications. ever.' },
-              ].map(({ n, label }) => (
-                <div key={label}>
-                  <p
-                    className="font-bold mb-1.5 tabular-nums text-foreground"
-                    style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', letterSpacing: '-0.04em' }}
-                  >
-                    {n}
-                  </p>
-                  <p className="text-xs uppercase tracking-widest" style={{ color: 'oklch(65% 0.022 258)' }}>
-                    {label}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <hr className="divider-dashed" />
-          </div>
-        </AnimatedSection>
+        {/* ── Product showcase: 3D scroll-reveal app frame + serif count-up stats ── */}
+        <ProductShowcase />
 
         {/* ── Typewriter statement ── */}
         <TypewriterSection />
@@ -118,24 +90,28 @@ export default function LandingPage() {
                     icon: 'Target',
                     title: 'Built around your real work',
                     desc: 'Showcase only works with what you provide, and flags every claim that needs evidence.',
+                    proof: 'Every claim traced to a source',
                   },
                   {
                     icon: 'BarChart3',
                     title: 'ProofScore tells you exactly what is weak',
                     desc: 'No vague feedback. 11 specific categories, concrete fixes, no generic advice.',
+                    proof: '11 categories, line-level fixes',
                   },
                   {
                     icon: 'Eye',
                     title: 'A public page recruiters will actually open',
                     desc: 'showcase.app/p/your-name, clean, fast, no login required, works on any device.',
+                    proof: 'One link, zero logins',
                   },
-                ] as const).map(({ icon, title, desc }, i) => (
+                ] as const).map(({ icon, title, desc, proof }, i) => (
                   <StaggerChild key={title}>
                     <SpotlightCard
                       icon={icon}
                       index={`0${i + 1}`}
                       title={title}
                       desc={desc}
+                      proof={proof}
                     />
                   </StaggerChild>
                 ))}
@@ -158,18 +134,7 @@ export default function LandingPage() {
               </h2>
             </AnimatedSection>
 
-            <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {FEATURES.map(({ icon, title, desc }, i) => (
-                <StaggerChild key={title}>
-                  <SpotlightCard
-                    icon={icon}
-                    index={`0${i + 1}`}
-                    title={title}
-                    desc={desc}
-                  />
-                </StaggerChild>
-              ))}
-            </StaggerContainer>
+            <FeatureBento />
           </div>
         </section>
 
@@ -189,34 +154,7 @@ export default function LandingPage() {
               >
                 Early-career job seekers who have real work to show but no clear way to prove it.
               </h2>
-              <StaggerContainer className="grid sm:grid-cols-2 gap-5">
-                {([
-                  {
-                    icon: 'GraduationCap',
-                    title: 'The Student',
-                    desc: 'Turning coursework and internships into credible, recruiter-ready case studies.',
-                  },
-                  {
-                    icon: 'Rocket',
-                    title: 'The New Grad',
-                    desc: 'Making side projects and first roles understandable to people who hire.',
-                  },
-                  {
-                    icon: 'Briefcase',
-                    title: 'The Early Pro',
-                    desc: 'Translating day-to-day work into measurable, defensible evidence.',
-                  },
-                  {
-                    icon: 'Repeat',
-                    title: 'The Switcher',
-                    desc: 'Connecting previous experience to a brand-new target role.',
-                  },
-                ] as const).map(({ icon, title, desc }, i) => (
-                  <StaggerChild key={title}>
-                    <SpotlightCard icon={icon} index={`0${i + 1}`} title={title} desc={desc} />
-                  </StaggerChild>
-                ))}
-              </StaggerContainer>
+              <PersonaCards />
               <p className="text-sm mt-10 max-w-2xl leading-relaxed" style={{ color: 'oklch(64% 0.022 258)' }}>
                 Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce
                 generic applications. If the evidence is not there, we tell you it is missing. We do not invent it.
@@ -337,133 +275,7 @@ export default function LandingPage() {
               </p>
             </AnimatedSection>
 
-            <StaggerContainer className="grid md:grid-cols-2 gap-6">
-              <StaggerChild>
-                <div className="feat-card h-full space-y-4">
-                  <div
-                    className="flex items-center gap-2 pb-4"
-                    style={{ borderBottom: '1px dashed var(--color-border)' }}
-                  >
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    <span className="text-sm font-medium" style={{ color: 'oklch(62% 0.22 25)' }}>
-                      Without Showcase
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    <div
-                      className="rounded-xl p-4"
-                      style={{
-                        background: 'var(--color-surface-200)',
-                        border: '1px solid oklch(62% 0.22 25 / 0.18)',
-                      }}
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: 'oklch(60% 0.014 262)' }}>
-                        Résumé bullet
-                      </p>
-                      <p className="text-sm" style={{ color: 'oklch(60% 0.008 255)' }}>
-                        Built an internal analytics dashboard and worked with operations.
-                      </p>
-                    </div>
-                    <div
-                      className="rounded-xl p-4"
-                      style={{
-                        background: 'var(--color-surface-200)',
-                        border: '1px solid oklch(62% 0.22 25 / 0.18)',
-                      }}
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'oklch(60% 0.014 262)' }}>
-                        What a recruiter sees
-                      </p>
-                      <p className="text-sm" style={{ color: 'oklch(60% 0.014 262)' }}>
-                        No problem stated. No outcome. No way to tell if this mattered or took a weekend.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{
-                          background: 'oklch(62% 0.22 25 / 0.12)',
-                          color: 'oklch(62% 0.22 25)',
-                        }}
-                      >
-                        ✕
-                      </div>
-                      <p className="text-xs" style={{ color: 'oklch(62% 0.22 25 / 0.85)' }}>
-                        Recruiter closes tab in 8 seconds. No callback.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </StaggerChild>
-
-              <StaggerChild>
-                <div
-                  className="feat-card h-full space-y-4"
-                  style={{ borderColor: 'oklch(65% 0.17 160 / 0.22)' }}
-                >
-                  <div
-                    className="flex items-center gap-2 pb-4"
-                    style={{ borderBottom: '1px dashed oklch(65% 0.17 160 / 0.3)' }}
-                  >
-                    <div className="w-2 h-2 rounded-full" style={{ background: 'oklch(65% 0.17 160)' }} />
-                    <span className="text-sm font-medium" style={{ color: 'oklch(65% 0.17 160)' }}>
-                      With Showcase
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    <div
-                      className="rounded-xl p-4"
-                      style={{
-                        background: 'var(--color-surface-200)',
-                        border: '1px solid oklch(65% 0.17 160 / 0.18)',
-                      }}
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'oklch(60% 0.014 262)' }}>
-                        Case Study: Internal Analytics Dashboard
-                      </p>
-                      <p className="text-sm leading-relaxed" style={{ color: 'oklch(72% 0.008 255)' }}>
-                        <strong style={{ color: 'oklch(82% 0.008 255)', fontWeight: 500 }}>Problem:</strong>{' '}
-                        Operations manually compiled weekly reports in spreadsheets.{' '}
-                        <strong style={{ color: 'oklch(82% 0.008 255)', fontWeight: 500 }}>Role:</strong>{' '}
-                        Sole builder, intern project.{' '}
-                        <strong style={{ color: 'oklch(82% 0.008 255)', fontWeight: 500 }}>Process:</strong>{' '}
-                        Scoped with ops lead, shipped in 6-week internship.{' '}
-                        <strong style={{ color: 'oklch(82% 0.008 255)', fontWeight: 500 }}>Outcome:</strong>{' '}
-                        Not yet quantified.
-                      </p>
-                    </div>
-                    <div
-                      className="rounded-xl p-4"
-                      style={{
-                        background: 'oklch(74% 0.16 85 / 0.06)',
-                        border: '1px solid oklch(74% 0.16 85 / 0.2)',
-                      }}
-                    >
-                      <p
-                        className="text-xs font-semibold uppercase tracking-wider mb-1"
-                        style={{ color: 'oklch(74% 0.16 85)' }}
-                      >
-                        ProofScore flag
-                      </p>
-                      <p className="text-sm" style={{ color: 'oklch(72% 0.008 255)' }}>
-                        Outcome not yet quantified. Add hours saved or adoption rate before sending.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-6 w-6 rounded-full flex items-center justify-center"
-                        style={{ background: 'oklch(65% 0.17 160 / 0.12)' }}
-                      >
-                        <Star className="h-3 w-3" style={{ color: 'oklch(65% 0.17 160)', fill: 'oklch(65% 0.17 160)' }} />
-                      </div>
-                      <p className="text-xs" style={{ color: 'oklch(65% 0.17 160 / 0.9)' }}>
-                        A recruiter can see exactly what was built, why, and what to ask in the interview.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </StaggerChild>
-            </StaggerContainer>
+            <BeforeAfter />
           </div>
         </section>
 

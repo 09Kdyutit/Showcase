@@ -5,6 +5,7 @@ import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, 
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Tilt3D } from '@/components/ui/tilt-3d'
+import { CountUp } from '@/components/ui/count-up'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
@@ -174,14 +175,14 @@ export default async function DashboardPage() {
           {/* ProofScore */}
           <Tilt3D className="col-span-2 lg:col-span-1">
             <div
-              className="glass-card p-6 flex flex-col items-center gap-2 relative overflow-hidden h-full"
+              className="glass-card holo-border p-6 flex flex-col items-center gap-2 relative overflow-hidden h-full"
               style={{
                 background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 35%, var(--color-surface-100)))',
               }}
             >
               <div className="pointer-events-none absolute inset-0 opacity-15 dot-grid" />
               {proofScore !== null ? (
-                <div className="tilt-layer">
+                <div className="tilt-layer breathe-glow">
                   <ProofScoreRing score={proofScore} size="md" animate />
                 </div>
               ) : (
@@ -211,7 +212,7 @@ export default async function DashboardPage() {
                 <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Portfolios</p>
                 <Briefcase className="h-3.5 w-3.5 text-muted-foreground/25" />
               </div>
-              <p className="text-4xl font-bold stat-number text-foreground tilt-layer-sm">{portfolios.length}</p>
+              <p className="text-4xl font-bold stat-number text-foreground tilt-layer-sm"><CountUp value={portfolios.length} /></p>
               <p className="text-xs text-muted-foreground mt-1.5">
                 <span style={{ color: 'var(--color-verified)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
               </p>

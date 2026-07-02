@@ -11,6 +11,7 @@ import { PrivacySummary } from '@/components/interviews/hub/privacy-summary'
 import { UsageSummary } from '@/components/interviews/hub/usage-summary'
 import { NewUserState } from '@/components/interviews/hub/new-user-state'
 import { JobSpecificBanner } from '@/components/interviews/hub/job-specific-banner'
+import { PageShell } from '@/components/shared/page-header'
 
 export default async function InterviewHubPage() {
   const supabase = await createClient()
@@ -24,16 +25,19 @@ export default async function InterviewHubPage() {
 
   if (hub.isNewUser) {
     return (
-      <div className="max-w-5xl mx-auto p-6 lg:p-10 space-y-6">
-        <NewUserState hasResume={hub.hasResume} hasPortfolio={hub.hasPortfolio} displayName={displayName} />
-        <UsageSummary usage={hub.usage} />
-      </div>
+      <PageShell>
+        <div className="max-w-5xl mx-auto p-6 lg:p-10 space-y-6">
+          <NewUserState hasResume={hub.hasResume} hasPortfolio={hub.hasPortfolio} displayName={displayName} />
+          <UsageSummary usage={hub.usage} />
+        </div>
+      </PageShell>
     )
   }
 
   const headerTargetRole = hub.selectedJob?.targetRole ?? hub.primaryReadiness?.targetRole ?? hub.inProgressSession?.targetRole ?? null
 
   return (
+    <PageShell>
     <main className="max-w-5xl mx-auto p-6 lg:p-10 space-y-6">
       <h1 className="sr-only">Interview Lab</h1>
 
@@ -68,5 +72,6 @@ export default async function InterviewHubPage() {
         Showcase never invents experience for your answers. Camera is optional and never used for appearance scoring.
       </p>
     </main>
+    </PageShell>
   )
 }

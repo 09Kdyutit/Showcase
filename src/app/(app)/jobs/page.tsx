@@ -829,9 +829,22 @@ export default function JobsPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="border-b border-border bg-surface-50 px-4 lg:px-6 py-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
+      <div className="relative border-b border-border px-4 lg:px-6 py-3 flex flex-col gap-3 overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, var(--color-surface-100), var(--color-surface-50))' }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50"
+          style={{ background: 'radial-gradient(ellipse 60% 120% at 8% 0%, color-mix(in oklch, var(--color-brand-500) 10%, transparent), transparent)' }}
+        />
+        <div className="relative flex items-center justify-between gap-3 flex-wrap">
+          <div
+            className="inline-flex items-center gap-1 rounded-full p-1"
+            style={{
+              background: 'color-mix(in oklch, var(--color-surface-0) 70%, transparent)',
+              border: '1px solid var(--color-border)',
+              boxShadow: 'inset 0 1px 0 oklch(100% 0 0 / 0.04)',
+            }}
+          >
             {([
               ['browse', 'Jobs'],
               ['for-you', 'For You'],
@@ -841,11 +854,16 @@ export default function JobsPage() {
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all',
-                  tab === t
-                    ? 'bg-surface-300 text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-surface-200'
+                  'px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200',
+                  tab === t ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                 )}
+                style={tab === t
+                  ? {
+                      background: 'color-mix(in oklch, var(--color-brand-500) 16%, var(--color-surface-300))',
+                      border: '1px solid color-mix(in oklch, var(--color-brand-500) 30%, transparent)',
+                      boxShadow: '0 2px 10px oklch(0% 0 0 / 0.35), inset 0 1px 0 oklch(100% 0 0 / 0.06)',
+                    }
+                  : { border: '1px solid transparent' }}
               >
                 {label}
                 {t === 'pipeline' && savedJobs.filter(j => !['archived', 'rejected', 'withdrawn'].includes(j.status)).length > 0 && (
@@ -872,7 +890,7 @@ export default function JobsPage() {
               Demo listings
             </Badge>
           )}
-          <Button asChild variant="gradient" size="sm" className="gap-1.5 shrink-0">
+          <Button asChild variant="gradient" size="sm" className="gap-1.5 shrink-0 btn-sheen">
             <Link href="/jobs/new/tailor">
               <Link2 className="h-3.5 w-3.5" />
               Import a job

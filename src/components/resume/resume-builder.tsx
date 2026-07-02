@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Sparkles, Loader2, Save, Download, FileText, BarChart3, X, Wand2 } from 'lucide-react'
+import { Plus, Trash2, Loader2, Save, Download, FileText, BarChart3, X, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'

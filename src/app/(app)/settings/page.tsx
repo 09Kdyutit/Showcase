@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
 import {
   Dialog,
   DialogContent,
@@ -105,14 +106,17 @@ export default function SettingsPage() {
   }
 
   return (
+    <PageShell>
     <div className="p-6 max-w-2xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your account and profile preferences.</p>
-      </div>
+      <PageHeader
+        eyebrow="Settings"
+        title="Your account, your"
+        titleAccent="rules."
+        description="Manage your account and profile preferences."
+      />
 
       {/* Profile */}
-      <div className="glass-card p-6 space-y-5">
+      <div className="entrance entrance-delay-1 glass-card p-6 space-y-5">
         <h2 className="text-sm font-semibold text-foreground">Profile</h2>
         <div className="grid gap-4">
           <div className="space-y-1.5">
@@ -210,5 +214,6 @@ export default function SettingsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PageShell>
   )
 }

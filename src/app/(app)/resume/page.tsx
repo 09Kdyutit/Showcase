@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
+import { FileText, Mail } from 'lucide-react'
+import { PageShell, PageHeader, Segmented, segmentedItemClass, segmentedItemStyle } from '@/components/shared/page-header'
 import { ResumeBuilder } from '@/components/resume/resume-builder'
 import { CoverLetterGenerator } from '@/components/resume/cover-letter-generator'
 
@@ -13,32 +14,40 @@ export default function ResumePage() {
   const [mode, setMode] = useState<'builder' | 'cover'>('builder')
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Resume &amp; Cover Letters</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {mode === 'cover'
-            ? 'Generate a personalized cover letter for any job, grounded in your real resume.'
-            : 'Edit your resume section by section, sharpen bullets with AI, and export to PDF or DOCX.'}
-        </p>
-      </div>
+    <PageShell>
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <PageHeader
+          eyebrow="Resume Studio"
+          title="Documents that"
+          titleAccent="land."
+          description={
+            mode === 'cover'
+              ? 'Generate a personalized cover letter for any job, grounded in your real resume.'
+              : 'Edit your resume section by section, sharpen bullets with AI, and export to PDF or DOCX.'
+          }
+        />
 
-      <div className="flex items-center gap-1 bg-surface-200 rounded-lg p-0.5 w-fit">
-        {([['builder', 'Resume Builder'], ['cover', 'Cover Letter']] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setMode(id)}
-            className={cn(
-              'px-4 py-1.5 rounded-md text-sm font-semibold transition-all',
-              mode === id ? 'bg-surface-400 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+        <Segmented className="entrance entrance-delay-1">
+          {([
+            ['builder', 'Resume Builder', FileText],
+            ['cover', 'Cover Letter', Mail],
+          ] as const).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              onClick={() => setMode(id)}
+              className={segmentedItemClass(mode === id) + ' flex items-center gap-1.5'}
+              style={segmentedItemStyle(mode === id)}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </button>
+          ))}
+        </Segmented>
 
-      {mode === 'cover' ? <CoverLetterGenerator /> : <ResumeBuilder />}
-    </div>
+        <div className="entrance entrance-delay-2">
+          {mode === 'cover' ? <CoverLetterGenerator /> : <ResumeBuilder />}
+        </div>
+      </div>
+    </PageShell>
   )
 }

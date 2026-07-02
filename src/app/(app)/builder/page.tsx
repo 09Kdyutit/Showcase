@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Plus, ExternalLink, BarChart3, Globe, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
+import { Tilt3D } from '@/components/ui/tilt-3d'
 import { generateSlug, scoreColor } from '@/lib/utils'
 import type { Portfolio } from '@/types/database'
 
@@ -35,33 +37,44 @@ export default async function BuilderPage() {
   }
 
   return (
+    <PageShell>
     <div className="p-6 max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Portfolio Builder</h1>
-          <p className="text-muted-foreground text-sm mt-1">Create and manage your professional portfolios.</p>
-        </div>
-        <form action={createPortfolio}>
-          <Button type="submit" variant="gradient" size="sm" className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            New portfolio
-          </Button>
-        </form>
-      </div>
+      <PageHeader
+        eyebrow="Portfolio Builder"
+        title="Your work, made"
+        titleAccent="undeniable."
+        description="Create and manage your professional portfolios."
+        actions={
+          <form action={createPortfolio}>
+            <Button type="submit" variant="gradient" size="sm" className="gap-1.5 btn-sheen">
+              <Plus className="h-3.5 w-3.5" />
+              New portfolio
+            </Button>
+          </form>
+        }
+      />
 
       {portfolios.length === 0 ? (
-        <div className="glass-card p-12 flex flex-col items-center justify-center text-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center">
+        <div className="entrance entrance-delay-2 glass-card p-12 flex flex-col items-center justify-center text-center gap-5 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
+          <div
+            className="relative w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'color-mix(in oklch, var(--color-brand-500) 12%, transparent)',
+              border: '1px solid color-mix(in oklch, var(--color-brand-500) 24%, transparent)',
+              boxShadow: '0 0 30px color-mix(in oklch, var(--color-brand-500) 20%, transparent)',
+            }}
+          >
             <Plus className="h-8 w-8 text-brand-400" />
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">No portfolios yet</h2>
+          <div className="relative">
+            <h2 className="text-display text-xl font-semibold text-foreground mb-2">No portfolios yet</h2>
             <p className="text-sm text-muted-foreground max-w-sm">
               Create your first portfolio. Upload your resume and AI will build it for you.
             </p>
           </div>
-          <form action={createPortfolio}>
-            <Button type="submit" variant="gradient" size="lg" className="gap-2">
+          <form action={createPortfolio} className="relative">
+            <Button type="submit" variant="gradient" size="lg" className="gap-2 btn-sheen shadow-glow">
               <Plus className="h-4 w-4" />
               Create your first portfolio
             </Button>
@@ -69,8 +82,10 @@ export default async function BuilderPage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {portfolios.map((p) => (
-            <div key={p.id} className="glass-card overflow-hidden hover:border-brand-500/20 transition-all duration-200 hover:shadow-glow-sm group">
+          {portfolios.map((p, i) => (
+            <div key={p.id} className="entrance" style={{ animationDelay: `${i * 60 + 120}ms` }}>
+            <Tilt3D max={4} innerClassName="glass-card overflow-hidden group h-full">
+            <div>
               {/* Mini preview */}
               <div className="h-32 bg-gradient-to-br from-surface-300 to-surface-200 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-violet-500/5" />
@@ -120,9 +135,12 @@ export default async function BuilderPage() {
                 </div>
               </div>
             </div>
+            </Tilt3D>
+            </div>
           ))}
         </div>
       )}
     </div>
+    </PageShell>
   )
 }

@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { createClient } from '@/lib/supabase/client'
 import { cn, scoreColor } from '@/lib/utils'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
 import type { AuditResult, AuditCategory, Resume } from '@/types/database'
 
 function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
@@ -365,19 +366,18 @@ export default function AuditPage() {
   const sortedCategories = result?.categories.slice().sort((a, b) => (a.score ?? 100) - (b.score ?? 100)) ?? []
 
   return (
+    <PageShell>
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-1">ProofScore Audit</h1>
-        <p className="text-muted-foreground text-sm">
-          ProofScore audits the resume you already uploaded against a specific target role - an honest score
-          across 11 hiring-readiness categories. (Resume parsing extracts your experience; ProofScore judges
-          how well it lands for the role you pick below.)
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="ProofScore"
+        title="Know exactly where you"
+        titleAccent="stand."
+        description="ProofScore audits the resume you already uploaded against a specific target role — an honest score across 11 hiring-readiness categories. Resume parsing extracts your experience; ProofScore judges how well it lands for the role you pick below."
+      />
 
       {/* Input */}
       {!result && (
-        <div className="glass-card p-6 space-y-5">
+        <div className="entrance entrance-delay-2 glass-card p-6 space-y-5">
           {loadingResumes ? (
             <Skeleton className="h-16 w-full" />
           ) : resumes.length === 0 ? (
@@ -568,5 +568,6 @@ export default function AuditPage() {
         </div>
       )}
     </div>
+    </PageShell>
   )
 }
