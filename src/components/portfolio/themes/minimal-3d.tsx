@@ -232,6 +232,7 @@ export function Minimal3DTheme({ portfolio, content }: ThemeProps) {
                 {contact?.email && <a href={`mailto:${contact.email}`} className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm text-white transition-transform hover:scale-105" style={{ background: accentColor }}><Mail className="h-4 w-4" />{contact.email}</a>}
                 {safeHref(contact?.linkedin) && <a href={safeHref(contact.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm border-2 border-black/10 bg-white transition-transform hover:scale-105"><ExternalLink className="h-4 w-4" />LinkedIn</a>}
                 {safeHref(contact?.github) && <a href={safeHref(contact.github)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm border-2 border-black/10 bg-white transition-transform hover:scale-105"><ExternalLink className="h-4 w-4" />GitHub</a>}
+                {safeHref(contact?.website) && <a href={safeHref(contact.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm border-2 border-black/10 bg-white transition-transform hover:scale-105"><ExternalLink className="h-4 w-4" />Website</a>}
               </div>
             </motion.div>
           </Card3D>

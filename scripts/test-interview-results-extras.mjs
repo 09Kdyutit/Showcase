@@ -47,28 +47,32 @@ async function main() {
   }
   await callApi(page, 'POST', `/api/interviews/sessions/${sessionId}/complete`)
 
-  await page.goto(`${APP_URL}/interviews/${sessionId}/results`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(2000)
+  // The results page auto-runs AI analysis on landing, so 'networkidle' never settles
+  // within a fixed budget. Wait for the page shell, then for the Practice Next card
+  // (rendered for every completed session regardless of analysis outcome).
+  await page.goto(`${APP_URL}/interviews/${sessionId}/results`, { waitUntil: 'domcontentloaded' })
+  // Analysis is a real AI call auto-run on landing; wait for it to resolve to either
+  // a scored state (dimension-driven Practice Next copy) or an explicit failure state.
+  await page.waitForFunction(() => {
+    const t = document.body.innerText
+    return t.includes('lowest-scoring dimensions') || t.includes('You did well overall')
+      || t.includes('Retry scoring') || t.includes('ran into an error')
+  }, null, { timeout: 180000 })
+  await page.waitForTimeout(1000)
 
   console.log('\n── Practice Next ──')
   {
     const bodyText = await page.textContent('body')
-    const isPersonalized = bodyText?.includes('weakest scored dimensions')
-    const scoredWellAcrossBoard = bodyText?.includes('scored well across every dimension')
-    record('Practice Next reflects real per-dimension scores (gate is on), not the old "not enabled" fallback', isPersonalized || scoredWellAcrossBoard)
+    const isPersonalized = bodyText?.includes('lowest-scoring dimensions')
+    const scoredWellAcrossBoard = bodyText?.includes('You did well overall')
+    record('Practice Next reflects real per-dimension scores, not a generic fallback', isPersonalized || scoredWellAcrossBoard, `personalized=${isPersonalized} well=${scoredWellAcrossBoard}`)
   }
   const drillLinks = page.locator('a[href="/interviews/drills"]')
   record('At least one real drill recommendation links to the actual Drills page', await drillLinks.count() > 0)
 
-  console.log('\n── Save as Story ──')
-  await page.getByRole('button', { name: /save as story/i }).first().click()
-  await page.waitForTimeout(1000)
-  record('Button updates to "Saved to Story Bank" after saving', (await page.textContent('body'))?.includes('Saved to Story Bank'))
-
-  await page.goto(`${APP_URL}/interviews/story-bank`, { waitUntil: 'networkidle' })
-  const storyBankBody = await page.textContent('body')
-  record('The saved story genuinely appears on the real Story Bank page', storyBankBody?.includes('A specific real answer with my own action'))
-  record('The saved story is tagged with the real question competency, not invented', storyBankBody?.includes('conflict') || storyBankBody?.includes('failure') || storyBankBody?.includes('ownership'))
+  // NOTE: "Save as Story" was deliberately removed from the results page in commit
+  // 85c4d70 (Story Bank is a standalone page now, covered by test:interview-story-bank).
+  // The retry flow on this page is covered by test:interview-retry.
 
   await browser.close()
   console.log(`\n  Results page extras test: ${PASS} passed, ${FAIL} failed\n`)

@@ -34,7 +34,7 @@ export function NextActions({ actions }: { actions: RecommendedAction[] }) {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-brand-600">{SOURCE_LABELS[action.source]}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-brand-400">{SOURCE_LABELS[action.source]}</p>
                 <p className="text-sm font-semibold text-foreground mt-0.5">{action.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{action.reason}</p>
               </div>

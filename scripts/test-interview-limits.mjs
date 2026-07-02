@@ -12,8 +12,8 @@ import { createClient } from '@supabase/supabase-js'
 // This script runs under plain `node` (no --experimental-strip-types), so it cannot
 // import the .ts source directly; these MUST be kept in lockstep with plans.ts. The
 // deterministic test:interview-entitlements asserts the source numbers themselves.
-const FREE_PLAN_LIMITS = { sessionsPerPeriod: 3, audioSessionsPerPeriod: 0 }
-const PRO_PLAN_LIMITS = { sessionsPerPeriod: 30, audioSessionsPerPeriod: 15, retriesPerPeriod: 30 }
+const FREE_PLAN_LIMITS = { sessionsPerPeriod: 5, audioSessionsPerPeriod: 0 }
+const PRO_PLAN_LIMITS = { sessionsPerPeriod: 150, audioSessionsPerPeriod: 20, retriesPerPeriod: 100 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL

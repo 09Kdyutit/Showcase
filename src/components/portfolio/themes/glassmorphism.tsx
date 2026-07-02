@@ -274,6 +274,7 @@ export function GlassmorphismTheme({ portfolio, content }: ThemeProps) {
                   {contact?.email && <a href={`mailto:${contact.email}`} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white transition-transform hover:scale-105 active:scale-95" style={{ background: accentColor }}><Mail className="h-4 w-4" />{contact.email}</a>}
                   {safeHref(contact?.linkedin) && <a href={safeHref(contact.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] transition-all"><ExternalLink className="h-4 w-4" />LinkedIn</a>}
                   {safeHref(contact?.github) && <a href={safeHref(contact.github)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] transition-all"><ExternalLink className="h-4 w-4" />GitHub</a>}
+                  {safeHref(contact?.website) && <a href={safeHref(contact.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] transition-all"><ExternalLink className="h-4 w-4" />Website</a>}
                 </div>
               </div>
             </TiltCard>

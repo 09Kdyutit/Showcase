@@ -8,9 +8,10 @@ import {
   Trash2, Info, Share2, Copy, X, CheckCircle2, MinusCircle,
   Dumbbell, ArrowRight, ChevronDown, ChevronUp, Sparkles, AlertCircle,
   Target, User, TrendingUp, LayoutList,
-  Code2, MessageCircle, RefreshCw,
+  Code2, MessageCircle, RefreshCw, RotateCcw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiErrorMessage } from '@/lib/utils'
@@ -30,6 +31,11 @@ interface AnswerAssessment {
   weakMoments: { segmentId: string | null; note: string }[]
   missingEvidence: string[]
   suggestedStructure: string | null
+}
+interface RetryResult {
+  retryAnswer: { answer_text: string }
+  previousAnswer: { answer_text: string }
+  comparison: { observations: { label: string; changed: boolean }[] }
 }
 type Evaluation = {
   overall_score: number
@@ -195,6 +201,23 @@ export default function InterviewResultsPage() {
   const [creatingShare, setCreatingShare] = useState(false)
   const [newShareLink, setNewShareLink] = useState<string | null>(null)
   const [expandedCoaching, setExpandedCoaching] = useState<Set<string>>(new Set())
+  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
+  const [retryText, setRetryText] = useState('')
+  const [submittingRetry, setSubmittingRetry] = useState(false)
+  const [retryResults, setRetryResults] = useState<Record<string, RetryResult>>({})
+
+  async function handleSubmitRetry(questionId: string) {
+    if (!retryText.trim()) { toast.error('Write a retry answer first.'); return }
+    setSubmittingRetry(true)
+    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/answers/${questionId}/retry`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answerText: retryText.trim() }),
+    })
+    const json = await res.json()
+    if (!res.ok) { toast.error(apiErrorMessage(json.error, 'Could not submit retry.')); setSubmittingRetry(false); return }
+    setRetryResults((prev) => ({ ...prev, [questionId]: json.data }))
+    setRetryingQuestionId(null); setRetryText(''); setSubmittingRetry(false)
+  }
 
   async function loadShares() {
     const res = await fetch(`/api/interviews/sessions/${params.sessionId}/share`)
@@ -274,11 +297,21 @@ export default function InterviewResultsPage() {
     )
   }
 
-  const { session, transcript, latestEvaluation, dimensionScores } = detail
+  const { session, questions, transcript, latestEvaluation, dimensionScores } = detail
   const answerAssessments = latestEvaluation?.result?.answerAssessments ?? []
   const assessmentByQuestionId = new Map(answerAssessments.map((a) => [a.questionId, a]))
   const hasAnalysis = !!latestEvaluation
   const conversation = buildExchanges(transcript)
+  // Retry is keyed by the planned-question row id. Map each exchange back to its
+  // question row via the interviewer segment's question_id, falling back to an exact
+  // question-text match. Adaptive follow-ups with no question row simply get no
+  // retry button rather than a broken one.
+  const segmentById = new Map(transcript.map((s) => [s.id, s]))
+  const questionRowIdForExchange = (pair: { id: string; question: string }): string | null => {
+    const seg = segmentById.get(pair.id)
+    if (seg?.question_id) return seg.question_id
+    return questions.find((q) => q.question_text === pair.question)?.id ?? null
+  }
   // Drills target the candidate's lowest-scoring dimensions. If everything cleared 70,
   // still surface their weakest two so recommendations reflect how they actually did
   // rather than falling back to generic advice.
@@ -527,6 +560,8 @@ export default function InterviewResultsPage() {
               coaching.strongMoments.length > 0 || coaching.weakMoments.length > 0 ||
               coaching.missingEvidence.length > 0 || coaching.suggestedStructure
             )
+            const retryQuestionId = questionRowIdForExchange(pair)
+            const retryResult = retryQuestionId ? retryResults[retryQuestionId] : undefined
 
             return (
               <div key={rowKey} className="space-y-3 pb-7 border-b border-border/40 last:border-0 last:pb-0">
@@ -600,6 +635,41 @@ export default function InterviewResultsPage() {
                         )}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Retry this answer — a new attempt is stored alongside the original, never over it */}
+                {session.status === 'completed' && retryQuestionId && !retryResult && retryingQuestionId !== retryQuestionId && (
+                  <div className="ml-8">
+                    <Button size="sm" variant="ghost" onClick={() => { setRetryingQuestionId(retryQuestionId); setRetryText('') }} className="gap-1.5 h-7 text-xs">
+                      <RotateCcw className="h-3 w-3" /> Retry this answer
+                    </Button>
+                  </div>
+                )}
+
+                {retryQuestionId && retryingQuestionId === retryQuestionId && (
+                  <div className="ml-8 space-y-2 pl-3 border-l-2 border-brand-500/30">
+                    <Textarea value={retryText} onChange={(e) => setRetryText(e.target.value)} placeholder="Try answering again…" className="min-h-[100px]" maxLength={10000} />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setRetryingQuestionId(null)}>Cancel</Button>
+                      <Button size="sm" onClick={() => handleSubmitRetry(retryQuestionId)} disabled={submittingRetry}>{submittingRetry ? 'Comparing…' : 'Submit Retry'}</Button>
+                    </div>
+                  </div>
+                )}
+
+                {retryResult && (
+                  <div className="ml-8 rounded-xl border border-border/60 bg-surface-100 p-3 space-y-2">
+                    <p className="text-xs font-medium text-foreground">Your retry</p>
+                    <p className="text-sm text-foreground">{retryResult.retryAnswer.answer_text}</p>
+                    <div className="space-y-1 pt-2 border-t border-border/60">
+                      {retryResult.comparison.observations.map((o, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          {o.changed ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" /> : <MinusCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />}
+                          <span className={o.changed ? 'text-foreground' : 'text-muted-foreground'}>{o.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-1">These are objective text comparisons, not an AI quality judgment. Both attempts are saved - your original answer was never overwritten.</p>
                   </div>
                 )}
               </div>

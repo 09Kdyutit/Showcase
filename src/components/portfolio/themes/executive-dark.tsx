@@ -136,6 +136,11 @@ export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
                     <ExternalLink className="h-3.5 w-3.5" /> GitHub
                   </a>
                 )}
+                {safeHref(contact?.website) && (
+                  <a href={safeHref(contact?.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm border border-white/10 text-white/60 hover:text-white hover:border-white/25 transition-all">
+                    <ExternalLink className="h-3.5 w-3.5" /> Website
+                  </a>
+                )}
               </motion.div>
             </div>
 

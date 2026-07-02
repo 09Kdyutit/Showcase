@@ -101,6 +101,19 @@ Context: session opened with ~123 uncommitted files (4 days of prior-session wor
 
 Deferred/known: `sanitizeCitations` keeps zero-citation dimensions in the score (documented tradeoff; a stronger fix is giving the model short stable segment keys like `seg-001` instead of UUIDs so strict citation validation becomes viable again — future work). Env-dependent suites (rls, authorization, stripe, deletion, csrf, abuse, kill-switches, prompt-injection, accessibility) require a running dev server + env and run next.
 
+## PQ-13 — 2026-07-01/02 session (continued): env-dependent suites, live-DB migration drift, feature regressions restored
+
+| ID | Area | Exact task | Status | Evidence |
+|---|---|---|---|---|
+| PQ-13a | Database | **Live DB was 4 migrations behind the repo** (025 drop-overload, 026 portfolio-images bucket, 027 atomic retry RPC, 028 cost ledger) — retries failed closed with 503 for every user; portfolio image uploads and interview cost tracking also broken | PASS | All 4 applied to project yogwhfrjhcbnvoxitcay via Supabase MCP (idempotent where partially applied ad hoc). Also captured the ad-hoc live `saved_projects` table into repo migration 029 so source of truth realigns. `test:interview-limits` 16/16 including parallel-retry races. |
+| PQ-13b | Env | `.env.local` had interview-transcript text pasted mid-variable-name, corrupting `INTERVIEW_RECORDING_ENABLED` | PASS | Repaired name portion only; no values printed. |
+| PQ-13c | Results page | **Redesign regression: per-answer Retry UI was dropped entirely** (API existed, no button) | PASS | Restored retry flow, mapping transcript exchanges → question rows via segment `question_id`. `test:interview-retry` 8/8 through the real browser UI. (Save-as-Story was NOT restored — its removal was deliberate, commit 85c4d70; test updated to document that.) |
+| PQ-13d | Portfolio themes | XSS suite caught: default theme (executive-dark) and 7 other named themes never rendered `contact.website` — a user's safe personal-site link silently dropped | PASS | Website link added to all 8 named themes (preset-theme's 30 already had it). `test:xss` 4/4. |
+| PQ-13e | Accessibility | Landing + pricing serious contrast failures (2.08–3.27:1) from redesign; typewriter `h2` empty for screen readers; interview hub used light-theme `*-600` text on dark bg | PASS | `test:accessibility` 10/10 pages clean; `test:interview-accessibility` 11/11. |
+| PQ-13f | Tests | Stale e2e/UI test expectations vs redesigned flows (new-interview two-step setup, fixed 10-min sessions, AI question-gen latency, analysis-wait, drill fixtures, new plan limits) | PASS | `test:interview-e2e` 14/14 (full real loop incl. real AI analysis + score render), `test:interview-results-extras` 2/2, `test:interview-drills-ui` 7/7, `test:interview-hub` 21/21, `test:interview-session-types` 40/40. |
+| PQ-13g | Security suites | Full env-dependent adversarial sweep | PASS | rls 13/13, interview-rls 24/24, authorization 15/15, interview-authorization 16/16, csrf 6/6, abuse 3/3, uploads 8/8, xss 4/4, prompt-injection 15/15, raw-http 10/10, stripe config 8/8 + webhook 6/6, deletion 13/13, interview-deletion 10/10, kill-switches 4/4, headers 13/13, secrets (gitleaks) clean incl. history, interview-sharing 18/18, story-bank 11/11, interview-limits 16/16. |
+| PQ-13h | Release gate | Updated release-gate.json: MIG025-APPLY and ATOMIC-FREE-RETRY flipped to PASS with live evidence | — | Gate now NOT READY on exactly one blocking item: IL-NOT-STARTED-DEPLOY (pushing Gemini/Interview-Lab env vars to Vercel production — a deliberate human launch decision, correctly BLOCKED). |
+
 ## Release gate
 
 See `security/release-gate.json` (machine-readable) and run `npm run release:gate`.

@@ -35,7 +35,7 @@ export function CompanyMarquee({ className }: CompanyMarqueeProps) {
   return (
     <div className={cn('w-full overflow-hidden select-none', className)}>
       {/* Label */}
-      <p className="text-center text-xs text-muted-foreground/50 tracking-widest uppercase mb-6">
+      <p className="text-center text-xs text-muted-foreground tracking-widest uppercase mb-6">
         Built for careers across
       </p>
 
@@ -54,7 +54,7 @@ export function CompanyMarquee({ className }: CompanyMarqueeProps) {
           {items.map((domain, i) => (
             <span
               key={i}
-              className="flex-shrink-0 text-sm text-muted-foreground/60 font-medium border border-border bg-surface-100 rounded-full px-4 py-1.5 whitespace-nowrap"
+              className="flex-shrink-0 text-sm text-muted-foreground font-medium border border-border bg-surface-100 rounded-full px-4 py-1.5 whitespace-nowrap"
             >
               {domain}
             </span>

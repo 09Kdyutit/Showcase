@@ -169,6 +169,7 @@ export function BentoTheme({ portfolio, content }: ThemeProps) {
               <div className="space-y-2">
                 {safeHref(contact?.linkedin) && <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors"><ExternalLink className="h-3 w-3" />LinkedIn</a>}
                 {safeHref(contact?.github) && <a href={safeHref(contact?.github)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors"><ExternalLink className="h-3 w-3" />GitHub</a>}
+                {safeHref(contact?.website) && <a href={safeHref(contact?.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors"><ExternalLink className="h-3 w-3" />Website</a>}
               </div>
             </BentoCard>
           </div>

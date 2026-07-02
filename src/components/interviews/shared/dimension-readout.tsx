@@ -36,7 +36,7 @@ export function DimensionReadoutView({ dimensions }: { dimensions: DimensionRead
           </div>
         </div>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-blue-600 mb-2">Developing ({developing.length})</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-blue-400 mb-2">Developing ({developing.length})</p>
           <div className="space-y-1.5">
             {developing.length > 0 ? developing.map((d) => <DimensionPill key={d.id} d={d} />) : <p className="text-xs text-muted-foreground">None yet</p>}
           </div>

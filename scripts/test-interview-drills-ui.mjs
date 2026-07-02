@@ -46,7 +46,7 @@ async function main() {
   await page.waitForTimeout(300)
 
   // ── Strong attempt: within the word range, should pass ──────────────────
-  await page.fill('textarea', 'I have shipped production systems end to end, I take ownership of problems beyond my immediate scope, and I communicate clearly under pressure. Those three things consistently show up in how I work, and they are exactly what this role needs.')
+  await page.fill('textarea', 'I have shipped production systems end to end, I take ownership of problems beyond my immediate scope, and I communicate clearly under pressure. You should hire me because those three things are exactly what this role demands: I led the last migration my team shipped, reduced our deploy time by half, and kept stakeholders informed the whole way through. That is why I am confident I can contribute from the first week rather than the first quarter.')
   await page.getByRole('button', { name: /^submit$/i }).click()
   await page.waitForTimeout(1000)
   const strongResult = await page.textContent('body')

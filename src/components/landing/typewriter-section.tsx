@@ -88,8 +88,12 @@ export function TypewriterSection() {
             minHeight: '1.1em',
           }}
         >
-          {text}
-          <span className="type-caret" style={{ height: '0.9em', verticalAlign: '-0.06em' }} />
+          {/* Static text for screen readers; the animated text is decorative */}
+          <span className="sr-only">Showcase is {PHRASES[0]}</span>
+          <span aria-hidden="true">
+            {text}
+            <span className="type-caret" style={{ height: '0.9em', verticalAlign: '-0.06em' }} />
+          </span>
         </h2>
       </div>
     </section>

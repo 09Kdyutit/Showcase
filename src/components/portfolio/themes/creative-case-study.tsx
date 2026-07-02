@@ -96,6 +96,7 @@ export function CreativeCaseStudyTheme({ portfolio, content }: ThemeProps) {
                   </a>
                 )}
                 {safeHref(contact?.linkedin) && <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full text-sm border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all"><ExternalLink className="h-3.5 w-3.5" />LinkedIn</a>}
+                {safeHref(contact?.website) && <a href={safeHref(contact?.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-6 py-3 rounded-full text-sm border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all"><ExternalLink className="h-3.5 w-3.5" />Website</a>}
               </motion.div>
             </div>
 

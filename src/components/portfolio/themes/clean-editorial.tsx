@@ -96,6 +96,7 @@ export function CleanEditorialTheme({ portfolio, content }: ThemeProps) {
               )}
               {safeHref(contact?.linkedin) && <a href={safeHref(contact?.linkedin)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl border border-black/15 text-sm text-black/60 hover:text-black hover:border-black/30 transition-all"><ExternalLink className="h-3.5 w-3.5" />LinkedIn</a>}
               {safeHref(contact?.github) && <a href={safeHref(contact?.github)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl border border-black/15 text-sm text-black/60 hover:text-black hover:border-black/30 transition-all"><ExternalLink className="h-3.5 w-3.5" />GitHub</a>}
+              {safeHref(contact?.website) && <a href={safeHref(contact?.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl border border-black/15 text-sm text-black/60 hover:text-black hover:border-black/30 transition-all"><ExternalLink className="h-3.5 w-3.5" />Website</a>}
             </motion.div>
           </div>
 

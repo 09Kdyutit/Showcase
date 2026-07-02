@@ -311,6 +311,11 @@ export function MagazineTheme({ portfolio, content }: ThemeProps) {
                       <ExternalLink className="h-4 w-4" /> LinkedIn
                     </a>
                   )}
+                  {safeHref(contact?.website) && (
+                    <a href={safeHref(contact?.website)!} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-8 py-4 rounded-full text-sm font-bold border-2 border-white/30 text-white hover:border-white transition-all">
+                      <ExternalLink className="h-4 w-4" /> Website
+                    </a>
+                  )}
                 </div>
               </div>
             </motion.div>
