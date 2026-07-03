@@ -423,7 +423,14 @@ export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 text-xs text-white/20">
           <span>{portfolio.title}</span>
-          <span>Built with Showcase</span>
+          <a
+            href={`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'}?utm_source=portfolio_badge`}
+            target="_blank"
+            rel="noopener"
+            className="hover:text-white/50 transition-colors"
+          >
+            Built with <span className="text-brand-300/60">Showcase</span> — create yours free →
+          </a>
         </div>
       </footer>
     </div>

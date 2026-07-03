@@ -6,6 +6,7 @@ import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Tilt3D } from '@/components/ui/tilt-3d'
 import { CountUp } from '@/components/ui/count-up'
+import { ProofScoreTrajectory } from '@/components/dashboard/proofscore-trajectory'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
@@ -20,14 +21,20 @@ export default async function DashboardPage() {
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
-    supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+    supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(12),
     supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
   ])
 
   const profile = profileRes.data as Profile | null
   const subscription = subRes.data as Subscription | null
   const portfolios = (portfoliosRes.data ?? []) as Pick<Portfolio, 'id' | 'title' | 'slug' | 'status' | 'proof_score' | 'updated_at' | 'target_role'>[]
-  const latestAudit = (auditsRes.data?.[0] ?? null) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'> | null
+  const auditHistory = (auditsRes.data ?? []) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'>[]
+  const latestAudit = (auditHistory[0] ?? null) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'> | null
+  // Oldest→newest, real numeric scores only, for the trajectory sparkline.
+  const trajectory = auditHistory
+    .filter((a) => typeof a.overall_score === 'number')
+    .map((a) => ({ score: a.overall_score as number, date: a.created_at }))
+    .reverse()
   const latestResume = (resumesRes.data?.[0] ?? null) as Pick<Resume, 'id' | 'title' | 'created_at'> | null
   const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
   const latestPortfolio = portfolios[0] ?? null
@@ -280,6 +287,13 @@ export default async function DashboardPage() {
             </div>
           </Tilt3D>
         </div>
+
+        {/* ── ProofScore trajectory (only with 2+ audits) ── */}
+        {trajectory.length >= 2 && (
+          <div className="entrance entrance-delay-3">
+            <ProofScoreTrajectory points={trajectory} />
+          </div>
+        )}
 
         {/* ── Main content row ── */}
         <div className="entrance entrance-delay-4 grid lg:grid-cols-3 gap-6">

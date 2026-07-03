@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const [targetRole, setTargetRole] = useState('')
   const [industry, setIndustry] = useState('')
   const [expLevel, setExpLevel] = useState('')
+  const [digestEnabled, setDigestEnabled] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -51,6 +52,7 @@ export default function SettingsPage() {
         setTargetRole(data.target_role ?? '')
         setIndustry(data.industry ?? '')
         setExpLevel(data.experience_level ?? '')
+        setDigestEnabled((data as { email_digest_enabled?: boolean }).email_digest_enabled ?? true)
       }
       setLoading(false)
     })
@@ -64,6 +66,7 @@ export default function SettingsPage() {
       target_role: targetRole,
       industry,
       experience_level: expLevel,
+      email_digest_enabled: digestEnabled,
     }).eq('id', profile!.id)
     if (error) toast.error('Failed to save')
     else toast.success('Settings saved')
@@ -161,6 +164,33 @@ export default function SettingsPage() {
         </div>
         <Button variant="gradient" size="sm" onClick={saveProfile} loading={saving}>
           Save changes
+        </Button>
+      </div>
+
+      {/* Email preferences */}
+      <div className="glass-card p-6 space-y-4">
+        <h2 className="text-sm font-semibold text-foreground">Email preferences</h2>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-foreground">Weekly digest</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Your ProofScore trend, jobs to follow up on, and interview readiness — once a week.</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={digestEnabled}
+            onClick={() => setDigestEnabled((v) => !v)}
+            className="relative shrink-0 w-11 h-6 rounded-full transition-colors"
+            style={{ background: digestEnabled ? 'oklch(54% 0.230 255)' : 'var(--color-surface-300)' }}
+          >
+            <span
+              className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all"
+              style={{ left: digestEnabled ? '22px' : '2px' }}
+            />
+          </button>
+        </div>
+        <Button variant="secondary" size="sm" onClick={saveProfile} loading={saving}>
+          Save preferences
         </Button>
       </div>
 
