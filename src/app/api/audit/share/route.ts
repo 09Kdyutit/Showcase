@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { randomBytes } from 'node:crypto'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export const maxDuration = 15
 
@@ -14,7 +14,11 @@ export async function POST() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { data: audit } = await supabase
+    // Reads/writes go through the service client (scoped to the authenticated user's own
+    // audit) because the audits table has no owner-UPDATE RLS policy — a user-session write
+    // would silently affect 0 rows. Ownership is enforced by the user_id filters below.
+    const service = await createServiceClient()
+    const { data: audit } = await service
       .from('audits')
       .select('id, share_token')
       .eq('user_id', user.id)
@@ -29,7 +33,7 @@ export async function POST() {
     let token = audit.share_token
     if (!token) {
       token = randomBytes(12).toString('hex')
-      const { error } = await supabase
+      const { error } = await service
         .from('audits')
         .update({ share_token: token })
         .eq('id', audit.id)
