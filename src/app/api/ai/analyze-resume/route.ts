@@ -8,6 +8,10 @@ import { z } from 'zod'
 import { hashString } from '@/lib/utils'
 import { sanitizeParsedResume } from '@/lib/ai/sanitize-resume'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const schema = z.object({
   resumeText: z.string().min(50, 'Resume text is too short').max(15000, 'Resume text is too long'),
   resumeId: z.string().uuid().optional(),

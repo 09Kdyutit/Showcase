@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { GoogleGenAI } from '@google/genai'
 import { COMPANIES } from '@/lib/interviews/companies'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 export interface GeneratedCompanyData {
   name: string
   category: string

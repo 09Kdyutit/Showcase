@@ -4,6 +4,10 @@ import { runPrompt } from '@/lib/ai/client'
 import { projectSuggestionsPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 // Personalized portfolio-project ideas from the candidate's résumé. Runs on the same
 // reliable OpenAI infra as every other AI feature (structured output, no fragile manual
 // JSON parsing) — the previous raw-Gemini implementation 500'd whenever that path failed.

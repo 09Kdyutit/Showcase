@@ -13,6 +13,10 @@ import {
   convertInchesToTwip,
 } from 'docx'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 // POST /api/resume/export
 // Body: { tailored_asset_id?: string, resume_id?: string, format?: 'docx' }
 // Returns: DOCX file with correct Content-Disposition header

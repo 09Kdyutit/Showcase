@@ -6,6 +6,10 @@ import { interviewAnswerScorePrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const attemptSchema = z.object({
   answerText: z.string().min(1).max(5000),
 })

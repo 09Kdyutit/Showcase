@@ -9,6 +9,10 @@ import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@
 import { recordCostEvent, costFromTokens, RATES } from '@/lib/interviews/budget'
 import { z } from 'zod'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const createSchema = z.object({
   sessionType: z.enum(SESSION_TYPES),
   deliveryMode: z.enum(DELIVERY_MODES),

@@ -8,6 +8,10 @@ import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const schema = z.object({
   portfolioId: z.string().uuid().optional(),
   resumeId: z.string().uuid().optional(),

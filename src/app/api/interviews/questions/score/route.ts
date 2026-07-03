@@ -5,6 +5,10 @@ import { interviewAnswerScorePrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 // Scores a single practice answer via the app's reliable OpenAI runPrompt path (structured
 // output + schema validation + retries). Previously a raw Gemini call with manual JSON
 // parsing that 500'd whenever the provider hiccuped or the Gemini env wasn't configured.

@@ -9,6 +9,10 @@ import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
 import type { JobListing, ParsedResume } from '@/types/database'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const schema = z.object({
   job_id: z.string().optional(),
   // For inline match against pasted/imported job

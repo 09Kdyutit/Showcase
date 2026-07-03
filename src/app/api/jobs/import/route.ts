@@ -9,6 +9,10 @@ import { computeMatchScore } from '@/lib/jobs/match'
 import { z } from 'zod'
 import type { JobListing, ParsedResume } from '@/types/database'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const schema = z
   .object({
     description: z.string().min(50).max(20000).optional(),

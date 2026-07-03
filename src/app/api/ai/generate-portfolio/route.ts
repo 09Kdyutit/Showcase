@@ -10,6 +10,10 @@ import { isEditedSinceGeneration } from '@/lib/portfolio/guard'
 import { sanitizePortfolioCopy } from '@/lib/portfolio/sanitize-copy'
 import { isGeminiReviewEnabled, callGeminiReviewer } from '@/lib/ai/gemini'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 const schema = z.object({
   parsedResume: z.record(z.string(), z.unknown()),
   targetRole: z.string().min(1).max(200),
