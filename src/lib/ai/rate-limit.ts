@@ -95,10 +95,22 @@ export async function checkRateLimit(
     // the same pre-insert count before any of them has recorded their own usage). The
     // counter key is scoped per user+event, independent of usage_events, which remains a
     // pure analytics/audit log and is no longer load-bearing for quota enforcement.
+    // Referral bonus: free users who invited friends get bounded extra headroom. Only
+    // applied to free tier and only to events that already have a non-zero free allowance
+    // (Pro-only events returned at limit.max === 0 above), so a referral can never unlock a
+    // paid feature — just stretch an existing free limit. Fail-safe: any read error keeps
+    // the base limit. bonus_credits is hard-capped at 60 in the DB (claim_referral).
+    let effectiveMax = limit.max
+    if (!isPro) {
+      const { data: prof } = await supabase.from('profiles').select('bonus_credits').eq('id', userId).maybeSingle()
+      const bonus = Math.max(0, Math.min((prof as { bonus_credits?: number } | null)?.bonus_credits ?? 0, 60))
+      effectiveMax = limit.max + bonus
+    }
+
     const key = `ai:${eventName}:${userId}`
     const windowSeconds = limit.windowHours * 60 * 60
     const { data, error } = await supabase
-      .rpc('rate_limit_increment', { p_key: key, p_window_seconds: windowSeconds, p_max: limit.max })
+      .rpc('rate_limit_increment', { p_key: key, p_window_seconds: windowSeconds, p_max: effectiveMax })
       .single() as { data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null, error: { message: string } | null }
 
     if (error || !data) {

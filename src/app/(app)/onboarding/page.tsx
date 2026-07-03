@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowRight, CheckCircle2, ChevronDown, Mail, Phone, MapPin, Sparkles,
@@ -70,6 +70,19 @@ export default function OnboardingPage() {
   const [busyMsg, setBusyMsg] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const generatingRef = useRef(false)
+
+  // Claim a pending referral once (profile is guaranteed to exist by the time onboarding
+  // renders). Fire-and-forget; clears the stash regardless so it never double-fires.
+  useEffect(() => {
+    const ref = typeof window !== 'undefined' ? localStorage.getItem('showcase_ref') : null
+    if (!ref) return
+    localStorage.removeItem('showcase_ref')
+    void fetch('/api/referral/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: ref }),
+    }).catch(() => {})
+  }, [])
 
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
 

@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const [industry, setIndustry] = useState('')
   const [expLevel, setExpLevel] = useState('')
   const [digestEnabled, setDigestEnabled] = useState(true)
+  const [referral, setReferral] = useState<{ code: string; count: number; bonus: number } | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -53,6 +54,8 @@ export default function SettingsPage() {
         setIndustry(data.industry ?? '')
         setExpLevel(data.experience_level ?? '')
         setDigestEnabled((data as { email_digest_enabled?: boolean }).email_digest_enabled ?? true)
+        const d = data as { referral_code?: string; referral_count?: number; bonus_credits?: number }
+        if (d.referral_code) setReferral({ code: d.referral_code, count: d.referral_count ?? 0, bonus: d.bonus_credits ?? 0 })
       }
       setLoading(false)
     })
@@ -166,6 +169,45 @@ export default function SettingsPage() {
           Save changes
         </Button>
       </div>
+
+      {/* Refer friends */}
+      {referral && (
+        <div className="glass-card p-6 space-y-4 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 opacity-40" style={{ background: 'radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklch, var(--color-brand-500) 12%, transparent), transparent)' }} />
+          <div className="relative">
+            <h2 className="text-sm font-semibold text-foreground">Refer friends, earn credits</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Share your link. Each friend who signs up gives you <span className="text-brand-300 font-semibold">3 bonus AI credits</span> (extra ProofScores, résumé rewrites, and more).
+            </p>
+          </div>
+          <div className="relative flex items-center gap-2">
+            <div className="flex-1 min-w-0 px-3 py-2 rounded-lg text-sm font-mono truncate" style={{ background: 'var(--color-surface-200)', border: '1px solid var(--color-border)', color: 'oklch(80% 0.01 255)' }}>
+              {(typeof window !== 'undefined' ? window.location.origin : '')}/signup?ref={referral.code}
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${referral.code}`).catch(() => {})
+                toast.success('Referral link copied')
+              }}
+            >
+              Copy
+            </Button>
+          </div>
+          <div className="relative flex items-center gap-6 text-sm">
+            <div>
+              <span className="text-2xl font-bold text-foreground stat-number">{referral.count}</span>
+              <span className="text-xs text-muted-foreground ml-1.5">friend{referral.count === 1 ? '' : 's'} joined</span>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-brand-300 stat-number">{referral.bonus}</span>
+              <span className="text-xs text-muted-foreground ml-1.5">bonus credits earned</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Email preferences */}
       <div className="glass-card p-6 space-y-4">

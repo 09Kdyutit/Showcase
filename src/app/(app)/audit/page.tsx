@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   BarChart3, AlertCircle, CheckCircle2, ArrowRight, Info, Copy, Check,
-  Search, Lightbulb, TrendingUp, Zap, Target, FileText,
+  Search, Lightbulb, TrendingUp, Zap, Target, FileText, Share2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -330,6 +330,18 @@ export default function AuditPage() {
 
   const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null
 
+  async function shareScore() {
+    try {
+      const res = await fetch('/api/audit/share', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Could not create share link'); return }
+      await navigator.clipboard.writeText(json.data.url).catch(() => {})
+      toast.success('Share link copied to clipboard')
+    } catch {
+      toast.error('Could not create share link')
+    }
+  }
+
   async function runAudit() {
     if (!selectedResumeId) { toast.error('Select a resume to audit'); return }
     if (!targetRole.trim()) { toast.error('Enter your target role'); return }
@@ -481,9 +493,15 @@ export default function AuditPage() {
                 </div>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={() => setResult(null)} className="shrink-0">
-              Re-audit
-            </Button>
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button variant="gradient" size="sm" onClick={shareScore} className="gap-1.5">
+                <Share2 className="h-3.5 w-3.5" />
+                Share score
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setResult(null)}>
+                Re-audit
+              </Button>
+            </div>
           </div>
 
           {/* Next 3 Fixes - prominent callout */}

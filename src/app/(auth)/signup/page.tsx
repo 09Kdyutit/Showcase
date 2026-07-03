@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -23,6 +23,13 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // Capture a referral code from ?ref and stash it; onboarding claims it once the profile
+  // exists (avoids a signup-time race where the profile row isn't created yet).
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase()
+    if (ref && /^[A-Z0-9]{4,16}$/.test(ref)) localStorage.setItem('showcase_ref', ref)
+  }, [])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
