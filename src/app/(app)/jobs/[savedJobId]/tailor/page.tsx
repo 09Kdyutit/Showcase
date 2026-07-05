@@ -487,6 +487,26 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   const [generating, setGenerating] = useState(false)
   const [coverLetter, setCoverLetter] = useState(false)
   const [recruiterNote, setRecruiterNote] = useState(false)
+  const [markedApplied, setMarkedApplied] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const isApplied = markedApplied || ['applied', 'interview', 'offer'].includes(savedJob?.status ?? '')
+
+  // Connective tissue: mark the job applied from Tailor Studio (with the tailored kit already
+  // attached), so it moves into the pipeline and the weekly digest's follow-up nudge tracks it.
+  async function markApplied() {
+    if (!savedJobId || isApplied) return
+    setApplying(true)
+    try {
+      const res = await fetch('/api/jobs/save', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: savedJobId, status: 'applied' }),
+      })
+      if (res.ok) { setMarkedApplied(true); toast.success('Marked as applied — we\'ll nudge you to follow up.') }
+      else toast.error('Could not update status.')
+    } catch { toast.error('Could not update status.') }
+    finally { setApplying(false) }
+  }
   const [activeSection, setActiveSection] = useState<'summary' | 'experience' | 'truth' | 'interview'>('summary')
 
   const loadData = useCallback(async () => {
@@ -759,6 +779,18 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
               Export DOCX
             </Button>
+          )}
+          {savedJob && (
+            isApplied ? (
+              <Badge variant="success" className="gap-1 text-xs h-8 px-3">
+                <Check className="h-3.5 w-3.5" /> Applied
+              </Badge>
+            ) : (
+              <Button onClick={markApplied} variant="secondary" size="sm" disabled={applying} className="gap-1.5">
+                {applying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Mark as applied
+              </Button>
+            )
           )}
           <Button
             onClick={handleGenerate}
