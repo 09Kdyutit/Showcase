@@ -30,9 +30,14 @@ const securityHeaders = [
       // React's dev mode (Fast Refresh, dev-time stack traces) does call eval() and
       // React's own docs say it never does in production, so this is dev-only.
       `script-src 'self' 'unsafe-inline' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
-      "style-src 'self' 'unsafe-inline'",
+      // fonts.googleapis.com: published portfolio pages (/p/[slug]) and several portfolio
+      // themes load their display fonts from Google Fonts via <link rel="stylesheet">.
+      // Without this, CSP blocks the stylesheet and portfolios silently fall back to
+      // system fonts on the exact pages users share with recruiters.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
+      // fonts.gstatic.com: the actual font files referenced by the Google Fonts stylesheet above.
+      "font-src 'self' data: https://fonts.gstatic.com",
       // api.openai.com/Anthropic intentionally absent: every AI call for those
       // providers happens server-side in API routes. generativelanguage.googleapis.com
       // is a deliberate exception: Gemini Live voice connects directly from the

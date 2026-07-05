@@ -33,10 +33,29 @@ Hard rules:
 - ${NO_FABRICATION_RULE}
 - Ground every claim in the candidate's real résumé. Never invent employers, projects, metrics, or titles. Lead with their single most relevant real proof point for this role.
 - Be SHORT. A recruiter DM or connection note is 45-90 words. A networking or referral message is 70-130 words. Respect that — long messages don't get replies.
-- Open with a specific, human hook (a real detail about their work or a genuine reason for reaching out), never "I hope this message finds you well" or "I came across your profile".
-- One clear ask. Make it easy to say yes to (a quick chat, a referral, a pointer to the right person).
-- Ban corporate slop: "passionate", "team player", "synergy", "leverage", "proven track record", "reach out", "circle back", "touch base", "hit the ground running".
-- No placeholders like "[Your Name]" or "[Company]" — use the real role/company given; the platform adds the sender's name.`
+- Open with a specific, human hook (a real detail about their work or a genuine reason for reaching out), never "I hope this message finds you well", "I came across your profile", or empty flattery ("I'm a huge fan of your work").
+- One clear ask. Make it easy to say yes to (a quick chat, a referral, a pointer to the right person). Never ask for more than one thing.
+- Ban corporate slop: "passionate", "team player", "synergy", "leverage", "proven track record", "reach out", "circle back", "touch base", "hit the ground running", "wanted to connect".
+- The message must be ready to send AS-IS. No bracketed placeholders of any kind — not "[Your Name]", not "[Company]", and NOT "[Recruiter's Name]"/"[Hiring Manager]". You do not know the recipient's name, so open with "Hi there," (or, for a referral ask to someone the candidate clearly knows, a warm neutral greeting) — never a bracketed name to fill in. Use the real role/company given; the platform adds the sender's name at the end.
+- subject: a channel-appropriate line ≤ 8 words — an email subject or a LinkedIn connection-note opener. Make it specific to the role or proof point (e.g. "Checkout redesign → your Sr. PD role"), never filler like "Opportunity", "Checking in", or "Following up".`
+
+// Gold-standard style references — one per type. Fictional on purpose: they anchor
+// STRUCTURE and TONE for the fast-tier model, which follows examples far better than
+// abstract rules. The prompt forbids borrowing any of their facts.
+const EXAMPLES: Record<OutreachType, string> = {
+  recruiter_dm:
+    'GOOD EXAMPLE (style only — do NOT reuse its facts):\n' +
+    '"Hi Priya — saw you\'re hiring the Senior Product Designer on the payments team. I spent two years on checkout at Northwind, where a first-run redesign lifted activation 18%. Payments UX is exactly the problem I want to go deeper on — open to a 15-minute chat this week?"\n' +
+    'Why it works: names the exact role, leads with one real proof point, single low-friction ask, zero flattery or slop.',
+  networking:
+    'GOOD EXAMPLE (style only — do NOT reuse its facts):\n' +
+    '"Hi Marcus — I came across your work on Acme\'s growth team while reading about how you run activation experiments. I\'m a PM at Northwind focused on the same thing; last quarter an onboarding test I ran moved D7 retention 9 points. I\'m not asking about any specific opening — I\'d just value 15 minutes to hear how your team frames early-lifecycle growth. Happy to work around your schedule."\n' +
+    'Why it works: curious not pitchy, one real proof point, an explicit soft ask, and it defuses the "are you just after a job" worry.',
+  referral_ask:
+    'GOOD EXAMPLE (style only — do NOT reuse its facts):\n' +
+    '"Hi Dana — Acme just posted a Backend Engineer role on the payments team and it\'s a strong fit. At Northwind I\'ve spent two years on payment services in Go, including a migration that cut reconciliation errors by a third. Would you be comfortable referring me, or pointing me to the right person? I\'ve pasted a one-line blurb below you can forward as-is — no work on your end."\n' +
+    'Why it works: makes saying yes effortless (forwardable blurb), a concrete fit, one clear ask.',
+}
 
 function userMessage(input: OutreachMessageInput): string {
   const typeNote = input.outreachType === 'recruiter_dm'
@@ -48,6 +67,8 @@ function userMessage(input: OutreachMessageInput): string {
   return `Write a ${input.outreachType.replace(/_/g, ' ')} outreach message for ${input.candidateName || 'the candidate'}, targeting the "${input.role}" role${input.company ? ` at ${input.company}` : ''}.
 
 STYLE: ${typeNote}
+
+${EXAMPLES[input.outreachType]}
 
 ${untrustedDataNotice('job description and résumé below')}
 
@@ -63,19 +84,23 @@ Every claim must trace to the résumé above. No fabrication.`
 
 export const outreachMessagePrompt = definePrompt<OutreachMessageInput, OutreachMessageOutput>({
   id: 'outreach-message',
-  version: '1.0.0',
+  version: '1.1.0',
   task: 'Generate a short, human, résumé-grounded outreach message (recruiter DM / networking note / referral ask) for a specific job.',
   routes: ['/api/ai/outreach'],
   modelTier: 'fast',
-  temperature: 0.6,
+  // 0.5 keeps outreach warm and varied across regenerations while trimming the tail where
+  // the fast model occasionally slips a bracketed placeholder or a slop phrase.
+  temperature: 0.5,
   maxOutputTokens: 700,
   maxInputCharacters: MAX_RESUME + MAX_JOB,
   outputSchema: OutreachMessageSchema,
   schemaName: 'outreach_message',
   invariants: [
     'Never invents employers, projects, metrics, or skills not in the résumé',
+    'Never borrows facts from the in-prompt style example (fictional, structure/tone only)',
     'Short by design (recruiter DM 45-90 words; networking/referral 70-130)',
     'One clear, easy-to-say-yes-to ask; bans corporate slop and generic openers',
+    'Subject line is specific and ≤ 8 words, never filler ("Opportunity", "Checking in")',
     'Job description and résumé are treated as untrusted data, not instructions',
   ],
   reviewPolicy: 'none',
