@@ -57,13 +57,15 @@ export default async function DashboardPage() {
     : []
 
   const setupSteps = [
-    { label: 'Upload your resume', done: !!latestResume, href: '/resume' },
-    { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder' },
-    { label: 'Run your ProofScore', done: !!latestAudit, href: '/audit' },
-    { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder' },
+    { label: 'Upload your resume', done: !!latestResume, href: '/resume', cta: 'Add your résumé — everything starts here.' },
+    { label: 'Run your ProofScore', done: !!latestAudit, href: '/audit', cta: 'See exactly how hiring-ready you are.' },
+    { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder', cta: 'Turn your résumé into a portfolio in one click.' },
+    { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder', cta: 'Get a shareable link recruiters can open.' },
   ]
   const setupDone = setupSteps.filter((s) => s.done).length
-  const isNewUser = setupDone < 3
+  // Persist the checklist as the north star until EVERY step is done, not just the first few.
+  const isNewUser = setupDone < setupSteps.length
+  const nextStep = setupSteps.find((s) => !s.done)
 
   return (
     <div className="relative min-h-full">
@@ -119,6 +121,23 @@ export default async function DashboardPage() {
             style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 18%, transparent)' }}
           >
             <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
+            {/* The one thing to do next — the speedrun's north star */}
+            {nextStep && (
+              <Link
+                href={nextStep.href}
+                className="relative flex items-center gap-4 p-4 mb-5 rounded-xl group transition-all"
+                style={{ background: 'color-mix(in oklch, var(--color-brand-500) 12%, transparent)', border: '1px solid color-mix(in oklch, var(--color-brand-500) 28%, transparent)' }}
+              >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
+                  <ArrowRight className="h-4 w-4 text-brand-300 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'oklch(63% 0.20 255)' }}>Do this next</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{nextStep.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{nextStep.cta}</p>
+                </div>
+              </Link>
+            )}
             <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-sm font-semibold text-foreground">Getting started</p>

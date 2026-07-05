@@ -14,6 +14,9 @@ export const MARKETING_EVENTS = [
   'billing_period_selected',
   'waitlist_submitted',
   'signup_started',
+  // Public portfolio view (anonymous visitor on /p/[slug]). Slug + referrer host are
+  // public, non-sensitive identifiers, so they fit this table's no-private-data rule.
+  'portfolio_view',
 ] as const
 // checkout_started/checkout_completed and the rest of the post-signup funnel
 // (resume_uploaded, portfolio_generated, proofscore_viewed, portfolio_published,
@@ -35,4 +38,6 @@ export const ALLOWED_METADATA_KEYS = new Set([
   'experiment_variant',
   'cta_label',
   'already_joined',
+  'slug',    // public portfolio slug (portfolio_view)
+  'ref',     // referrer host only, e.g. "linkedin.com" — never a full URL
 ])

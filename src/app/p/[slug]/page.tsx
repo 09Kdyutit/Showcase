@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import type { PortfolioContent } from '@/types/database'
 import { coerceThemeId } from '@/lib/portfolio/themes'
 import { THEME_COMPONENTS, type ThemeContent } from '@/components/portfolio/themes'
+import { PortfolioViewTracker } from '@/components/portfolio/portfolio-view-tracker'
 
 interface PublicPortfolioPageProps {
   params: Promise<{ slug: string }>
@@ -59,6 +60,7 @@ export default async function PublicPortfolioPage({ params }: PublicPortfolioPag
 
   return (
     <>
+      <PortfolioViewTracker slug={portfolio.slug} />
       {/* Premium display fonts for portfolio themes */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
