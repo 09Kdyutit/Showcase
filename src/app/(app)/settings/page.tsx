@@ -236,6 +236,20 @@ export default function SettingsPage() {
         </Button>
       </div>
 
+      {/* Your data — career packet export */}
+      <div className="glass-card p-6 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground">Your data</h2>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-foreground">Download your career packet</p>
+            <p className="text-xs text-muted-foreground mt-0.5">A single ZIP with your ProofScore report, résumé text, and portfolio links.</p>
+          </div>
+          <Button asChild variant="secondary" size="sm" className="shrink-0">
+            <a href="/api/career-packet" download>Download ZIP</a>
+          </Button>
+        </div>
+      </div>
+
       {/* Danger zone */}
       <div className="glass-card p-6 space-y-4 border-red-500/10">
         <h2 className="text-sm font-semibold text-red-400">Danger zone</h2>
