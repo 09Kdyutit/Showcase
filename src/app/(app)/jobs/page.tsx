@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { daysAgo, salaryDisplay } from '@/lib/jobs/match'
+import { SavedSearches } from '@/components/jobs/saved-searches'
 import type { JobListing, SavedJob, WorkMode, Seniority, MatchBreakdown } from '@/types/database'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -906,6 +907,14 @@ export default function JobsPage() {
           />
         )}
       </div>
+
+      {tab === 'browse' && (
+        <SavedSearches<SearchFilters>
+          filters={filters}
+          onApply={(f) => { setFilters(f); void fetchJobs(f) }}
+          hasActiveFilters={(Object.keys(filters) as (keyof SearchFilters)[]).some((k) => filters[k] !== INITIAL_FILTERS[k])}
+        />
+      )}
 
       {/* Main layout */}
       {tab === 'pipeline' ? (

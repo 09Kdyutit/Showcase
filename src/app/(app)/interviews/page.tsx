@@ -12,6 +12,7 @@ import { UsageSummary } from '@/components/interviews/hub/usage-summary'
 import { NewUserState } from '@/components/interviews/hub/new-user-state'
 import { JobSpecificBanner } from '@/components/interviews/hub/job-specific-banner'
 import { PageShell } from '@/components/shared/page-header'
+import { PracticeReminder } from '@/components/interviews/hub/practice-reminder'
 
 export default async function InterviewHubPage() {
   const supabase = await createClient()
@@ -59,6 +60,7 @@ export default async function InterviewHubPage() {
         <div className="space-y-6">
           <UsageSummary usage={hub.usage} />
           <NextActions actions={hub.nextActions} />
+          <PracticeReminder />
           <PracticeResources drills={hub.recommendedDrills} />
           <PrivacySummary
             transcriptRetentionDays={hub.privacy.transcriptRetentionDays}
