@@ -37,6 +37,40 @@ export async function GET(
       dimensionScores = data ?? []
     }
 
+    // Prior comparable session (same session_type, completed, older) so the results screen
+    // can show the improvement arc per dimension — "Clarity 62 → 78". Best-effort: any error
+    // just omits the deltas.
+    let priorDimensionScores: { dimension_id: string; score: number }[] = []
+    try {
+      const { data: prevSession } = await supabase
+        .from('interview_sessions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('session_type', session.session_type)
+        .eq('status', 'completed')
+        .neq('id', id)
+        .lt('created_at', session.created_at)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (prevSession) {
+        const { data: prevEval } = await supabase
+          .from('interview_evaluations')
+          .select('id')
+          .eq('session_id', prevSession.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (prevEval) {
+          const { data: prevDims } = await supabase
+            .from('interview_dimension_scores')
+            .select('dimension_id, score')
+            .eq('evaluation_id', prevEval.id)
+          priorDimensionScores = prevDims ?? []
+        }
+      }
+    } catch { /* deltas are best-effort */ }
+
     return NextResponse.json({
       data: {
         session,
@@ -45,6 +79,7 @@ export async function GET(
         transcript: transcript ?? [],
         latestEvaluation: evaluations?.[0] ?? null,
         dimensionScores,
+        priorDimensionScores,
       },
     })
   } catch (err) {

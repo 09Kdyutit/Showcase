@@ -19,6 +19,15 @@ import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
 import type { ParsedResume } from '@/types/database'
 
+// LinkedIn "in" glyph — lucide's Linkedin export isn't available in this version.
+function LinkedInMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
+    </svg>
+  )
+}
+
 const INDUSTRIES = [
   'Technology', 'Product', 'Design', 'Engineering', 'Marketing', 'Data / Analytics',
   'Finance', 'Healthcare', 'Education', 'Consulting', 'Startups', 'Other',
@@ -291,6 +300,23 @@ export default function OnboardingPage() {
               </Button>
             )}
           </div>
+
+          {/* Import from LinkedIn — no résumé file needed, just export the profile you already have */}
+          <details className="group mt-4 rounded-xl overflow-hidden" style={{ background: 'var(--color-surface-50)', border: '1px solid var(--color-border)' }}>
+            <summary className="flex items-center gap-2.5 px-4 py-3 cursor-pointer list-none select-none">
+              <LinkedInMark className="h-4 w-4 shrink-0" />
+              <span className="text-sm font-medium text-foreground flex-1">No résumé handy? Import from LinkedIn</span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground/60 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2.5">
+              <p className="text-xs">Export your profile as a PDF, then drop it into the upload box above — we parse it just like a résumé.</p>
+              <ol className="space-y-1.5 text-xs">
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">1.</span> Open your <span className="text-foreground font-medium">LinkedIn profile</span>, click the <span className="text-foreground font-medium">More</span> button under your headline.</li>
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">2.</span> Choose <span className="text-foreground font-medium">Save to PDF</span> — LinkedIn downloads your full profile.</li>
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">3.</span> Drop that PDF into the box above. Done.</li>
+              </ol>
+            </div>
+          </details>
 
           <button onClick={skipResume} className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors">
             Skip - I&apos;ll set this up manually

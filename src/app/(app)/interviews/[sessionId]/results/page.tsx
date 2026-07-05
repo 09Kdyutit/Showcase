@@ -50,6 +50,7 @@ interface SessionDetail {
   session: { id: string; status: string; target_role: string; session_type: string; analysis_status: string }
   questions: Question[]; transcript: TranscriptSegment[]
   latestEvaluation: Evaluation; dimensionScores: DimensionScore[]
+  priorDimensionScores?: { dimension_id: string; score: number }[]
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -298,6 +299,7 @@ export default function InterviewResultsPage() {
   }
 
   const { session, questions, transcript, latestEvaluation, dimensionScores } = detail
+  const priorByDim = new Map((detail.priorDimensionScores ?? []).map((p) => [p.dimension_id, p.score]))
   const answerAssessments = latestEvaluation?.result?.answerAssessments ?? []
   const assessmentByQuestionId = new Map(answerAssessments.map((a) => [a.questionId, a]))
   const hasAnalysis = !!latestEvaluation
@@ -441,6 +443,17 @@ export default function InterviewResultsPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-sm font-medium text-foreground capitalize">{label}</span>
                           <div className="flex items-center gap-2 shrink-0">
+                            {(() => {
+                              const prev = priorByDim.get(d.dimension_id)
+                              if (prev === undefined) return null
+                              const delta = d.score - prev
+                              if (delta === 0) return <span className="text-xs text-muted-foreground/60">{prev} → {d.score}</span>
+                              return (
+                                <span className="text-xs font-semibold" style={{ color: delta > 0 ? 'oklch(72% 0.17 160)' : 'oklch(66% 0.19 25)' }}>
+                                  {prev} → {d.score} ({delta > 0 ? '+' : ''}{delta})
+                                </span>
+                              )
+                            })()}
                             <span className={`text-xs font-medium ${color}`}>{scoreL}</span>
                             {d.confidence && (
                               <span className="text-xs text-muted-foreground/50 hidden sm:inline">
@@ -456,6 +469,17 @@ export default function InterviewResultsPage() {
                       {d.explanation && (
                         <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{d.explanation}</p>
                       )}
+                      {/* Close the loop: a weak dimension links straight to the drill that trains it */}
+                      {d.score < 70 && (() => {
+                        const drill = recommendDrillsForDimensions([d.dimension_id])[0]
+                        return drill ? (
+                          <Link href={`/interviews/drills?open=${drill.id}`} className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-brand-400 hover:text-brand-300 transition-colors">
+                            <Dumbbell className="h-3 w-3" />
+                            Practice this: {drill.label}
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        ) : null
+                      })()}
                     </div>
                   </div>
                 )
@@ -692,7 +716,7 @@ export default function InterviewResultsPage() {
             </p>
             <div className="grid sm:grid-cols-3 gap-2">
               {recommendDrillsForDimensions(weakDimensionIds).map((d) => (
-                <Link key={d.id} href="/interviews/drills" className="rounded-xl border border-border/60 p-3 hover:bg-surface-200 transition-colors">
+                <Link key={d.id} href={`/interviews/drills?open=${d.id}`} className="rounded-xl border border-border/60 p-3 hover:bg-surface-200 transition-colors">
                   <p className="text-sm font-medium text-foreground">{d.label}</p>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.objective}</p>
                 </Link>
