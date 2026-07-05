@@ -22,7 +22,7 @@ export default function ResumePage() {
           titleAccent="land."
           description={
             mode === 'cover'
-              ? 'Generate a personalized cover letter for any job, grounded in your real resume.'
+              ? 'Generate a cover letter, recruiter DM, networking note, or referral ask for any job — grounded in your real resume.'
               : 'Edit your resume section by section, sharpen bullets with AI, and export to PDF or DOCX.'
           }
         />
@@ -30,7 +30,7 @@ export default function ResumePage() {
         <Segmented className="entrance entrance-delay-1">
           {([
             ['builder', 'Resume Builder', FileText],
-            ['cover', 'Cover Letter', Mail],
+            ['cover', 'Letters & Outreach', Mail],
           ] as const).map(([id, label, Icon]) => (
             <button
               key={id}
