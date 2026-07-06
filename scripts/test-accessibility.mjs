@@ -23,6 +23,11 @@ async function main() {
 
   for (const path of PAGES) {
     await page.goto(`${APP_URL}${path}`, { waitUntil: 'networkidle' }).catch(() => null)
+    // Scan a STABLE DOM. Several landing sections fade content in (framer-motion); scanning
+    // mid-fade catches text at transient sub-AA opacity — a false positive axe-core itself
+    // warns against. Settle first so we grade the state users actually read. Settled-state
+    // failures are still caught (this is how the real contrast issues were found).
+    await page.waitForTimeout(1300)
     await page.addScriptTag({ content: axeSource })
     const results = await page.evaluate(() => window.axe.run())
 

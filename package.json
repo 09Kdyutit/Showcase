@@ -73,7 +73,7 @@
     "test:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",
     "test:eval-graders": "node scripts/test-eval-graders.mjs",
     "test:ai-regression": "node --env-file=.env.local scripts/test-ai-regression.mjs",
-    "test:multi-model": "node --env-file=.env.local --experimental-strip-types scripts/test-multi-model-review.mjs",
+    "test:multi-model": "node --env-file=.env.local --experimental-strip-types --conditions=react-server scripts/test-multi-model-review.mjs",
     "eval:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",
     "eval:multi-model": "node --env-file=.env.local --experimental-strip-types scripts/eval-multi-model.mjs",
     "eval:compare": "node scripts/compare-prompt-versions.mjs"

@@ -63,9 +63,9 @@ function chipIn(i: number) {
 
 function VizParse() {
   const chips = [
-    ['React', 'oklch(70% 0.14 200)'], ['Figma', 'oklch(68% 0.18 330)'], ['SQL', 'oklch(63% 0.20 255)'],
-    ['3 projects', 'oklch(62% 0.22 285)'], ['2 internships', 'oklch(72% 0.17 160)'], ['BSc CS', 'oklch(78% 0.15 85)'],
-    ['Python', 'oklch(63% 0.20 255)'], ['Leadership', 'oklch(68% 0.18 330)'],
+    ['React', 'oklch(74% 0.13 200)'], ['Figma', 'oklch(76% 0.15 330)'], ['SQL', 'oklch(75% 0.15 255)'],
+    ['3 projects', 'oklch(75% 0.16 285)'], ['2 internships', 'oklch(75% 0.16 160)'], ['BSc CS', 'oklch(81% 0.14 85)'],
+    ['Python', 'oklch(75% 0.15 255)'], ['Leadership', 'oklch(76% 0.15 330)'],
   ] as const
   return (
     <div className="h-full flex flex-col justify-center gap-5">
@@ -444,7 +444,7 @@ export function HowItWorks() {
                     style={{
                       background: isActive ? 'oklch(54% 0.230 255 / 0.14)' : 'var(--color-surface-100)',
                       border: `1px solid ${isActive ? 'oklch(54% 0.230 255 / 0.5)' : 'var(--color-border)'}`,
-                      color: isActive ? 'oklch(74% 0.15 255)' : 'oklch(58% 0.02 258)',
+                      color: isActive ? 'oklch(74% 0.15 255)' : 'oklch(78% 0.03 258)',
                       boxShadow: isActive ? '0 0 24px oklch(54% 0.230 255 / 0.25)' : 'none',
                       transform: isActive ? 'scale(1.06)' : 'scale(1)',
                     }}
@@ -452,10 +452,10 @@ export function HowItWorks() {
                     {step}
                   </div>
 
-                  <div className="transition-opacity duration-400" style={{ opacity: isActive ? 1 : 0.45 }}>
+                  <div className="transition-opacity duration-400" style={{ opacity: isActive ? 1 : 0.72 }}>
                     <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">{title}</h3>
-                    <p className="text-sm mt-1.5 font-medium" style={{ color: isActive ? 'oklch(74% 0.14 255)' : 'oklch(64% 0.02 258)' }}>{desc}</p>
-                    <p className="text-[15px] mt-3 leading-relaxed" style={{ color: 'oklch(64% 0.015 258)' }}>{detail}</p>
+                    <p className="text-sm mt-1.5 font-medium" style={{ color: isActive ? 'oklch(74% 0.14 255)' : 'oklch(82% 0.025 258)' }}>{desc}</p>
+                    <p className="text-[15px] mt-3 leading-relaxed" style={{ color: 'oklch(82% 0.02 258)' }}>{detail}</p>
                   </div>
 
                   {/* Mobile inline visual */}

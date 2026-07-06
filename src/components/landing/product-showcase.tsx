@@ -108,7 +108,7 @@ export function ProductShowcase() {
               </div>
               <div
                 className="flex-1 max-w-sm mx-auto text-center text-xs py-1 rounded-md font-medium"
-                style={{ background: 'var(--color-surface-200)', color: 'oklch(65% 0.02 258)' }}
+                style={{ background: 'var(--color-surface-200)', color: 'oklch(90% 0.015 258)' }}
               >
                 showcase.app/dashboard
               </div>
@@ -136,9 +136,9 @@ export function ProductShowcase() {
                       ? {
                           background: 'color-mix(in oklch, var(--color-brand-500) 13%, transparent)',
                           border: '1px solid color-mix(in oklch, var(--color-brand-500) 26%, transparent)',
-                          color: 'oklch(74% 0.16 255)',
+                          color: 'oklch(91% 0.08 255)',
                         }
-                      : { color: 'oklch(58% 0.02 258)' }}
+                      : { color: 'oklch(90% 0.025 258)' }}
                   >
                     <Icon className="h-3 w-3" />
                     {label}
@@ -215,7 +215,7 @@ export function ProductShowcase() {
                   </p>
                 </div>
 
-                <p className="relative text-right text-[9px] uppercase tracking-widest" style={{ color: 'oklch(48% 0.02 258)' }}>
+                <p className="relative text-right text-[9px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
                   Fictional demonstration data
                 </p>
               </div>

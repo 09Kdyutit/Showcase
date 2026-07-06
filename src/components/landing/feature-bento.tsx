@@ -330,7 +330,7 @@ export function FeatureBento() {
         </div>
       </Cell>
 
-      <p className="md:col-span-6 text-center text-[10px] uppercase tracking-widest" style={{ color: 'oklch(48% 0.02 258)' }}>
+      <p className="md:col-span-6 text-center text-[10px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
         Fictional demonstration data
       </p>
     </div>
