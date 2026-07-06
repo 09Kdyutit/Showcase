@@ -54,3 +54,6 @@ next-env.d.ts
 
 # locally installed agent skills (design tooling, not app code)
 .github/skills/
+
+# Installed agent skills (tooling, not app code)
+.agents/
