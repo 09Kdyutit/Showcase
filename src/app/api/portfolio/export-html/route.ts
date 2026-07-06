@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isProUser } from '@/lib/ai/rate-limit'
 import type { PortfolioContent } from '@/types/database'
 import { coerceThemeId } from '@/lib/portfolio/themes'
 import { PRESETS } from '@/components/portfolio/themes/presets'
@@ -18,6 +19,15 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Downloading the standalone HTML is a Pro feature — free users can build and preview,
+  // but the portable export (host-it-anywhere snapshot) is gated, like public publishing.
+  if (!(await isProUser(user.id))) {
+    return NextResponse.json(
+      { error: 'Pro subscription required to download your portfolio as HTML.', code: 'PRO_REQUIRED' },
+      { status: 403 },
+    )
+  }
 
   let body: { portfolioId: string }
   try { body = await req.json() }

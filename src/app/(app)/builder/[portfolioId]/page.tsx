@@ -259,6 +259,8 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
 
   async function exportHtml() {
     if (!portfolioId) return
+    // HTML download is a Pro feature. Nudge free users to upgrade instead of a silent fail.
+    if (!isPro) { toast.error('Downloading your portfolio as HTML is a Pro feature. Upgrade to unlock it.'); return }
     setExporting(true)
     try {
       const res = await fetch('/api/portfolio/export-html', {
@@ -266,7 +268,13 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ portfolioId }),
       })
-      if (!res.ok) { toast.error('Export failed'); return }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.code === 'PRO_REQUIRED'
+          ? 'Downloading your portfolio as HTML is a Pro feature. Upgrade to unlock it.'
+          : 'Export failed')
+        return
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -380,9 +388,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             onClick={exportHtml}
             loading={exporting}
             className="gap-1.5 text-xs hidden sm:flex"
-            title="Export as standalone HTML file"
+            title={isPro ? 'Export as standalone HTML file' : 'Download HTML is a Pro feature'}
           >
-            <Download className="h-3 w-3" />
+            {isPro ? <Download className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
             Export
           </Button>
           <Button
@@ -1139,20 +1147,36 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 </div>
 
                 <div className="glass-card p-5 space-y-4 max-w-lg">
-                  <h3 className="text-sm font-semibold text-foreground">Export</h3>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    Export
+                    {!isPro && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-brand-500/30 bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-300">
+                        <Lock className="h-2.5 w-2.5" /> Pro
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-muted-foreground">
                     Download your portfolio as a standalone HTML file. Host it anywhere - GitHub Pages, Netlify, your own server, or point a custom domain at it.
                   </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportHtml}
-                    loading={exporting}
-                    className="gap-1.5"
-                  >
-                    <Download className="h-3 w-3" />
-                    Download HTML
-                  </Button>
+                  {isPro ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportHtml}
+                      loading={exporting}
+                      className="gap-1.5"
+                    >
+                      <Download className="h-3 w-3" />
+                      Download HTML
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" size="sm" className="gap-1.5">
+                      <Link href="/billing">
+                        <Lock className="h-3 w-3" />
+                        Unlock with Pro
+                      </Link>
+                    </Button>
+                  )}
                   <p className="text-xs text-muted-foreground/50">
                     The exported file includes all fonts and styles. No build tools needed - open it in any browser or deploy to any static host.
                   </p>
