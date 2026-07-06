@@ -1,8 +1,22 @@
 export function betaInviteEmail(name: string | null | undefined, appUrl: string): { subject: string; html: string; text: string } {
   const firstName = name?.trim().split(' ')[0] ?? null
-  const greeting = firstName ? `Hey ${firstName},` : 'Hey,'
+  const greeting = firstName ? `Hi ${firstName},` : 'Hi,'
 
-  const subject = "Your Showcase invite is here"
+  const subject = firstName ? `${firstName}, your Showcase invite is here` : 'Your Showcase invite is here'
+  const preheader = 'You’re one of the first in. Turn your resume into proof of work in about 10 minutes.'
+
+  // Outcome-focused — what they walk away with, not features.
+  const outcomes: [string, string][] = [
+    ['A published portfolio', 'Your real experience, rewritten as case studies a recruiter can scan and trust in seconds — with a shareable link.'],
+    ['A ProofScore&trade;', 'An honest 0&ndash;100 audit across 11 dimensions, each with a specific fix. No fluff, no invented wins.'],
+    ['Matched roles', 'Real openings ranked against your actual evidence — so you see where you’re strong before you apply.'],
+  ]
+
+  const steps: [string, string][] = [
+    ['Create your account', 'Sign up with this email address so we can link you to your invite.'],
+    ['Upload your resume', 'That’s the only input. Showcase parses it and builds everything from there.'],
+    ['Explore &amp; tell us what’s rough', 'Publish a portfolio, run an interview drill, tailor an application — then hit reply. You’re here to help us get it right.'],
+  ]
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -14,6 +28,7 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
   <title>${subject}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#000000;">${preheader}</div>
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#000000;">
     <tr>
       <td align="center" style="padding:40px 16px;">
@@ -21,50 +36,107 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
 
           <!-- Logo -->
           <tr>
-            <td align="center" style="padding-bottom:32px;">
+            <td align="center" style="padding-bottom:28px;">
               <span style="font-size:17px;font-weight:700;color:#ffffff;letter-spacing:-0.02em;">Showcase</span>
             </td>
           </tr>
 
           <!-- Hero -->
           <tr>
-            <td style="background:linear-gradient(135deg,#831843 0%,#be185d 45%,#ec4899 100%);border-radius:20px 20px 0 0;padding:44px 40px 36px;text-align:center;">
-              <div style="width:56px;height:56px;background-color:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.3);border-radius:50%;margin:0 auto 20px;line-height:56px;text-align:center;">
-                <span style="font-size:26px;color:#ffffff;">&#9733;</span>
+            <td style="background:linear-gradient(135deg,#831843 0%,#be185d 45%,#ec4899 100%);border-radius:20px 20px 0 0;padding:46px 40px 38px;text-align:center;">
+              <div style="display:inline-block;padding:5px 12px;background-color:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.28);border-radius:999px;margin-bottom:18px;">
+                <span style="font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Early access &middot; you're one of the first</span>
               </div>
-              <p style="margin:0 0 6px;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.03em;line-height:1.2;">You&rsquo;re in</p>
-              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.85);line-height:1.6;">${greeting} your early access to Showcase is open.</p>
+              <p style="margin:0 0 8px;font-size:30px;font-weight:800;color:#ffffff;letter-spacing:-0.03em;line-height:1.15;">You&rsquo;re in.</p>
+              <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.9);line-height:1.6;">${greeting} your Showcase access is open.</p>
             </td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="background-color:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-top:none;border-radius:0 0 20px 20px;padding:36px 40px 8px;">
+            <td style="background-color:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-top:none;border-radius:0 0 20px 20px;padding:36px 40px 10px;">
 
-              <p style="margin:0 0 28px;font-size:15px;color:#a3a3a3;line-height:1.7;">
-                You&rsquo;re one of the first people we&rsquo;re letting in. Upload your resume and, in a few minutes, you&rsquo;ll have a published portfolio, a ProofScore&trade; audit of your evidence, and matched roles &mdash; nothing invented, everything traceable to your real experience.
+              <p style="margin:0 0 26px;font-size:15px;color:#c4c4c4;line-height:1.7;">
+                Upload one thing &mdash; your resume &mdash; and in about ten minutes you&rsquo;ll have:
               </p>
 
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:30px;">
+              <!-- Outcomes -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:30px;">
+                ${outcomes.map(([title, desc]) => `
+                <tr>
+                  <td style="padding-bottom:16px;vertical-align:top;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="26" style="vertical-align:top;padding-top:2px;">
+                          <span style="font-size:15px;color:#f472b6;">&#10003;</span>
+                        </td>
+                        <td>
+                          <p style="margin:0 0 3px;font-size:15px;font-weight:600;color:#ffffff;">${title}</p>
+                          <p style="margin:0;font-size:13.5px;color:#9ca3af;line-height:1.6;">${desc}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`).join('')}
+              </table>
+
+              <!-- CTA -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:14px;">
                 <tr>
                   <td align="center">
                     <a href="${appUrl}/signup" target="_blank" style="display:inline-block;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#be185d,#ec4899);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 0;border-radius:12px;text-align:center;">
-                      Create your account &rarr;
+                      Claim your access &rarr;
                     </a>
                   </td>
                 </tr>
               </table>
-
-              <p style="margin:0 0 26px;font-size:13px;color:#9ca3af;line-height:1.7;">
-                Use this email address (<span style="color:#d4d4d4;">the one this was sent to</span>) when you sign up. Take it for a full spin &mdash; build a portfolio, run an interview drill, tailor an application &mdash; and tell us what feels rough. You&rsquo;re here to help us get it right, and we read every reply.
+              <p style="margin:0 0 30px;font-size:12px;color:#6b7280;line-height:1.6;text-align:center;">
+                Sign up with <span style="color:#a3a3a3;">this email address</span> &middot; free to use, no card needed
               </p>
 
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+              <!-- Divider -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
                 <tr><td style="height:1px;background-color:rgba(255,255,255,0.07);font-size:0;">&nbsp;</td></tr>
               </table>
 
-              <p style="margin:0 0 8px;font-size:13px;color:#d4d4d4;line-height:1.65;">
-                Link not working? Paste this into your browser:<br/>
+              <!-- Steps -->
+              <p style="margin:0 0 18px;font-size:11px;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:0.14em;">Your first 10 minutes</p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:6px;">
+                ${steps.map(([title, desc], i) => `
+                <tr>
+                  <td style="padding-bottom:18px;vertical-align:top;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="34" style="vertical-align:top;">
+                          <table cellpadding="0" cellspacing="0" border="0"><tr>
+                            <td style="width:26px;height:26px;background:linear-gradient(135deg,#831843,#ec4899);border-radius:8px;text-align:center;vertical-align:middle;font-size:12px;font-weight:800;color:#ffffff;line-height:26px;">${i + 1}</td>
+                          </tr></table>
+                        </td>
+                        <td style="padding-left:6px;">
+                          <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#ffffff;">${title}</p>
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.55;">${desc}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`).join('')}
+              </table>
+
+              <!-- Referral / bring-a-friend -->
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.16);border-radius:12px;margin:8px 0 24px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <p style="margin:0 0 5px;font-size:14px;font-weight:700;color:#ffffff;">Know someone job-hunting?</p>
+                    <p style="margin:0;font-size:13px;color:#c4c4c4;line-height:1.65;">
+                      Forward this so they can grab an early spot too. And once you&rsquo;re in, your <strong style="color:#ffffff;">referral link</strong> (in Settings) earns you bonus AI credits for everyone who joins through it.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback link -->
+              <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;line-height:1.6;">
+                Button not working? Paste this into your browser:<br/>
                 <a href="${appUrl}/signup" style="color:#f472b6;text-decoration:underline;word-break:break-all;">${appUrl}/signup</a>
               </p>
 
@@ -73,9 +145,9 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
 
           <!-- Footer -->
           <tr>
-            <td style="padding:28px 12px 0;text-align:center;">
+            <td style="padding:26px 12px 0;text-align:center;">
               <p style="margin:0 0 6px;font-size:12px;color:#737373;line-height:1.7;">
-                Questions or a bug? Just reply, or write to <a href="mailto:hello@tryshowcase.ink" style="color:#f472b6;text-decoration:none;">hello@tryshowcase.ink</a>
+                Hit a bug or have a question? Just reply &mdash; a real person reads every one &mdash; or write to <a href="mailto:hello@tryshowcase.ink" style="color:#f472b6;text-decoration:none;">hello@tryshowcase.ink</a>
               </p>
               <p style="margin:0 0 14px;font-size:12px;color:#525252;line-height:1.7;">
                 You&rsquo;re receiving this because you joined the waitlist at tryshowcase.ink &middot;
@@ -94,15 +166,26 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
 
   const text = `${greeting}
 
-You're in — your early access to Showcase is open.
+You're in — your Showcase early access is open. You're one of the first people we're letting in.
 
-You're one of the first people we're letting in. Upload your resume and, in a few minutes, you'll have a published portfolio, a ProofScore™ audit of your evidence, and matched roles — nothing invented, everything traceable to your real experience.
+Upload one thing — your resume — and in about ten minutes you'll have:
 
-Create your account: ${appUrl}/signup
+  ✓ A published portfolio — your real experience rewritten as case studies, with a shareable link.
+  ✓ A ProofScore™ — an honest 0–100 audit across 11 dimensions, each with a specific fix.
+  ✓ Matched roles — real openings ranked against your actual evidence.
 
-Use this email address (the one this was sent to) when you sign up. Take it for a full spin — build a portfolio, run an interview drill, tailor an application — and tell us what feels rough. We read every reply.
+Claim your access: ${appUrl}/signup
+(Sign up with this email address. Free to use, no card needed.)
 
-Questions or a bug? Reply to this email or write to hello@tryshowcase.ink
+YOUR FIRST 10 MINUTES
+  1. Create your account — use this email address.
+  2. Upload your resume — that's the only input.
+  3. Explore and tell us what's rough — publish a portfolio, run an interview drill, tailor an application, then reply. You're here to help us get it right.
+
+KNOW SOMEONE JOB-HUNTING?
+Forward this so they can grab an early spot too. And once you're in, your referral link (in Settings) earns you bonus AI credits for everyone who joins through it.
+
+Hit a bug or have a question? Just reply — a real person reads every one — or write to hello@tryshowcase.ink
 
 -
 Showcase · Turn your experience into evidence.

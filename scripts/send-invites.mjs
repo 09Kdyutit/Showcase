@@ -17,16 +17,20 @@ const limArg = process.argv.find((a) => a.startsWith('--limit='))
 const LIMIT = Math.max(1, Math.min(100, limArg ? parseInt(limArg.split('=')[1], 10) : 10))
 const APP_URL = process.env.INVITE_APP_URL || 'https://showcase-app-three.vercel.app'
 const FROM = 'Showcase <hello@tryshowcase.ink>'
+// Emails to never invite (e.g. the founder's own accounts). Comma-separated in INVITE_EXCLUDE.
+const EXCLUDE = new Set((process.env.INVITE_EXCLUDE || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean))
 
 const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
 
-const { data: people, error } = await admin
+// Pull extra so exclusions still leave a full cohort of LIMIT.
+const { data: pool, error } = await admin
   .from('waitlist_signups')
   .select('id, email, full_name, status, created_at')
   .eq('status', 'waitlisted')
   .order('created_at', { ascending: true })
-  .limit(LIMIT)
+  .limit(LIMIT + EXCLUDE.size + 10)
 if (error) { console.error('query failed:', error.message); process.exit(1) }
+const people = pool.filter((p) => !EXCLUDE.has((p.email || '').toLowerCase())).slice(0, LIMIT)
 
 console.log(`\n${SEND ? '🚀 SEND MODE — real emails will go out' : '🧪 DRY RUN — nothing is sent or changed'}`)
 console.log(`App URL: ${APP_URL}   |   From: ${FROM}   |   Cohort size: ${people.length}\n`)
