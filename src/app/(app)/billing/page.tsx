@@ -55,12 +55,10 @@ export default function BillingPage() {
       setLoading(false)
 
       // Returned from a successful Stripe Checkout. The webhook that flips the row to
-      // 'active' can land a few seconds AFTER this redirect, so poll until it does,
-      // then refresh the server layout (so the sidebar updates to Pro) and clean the
-      // URL. The user never has to refresh manually.
+      // 'active' usually lands within a few seconds, so poll briefly for the fast path.
       if (sessionId && !isProRow(data)) {
         setConfirming(true)
-        for (let i = 0; i < 15 && !cancelled; i++) {
+        for (let i = 0; i < 5 && !cancelled; i++) {
           await new Promise((r) => setTimeout(r, 2000))
           const fresh = await fetchSub()
           if (cancelled) return
@@ -73,9 +71,29 @@ export default function BillingPage() {
             return
           }
         }
+        // Webhook hasn't landed. Don't leave a paying customer stuck — reconcile directly
+        // against Stripe, which self-heals Pro from the paid session even if the webhook was
+        // lost entirely. This is the payment safety net.
+        if (!cancelled) {
+          try {
+            const res = await fetch('/api/stripe/reconcile-session', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId }),
+            })
+            const j = await res.json().catch(() => ({}))
+            if (!cancelled && j.pro) {
+              setSub(await fetchSub())
+              setConfirming(false)
+              toast.success('Welcome to Showcase Pro! Your account is upgraded.')
+              router.refresh()
+              router.replace('/billing')
+              return
+            }
+          } catch { /* fall through to the finalizing message */ }
+        }
         if (!cancelled) {
           setConfirming(false)
-          toast.message('Payment received. Your upgrade is finalizing, this can take a moment.')
+          toast.message('Payment received — your upgrade is finalizing. If it doesn’t show in a minute, contact support and we’ll fix it instantly.')
           router.replace('/billing')
         }
       } else if (sessionId) {
