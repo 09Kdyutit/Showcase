@@ -2,6 +2,7 @@
 
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -16,6 +17,15 @@ import {
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LOCAL_DB_URL = `postgresql://postgres:${'post' + 'gres'}@127.0.0.1:54322/postgres`
+const packageJson = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'))
+
+for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:pending-parse']) {
+  assert.match(
+    packageJson.scripts?.[script] ?? '',
+    /--env-file-if-exists=\.env\.local/,
+    script + ' must accept the harness environment when .env.local is absent in CI',
+  )
+}
 
 function renderedCsp(nodeEnv, supabaseUrl) {
   const child = spawnSync(
