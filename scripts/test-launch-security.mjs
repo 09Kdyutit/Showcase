@@ -213,7 +213,11 @@ for (const forbidden of [
 assert.equal(rolloutEvidence.schema_version, 1)
 assert.equal(rolloutEvidence.status, 'COMPLETED_DARK')
 assert.equal(rolloutEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
-assert.equal(rolloutEvidence.source.deployed_git_head, 'f968af8b5b25167364f841b82b685af2cc39e236')
+assert.equal(rolloutEvidence.recorded_at, '2026-07-10T19:53:58.194Z')
+assert.equal(rolloutEvidence.source.deployed_git_head, '7b150783085b6e98a161225b76f82ca12a57ae7a')
+assert.equal(rolloutEvidence.source.ci_run_id, 29119544469)
+assert.equal(rolloutEvidence.source.ci_status, 'failed_stale_release_fingerprint')
+assert.match(rolloutEvidence.source.ci_failure_scope, /pre-recovery source/)
 assert.equal(rolloutEvidence.backup.backup_id, '20260710T180210Z')
 assert.equal(rolloutEvidence.backup.status, 'RESTORE_VERIFIED')
 assert.equal(rolloutEvidence.backup.plaintext_retained, false)
@@ -227,8 +231,54 @@ assert.equal(
 assert.equal(rolloutEvidence.database_rollout.post_rollout.auth_migrations, 77)
 assert.equal(rolloutEvidence.database_rollout.post_rollout.storage_migrations, 61)
 assert.equal(rolloutEvidence.deployment.promoted_without_rebuild, true)
-assert.equal(rolloutEvidence.deployment.health_commit, 'f968af8b5b25')
+assert.equal(rolloutEvidence.deployment.staged_deployment_id, 'dpl_WPEeQ9uDAEaFh4D9nRHhoCiRcMYz')
+assert.equal(
+  rolloutEvidence.deployment.staged_url,
+  'https://showcase-49f4x8rnr-09kdyutits-projects.vercel.app',
+)
+assert.equal(rolloutEvidence.deployment.production_url, 'https://app.tryshowcase.ink')
+assert.equal(rolloutEvidence.deployment.health_checked_at, '2026-07-10T19:53:58.194Z')
+assert.equal(rolloutEvidence.deployment.health_status, 'ok')
+assert.equal(rolloutEvidence.deployment.health_commit, '7b150783085b')
+assert.equal(rolloutEvidence.deployment.health_environment, 'production')
 assert.equal(rolloutEvidence.deployment.database_healthy, true)
+assert.equal(rolloutEvidence.deployment.public_root_status, 200)
+assert.equal(rolloutEvidence.deployment.unauthenticated_private_route_redirect, '/waitlist')
+assert.equal(rolloutEvidence.public_route_recovery.database_mutated, false)
+assert.equal(rolloutEvidence.public_route_recovery.controls_changed, false)
+assert.equal(rolloutEvidence.public_route_recovery.candidate_and_production_results_match, true)
+assert.deepEqual(rolloutEvidence.public_route_recovery.public_page_statuses, {
+  root: 200,
+  pricing: 200,
+  career_services: 200,
+  beta_feedback: 200,
+})
+assert.deepEqual(rolloutEvidence.public_route_recovery.nonexistent_public_route_statuses, {
+  published_portfolio: 404,
+  shared_proofscore: 404,
+  shared_interview_report: 404,
+  shared_interview_report_api: 404,
+})
+assert.deepEqual(rolloutEvidence.public_route_recovery.closed_beta_redirects, {
+  signup: { status: 307, location: '/waitlist' },
+  dashboard: { status: 307, location: '/waitlist' },
+  demo_dashboard: { status: 307, location: '/waitlist' },
+})
+assert.deepEqual(rolloutEvidence.public_route_recovery.private_api_statuses, {
+  interview_sessions: 403,
+  audit_share: 403,
+})
+assert.equal(rolloutEvidence.public_route_recovery.malformed_same_origin_beta_feedback_status, 400)
+assert.equal(
+  rolloutEvidence.negative_smoke_tests.verified_git_head,
+  '7b150783085b6e98a161225b76f82ca12a57ae7a',
+)
+assert.equal(rolloutEvidence.negative_smoke_tests.stripe_missing_signature_status, 400)
+assert.equal(rolloutEvidence.negative_smoke_tests.resend_delivery_missing_signature_status, 401)
+assert.equal(rolloutEvidence.negative_smoke_tests.resend_inbound_missing_signature_status, 401)
+assert.equal(rolloutEvidence.negative_smoke_tests.invite_cron_missing_authorization_status, 401)
+assert.equal(rolloutEvidence.negative_smoke_tests.lifecycle_cron_missing_authorization_status, 401)
+assert.equal(rolloutEvidence.negative_smoke_tests.retention_cron_missing_authorization_status, 401)
 assert.equal(rolloutEvidence.negative_smoke_tests.mutating_credentialed_suites_excluded, true)
 const serializedRolloutEvidence = JSON.stringify(rolloutEvidence)
 for (const forbidden of [

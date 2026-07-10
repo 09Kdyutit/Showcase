@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-07-10T19:09:13Z",
+  "recorded_at": "2026-07-10T19:53:58.194Z",
   "status": "COMPLETED_DARK",
   "scope": "showcase_web_application_closed_beta",
   "project_ref": "yogwhfrjhcbnvoxitcay",
@@ -13,10 +13,11 @@
   },
   "source": {
     "branch": "feat/ai-hardening-and-ui-redesign",
-    "deployed_git_head": "f968af8b5b25167364f841b82b685af2cc39e236",
+    "deployed_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
     "clean_worktree": true,
-    "ci_run_id": 29111493687,
-    "ci_status": "success",
+    "ci_run_id": 29119544469,
+    "ci_status": "failed_stale_release_fingerprint",
+    "ci_failure_scope": "release contract fingerprint still referenced the pre-recovery source; no runtime failure was reported",
     "vercel_hobby_crons": "once_daily"
   },
   "backup": {
@@ -112,17 +113,59 @@
   },
   "deployment": {
     "vercel_project": "showcase-app",
-    "staged_deployment_id": "dpl_FYQNbGmhCbLQKdyXu3ZKrUeppCJq",
-    "staged_url": "https://showcase-ekpeiinu2-09kdyutits-projects.vercel.app",
+    "staged_deployment_id": "dpl_WPEeQ9uDAEaFh4D9nRHhoCiRcMYz",
+    "staged_url": "https://showcase-49f4x8rnr-09kdyutits-projects.vercel.app",
     "production_url": "https://app.tryshowcase.ink",
     "promoted_without_rebuild": true,
     "ready": true,
-    "health_commit": "f968af8b5b25",
+    "health_checked_at": "2026-07-10T19:53:58.194Z",
+    "health_status": "ok",
+    "health_commit": "7b150783085b",
     "health_environment": "production",
     "database_healthy": true,
-    "root_redirect": "/waitlist"
+    "public_root_status": 200,
+    "unauthenticated_private_route_redirect": "/waitlist"
+  },
+  "public_route_recovery": {
+    "previous_deployed_git_head": "f968af8b5b25167364f841b82b685af2cc39e236",
+    "deployed_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
+    "database_mutated": false,
+    "controls_changed": false,
+    "candidate_and_production_results_match": true,
+    "public_page_statuses": {
+      "root": 200,
+      "pricing": 200,
+      "career_services": 200,
+      "beta_feedback": 200
+    },
+    "nonexistent_public_route_statuses": {
+      "published_portfolio": 404,
+      "shared_proofscore": 404,
+      "shared_interview_report": 404,
+      "shared_interview_report_api": 404
+    },
+    "closed_beta_redirects": {
+      "signup": {
+        "status": 307,
+        "location": "/waitlist"
+      },
+      "dashboard": {
+        "status": 307,
+        "location": "/waitlist"
+      },
+      "demo_dashboard": {
+        "status": 307,
+        "location": "/waitlist"
+      }
+    },
+    "private_api_statuses": {
+      "interview_sessions": 403,
+      "audit_share": 403
+    },
+    "malformed_same_origin_beta_feedback_status": 400
   },
   "negative_smoke_tests": {
+    "verified_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
     "stripe_missing_signature_status": 400,
     "resend_delivery_missing_signature_status": 401,
     "resend_inbound_missing_signature_status": 401,

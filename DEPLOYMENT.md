@@ -139,9 +139,11 @@ no plaintext remains.
 
 The authorized 2026-07-10 paired rollout is complete. Production now has the canonical
 48-record application ledger through `20260710033047`, and clean revision
-`f968af8b5b25167364f841b82b685af2cc39e236` is live on canonical `showcase-app`.
-Invites and Founding reservations remain paused, the root redirects to `/waitlist`, and
-all provider/cost controls remain fail-closed. Exact proof lives in
+`7b150783085b6e98a161225b76f82ca12a57ae7a` is live on canonical `showcase-app`.
+Public marketing, published-portfolio, and token-authorized share routes remain reachable;
+unauthenticated signup and private product routes still redirect to `/waitlist`. Invites
+and Founding reservations remain paused, and all provider/cost controls remain fail-closed.
+Exact proof lives in
 `security/production-rollout-evidence.json`.
 
 For future authority-boundary migrations, reuse the completed sequence:

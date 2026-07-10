@@ -6,12 +6,14 @@ source of truth. `security/EXECUTION_MANIFEST.md` is a dated historical record.
 This file is the short human-readable version.
 
 **Status as of 2026-07-10:** the authorized paired database/application rollout is
-complete and remains dark. Production has the exact 48-record application ledger through
-`20260710033047`; clean revision `f968af8b5b25167364f841b82b685af2cc39e236`
-is live on `app.tryshowcase.ink`, `/api/health` reports a healthy database, and the root
-redirects to `/waitlist`. Invites and Founding reservations remain paused at 10, while
-email, AI, Gemini, checkout, jobs-provider calls, publishing, and Interview AI remain
-disabled by explicit production controls.
+complete, and its provider and private-product controls remain dark. Production has the
+exact 48-record application ledger through `20260710033047`; clean revision
+`7b150783085b6e98a161225b76f82ca12a57ae7a` is live on `app.tryshowcase.ink`, and
+`/api/health` reports a healthy database. Public marketing, published-portfolio, and
+token-authorized share routes are reachable, while unauthenticated signup and private
+product routes redirect to `/waitlist`. Invites and Founding reservations remain paused
+at 10, while email, AI, Gemini, checkout, jobs-provider calls, publishing, and Interview
+AI remain disabled by explicit production controls.
 
 **Production observations, 2026-07-10:** fresh pre-migration backup
 `20260710T180210Z` restore-verified 2,008 rows and all 22 private Storage objects. The
@@ -89,6 +91,8 @@ not approval for a broad public launch.
   confirmed 48/latest `047`, unchanged row counts for all pre-existing objects, paused
   controls, and every RLS/ACL/index/constraint/trigger/data invariant. The staged build was
   then promoted without rebuild and passed only negative/read-only production probes.
+  Follow-up revision `7b150783085b` was promoted without a database or control change to
+  restore the intended public-route boundary while keeping signup and private routes gated.
   Preserve this sequence for future paired migrations; never run mutating credentialed
   suites against production.
 

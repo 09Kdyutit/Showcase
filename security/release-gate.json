@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "f968af8b5b25167364f841b82b685af2cc39e236",
-    "source_fingerprint_sha256": "14b8fa24ee27e4900ee8e4029a68406cdc3e5b799b17b154fde00db9a9e017be",
-    "verified_at": "2026-07-10T19:09:13Z"
+    "evidence_base_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
+    "source_fingerprint_sha256": "442d952f6019a489b80b39e1b6fe70cc32c6f54880a8d8b51d4a9174e0b1bbce",
+    "verified_at": "2026-07-10T19:53:58.194Z"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -134,7 +134,7 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, authenticated backup roundtrip/tamper/restore-verifier tests, marketing truthfulness, and the once-daily Vercel Hobby cron contract. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret blank-database suite passed 380/380 database, Stripe, route-authorization, parse, and deletion assertions against an isolated production-mode Next server, and git diff --check is clean."
+      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, authenticated backup roundtrip/tamper/restore-verifier tests, marketing truthfulness, and the once-daily Vercel Hobby cron contract. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret blank-database suite passed 380/380 database, Stripe, route-authorization, parse, and deletion assertions against an isolated production-mode Next server, and git diff --check is clean. Follow-up revision 7b150783085b adds the closed-beta public/private route-boundary regression contract; its candidate and production route probes match. Initial CI run 29119544469 reported only the expected stale pre-recovery source fingerprint, which this evidence update regenerates; it is not represented as successful."
     },
     {
       "id": "GROWTH-MIGRATIONS",
@@ -159,7 +159,7 @@
       "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/production-rollout-evidence.json records clean source f968af8b5b25167364f841b82b685af2cc39e236, successful CI run 29111493687, staged production deployment dpl_FYQNbGmhCbLQKdyXu3ZKrUeppCJq, and promotion without rebuild to canonical showcase-app after database verification. https://app.tryshowcase.ink/api/health reports production commit f968af8b5b25 with a healthy database, the root redirects to /waitlist, and post-promotion unsigned Stripe/Resend plus unauthenticated cron probes each returned before stateful work. The Hobby-compatible lifecycle and retention schedules remain once daily."
+      "evidence": "security/production-rollout-evidence.json preserves the initial clean f968af8b5b25 paired promotion and records the no-database/no-control public-route recovery to clean source 7b150783085b6e98a161225b76f82ca12a57ae7a. Staged deployment dpl_WPEeQ9uDAEaFh4D9nRHhoCiRcMYz was promoted without rebuild to canonical showcase-app. At 2026-07-10T19:53:58.194Z, https://app.tryshowcase.ink/api/health reported status ok, production commit 7b150783085b, environment production, and a healthy database. Candidate and live probes matched: public marketing pages returned 200; nonexistent published/token-share routes returned 404 instead of the waitlist; unauthenticated signup/private pages redirected to /waitlist; private APIs returned 403; malformed feedback returned 400; and unsigned Stripe/email plus unauthenticated cron probes failed closed. Initial CI run 29119544469 reported the stale pre-recovery release fingerprint; no successful run is claimed for the deployed source. The Hobby-compatible lifecycle and retention schedules remain once daily."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
@@ -452,7 +452,7 @@
       "description": "Safe local verification + deployment docs",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "DEPLOYMENT.md and LAUNCH_CHECKLIST.md define the canonical showcase-app target, web-only scope, fail-closed environment, restore-verified backup, and completed paired database/application rollout. security/production-rollout-evidence.json preserves the exact migration, deployment, control, and negative-smoke proof. The legacy casefile-ten.vercel.app deployment remains an unused pre-consolidation backup and is not a beta target. The reusable runbook keeps credentialed/mutating suites outside immediate production smoke tests."
+      "evidence": "DEPLOYMENT.md and LAUNCH_CHECKLIST.md define the canonical showcase-app target, web-only scope, fail-closed environment, restore-verified backup, completed paired database/application rollout, and recovered public/private route boundary. security/production-rollout-evidence.json preserves the exact migration, deployment, control, recovery, and negative-smoke proof. The legacy casefile-ten.vercel.app deployment remains an unused pre-consolidation backup and is not a beta target. The reusable runbook keeps credentialed/mutating suites outside immediate production smoke tests."
     },
     {
       "id": "P1-15",
@@ -460,7 +460,7 @@
       "description": "Canonical production deployment exists and is publicly reachable",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "Read-only verification after the 2026-07-10 promotion: Vercel project showcase-app owns https://app.tryshowcase.ink; /api/health returns 200 for production commit f968af8b5b25 with database connectivity true, and the closed-beta root redirects to /waitlist. Deployment identity and smoke evidence are recorded in security/production-rollout-evidence.json."
+      "evidence": "Read-only verification after the 2026-07-10 public-route recovery: Vercel project showcase-app owns https://app.tryshowcase.ink; /api/health reports status ok for production commit 7b150783085b with database connectivity true. The root, pricing, career-services, and beta-feedback pages return 200, while unauthenticated signup and private product routes still redirect to /waitlist. Deployment identity and candidate/live smoke evidence are recorded in security/production-rollout-evidence.json."
     },
     {
       "id": "P1-16",

@@ -2,7 +2,7 @@
 
 **Code- and production-audited July 10, 2026.** Production has the canonical 48-record
 application ledger through `20260710033047_explicit_data_api_grants.sql`, and clean
-revision `f968af8b5b25` deploys the daily cron routes in `vercel.json`. Email, checkout,
+revision `7b150783085b` deploys the daily cron routes in `vercel.json`. Email, checkout,
 AI, Gemini, jobs-provider calls, publishing, and Interview AI remain disabled; their
 provider-dependent guarantees do not become operational until the separate release gates
 and end-to-end tests pass.
