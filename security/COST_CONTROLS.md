@@ -87,8 +87,9 @@ stricter: unset is disabled, and only the literal value `false` enables Google t
 
 ## Human actions required (cannot be completed from this session)
 
-1. After the verified production backup, promote
-   `20260710033046_referral_abuse_and_credit_hardening.sql` in the reviewed batch and
+1. Production backup `20260710T152940Z` is restore-verified. Reconcile migration history,
+   complete the reviewed dry-run, then promote
+   `20260710033046_referral_abuse_and_credit_hardening.sql` in the approved batch and
    smoke-test the already-proven request-quota and dollar ledgers. Configure the OpenAI
    provider alert/limit as a second boundary. Keep Interview Lab disabled until its separate
    global path is atomic.

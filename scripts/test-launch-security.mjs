@@ -100,16 +100,51 @@ assert.equal(releaseManifest.contracts.growth_migrations.length, 13)
 assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
 
 const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))
+assert.equal(backupEvidence.schema_version, 2)
 assert.equal(backupEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
+assert.equal(backupEvidence.backup_id, '20260710T152940Z')
+assert.equal(backupEvidence.backup_type, 'logical_database_and_storage')
 assert.equal(backupEvidence.storage.status, 'RESTORE_VERIFIED')
 assert.equal(backupEvidence.storage.restore_verified, true)
 assert.equal(backupEvidence.storage.plaintext_retained, false)
-assert.equal(backupEvidence.database.status, 'BLOCKED')
-assert.match(
-  backupEvidence.storage.encrypted_archive_sha256,
-  /^[a-f0-9]{64}$/,
-  'the encrypted Storage archive must have a complete SHA-256 checksum',
+assert.equal(backupEvidence.storage.all_buckets_private, true)
+assert.equal(backupEvidence.storage.database_inventory_exact, true)
+assert.equal(backupEvidence.storage.file_sizes_exact, true)
+assert.equal(backupEvidence.storage.file_sha256_exact, true)
+assert.equal(backupEvidence.database.status, 'RESTORE_VERIFIED')
+assert.equal(backupEvidence.database.restore_verified, true)
+assert.equal(backupEvidence.database.plaintext_retained, false)
+assert.equal(backupEvidence.database.single_exported_snapshot, true)
+assert.equal(backupEvidence.database.inventory_exact, true)
+assert.equal(backupEvidence.database.normalized_public_catalog_exact, true)
+assert.equal(backupEvidence.database.disabled_public_trigger_count, 0)
+assert.deepEqual(
+  {
+    object_count: backupEvidence.database.object_count,
+    table_count: backupEvidence.database.table_count,
+    sequence_count: backupEvidence.database.sequence_count,
+    total_table_rows: backupEvidence.database.total_table_rows,
+  },
+  { object_count: 67, table_count: 66, sequence_count: 1, total_table_rows: 1911 },
 )
+assert.deepEqual(backupEvidence.database.migration_counts, {
+  application: 33,
+  latest_application_version: '20260703190040',
+  auth: 77,
+  storage: 61,
+})
+assert.equal(backupEvidence.encryption.cipher, 'AES-256-GCM')
+assert.equal(backupEvidence.encryption.authenticated, true)
+assert.equal(backupEvidence.encryption.kdf, 'PBKDF2-HMAC-SHA256')
+assert.equal(backupEvidence.encryption.iterations, 600000)
+for (const [label, checksum] of Object.entries({
+  database_ciphertext: backupEvidence.database.encrypted_archive_sha256,
+  database_plaintext: backupEvidence.database.plaintext_archive_sha256,
+  storage_ciphertext: backupEvidence.storage.encrypted_archive_sha256,
+  storage_plaintext: backupEvidence.storage.plaintext_archive_sha256,
+})) {
+  assert.match(checksum, /^[a-f0-9]{64}$/, `${label} must have a complete SHA-256 checksum`)
+}
 for (const [label, value] of Object.entries({
   bucket_count: backupEvidence.storage.bucket_count,
   object_count: backupEvidence.storage.object_count,
@@ -117,6 +152,36 @@ for (const [label, value] of Object.entries({
   encrypted_archive_bytes: backupEvidence.storage.encrypted_archive_bytes,
 })) {
   assert.ok(Number.isSafeInteger(value) && value > 0, `${label} must be a positive integer`)
+}
+assert.deepEqual(
+  {
+    bucket_count: backupEvidence.storage.bucket_count,
+    object_count: backupEvidence.storage.object_count,
+    total_bytes: backupEvidence.storage.total_bytes,
+    encrypted_archive_bytes: backupEvidence.storage.encrypted_archive_bytes,
+  },
+  { bucket_count: 3, object_count: 22, total_bytes: 7265691, encrypted_archive_bytes: 7167392 },
+)
+assert.equal(backupEvidence.database.encrypted_archive_bytes, 289898)
+assert.equal(backupEvidence.limitations.physical_backup, false)
+assert.equal(backupEvidence.limitations.point_in_time_recovery, false)
+assert.equal(backupEvidence.limitations.automated_backup_available_on_current_plan, false)
+assert.equal(backupEvidence.restore_drill.disposable_target_destroyed, true)
+assert.equal(backupEvidence.restore_drill.external_database_access_rejected, true)
+assert.deepEqual(backupEvidence.restore_drill.disposable_target_only_tables_removed, [
+  'storage.iceberg_namespaces',
+  'storage.iceberg_tables',
+])
+assert.equal(Object.hasOwn(backupEvidence.storage, 'objects'), false)
+const serializedBackupEvidence = JSON.stringify(backupEvidence)
+for (const forbidden of [
+  /\/Users\//,
+  /postgres(?:ql)?:\/\//i,
+  /pooler\.supabase\.com/i,
+  /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
+  /\b(?:sk|whsec|sb_secret)_[A-Za-z0-9_-]+/,
+]) {
+  assert.doesNotMatch(serializedBackupEvidence, forbidden, 'backup evidence must not contain sensitive material')
 }
 const storageInventory = backupEvidence.production_storage_inventory
 const orphanedBucketTotal = Object.values(storageInventory.orphaned_by_bucket)
@@ -134,19 +199,20 @@ assert.ok(
   storageInventory.orphaned_user_prefix_bytes <= backupEvidence.storage.total_bytes,
   'orphan bytes cannot exceed the total backed-up byte count',
 )
-for (const id of ['GROWTH-MIGRATIONS', 'P1-13', 'P1-19']) {
+for (const id of ['GROWTH-MIGRATIONS', 'P1-19']) {
   const requirement = releaseManifest.requirements.find((row) => row.id === id)
   assert.equal(requirement?.status, 'BLOCKED', `${id} must remain blocked by incomplete production work`)
   assert.equal(requirement?.release_blocking, true, `${id} must remain release-blocking`)
 }
-for (const id of ['GROWTH-MIGRATIONS', 'P1-13']) {
-  const requirement = releaseManifest.requirements.find((row) => row.id === id)
-  assert.match(
-    requirement?.blocker ?? '',
-    /database|roles\/schema\/data/i,
-    `${id} must still require the production database backup`,
-  )
-}
+const backupRequirement = releaseManifest.requirements.find((row) => row.id === 'P1-13')
+assert.equal(backupRequirement?.status, 'PASS', 'the full logical restore closes P1-13')
+assert.equal(backupRequirement?.release_blocking, true)
+assert.doesNotMatch(backupRequirement?.evidence ?? '', /19 objects|database.*blocked/i)
+const migrationRequirement = releaseManifest.requirements.find((row) => row.id === 'GROWTH-MIGRATIONS')
+assert.match(migrationRequirement?.blocker ?? '', /repair.*history/i)
+assert.match(migrationRequirement?.blocker ?? '', /dry-run/i)
+assert.match(migrationRequirement?.blocker ?? '', /apply.*reviewed batch/i)
+assert.doesNotMatch(migrationRequirement?.blocker ?? '', /create.*database.*backup/i)
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
 assert.ok(releaseManifest.contracts.optional_production_env_names.includes('ERROR_WEBHOOK_URL'))
 assert.equal(

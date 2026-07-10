@@ -1,76 +1,92 @@
-# Backup & Restore
+# Backup and restore
 
-**Verified live against the actual Supabase project (`yogwhfrjhcbnvoxitcay`, org plan: `free`) on 2026-06-19.**
+## Current state
 
-## Current state: NO automated backups exist
+Production project `yogwhfrjhcbnvoxitcay` remains on Supabase Free, so it has no
+provider-managed automated database backup or point-in-time recovery. That is no longer
+the same as having no recoverable copy: backup `20260710T152940Z` contains an encrypted
+logical database capture and a separate download of every private Storage object, and
+both halves passed a disposable restore drill on 2026-07-10.
 
-Supabase's Free tier provides **zero automated backups and zero point-in-time
-recovery (PITR)**. This is a real, currently-unmitigated production risk, not a
-theoretical one — confirmed by checking the org plan directly (`get_organization`
-returned `"plan": "free"`). Free-tier projects get no daily snapshot and no
-continuous WAL archiving; if data is destroyed (bad migration, accidental mass
-delete, a bug in `service-role`-authenticated code, a compromised credential),
-**it cannot be recovered**, full stop.
+Machine-readable proof lives in `security/production-backup-evidence.json`. The encrypted
+bundle is outside the repository under the operator's `Showcase-backups` directory. Its
+passphrase is in macOS Keychain under service `Showcase production backup`, account
+`20260710T152940Z`; the passphrase and database password must never be committed or
+printed.
 
-This is independent of and in addition to the application-level safety nets that
-already exist (RLS, ownership checks, the account-deletion confirmation flow) —
-those prevent *unauthorized* data loss, not *accidental* data loss from a bug or
-operator mistake. They are not a substitute for backups.
+## What was captured and verified
 
-## What's needed to fix this (requires a billing decision only the account owner can make)
+- Database: roles without passwords, the complete `public` schema and data, Auth and
+  Storage data, all three migration ledgers, extensions, a content inventory, and a
+  public catalog manifest. Every database dump and source inventory used one exported
+  repeatable-read snapshot.
+- Storage: all 3 private buckets, 22 objects, and 7,265,691 bytes. The byte inventory
+  matched `storage.objects` exactly at the database snapshot.
+- Encryption: authenticated AES-256-GCM with a random salt and IV, using
+  PBKDF2-HMAC-SHA256 at 600,000 iterations. Ciphertext and plaintext-tar SHA-256 values
+  are recorded separately.
+- Restore: a fresh migration-isolated local Supabase database was aligned to the source
+  Auth and Storage versions while every non-database service was stopped. The restore
+  reproduced all 1,911 rows and their order-independent digests, 77 RLS policies, 16
+  enabled triggers, grants, constraints, indexes, functions, application/Auth/Storage
+  migration ledgers, extensions, and all 22 Storage file hashes.
+- Cleanup: the disposable containers and volumes were destroyed and decrypted database
+  and Storage work files were removed. Only encrypted archives and non-sensitive
+  manifests remain.
 
-| Plan | Backup behavior | Cost |
-|---|---|---|
-| Free (current) | None | $0 |
-| Pro | Daily backups, 7-day retention | $25/mo base |
-| Pro + PITR add-on | Continuous WAL archiving, restore to any point within the retention window (1–28 days, cost scales with window) | $25/mo base + PITR add-on |
+The catalog comparison intentionally ignores PostgreSQL physical column numbers. A
+logical `pg_dump` restore preserves the live column order and definitions but compacts
+three `attnum` gaps left by historically dropped columns. Storage migration execution
+timestamps are also target-local metadata; migration IDs, names, and hashes matched
+exactly. The newer disposable Storage image also created two empty Iceberg tables that
+were not present in production; they were removed only from the disposable target before
+the final exact inventory comparison.
 
-**Action required:** upgrade the Supabase project to at least the Pro plan before
-accepting real user data in production. PITR is the stronger guarantee (restore
-to any second, not just the last daily snapshot) and is worth it once there's
-real customer data and payment history to protect — daily backups alone still
-mean up to 24 hours of data loss in the worst case.
+## Recovery procedure
 
-## Interim mitigation until the plan is upgraded
+Recovery is an operator-controlled incident procedure, not an application endpoint.
 
-A manual `pg_dump` taken periodically is strictly better than nothing. From a
-machine with the Supabase CLI or `psql` installed and the project's connection
-string (Supabase dashboard → Project Settings → Database):
+1. Copy the encrypted bundle to a trusted machine and verify `SHA256SUM` before
+   decrypting anything.
+2. Create a disposable Supabase target with no Showcase application migrations. Do not
+   use production, do not load production provider/JWT secrets, stop Auth, Storage,
+   Realtime, REST, and all other non-database services, and reject external database
+   connections.
+3. Read the backup passphrase from Keychain into a non-echoed shell variable and decrypt
+   both archives with `scripts/backup-aes-gcm.mjs`. Verify the plaintext tar checksums in
+   `PLAINTEXT_SHA256` before extraction.
+4. Align the target's managed Auth and Storage migration versions to the archived
+   platform manifest. Restore in this order: sanitized roles, `public` pre-data,
+   Auth/Storage data, `public` data, `public` post-data as `supabase_admin`, then the
+   archived application migration ledger. Every restore command must fail on its first
+   SQL error.
+5. Generate the target inventory, public catalog, and platform manifests with the
+   `backup-*.sql` scripts. Run `scripts/verify-backup-restore.mjs` against those outputs
+   and the extracted Storage directory. Recovery is not accepted unless the verifier
+   exits zero.
+6. Destroy the disposable target and remove all decrypted files. Reconnect the app only
+   after a separate, reviewed production recovery plan is approved.
 
-```bash
-pg_dump "$SUPABASE_DB_CONNECTION_STRING" --no-owner --no-privileges -F c -f "backup-$(date +%Y%m%d).dump"
-```
+## Operating policy while on Free
 
-This is a real, working command — not a substitute for the Pro-tier automated
-backups above, since it depends on a human remembering to run it, but it closes
-the worst-case gap (zero backups of any kind) until the plan is upgraded.
+- Take a fresh authenticated database-and-Storage backup immediately before every
+  migration, bulk update, or destructive maintenance operation.
+- During closed beta, take additional snapshots on a regular operator schedule and keep
+  at least one encrypted copy off this Mac. The current local copy protects against a
+  bad migration, but not loss of the computer itself.
+- Never treat a successful dump as sufficient. A backup becomes valid only after the
+  encrypted artifacts decrypt, restore, and pass inventory/catalog/file verification.
+- Keep orphan cleanup separate from backup creation. The 11 recorded orphan candidates
+  must not be deleted without explicit approval and a fresh pre-delete snapshot.
 
-## Restore procedure (once backups exist)
+## Remaining limitation and upgrade path
 
-**Daily backups (Pro tier):** Supabase Dashboard → Project → Database → Backups
-→ select a backup → Restore. This restores the *entire* project to that backup's
-timestamp — it is not selective per-table. Expect downtime during restore;
-plan for a maintenance window, not a live hot-swap.
+This is a logical application backup, not a physical Supabase snapshot. It does not offer
+continuous WAL capture, point-in-time recovery, or automatic retention, and it does not
+capture dashboard-only Auth/provider configuration, Edge Function secrets, Stripe state,
+or other external-provider settings.
 
-**PITR (Pro + PITR add-on):** Dashboard → Database → Backups → Point in Time
-Recovery → choose an exact timestamp within the retention window. Same
-full-project-restore caveat applies.
-
-**Manual `pg_dump` restore (interim mitigation only):**
-
-```bash
-pg_restore --no-owner --no-privileges -d "$SUPABASE_DB_CONNECTION_STRING" backup-YYYYMMDD.dump
-```
-
-## What this document does NOT cover
-
-- Storage bucket (`resumes`) backup: Supabase Storage backups are tied to the
-  same plan-tier backup mechanism above; no separate action needed once the
-  database plan is upgraded, but this hasn't been independently verified against
-  a real restore drill (doing so safely requires a disposable project, which
-  doesn't exist yet).
-- An actual restore drill (restoring a real backup into a throwaway project to
-  confirm the restored data is queryable and the app reconnects cleanly) has
-  NOT been performed. This document describes the documented procedure, not a
-  verified one. Recommend running one real drill after the plan upgrade and
-  before accepting production traffic.
+For the current cash-constrained closed beta, the restore-verified manual coverage is an
+acceptable launch-stage mitigation. Upgrade to provider-managed automated backups and,
+when justified, PITR as usage and revenue grow; that reduces recovery-point loss and
+human scheduling risk but is not required to preserve this verified logical copy.

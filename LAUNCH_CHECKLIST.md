@@ -1,13 +1,15 @@
 # Launch Checklist
 
-For the detailed, continuously-updated release-readiness tracking, see
-`security/EXECUTION_MANIFEST.md` and run `npm run release:gate` — that's the
-source of truth. This file is the short human-readable version.
+For the detailed, continuously updated release-readiness tracking, see
+`security/release-gate.json` and run `npm run release:gate` — those are the
+source of truth. `security/EXECUTION_MANIFEST.md` is a dated historical record.
+This file is the short human-readable version.
 
-**Status as of 2026-07-09:** the paced-growth, ProofScore, lifecycle, referral,
-Founding Member, and launch-security changes are implemented locally. Canonical migrations
-`20260710033035`–`20260710033047`, new provider webhooks, cron schedules, and production smoke tests are not
-assumed live until a human applies and verifies them.
+**Status as of 2026-07-10:** the paced-growth, ProofScore, lifecycle, referral,
+Founding Member, launch-security, and restore-verified backup work is complete locally.
+Canonical migrations `20260710033035`–`20260710033047`, new provider webhooks, cron
+schedules, and production smoke tests are not assumed live until a human applies and
+verifies them.
 
 **Read-only production check, 2026-07-09:** `app.tryshowcase.ink` and `/api/health`
 return 200, but `npm run growth:status` reports that `growth_controls` does not exist,
@@ -40,11 +42,12 @@ This is an existing healthy app—not yet the reviewed growth release.
   (Stripe keys, Supabase service-role key, DB password) in the Stripe and
   Supabase dashboards. Confirmed done by the account owner (P0-05 PASS).
 
-- [ ] **Upgrade the Supabase project off the Free tier.** Confirmed directly
-  against the project this session: Free tier has **zero automated backups and
-  zero point-in-time recovery**. See `security/BACKUP_RESTORE.md` for the full
-  finding and what tier to pick. Do not launch with real customer/payment data
-  on a database with no backup coverage.
+- [x] **Create and restore-verify a production database-plus-Storage backup.**
+  Backup `20260710T152940Z` contains the single-snapshot logical database and all
+  22 private Storage objects. Its authenticated encrypted archives, row/catalog
+  inventories, migration ledgers, and file hashes passed a disposable restore drill;
+  no plaintext remains. Supabase Free still has no automated physical backup or PITR,
+  so provider-managed coverage remains a later reliability upgrade as funds permit.
 
 - [ ] **Set every new env var in the deployment environment**, including
   `LAUNCH_OPEN=false` for closed beta and `OPENAI_API_KEY` (not `AI_API_KEY` — the app uses
@@ -69,12 +72,12 @@ This is an existing healthy app—not yet the reviewed growth release.
 
 - [x] **Reset a clean local Supabase stack through
   `20260710033047_explicit_data_api_grants.sql` and run the no-secret credentialed suite.**
-  The canonical 48-record reset and 122/122 credentialed assertions pass.
-- [ ] **Back up and reconcile production before promotion.** Verify encrypted database
-  dumps, a separate Storage download, checksums, and a restore drill. Then mark only the
-  already-equivalent `20260710033033`–`20260710033037` history rows and require a dry-run
-  showing only `20260710033038`–`20260710033047`; never run a blind production
-  `supabase db push`. The reviewed batch includes
+  The canonical 48-record reset and 380/380 credentialed assertions pass.
+- [ ] **Reconcile production history before promotion.** The verified backup prerequisite
+  is complete. Mark only the already-equivalent `20260710033033`–`20260710033037`
+  history rows and require a dry-run showing only
+  `20260710033038`–`20260710033047`; never run a blind production `supabase db push`.
+  The reviewed batch includes
   authority triggers, atomic Stripe state, paced invites, attribution, email
   suppression, public ProofScore capacity, Founding Member reservations, and
   completion-earned referral admission, high-entropy claim tokens, and consumable credits.

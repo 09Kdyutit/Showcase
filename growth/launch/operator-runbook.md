@@ -12,10 +12,11 @@ native/mobile-store work to this runbook.
 
 1. Keep `LAUNCH_OPEN=false`, email delivery disabled, waitlist invites paused, and Founding
    reservations paused.
-2. Run `npm run test:local-supabase` against the disposable local stack. Before production,
-   verify a database-plus-Storage backup and restore drill, reconcile the already-present
-   `20260710033033`–`20260710033037` schema history, and require a dry-run showing only
-   `20260710033038`–`20260710033047` pending. Never use a blind production `supabase db push`.
+2. Run `npm run test:local-supabase` against the disposable local stack. Confirm the
+   restore-verified production backup is still current (or take a fresh one), reconcile
+   the already-present `20260710033033`–`20260710033037` schema history, and require a
+   dry-run showing only `20260710033038`–`20260710033047` pending. Never use a blind
+   production `supabase db push`.
 3. Deploy the application with every variable documented in `.env.example`.
 4. Verify all new routes return expected auth failures before enabling any provider:
    Stripe webhook, Resend inbound/events, cron routes, Founding availability, and ProofScore.

@@ -130,9 +130,9 @@ order, from `001_initial_schema.sql` through
 provider secrets, and cleans up its synthetic data. A separate cloud staging project may be
 added later, but it is not required for the current closed-beta path.
 
+Production backup `20260710T152940Z` has passed its database-plus-Storage restore drill.
 Do **not** point `supabase db push` at production until its migration-history ledger is
-reconciled with the already-present schema and a database-plus-Storage backup has passed a
-restore drill. After reconciliation, the dry-run must show only
+reconciled with the already-present schema. After reconciliation, the dry-run must show only
 `20260710033038`–`20260710033047` pending. Do not enable invites or Founding reservations
 until the schema, application, and webhook deployment are all live.
 

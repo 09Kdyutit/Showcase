@@ -107,7 +107,9 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Before going live
 
-See [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md). Critical: rotate the Supabase database password before production.
+See [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md). The production database password was
+rotated and the full logical database-plus-Storage backup was restore-verified on
+2026-07-10; migration reconciliation and the remaining launch gates are still required.
 
 ## Legal
 
