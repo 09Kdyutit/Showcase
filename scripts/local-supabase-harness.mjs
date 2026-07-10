@@ -4,7 +4,7 @@
 // Local credentials stay in child-process memory: this script never writes an env file,
 // and its environment overrides any values loaded later from an existing .env.local.
 import { spawn, spawnSync } from 'node:child_process'
-import { rmSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve } from 'node:path'
@@ -18,6 +18,7 @@ const NPX = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const APP_URL = 'http://127.0.0.1:3100'
 const HARNESS_DIST_DIR = resolve(ROOT, '.next-harness')
+const HARNESS_LOCK_DIR = resolve(ROOT, 'node_modules', '.cache', 'showcase-local-harness.lock')
 const START_EXCLUDES = 'analytics,edge-runtime,imgproxy,realtime,studio,vector'
 const DB_TEST_SCRIPTS = [
   'test:rls',
@@ -27,6 +28,9 @@ const DB_TEST_SCRIPTS = [
   'test:portfolio-entitlement-live',
   'test:stripe-webhook-expanded',
 ]
+
+let activeHarnessApp = null
+let harnessLockOwned = false
 
 export function assertNoProductionReference(value, label = 'value') {
   const text = String(value ?? '').toLowerCase()
@@ -134,6 +138,35 @@ export function assertSafeTestEnvironment(env) {
     ].join('|'),
     'effective test environment',
   )
+  for (const name of [
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN',
+    'ERROR_WEBHOOK_URL',
+    'JOBS_API_KEY',
+    'JOBS_API_BASE_URL',
+    'JOBS_PROVIDER',
+    'JOBDATA_API_KEY',
+    'BUFFER_API_KEY',
+    'BUFFER_ORGANIZATION_ID',
+    'INBOUND_FORWARD_TO',
+    'RESEND_FROM_EMAIL',
+    'GROWTH_SCORECARD_EMAIL',
+  ]) {
+    if (env[name]) throw new Error(name + ' must be blank in the local harness')
+  }
+  for (const name of [
+    'KILL_SWITCH_AI',
+    'KILL_SWITCH_GEMINI',
+    'KILL_SWITCH_CHECKOUT',
+    'KILL_SWITCH_JOBS_PROVIDER',
+    'KILL_SWITCH_PUBLISHING',
+    'INTERVIEW_KILL_SWITCH',
+  ]) {
+    if (env[name] !== 'true') throw new Error(name + ' must be true in the local harness')
+  }
+  if (env.EMAILS_ENABLED !== 'false' || env.LIFECYCLE_EMAILS_ENABLED !== 'false') {
+    throw new Error('All outbound email must remain disabled in the local harness')
+  }
 }
 
 export function buildLocalTestEnvironment(status, baseEnv = process.env) {
@@ -180,6 +213,8 @@ export function buildLocalTestEnvironment(status, baseEnv = process.env) {
     INTERVIEW_LIVE_ENABLED: 'false',
     INTERVIEW_ANALYSIS_ENABLED: 'false',
     INTERVIEW_RECORDING_ENABLED: 'false',
+    INTERVIEW_KILL_SWITCH: 'true',
+    NEXT_PUBLIC_INTERVIEW_VOICE_AVAILABLE: 'false',
     OPENAI_API_KEY: 'local-disabled-no-network',
     GEMINI_API_KEY: '',
     RESEND_API_KEY: 'local-disabled-no-network',
@@ -191,7 +226,22 @@ export function buildLocalTestEnvironment(status, baseEnv = process.env) {
     STRIPE_PRICE_ID_PRO_MONTHLY: '',
     STRIPE_PRICE_ID_PRO_ANNUAL: '',
     STRIPE_PRICE_ID_FOUNDING_ANNUAL: '',
+    UPSTASH_REDIS_REST_URL: '',
+    UPSTASH_REDIS_REST_TOKEN: '',
+    ERROR_WEBHOOK_URL: '',
+    JOBS_API_KEY: '',
+    JOBS_API_BASE_URL: '',
+    JOBS_PROVIDER: '',
     JOBDATA_API_KEY: '',
+    BUFFER_API_KEY: '',
+    BUFFER_ORGANIZATION_ID: '',
+    INBOUND_FORWARD_TO: '',
+    RESEND_FROM_EMAIL: '',
+    GROWTH_SCORECARD_EMAIL: '',
+    EMAIL_POSTAL_ADDRESS: '',
+    INVITE_APP_URL: '',
+    INVITE_EXCLUDE: '',
+    UNSUBSCRIBE_SIGNING_SECRET: 'local-test-only-unsubscribe-secret',
     CRON_SECRET: 'local-test-only',
     PROOFSCORE_IP_HASH_SALT: 'local-test-only',
     RUN_LIVE_TESTS: '1',
@@ -323,29 +373,80 @@ export function assertSafeHarnessDistDir(directory) {
   return candidate
 }
 
+export function assertSafeHarnessLockDir(directory) {
+  const candidate = resolve(String(directory ?? ''))
+  if (
+    candidate !== HARNESS_LOCK_DIR
+    || dirname(candidate) !== resolve(ROOT, 'node_modules', '.cache')
+    || basename(candidate) !== 'showcase-local-harness.lock'
+  ) {
+    throw new Error('Refusing to manage anything except the repository local harness lock')
+  }
+  return candidate
+}
+
+function acquireHarnessLock() {
+  const lockDir = assertSafeHarnessLockDir(HARNESS_LOCK_DIR)
+  mkdirSync(dirname(lockDir), { recursive: true })
+  try {
+    // mkdir without recursive is the cross-platform atomic lock operation. A stale lock
+    // fails closed instead of risking deletion of a newly acquired concurrent lock.
+    mkdirSync(lockDir)
+  } catch (error) {
+    if (error && error.code === 'EEXIST') {
+      throw new Error(
+        'Another local harness is running, or a prior run was force-killed. '
+        + 'After confirming no harness process remains, remove '
+        + 'node_modules/.cache/showcase-local-harness.lock and retry.',
+      )
+    }
+    throw error
+  }
+  harnessLockOwned = true
+  writeFileSync(
+    resolve(lockDir, 'owner.json'),
+    JSON.stringify({ pid: process.pid, root: ROOT, acquired_at: new Date().toISOString() }) + '\n',
+    { mode: 0o600 },
+  )
+}
+
+function releaseHarnessLock() {
+  if (!harnessLockOwned) return
+  rmSync(assertSafeHarnessLockDir(HARNESS_LOCK_DIR), { recursive: true, force: true })
+  harnessLockOwned = false
+}
+
 function clearHarnessDistDir() {
+  if (!harnessLockOwned) {
+    throw new Error('Refusing to clear the harness cache without owning the local harness lock')
+  }
   rmSync(assertSafeHarnessDistDir(HARNESS_DIST_DIR), { recursive: true, force: true })
 }
 
 async function startHarnessApp(env, secrets) {
-  // A server may already own the port while its health route is still compiling.
+  // A server may already own the port while its health route is starting.
   // Probing the bind itself prevents the harness from mistaking that for a free port.
   await assertHarnessPortAvailable()
   // This exact directory belongs only to the harness (next.config.ts requires the
-  // development-only SHOWCASE_LOCAL_HARNESS gate). Clear it only after proving another
-  // harness server is not active on the owned port.
+  // local-only SHOWCASE_LOCAL_HARNESS gate). Clear it only after proving another harness
+  // server is not active on the owned port.
   clearHarnessDistDir()
+
+  const appEnv = { ...env, NODE_ENV: 'production' }
+  console.log('Building the isolated production-mode harness app...')
+  runNpmScript('build', appEnv, secrets)
 
   const child = spawn(
     NPM,
-    ['run', 'dev', '--', '--hostname', '127.0.0.1', '--port', '3100'],
+    ['run', 'start', '--', '--hostname', '127.0.0.1', '--port', '3100'],
     {
       cwd: ROOT,
-      env,
+      env: appEnv,
       detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
     },
   )
+  activeHarnessApp = child
 
   let logs = ''
   const remember = (chunk) => {
@@ -366,7 +467,7 @@ async function startHarnessApp(env, secrets) {
       })
       if (response.status === 200) return child
     } catch {
-      // Compilation and local database startup can take a while on the first run.
+      // The built server and local database can take a moment to accept connections.
     }
     await delay(1_000)
   }
@@ -376,24 +477,68 @@ async function startHarnessApp(env, secrets) {
 }
 
 async function stopHarnessApp(child) {
-  if (child && child.exitCode === null) {
-    try {
-      if (process.platform === 'win32') child.kill('SIGTERM')
-      else process.kill(-child.pid, 'SIGTERM')
-    } catch {
-      child.kill('SIGTERM')
-    }
+  const target = child ?? activeHarnessApp
+  if (target && target.exitCode === null) {
+    signalHarnessApp(target, 'SIGTERM')
     await delay(1_500)
-    if (child.exitCode === null) {
-      try {
-        if (process.platform === 'win32') child.kill('SIGKILL')
-        else process.kill(-child.pid, 'SIGKILL')
-      } catch {
-        child.kill('SIGKILL')
-      }
+    if (target.exitCode === null) {
+      signalHarnessApp(target, 'SIGKILL')
     }
   }
+  if (target === activeHarnessApp) activeHarnessApp = null
   clearHarnessDistDir()
+}
+
+function signalHarnessApp(child, signal) {
+  if (!child || child.exitCode !== null) return
+  try {
+    if (process.platform === 'win32') child.kill(signal)
+    else process.kill(-child.pid, signal)
+  } catch {
+    try {
+      child.kill(signal)
+    } catch {
+      // The process may already have exited between the checks above.
+    }
+  }
+}
+
+function installHarnessSignalCleanup(stopLocalStack) {
+  let handlingSignal = false
+  const handlers = new Map()
+
+  for (const [signal, exitCode] of [['SIGINT', 130], ['SIGTERM', 143]]) {
+    const handler = () => {
+      if (handlingSignal) process.exit(exitCode)
+      handlingSignal = true
+
+      if (harnessLockOwned) {
+        signalHarnessApp(activeHarnessApp, 'SIGTERM')
+        signalHarnessApp(activeHarnessApp, 'SIGKILL')
+        activeHarnessApp = null
+        try {
+          clearHarnessDistDir()
+        } catch {
+          // The cache may not have been created yet.
+        }
+        if (stopLocalStack) {
+          try {
+            runSupabase(['stop', '--no-backup'], 'Supabase local signal cleanup')
+          } catch {
+            // Preserve the signal exit code; a fresh `npm ci` clears any stale lock.
+          }
+        }
+        releaseHarnessLock()
+      }
+      process.exit(exitCode)
+    }
+    handlers.set(signal, handler)
+    process.on(signal, handler)
+  }
+
+  return () => {
+    for (const [signal, handler] of handlers) process.off(signal, handler)
+  }
 }
 
 function usage() {
@@ -425,8 +570,10 @@ async function main() {
   let local = null
   let verifiedLocal = false
   const failures = []
+  const uninstallSignalCleanup = installHarnessSignalCleanup(options.has('--stop'))
 
   try {
+    acquireHarnessLock()
     console.log('Starting pinned Supabase CLI ' + SUPABASE_CLI_VERSION + ' locally...')
     runSupabase(['start', '--exclude', START_EXCLUDES], 'Supabase local start')
 
@@ -468,27 +615,32 @@ async function main() {
       } catch (error) {
         failures.push(error instanceof Error ? error.message : String(error))
       } finally {
-        await stopHarnessApp(app)
+        if (harnessLockOwned) await stopHarnessApp(app)
         app = null
       }
     }
   } finally {
-    await stopHarnessApp(app)
-    if (verifiedLocal && !options.has('--stop')) {
-      console.log('\nResetting the verified local database to remove all synthetic rows...')
-      try {
-        runSupabase(['db', 'reset', '--local', '--no-seed'], 'Supabase local cleanup reset')
-      } catch (error) {
-        failures.push(error instanceof Error ? error.message : String(error))
+    try {
+      if (harnessLockOwned) await stopHarnessApp(app)
+      if (harnessLockOwned && verifiedLocal && !options.has('--stop')) {
+        console.log('\nResetting the verified local database to remove all synthetic rows...')
+        try {
+          runSupabase(['db', 'reset', '--local', '--no-seed'], 'Supabase local cleanup reset')
+        } catch (error) {
+          failures.push(error instanceof Error ? error.message : String(error))
+        }
       }
-    }
-    if (options.has('--stop')) {
-      console.log('\nStopping the disposable local Supabase stack...')
-      try {
-        runSupabase(['stop', '--no-backup'], 'Supabase local stop')
-      } catch (error) {
-        failures.push(error instanceof Error ? error.message : String(error))
+      if (harnessLockOwned && options.has('--stop')) {
+        console.log('\nStopping the disposable local Supabase stack...')
+        try {
+          runSupabase(['stop', '--no-backup'], 'Supabase local stop')
+        } catch (error) {
+          failures.push(error instanceof Error ? error.message : String(error))
+        }
       }
+    } finally {
+      releaseHarnessLock()
+      uninstallSignalCleanup()
     }
   }
 

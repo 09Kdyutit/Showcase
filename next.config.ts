@@ -9,12 +9,32 @@ import type { NextConfig } from 'next'
 // branch — so production never ships 'unsafe-eval'. Centralizing it here makes that
 // guarantee explicit and testable, and documents the single source of truth.
 const isDev = process.env.NODE_ENV === 'development'
-// Local credentialed tests own a disposable Next.js dev server. Give that server an
-// isolated cache so a preceding/following developer process cannot leave either side
-// with a partial app-paths manifest. The exact opt-in is ignored outside development,
-// so production builds and ordinary local development continue using Next's default
-// `.next` directory.
-const localHarnessDistDir = isDev && process.env.SHOWCASE_LOCAL_HARNESS === 'true'
+function isExactLoopbackUrl(value: string | undefined, protocols: string[]): boolean {
+  if (!value) return false
+  try {
+    const parsed = new URL(value)
+    return protocols.includes(parsed.protocol)
+      && parsed.hostname === '127.0.0.1'
+      && Boolean(parsed.port)
+  } catch {
+    return false
+  }
+}
+
+// The credentialed harness builds and starts a production-mode Next server to avoid
+// dev-server route-manifest churn and on-demand compilation pressure. Its cache opt-in
+// requires the exact flag plus a fully local environment, and is disabled on Vercel even
+// if somebody accidentally copies the flag there. Ordinary development and production
+// builds therefore continue using Next's default `.next` directory.
+const isLocalHarness = process.env.SHOWCASE_LOCAL_HARNESS === 'true'
+  && process.env.NEXT_PUBLIC_APP_URL === 'http://127.0.0.1:3100'
+  && isExactLoopbackUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, ['http:'])
+  && isExactLoopbackUrl(process.env.DATABASE_URL, ['postgres:', 'postgresql:'])
+  && process.env.SUPABASE_PROJECT_REF === 'local'
+  && process.env.VERCEL !== '1'
+  && !process.env.VERCEL_ENV
+  && !process.env.VERCEL_URL
+const localHarnessDistDir = isLocalHarness
   ? '.next-harness'
   : undefined
 
@@ -22,7 +42,7 @@ const localHarnessDistDir = isDev && process.env.SHOWCASE_LOCAL_HARNESS === 'tru
 // exact IPv4 loopback origin supplied by that disposable stack, and never add it to a
 // production CSP. Invalid, hostname-based, IPv6, and remote URLs all fail closed.
 function localSupabaseConnectSource(): string {
-  if (process.env.NODE_ENV === 'production') return ''
+  if (process.env.NODE_ENV === 'production' && !isLocalHarness) return ''
   const configured = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!configured) return ''
   try {

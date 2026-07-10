@@ -9,6 +9,7 @@ import {
   PRODUCTION_PROJECT_REF,
   SUPABASE_CLI_VERSION,
   assertSafeHarnessDistDir,
+  assertSafeHarnessLockDir,
   assertSafeLocalStatus,
   assertSafeSupabaseCommand,
   assertSafeTestEnvironment,
@@ -21,6 +22,13 @@ const LOCAL_DB_URL = `postgresql://postgres:${'post' + 'gres'}@127.0.0.1:54322/p
 const packageJson = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'))
 const tsconfig = JSON.parse(readFileSync(resolve(ROOT, 'tsconfig.json'), 'utf8'))
 const harnessSource = readFileSync(resolve(ROOT, 'scripts/local-supabase-harness.mjs'), 'utf8')
+const LOCAL_HARNESS_CONFIG_ENV = {
+  SHOWCASE_LOCAL_HARNESS: 'true',
+  NEXT_PUBLIC_APP_URL: 'http://127.0.0.1:3100',
+  NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+  DATABASE_URL: LOCAL_DB_URL,
+  SUPABASE_PROJECT_REF: 'local',
+}
 
 for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:pending-parse', 'test:deletion']) {
   assert.match(
@@ -42,7 +50,24 @@ for (const generatedTypes of ['.next-harness/types/**/*.ts', '.next-harness/dev/
   )
 }
 
-function renderedCsp(nodeEnv, supabaseUrl) {
+function nextConfigEnvironment(nodeEnv, overrides = {}) {
+  const env = { ...process.env, NODE_ENV: nodeEnv }
+  for (const name of [
+    'SHOWCASE_LOCAL_HARNESS',
+    'NEXT_PUBLIC_APP_URL',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'DATABASE_URL',
+    'SUPABASE_PROJECT_REF',
+    'VERCEL',
+    'VERCEL_ENV',
+    'VERCEL_URL',
+  ]) {
+    delete env[name]
+  }
+  return Object.assign(env, overrides)
+}
+
+function renderedCsp(nodeEnv, supabaseUrl, overrides = {}) {
   const child = spawnSync(
     process.execPath,
     [
@@ -60,11 +85,10 @@ function renderedCsp(nodeEnv, supabaseUrl) {
     ],
     {
       cwd: ROOT,
-      env: {
-        ...process.env,
-        NODE_ENV: nodeEnv,
+      env: nextConfigEnvironment(nodeEnv, {
         NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-      },
+        ...overrides,
+      }),
       encoding: 'utf8',
     },
   )
@@ -72,7 +96,7 @@ function renderedCsp(nodeEnv, supabaseUrl) {
   return child.stdout
 }
 
-function renderedDistDir(nodeEnv, localHarnessFlag) {
+function renderedDistDir(nodeEnv, overrides = {}) {
   const child = spawnSync(
     process.execPath,
     [
@@ -84,11 +108,7 @@ function renderedDistDir(nodeEnv, localHarnessFlag) {
     ],
     {
       cwd: ROOT,
-      env: {
-        ...process.env,
-        NODE_ENV: nodeEnv,
-        SHOWCASE_LOCAL_HARNESS: localHarnessFlag,
-      },
+      env: nextConfigEnvironment(nodeEnv, overrides),
       encoding: 'utf8',
     },
   )
@@ -118,6 +138,19 @@ assert.equal(assertSafeHarnessDistDir(resolve(ROOT, '.next-harness')), resolve(R
 for (const unsafeDirectory of [ROOT, resolve(ROOT, '.next'), resolve(ROOT, '..', '.next-harness')]) {
   assert.throws(() => assertSafeHarnessDistDir(unsafeDirectory), /Refusing to remove/)
 }
+const expectedLockDir = resolve(ROOT, 'node_modules', '.cache', 'showcase-local-harness.lock')
+assert.equal(assertSafeHarnessLockDir(expectedLockDir), expectedLockDir)
+for (const unsafeLockDirectory of [
+  ROOT,
+  resolve(ROOT, '.next-harness'),
+  resolve(ROOT, 'node_modules', '.cache'),
+  resolve(ROOT, 'node_modules', '.cache', 'another.lock'),
+]) {
+  assert.throws(() => assertSafeHarnessLockDir(unsafeLockDirectory), /Refusing to manage/)
+}
+assert.match(harnessSource, /mkdirSync\(lockDir\)/, 'the harness lock must use atomic mkdir')
+assert.match(harnessSource, /\['SIGINT', 130\].*\['SIGTERM', 143\]/s,
+  'the harness must clean up on both interactive and CI termination signals')
 
 for (const unsafeStatus of [
   { ...SAFE_STATUS, API_URL: 'http://localhost:54321' },
@@ -134,6 +167,22 @@ const overridden = buildLocalTestEnvironment(SAFE_STATUS, {
   SUPABASE_SERVICE_ROLE_KEY: 'remote-service-role',
   DATABASE_URL: 'postgresql://remote.example.com/postgres',
   STAGING_SUPABASE_PROJECT_REF: 'remote-staging',
+  UPSTASH_REDIS_REST_URL: 'https://real-upstash.example.com',
+  UPSTASH_REDIS_REST_TOKEN: 'real-upstash-token',
+  ERROR_WEBHOOK_URL: 'https://real-webhook.example.com',
+  JOBS_API_KEY: 'real-jobs-key',
+  JOBS_API_BASE_URL: 'https://real-jobs.example.com',
+  JOBS_PROVIDER: 'real-provider',
+  JOBDATA_API_KEY: 'real-jobdata-key',
+  BUFFER_API_KEY: 'real-buffer-key',
+  BUFFER_ORGANIZATION_ID: 'real-buffer-org',
+  INBOUND_FORWARD_TO: 'real-inbox@example.com',
+  RESEND_FROM_EMAIL: 'real-sender@example.com',
+  GROWTH_SCORECARD_EMAIL: 'real-scorecard@example.com',
+  EMAIL_POSTAL_ADDRESS: 'real postal address',
+  INVITE_APP_URL: 'https://real-app.example.com',
+  INVITE_EXCLUDE: 'real-user@example.com',
+  UNSUBSCRIBE_SIGNING_SECRET: 'real-unsubscribe-secret',
 })
 assert.doesNotThrow(() => assertSafeTestEnvironment(overridden))
 assert.equal(overridden.NEXT_PUBLIC_SUPABASE_URL, SAFE_STATUS.API_URL)
@@ -145,6 +194,30 @@ assert.equal(overridden.KILL_SWITCH_AI, 'true')
 assert.equal(overridden.RUN_LIVE_TESTS, '1')
 assert.equal(overridden.LOCAL_SUPABASE_PORT, '54321')
 assert.equal(overridden.SHOWCASE_LOCAL_HARNESS, 'true')
+for (const disabledProviderVariable of [
+  'UPSTASH_REDIS_REST_URL',
+  'UPSTASH_REDIS_REST_TOKEN',
+  'ERROR_WEBHOOK_URL',
+  'JOBS_API_KEY',
+  'JOBS_API_BASE_URL',
+  'JOBS_PROVIDER',
+  'JOBDATA_API_KEY',
+  'BUFFER_API_KEY',
+  'BUFFER_ORGANIZATION_ID',
+  'INBOUND_FORWARD_TO',
+  'RESEND_FROM_EMAIL',
+  'GROWTH_SCORECARD_EMAIL',
+  'EMAIL_POSTAL_ADDRESS',
+  'INVITE_APP_URL',
+  'INVITE_EXCLUDE',
+]) {
+  assert.equal(
+    overridden[disabledProviderVariable],
+    '',
+    `${disabledProviderVariable} must stay blank even when inherited from the parent environment`,
+  )
+}
+assert.equal(overridden.UNSUBSCRIBE_SIGNING_SECRET, 'local-test-only-unsubscribe-secret')
 assert.match(overridden.RESEND_WEBHOOK_SECRET, /^whsec_[A-Za-z0-9+/]+={0,2}$/)
 assert.match(overridden.RESEND_DELIVERY_WEBHOOK_SECRET, /^whsec_[A-Za-z0-9+/]+={0,2}$/)
 
@@ -152,9 +225,56 @@ const productionCsp = renderedCsp('production', SAFE_STATUS.API_URL)
 assert.ok(!productionCsp.includes('127.0.0.1'), 'production CSP must never gain loopback')
 assert.ok(!productionCsp.includes('localhost'), 'production CSP must never gain localhost')
 assert.ok(!productionCsp.includes('[::1]'), 'production CSP must never gain IPv6 loopback')
-assert.equal(renderedDistDir('production', 'true'), '<default>', 'production must ignore the harness cache gate')
-assert.equal(renderedDistDir('development', 'false'), '<default>', 'ordinary development must keep the default cache')
-assert.equal(renderedDistDir('development', 'true'), '.next-harness', 'the exact local harness gate must isolate its cache')
+assert.equal(renderedDistDir('production'), '<default>', 'ordinary production must keep the default cache')
+assert.equal(
+  renderedDistDir('production', { SHOWCASE_LOCAL_HARNESS: 'true' }),
+  '<default>',
+  'the flag alone must not enable the harness cache',
+)
+assert.equal(
+  renderedDistDir('production', LOCAL_HARNESS_CONFIG_ENV),
+  '.next-harness',
+  'the exact local production harness must isolate its cache',
+)
+assert.equal(
+  renderedDistDir('development', LOCAL_HARNESS_CONFIG_ENV),
+  '.next-harness',
+  'the exact local development harness must isolate its cache',
+)
+assert.equal(renderedDistDir('development'), '<default>', 'ordinary development must keep the default cache')
+assert.equal(
+  renderedDistDir('production', { ...LOCAL_HARNESS_CONFIG_ENV, VERCEL: '1', VERCEL_ENV: 'production' }),
+  '<default>',
+  'Vercel must ignore the local harness cache gate',
+)
+for (const unsafeHarnessOverride of [
+  { ...LOCAL_HARNESS_CONFIG_ENV, NEXT_PUBLIC_APP_URL: 'https://showcase.example.com' },
+  { ...LOCAL_HARNESS_CONFIG_ENV, NEXT_PUBLIC_SUPABASE_URL: 'https://remote.supabase.co' },
+  { ...LOCAL_HARNESS_CONFIG_ENV, DATABASE_URL: 'postgresql://remote.example.com/postgres' },
+  { ...LOCAL_HARNESS_CONFIG_ENV, SUPABASE_PROJECT_REF: PRODUCTION_PROJECT_REF },
+]) {
+  assert.equal(
+    renderedDistDir('production', unsafeHarnessOverride),
+    '<default>',
+    'remote or non-local configuration must disable the harness cache gate',
+  )
+}
+
+const localProductionCsp = renderedCsp(
+  'production',
+  SAFE_STATUS.API_URL,
+  LOCAL_HARNESS_CONFIG_ENV,
+)
+assert.ok(
+  localProductionCsp.includes(' http://127.0.0.1:54321'),
+  'the exact local production harness CSP must allow its disposable Supabase origin',
+)
+const vercelProductionCsp = renderedCsp(
+  'production',
+  SAFE_STATUS.API_URL,
+  { ...LOCAL_HARNESS_CONFIG_ENV, VERCEL: '1', VERCEL_ENV: 'production' },
+)
+assert.ok(!vercelProductionCsp.includes('127.0.0.1'), 'Vercel production CSP must ignore the harness gate')
 
 const localDevelopmentCsp = renderedCsp('development', SAFE_STATUS.API_URL)
 assert.ok(
