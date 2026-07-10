@@ -52,11 +52,11 @@ AI_GLOBAL_DAILY_LIMIT=            # Derive request count from the $5/day, $100/m
 INTERVIEW_GLOBAL_DAILY_BUDGET_USD=1
 INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD=20
 INTERVIEW_KILL_SWITCH=true        # Keep Interview Lab off until its budget path is atomic
-KILL_SWITCH_AI=false
+KILL_SWITCH_AI=true               # Dark rollout: enable only after production smoke tests
 KILL_SWITCH_GEMINI=true            # Fail closed until all Google spend is atomic
-KILL_SWITCH_CHECKOUT=false
-KILL_SWITCH_JOBS_PROVIDER=false
-KILL_SWITCH_PUBLISHING=false
+KILL_SWITCH_CHECKOUT=true
+KILL_SWITCH_JOBS_PROVIDER=true
+KILL_SWITCH_PUBLISHING=true
 NEXT_PUBLIC_APP_URL=              # Your production URL (e.g. https://app.tryshowcase.ink)
 ERROR_WEBHOOK_URL=                # Optional JSON error-alert sink; logs work without it
 CRON_SECRET=                      # Long random value; Vercel sends it as Bearer auth
@@ -131,10 +131,34 @@ provider secrets, and cleans up its synthetic data. A separate cloud staging pro
 added later, but it is not required for the current closed-beta path.
 
 Production backup `20260710T152940Z` has passed its database-plus-Storage restore drill.
-Do **not** point `supabase db push` at production until its migration-history ledger is
-reconciled with the already-present schema. After reconciliation, the dry-run must show only
-`20260710033038`–`20260710033047` pending. Do not enable invites or Founding reservations
-until the schema, application, and webhook deployment are all live.
+Production still runs an older application build that is incompatible with the authority
+triggers and grants in migrations `20260710033041` and `20260710033047`. A database-only
+promotion would break portfolio generation, ProofScore persistence, and publish/unpublish.
+Do not point `supabase db push` at production or prepare a deployment without explicit
+approval for this coordinated maintenance window.
+
+The approved sequence, once that approval exists, is:
+
+1. Configure every required production variable in its fail-closed state. Vercel variable
+   changes do not change the already-running deployment.
+2. Build the reviewed compatible revision for the canonical `showcase-app` project without
+   changing its domain alias: `vercel deploy --prod --skip-domain`.
+3. Enter the maintenance window. Repair only the already-equivalent migration-history rows
+   `20260710033033`–`20260710033037`; do not execute their SQL again.
+4. Require `supabase db push --linked --dry-run` to show exactly
+   `20260710033038`–`20260710033047`. Stop if it asks for `--include-all`, shows any earlier
+   migration, or differs from that ten-file list.
+5. Apply the ten migrations and verify ledgers, row-count invariants, RLS, ACLs, triggers,
+   constraints, indexes, admission, attribution, referral state, and paused controls using
+   read-only SQL.
+6. Immediately promote the prepared compatible deployment, then run negative/read-only
+   route probes and `/api/health` checks.
+
+Never point the credentialed database/browser suites at production. `npm run growth:status`
+and the Founding-availability endpoint can expire reservation rows, so neither is a
+read-only smoke test. Do not enable invites, Founding reservations, email, AI, checkout,
+jobs-provider calls, or publishing until the matching schema/application deployment and
+their separately authorized end-to-end tests pass.
 
 ### 5b. Configure Resend webhooks and Vercel cron
 
@@ -179,7 +203,7 @@ See `security/EXECUTION_MANIFEST.md` for the full release-readiness checklist an
 |----------|-------------|------------|
 | AI API missing | Mock mode (sample data) | Error shown to user |
 | Stripe missing | Warning in console | Error on billing page |
-| Mock mode | `AI_API_KEY` not set | Always uses real AI |
+| Mock mode | `OPENAI_API_KEY` not set | Always uses real AI |
 
 ## Custom domain
 

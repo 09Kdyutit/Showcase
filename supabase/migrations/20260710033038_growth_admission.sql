@@ -27,12 +27,12 @@ where invite_delivery_key is null;
 alter table public.waitlist_signups
   alter column invite_delivery_key set default gen_random_uuid(),
   alter column invite_delivery_key set not null,
-  alter column invite_token set default encode(gen_random_bytes(24), 'hex');
+  alter column invite_token set default encode(extensions.gen_random_bytes(24), 'hex');
 
 -- Tokens issued before this migration were neither cryptographically generated nor present
 -- in the old invite email. Rotate every still-usable token before the new sender goes live.
 update public.waitlist_signups
-set invite_token = encode(gen_random_bytes(24), 'hex')
+set invite_token = encode(extensions.gen_random_bytes(24), 'hex')
 where status in ('waitlisted', 'invited')
   and converted_user_id is null;
 

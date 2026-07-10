@@ -18,10 +18,10 @@ where referral_claimed_at is null
 -- Rotate every old 32-bit code before these links become admission credentials. This is a
 -- pre-launch migration, so invalidating locally generated short links is intentional.
 update public.profiles
-set referral_code = upper(encode(gen_random_bytes(16), 'hex'));
+set referral_code = upper(encode(extensions.gen_random_bytes(16), 'hex'));
 
 alter table public.profiles
-  alter column referral_code set default upper(encode(gen_random_bytes(16), 'hex')),
+  alter column referral_code set default upper(encode(extensions.gen_random_bytes(16), 'hex')),
   alter column referral_code set not null;
 
 alter table public.profiles
@@ -53,8 +53,8 @@ begin
     new.referral_claimed_at := null;
     new.referral_invite_limit := 0;
     new.referral_invites_used := 0;
-    new.referral_code := upper(encode(gen_random_bytes(16), 'hex'));
-    new.unsubscribe_token := encode(gen_random_bytes(16), 'hex');
+    new.referral_code := upper(encode(extensions.gen_random_bytes(16), 'hex'));
+    new.unsubscribe_token := encode(extensions.gen_random_bytes(16), 'hex');
     new.email := coalesce(auth.jwt() ->> 'email', new.email);
     return new;
   end if;

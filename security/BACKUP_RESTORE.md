@@ -17,9 +17,11 @@ printed.
 ## What was captured and verified
 
 - Database: roles without passwords, the complete `public` schema and data, Auth and
-  Storage data, all three migration ledgers, extensions, a content inventory, and a
-  public catalog manifest. Every database dump and source inventory used one exported
-  repeatable-read snapshot.
+  Storage data, all three migration ledgers, extensions, a content inventory, a public
+  catalog manifest, the application signup trigger attached to `auth.users`, and every
+  application RLS policy attached to `storage.objects`. Every database dump and row
+  inventory used one exported repeatable-read snapshot; the managed-object catalog was
+  captured read-only before any production migration.
 - Storage: all 3 private buckets, 22 objects, and 7,265,691 bytes. The byte inventory
   matched `storage.objects` exactly at the database snapshot.
 - Encryption: authenticated AES-256-GCM with a random salt and IV, using
@@ -27,9 +29,11 @@ printed.
   are recorded separately.
 - Restore: a fresh migration-isolated local Supabase database was aligned to the source
   Auth and Storage versions while every non-database service was stopped. The restore
-  reproduced all 1,911 rows and their order-independent digests, 77 RLS policies, 16
-  enabled triggers, grants, constraints, indexes, functions, application/Auth/Storage
-  migration ledgers, extensions, and all 22 Storage file hashes.
+  reproduced all 1,911 rows and their order-independent digests, 77 public-schema RLS
+  policies, 16 enabled public-schema triggers, grants, constraints, indexes, functions,
+  application/Auth/Storage migration ledgers, extensions, the additional signup trigger
+  on `auth.users`, all nine application policies on `storage.objects`, and all 22 Storage
+  file hashes.
 - Cleanup: the disposable containers and volumes were destroyed and decrypted database
   and Storage work files were removed. Only encrypted archives and non-sensitive
   manifests remain.
@@ -57,13 +61,16 @@ Recovery is an operator-controlled incident procedure, not an application endpoi
    `PLAINTEXT_SHA256` before extraction.
 4. Align the target's managed Auth and Storage migration versions to the archived
    platform manifest. Restore in this order: sanitized roles, `public` pre-data,
-   Auth/Storage data, `public` data, `public` post-data as `supabase_admin`, then the
-   archived application migration ledger. Every restore command must fail on its first
-   SQL error.
-5. Generate the target inventory, public catalog, and platform manifests with the
-   `backup-*.sql` scripts. Run `scripts/verify-backup-restore.mjs` against those outputs
-   and the extracted Storage directory. Recovery is not accepted unless the verifier
-   exits zero.
+   Auth/Storage data, `public` data, `public` post-data as `supabase_admin`, the managed
+   application objects in `managed-app-objects.sql`, then the archived application
+   migration ledger. Every restore command must fail on its first SQL error.
+5. Generate the target inventory, public catalog, platform manifest, and managed-object
+   catalog with the `backup-*.sql` scripts, including
+   `scripts/backup-managed-app-catalog.sql`. Pass the restored managed-object catalog as
+   the verifier's final (sixth) user argument when running
+   `scripts/verify-backup-restore.mjs`. Recovery is not accepted unless the mandatory
+   managed catalog, database outputs, and extracted Storage directory all verify exactly
+   and the command exits zero.
 6. Destroy the disposable target and remove all decrypted files. Reconnect the app only
    after a separate, reviewed production recovery plan is approved.
 

@@ -45,8 +45,8 @@ begin
     new.referral_credited_at := null;
     new.referral_invite_limit := 0;
     new.referral_invites_used := 0;
-    new.referral_code := upper(encode(gen_random_bytes(16), 'hex'));
-    new.unsubscribe_token := encode(gen_random_bytes(16), 'hex');
+    new.referral_code := upper(encode(extensions.gen_random_bytes(16), 'hex'));
+    new.unsubscribe_token := encode(extensions.gen_random_bytes(16), 'hex');
     new.email := coalesce(auth.jwt() ->> 'email', new.email);
     return new;
   end if;

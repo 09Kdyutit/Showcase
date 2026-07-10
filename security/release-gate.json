@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "7d88b0674c2f287aa5d27dd59852bd8d7cb4ce04",
-    "source_fingerprint_sha256": "daa43189ebecdb04c5545ea53e5c35716e6663da8be5a85b0ae448177ec23ba9",
-    "verified_at": "2026-07-10T12:03:56-04:00"
+    "evidence_base_git_head": "6bb08c0185ea20ad1b422da6b05339f9aa2aa2ae",
+    "source_fingerprint_sha256": "79f9aaab49124af080be22415a958f2a4092e95a8d19a374d325d4ddda33c6b5",
+    "verified_at": "2026-07-10T12:52:08-04:00"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -142,8 +142,8 @@
       "description": "The canonical migration history resets cleanly and the controlled production promotion is recoverable and verified",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "2026-07-10 local proof: a blank Supabase reset applied all 48 canonical records from 001 through 20260710033047, migration list matched the local ledger, db lint had zero errors, and the expanded no-secret credentialed suite passed 380/380 checks. Production backup 20260710T152940Z now contains an authenticated encrypted logical database snapshot plus all 22 private Storage objects. A migration-isolated disposable restore reproduced all 67 database objects, 1,911 rows and digests, the normalized public catalog, application/Auth/Storage migration ledgers, extensions, and every Storage file hash; plaintext and the target were destroyed. The source ledger still ends at 20260703190040. No production schema/data migration was applied.",
-      "blocker": "Repair only the already-equivalent 20260710033033-20260710033037 production history rows, require a dry-run showing only 20260710033038-20260710033047 pending, apply that reviewed batch, and rerun the credentialed suite against production. Stop if Supabase requests --include-all or proposes an earlier version."
+      "evidence": "2026-07-10 fail-closed proof: production remains unchanged at 33 application migration records, latest 20260703190040. Backup 20260710T152940Z was restored into a network-isolated disposable Supabase database. Reapplying canonical 20260710033033-20260710033037 changed neither its 67-object/1,911-row inventory nor normalized public catalog, proving those five production objects are already equivalent and need history-only repair. Patched 20260710033038-20260710033047 then applied successfully to the restored production data; all pre-existing row counts remained unchanged, ledgers ended at 48/latest 047, controls stayed paused, admission/attribution/referral/webhook/RLS/ACL/index/constraint/trigger invariants passed, and an authenticated profile insert succeeded. The rehearsal exposed and fixed restricted-search-path pgcrypto calls, and the backup/restore path now exactly preserves the application trigger on auth.users plus all nine application policies on storage.objects. The target, volumes, and 39 plaintext rehearsal files were destroyed. No production history, schema, or data was mutated.",
+      "blocker": "Obtain explicit approval for one coordinated maintenance window and the paired showcase-app deployment. Configure fail-closed production env values, prepare the compatible build unaliased with `vercel deploy --prod --skip-domain`, repair only history 20260710033033-20260710033037, require a dry-run showing exactly 20260710033038-20260710033047, apply and verify that reviewed batch read-only, then immediately promote the prepared build and run only negative/read-only smoke tests. Stop on any unexpected migration, --include-all request, lock/error, invariant failure, or deployment mismatch; never run the mutating credentialed suite against production."
     },
     {
       "id": "GROWTH-PROD-CONFIG",
@@ -152,7 +152,7 @@
       "status": "BLOCKED",
       "release_blocking": true,
       "evidence": "Read-only `vercel env ls production` on 2026-07-09 confirmed core credentials and INBOUND_FORWARD_TO but did not list STRIPE_PRICE_ID_FOUNDING_ANNUAL, the versioned OpenAI rate table, the atomic $4/$80 general budget values, the $1/$20 Interview allocation and kill switch, AI_GLOBAL_DAILY_LIMIT, the fail-closed Gemini switch, the four general product kill switches, Resend delivery/unsubscribe/from/postal/email controls, the scorecard recipient, or the ProofScore salt. ERROR_WEBHOOK_URL is optional monitoring, not a functional blocker.",
-      "blocker": "Create and verify the missing production configuration. EMAIL_POSTAL_ADDRESS remains unresolved, so EMAILS_ENABLED and LIFECYCLE_EMAILS_ENABLED must remain false. Keep invites at zero, the 10-spot $99/year Founding offer unavailable, and the launch dial closed until their required smoke tests pass."
+      "blocker": "Create and verify the missing production configuration before preparing the compatible deployment; Vercel env changes do not alter an existing deployment. EMAIL_POSTAL_ADDRESS remains unresolved, so EMAILS_ENABLED and LIFECYCLE_EMAILS_ENABLED must remain false. Keep launch, AI, Gemini, checkout, jobs-provider, publishing, Interview, invites, and the 10-spot Founding offer fail-closed until their required smoke tests pass."
     },
     {
       "id": "GROWTH-PROD-DEPLOY",
@@ -161,7 +161,7 @@
       "status": "BLOCKED",
       "release_blocking": true,
       "evidence": "The canonical app and /api/health returned 200 on 2026-07-09, but public probes of /api/cron/data-retention and /api/stripe/founding-availability returned 404. The reviewed implementation and its no-secret CI proof are prepared on the feature branch; this pass has deliberately not deployed them to production.",
-      "blocker": "Complete branch review, choose/configure a commercially suitable cron-capable hosting or scheduler plan, deploy only to showcase-app after the database backup/promotion, and verify every registered route and schedule."
+      "blocker": "Complete branch review and configure a commercially suitable cron-capable plan. With explicit paired-rollout approval, prepare only showcase-app using `vercel deploy --prod --skip-domain` before the database window, leave the current alias untouched during migration, and promote the prepared compatible build immediately after read-only database verification. Then verify registered routes/schedules with negative or read-only probes; do not call growth:status or Founding availability as read-only checks."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
@@ -446,7 +446,7 @@
       "description": "Production user data has a verified recoverable backup path appropriate to the launch stage",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/BACKUP_RESTORE.md documents the verified procedure, and security/production-backup-evidence.json records backup 20260710T152940Z. Authenticated AES-256-GCM archives contain a single-snapshot logical database capture and all 3 private Storage buckets (22 objects, 7,265,691 bytes). A services-stopped disposable restore exactly reproduced 67 database objects, 1,911 table rows and content digests, 77 RLS policies, 16 enabled triggers, grants, constraints, indexes, functions, all application/Auth/Storage migration identities, extensions, and every Storage size and SHA-256. The target, volumes, and decrypted work files were destroyed; the passphrase remains in macOS Keychain. Free still lacks automated physical backups/PITR, which remains a documented later-scale upgrade rather than a false claim about this logical copy."
+      "evidence": "security/BACKUP_RESTORE.md documents the verified procedure, and security/production-backup-evidence.json records backup 20260710T152940Z. Authenticated AES-256-GCM archives contain a single-snapshot logical database capture and all 3 private Storage buckets (22 objects, 7,265,691 bytes). A services-stopped disposable restore exactly reproduced 67 database objects, 1,911 table rows and content digests, 77 public-schema RLS policies, 16 enabled public-schema triggers, grants, constraints, indexes, functions, all application/Auth/Storage migration identities, extensions, every Storage size and SHA-256, plus the application signup trigger on auth.users and all nine application policies on storage.objects. The target, volumes, and 39 decrypted rehearsal files were destroyed; the passphrase remains in macOS Keychain. Free still lacks automated physical backups/PITR, which remains a documented later-scale upgrade rather than a false claim about this logical copy."
     },
     {
       "id": "P1-14",
@@ -454,7 +454,7 @@
       "description": "Safe local verification + deployment docs",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "Updated existing DEPLOYMENT.md (fixed stale AI_API_KEY->OPENAI_API_KEY, added missing LAUNCH_OPEN/annual-price/Upstash env vars, added pre-deploy verification step) and LAUNCH_CHECKLIST.md (reconciled against what's actually done this session, added the backup-tier finding and the deployment-restriction finding). Also discovered a live Vercel deployment exists (casefile-ten.vercel.app) but is reserved for the waitlist only per explicit user instruction — documented as a hard constraint, not used for anything in this work."
+      "evidence": "DEPLOYMENT.md and LAUNCH_CHECKLIST.md define the canonical showcase-app target, web-only scope, fail-closed environment, restore-verified backup, and exact paired database/application rollout. The legacy casefile-ten.vercel.app deployment is documented as an unused pre-consolidation backup and is not a beta target. The runbook prohibits applying migrations 041/047 while the incompatible old app remains active, requires an unaliased compatible deployment before the maintenance window, and restricts immediate production probes to negative/read-only checks."
     },
     {
       "id": "P1-15",

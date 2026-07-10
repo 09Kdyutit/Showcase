@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "project_ref": "yogwhfrjhcbnvoxitcay",
-  "recorded_at": "2026-07-10T15:51:09.266Z",
+  "recorded_at": "2026-07-10T16:37:34.143Z",
   "database_captured_at": "2026-07-10T15:33:39.113Z",
   "storage_captured_at": "2026-07-10T15:30:16.829Z",
   "backup_id": "20260710T152940Z",
@@ -23,10 +23,10 @@
   },
   "database": {
     "status": "RESTORE_VERIFIED",
-    "encrypted_archive_bytes": 289898,
-    "encrypted_archive_sha256": "9b4e26ce380e6bc7301308886edc990506993ad01207ea5d075d8888bcfd04fd",
-    "plaintext_archive_sha256": "6a6a278751a17a88b7ef1d856f0b1ddba2605dfe39898f496e65639806feaf17",
-    "component_count": 8,
+    "encrypted_archive_bytes": 295043,
+    "encrypted_archive_sha256": "2d886873b7a31318e07ebe667b0cc075e4d260c5820a5b9a78ed375adb836775",
+    "plaintext_archive_sha256": "5bf64629e710a6feb98952365faf1b66a7645a85d46595ffdbc9cf7673917cd8",
+    "component_count": 10,
     "single_exported_snapshot": true,
     "object_count": 67,
     "table_count": 66,
@@ -54,6 +54,12 @@
       "storage": 61
     },
     "extension_count": 5,
+    "managed_app_objects": {
+      "auth_storage_triggers": 1,
+      "storage_policies": 9,
+      "catalog_exact": true,
+      "restore_verified": true
+    },
     "restore_verified": true,
     "plaintext_retained": false
   },

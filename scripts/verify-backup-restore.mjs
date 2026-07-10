@@ -49,6 +49,43 @@ const expectedPhysicalOrdinalChanges = new Map([
   ['interview_profiles.updated_at', [13, 10]],
 ])
 
+const expectedManagedTriggerKeys = [
+  'auth.users:on_auth_user_created:public.handle_new_user:O',
+]
+
+const expectedStoragePolicyNames = [
+  'Users can delete their own interview recordings',
+  'Users can delete their own resume files',
+  'Users can read their own interview recordings',
+  'Users can read their own resume files',
+  'Users can upload their own interview recordings',
+  'Users can upload their own resume files',
+  'portfolio_images_delete_own',
+  'portfolio_images_insert_own',
+  'portfolio_images_select_own',
+]
+
+function validateManagedAppCatalog(catalog, description) {
+  if (catalog?.schema_version !== 1) {
+    throw new Error(`${description} has an unsupported schema version`)
+  }
+  if (!Array.isArray(catalog.managed_app_triggers) || !Array.isArray(catalog.storage_policies)) {
+    throw new Error(`${description} is missing managed application object arrays`)
+  }
+
+  const triggerKeys = catalog.managed_app_triggers.map((trigger) => (
+    `${trigger.table_schema}.${trigger.table_name}:${trigger.trigger_name}:` +
+    `${trigger.function_schema}.${trigger.function_name}:${trigger.enabled}`
+  )).sort()
+  assertEqual(triggerKeys, expectedManagedTriggerKeys, `${description} Auth/Storage trigger set`)
+
+  const storagePolicyNames = catalog.storage_policies.map((policy) => policy.name).sort()
+  assertEqual(storagePolicyNames, expectedStoragePolicyNames, `${description} Storage policy set`)
+  if (catalog.storage_policies.some((policy) => policy.table !== 'objects')) {
+    throw new Error(`${description} contains a policy outside storage.objects`)
+  }
+}
+
 function normalizeCatalogColumns(sourceCatalog, restoredCatalog) {
   if (sourceCatalog.columns.length !== restoredCatalog.columns.length) {
     throw new Error('Public catalog column counts do not match')
@@ -148,6 +185,11 @@ function main() {
   const restoredCatalogPath = required(process.argv[4], 'restored catalog')
   const restoredPlatformPath = required(process.argv[5], 'restored platform manifest')
   const storageDirectory = required(process.argv[6], 'storage directory')
+  const sourceManagedCatalogPath = resolve(databaseDirectory, 'managed-app-catalog.json')
+  const restoredManagedCatalogPath = required(
+    process.argv[7],
+    'restored managed application catalog',
+  )
 
   const sourceInventory = readJson(resolve(databaseDirectory, 'source-inventory.json'))
   const restoredInventory = readJson(restoredInventoryPath)
@@ -163,6 +205,21 @@ function main() {
   )
   const disabledTriggerCount = restoredCatalog.triggers.filter((trigger) => trigger.enabled !== 'O').length
   if (disabledTriggerCount !== 0) throw new Error('The restored database has disabled public triggers')
+
+  const sourceManagedCatalog = readJson(sourceManagedCatalogPath)
+  const restoredManagedCatalog = readJson(restoredManagedCatalogPath)
+  validateManagedAppCatalog(sourceManagedCatalog, 'Source managed application catalog')
+  validateManagedAppCatalog(restoredManagedCatalog, 'Restored managed application catalog')
+  assertEqual(
+    sourceManagedCatalog,
+    restoredManagedCatalog,
+    'Managed Auth/Storage application catalog',
+  )
+  const managedAppVerification = {
+    catalog_exact: true,
+    auth_storage_trigger_count: restoredManagedCatalog.managed_app_triggers.length,
+    storage_policy_count: restoredManagedCatalog.storage_policies.length,
+  }
 
   const sourcePlatform = readJson(resolve(databaseDirectory, 'platform-manifest.json'))
   const restoredPlatform = readJson(restoredPlatformPath)
@@ -203,6 +260,7 @@ function main() {
       physical_column_ordinal_change_count: expectedPhysicalOrdinalChanges.size,
       historical_dropped_column_gap_count: 3,
       disabled_public_trigger_count: disabledTriggerCount,
+      managed_app_objects: managedAppVerification,
     },
     platform: {
       application_migration_count: restoredPlatform.application_migrations.count,

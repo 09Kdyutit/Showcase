@@ -20,6 +20,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const AES_SCRIPT = resolve(ROOT, 'scripts/backup-aes-gcm.mjs')
 const STORAGE_SCRIPT = resolve(ROOT, 'scripts/backup-production-storage.mjs')
 const VERIFY_SCRIPT = resolve(ROOT, 'scripts/verify-backup-restore.mjs')
+const MANAGED_CATALOG_SCRIPT = resolve(ROOT, 'scripts/backup-managed-app-catalog.sql')
+const MANAGED_RESTORE_SCRIPT = resolve(ROOT, 'scripts/restore-managed-app-objects.sql')
 const PASSPHRASE = 'offline-test-passphrase-32-characters-minimum'
 const TEMP_DIRECTORY = mkdtempSync(resolve(tmpdir(), 'showcase-backup-tools-'))
 
@@ -179,6 +181,32 @@ try {
     /writeFileSync\(resolve\(output, 'manifest\.json'\),[\s\S]*\{ mode: 0o600 \}\)/,
   )
 
+  const managedCatalogSource = readFileSync(MANAGED_CATALOG_SCRIPT, 'utf8')
+  assert.match(managedCatalogSource, /table_namespace\.nspname IN \('auth', 'storage'\)/)
+  assert.match(managedCatalogSource, /function_namespace\.nspname = 'public'/)
+  assert.match(managedCatalogSource, /pg_get_triggerdef/)
+  assert.match(managedCatalogSource, /FROM pg_catalog\.pg_policies/)
+  assert.match(managedCatalogSource, /WHERE schemaname = 'storage'/)
+
+  const managedRestoreSource = readFileSync(MANAGED_RESTORE_SCRIPT, 'utf8')
+  assert.match(managedRestoreSource, /CREATE TRIGGER on_auth_user_created/)
+  assert.match(managedRestoreSource, /EXECUTE FUNCTION public\.handle_new_user\(\)/)
+  for (const policyName of [
+    'Users can upload their own resume files',
+    'Users can read their own resume files',
+    'Users can delete their own resume files',
+    'Users can upload their own interview recordings',
+    'Users can read their own interview recordings',
+    'Users can delete their own interview recordings',
+    'portfolio_images_insert_own',
+    'portfolio_images_select_own',
+    'portfolio_images_delete_own',
+  ]) {
+    assert.ok(managedRestoreSource.includes(policyName), `missing managed policy: ${policyName}`)
+  }
+  assert.match(managedRestoreSource, /Showcase Auth signup trigger was not restored/)
+  assert.match(managedRestoreSource, /Showcase Storage policy set does not match/)
+
   const verifierFixture = resolve(TEMP_DIRECTORY, 'verifier')
   const databaseDirectory = resolve(verifierFixture, 'database')
   const storageDirectory = resolve(verifierFixture, 'storage')
@@ -285,6 +313,40 @@ try {
     }],
   })
 
+  const managedCatalog = {
+    schema_version: 1,
+    managed_app_triggers: [{
+      table_schema: 'auth',
+      table_name: 'users',
+      trigger_name: 'on_auth_user_created',
+      enabled: 'O',
+      function_schema: 'public',
+      function_name: 'handle_new_user',
+      definition: 'CREATE TRIGGER fixture',
+    }],
+    storage_policies: [
+      'Users can delete their own interview recordings',
+      'Users can delete their own resume files',
+      'Users can read their own interview recordings',
+      'Users can read their own resume files',
+      'Users can upload their own interview recordings',
+      'Users can upload their own resume files',
+      'portfolio_images_delete_own',
+      'portfolio_images_insert_own',
+      'portfolio_images_select_own',
+    ].map((name) => ({
+      table: 'objects',
+      name,
+      permissive: 'PERMISSIVE',
+      roles: ['authenticated'],
+      command: 'SELECT',
+      using: 'fixture',
+      check: null,
+    })),
+  }
+  writeJson(resolve(databaseDirectory, 'managed-app-catalog.json'), managedCatalog)
+  writeJson(resolve(verifierFixture, 'restored-managed-app-catalog.json'), managedCatalog)
+
   const verifierArguments = [
     VERIFY_SCRIPT,
     databaseDirectory,
@@ -292,6 +354,7 @@ try {
     resolve(verifierFixture, 'restored-public-catalog.json'),
     resolve(verifierFixture, 'restored-platform-manifest.json'),
     storageDirectory,
+    resolve(verifierFixture, 'restored-managed-app-catalog.json'),
   ]
   const verification = spawnSync(process.execPath, verifierArguments, {
     cwd: ROOT,
@@ -302,7 +365,24 @@ try {
   const verificationResult = JSON.parse(verification.stdout)
   assert.equal(verificationResult.database.inventory_exact, true)
   assert.equal(verificationResult.database.historical_dropped_column_gap_count, 3)
+  assert.equal(verificationResult.database.managed_app_objects.catalog_exact, true)
+  assert.equal(verificationResult.database.managed_app_objects.auth_storage_trigger_count, 1)
+  assert.equal(verificationResult.database.managed_app_objects.storage_policy_count, 9)
   assert.equal(verificationResult.storage.file_sha256_exact, true)
+
+  const missingManagedCatalogVerification = spawnSync(
+    process.execPath,
+    verifierArguments.slice(0, -1),
+    { cwd: ROOT, encoding: 'utf8', timeout: 30_000 },
+  )
+  assertFailure(
+    missingManagedCatalogVerification,
+    'restore verifier without a restored managed application catalog',
+  )
+  assert.match(
+    missingManagedCatalogVerification.stderr,
+    /restored managed application catalog is required/,
+  )
 
   writeFileSync(resolve(storageObjectsDirectory, 'extra'), 'unexpected', { mode: 0o600 })
   const extraFileVerification = spawnSync(process.execPath, verifierArguments, {

@@ -54,6 +54,20 @@ for (const retentionIndex of [
   assert.ok(growthMigration.includes(retentionIndex), `missing retention index: ${retentionIndex}`)
 }
 
+for (const migrationPath of [
+  'supabase/migrations/20260710033038_growth_admission.sql',
+  'supabase/migrations/20260710033041_launch_security_and_webhooks.sql',
+  'supabase/migrations/20260710033045_referral_invite_pacing.sql',
+  'supabase/migrations/20260710033046_referral_abuse_and_credit_hardening.sql',
+]) {
+  const pendingMigration = read(migrationPath)
+  assert.doesNotMatch(
+    pendingMigration,
+    /(?<!extensions\.)gen_random_bytes\s*\(/i,
+    `${migrationPath} must schema-qualify pgcrypto functions for restricted search paths`,
+  )
+}
+
 const vercel = JSON.parse(read('vercel.json'))
 assert.equal(
   vercel.git?.deploymentEnabled,
@@ -162,7 +176,14 @@ assert.deepEqual(
   },
   { bucket_count: 3, object_count: 22, total_bytes: 7265691, encrypted_archive_bytes: 7167392 },
 )
-assert.equal(backupEvidence.database.encrypted_archive_bytes, 289898)
+assert.equal(backupEvidence.database.encrypted_archive_bytes, 295043)
+assert.equal(backupEvidence.database.component_count, 10)
+assert.deepEqual(backupEvidence.database.managed_app_objects, {
+  auth_storage_triggers: 1,
+  storage_policies: 9,
+  catalog_exact: true,
+  restore_verified: true,
+})
 assert.equal(backupEvidence.limitations.physical_backup, false)
 assert.equal(backupEvidence.limitations.point_in_time_recovery, false)
 assert.equal(backupEvidence.limitations.automated_backup_available_on_current_plan, false)
@@ -183,6 +204,30 @@ for (const forbidden of [
 ]) {
   assert.doesNotMatch(serializedBackupEvidence, forbidden, 'backup evidence must not contain sensitive material')
 }
+
+const migrationPreflight = JSON.parse(read('security/production-migration-preflight.json'))
+assert.equal(migrationPreflight.project_ref, 'yogwhfrjhcbnvoxitcay')
+assert.equal(migrationPreflight.status, 'READY_FOR_PAIRED_DEPLOYMENT_APPROVAL')
+assert.equal(migrationPreflight.production_mutated, false)
+assert.equal(migrationPreflight.history_repair.production_repair_performed, false)
+assert.equal(migrationPreflight.restored_data_rehearsal.disposable_target_destroyed, true)
+assert.equal(migrationPreflight.restored_data_rehearsal.plaintext_rehearsal_files_removed, 39)
+assert.equal(migrationPreflight.blocking_rollout_requirement.maintenance_window_authorized, false)
+assert.equal(
+  migrationPreflight.blocking_rollout_requirement.deployment_authorized_for_this_sequence,
+  false,
+)
+assert.ok(
+  migrationPreflight.blocking_rollout_requirement.required_sequence.some((step) => (
+    step.includes('--prod --skip-domain')
+  )),
+  'the rollout must prepare a compatible unaliased deployment before production DDL',
+)
+assert.ok(
+  migrationPreflight.blocking_rollout_requirement.excluded_immediate_production_checks
+    .includes('npm run growth:status'),
+  'growth:status is not a read-only production smoke test',
+)
 const storageInventory = backupEvidence.production_storage_inventory
 const orphanedBucketTotal = Object.values(storageInventory.orphaned_by_bucket)
   .reduce((total, count) => total + count, 0)
