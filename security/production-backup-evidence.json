@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "project_ref": "yogwhfrjhcbnvoxitcay",
+  "recorded_at": "2026-07-10T06:13:45.707Z",
+  "storage": {
+    "status": "RESTORE_VERIFIED",
+    "backup_id": "20260710T061325Z",
+    "bucket_count": 3,
+    "object_count": 19,
+    "total_bytes": 7033704,
+    "encrypted_archive_bytes": 6942752,
+    "encrypted_archive_sha256": "6c7c90ce3739b02ddce1ec71606d8f29e575fd830c7a78d87a8097b25509afdc",
+    "encryption": "AES-256-CBC with PBKDF2-SHA256 (600000 iterations)",
+    "keychain_service": "Showcase production backup",
+    "keychain_account": "20260710T061325Z",
+    "restore_verified": true,
+    "plaintext_retained": false
+  },
+  "database": {
+    "status": "BLOCKED",
+    "reason": "A working production database password is not available; explicit approval is required before resetting it and updating operational DATABASE_URL values."
+  },
+  "production_storage_inventory": {
+    "read_only_checked_at": "2026-07-10T06:12:00Z",
+    "all_buckets_private": true,
+    "invalid_user_prefix_objects": 0,
+    "orphaned_user_prefix_objects": 11,
+    "orphaned_user_prefix_bytes": 781697,
+    "orphaned_by_bucket": {
+      "resumes": 6,
+      "interview-recordings": 5,
+      "portfolio-images": 0
+    }
+  }
+}

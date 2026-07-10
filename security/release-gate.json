@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "5b793c6f9c3bdb504a84b0426b8fc56ab7eea68c",
-    "source_fingerprint_sha256": "0884a0dfef4fa0eea8d8b80fe684d02809e00c0059e801b0805727e9f4188051",
-    "verified_at": "2026-07-10T02:06:33-04:00"
+    "evidence_base_git_head": "a33bdf335c0342df6d9aa238421d3aa9edd4f830",
+    "source_fingerprint_sha256": "18cae9fee035729b75906eff75178415d7c00d71513d45d32c037ddfe2335ebf",
+    "verified_at": "2026-07-10T02:38:06-04:00"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -134,7 +134,7 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, and marketing truthfulness. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret database/browser suite passed 122/122 credentialed assertions, and git diff --check is clean."
+      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, and marketing truthfulness. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret blank-database suite passed 380/380 database, Stripe, route-authorization, parse, and deletion assertions against an isolated production-mode Next server, and git diff --check is clean."
     },
     {
       "id": "GROWTH-MIGRATIONS",
@@ -142,8 +142,8 @@
       "description": "The canonical migration history resets cleanly and the controlled production promotion is recoverable and verified",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "2026-07-10 local proof: a blank Supabase reset applied all 48 canonical records from 001 through 20260710033047, migration list matched the local ledger, and db lint had zero errors. The no-secret credentialed suite passed 122/122 checks across core/interview RLS, referral crediting, pending-parse handoff, the dollar ledger, and the Free-generation mutex. Read-only production inspection still shows only the ledger through 20260703190040; no production mutation was attempted.",
-      "blocker": "Before any production history or schema write, create and verify a manual logical database backup plus a separate Storage download and restore drill. Then repair only the already-equivalent 20260710033033-20260710033037 history rows, require a dry-run showing only 20260710033038-20260710033047 pending, apply that reviewed batch, and rerun the credentialed suite against production. Stop if Supabase requests --include-all or proposes an earlier version."
+      "evidence": "2026-07-10 local proof: a blank Supabase reset applied all 48 canonical records from 001 through 20260710033047, migration list matched the local ledger, db lint had zero errors, and the expanded no-secret credentialed suite passed 380/380 checks. The production Storage half is encrypted and restore-verified for all 19 objects; the database roles/schema/data dump still needs a working password. Read-only production inspection still shows only the ledger through 20260703190040; no production mutation was attempted.",
+      "blocker": "Before any production history or schema write, create and restore-verify the encrypted logical database roles/schema/data dump. Then repair only the already-equivalent 20260710033033-20260710033037 history rows, require a dry-run showing only 20260710033038-20260710033047 pending, apply that reviewed batch, and rerun the credentialed suite against production. Stop if Supabase requests --include-all or proposes an earlier version."
     },
     {
       "id": "GROWTH-PROD-CONFIG",
@@ -446,8 +446,8 @@
       "description": "Production user data has a verified recoverable backup path appropriate to the launch stage",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "security/BACKUP_RESTORE.md documents the procedure. Read-only production inspection found a 19.6 MB database, three auth users, and 19 Storage objects totaling about 7.0 MB. The project is on Free with no automated backups; the founder declined a paid upgrade for now.",
-      "blocker": "Before migration or closed-beta expansion, create encrypted schema/data/roles dumps plus a separate download of every Storage object, verify checksums, and complete a local restore drill. Paid automated backups/PITR remain a later scale requirement when funds permit; database backups alone do not include Storage files."
+      "evidence": "security/BACKUP_RESTORE.md documents the procedure, and security/production-backup-evidence.json records the 20260710T061325Z Storage backup: all 3 private buckets, 19 objects, and 7,033,704 bytes were encrypted; the archive checksum was reverified; a full decrypt/restore checksum drill passed; the passphrase is in macOS Keychain; and no plaintext remains. The project is on Free with no automated database backups.",
+      "blocker": "Create encrypted roles/schema/data dumps for the production database, verify checksums, and complete a local database restore drill before migration or closed-beta expansion. The Storage half is already complete. Paid automated backups/PITR remain a later scale requirement when funds permit."
     },
     {
       "id": "P1-14",
@@ -496,8 +496,8 @@
       "description": "Account deletion is verified against the current schema and retention policy",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The 20/20 canonical local proof now substantiates database/Auth/Storage deletion and the observed retained/unlinked rows, and public/internal privacy wording matches the fail-closed Storage behavior. It also confirmed suppression and provider idempotency retention.",
-      "blocker": "Define and provider-test account deletion for an active Stripe subscription, inventory/remediate any legacy production Storage object outside the current user-prefix convention, and repeat the production-safe deletion/retention inspection after controlled migration promotion."
+      "evidence": "The 20/20 canonical local proof substantiates database/Auth/Storage deletion and the observed retained/unlinked rows, and public/internal privacy wording matches the fail-closed Storage behavior. A read-only production inventory found all 19 objects in private buckets with valid UUID prefixes, but 11 objects (781,697 bytes: 6 resumes and 5 interview recordings) belong to user IDs no longer present in Auth.",
+      "blocker": "Define and provider-test account deletion for an active Stripe subscription; after the verified database backup, reconcile or remove the 11 private orphaned production objects; then repeat the production-safe deletion/retention inspection after controlled migration promotion."
     },
     {
       "id": "P1-20",

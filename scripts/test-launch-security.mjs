@@ -98,6 +98,55 @@ const releaseManifest = JSON.parse(read('security/release-gate.json'))
 assert.equal(releaseManifest.schema_version, 1)
 assert.equal(releaseManifest.contracts.growth_migrations.length, 13)
 assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
+
+const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))
+assert.equal(backupEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
+assert.equal(backupEvidence.storage.status, 'RESTORE_VERIFIED')
+assert.equal(backupEvidence.storage.restore_verified, true)
+assert.equal(backupEvidence.storage.plaintext_retained, false)
+assert.equal(backupEvidence.database.status, 'BLOCKED')
+assert.match(
+  backupEvidence.storage.encrypted_archive_sha256,
+  /^[a-f0-9]{64}$/,
+  'the encrypted Storage archive must have a complete SHA-256 checksum',
+)
+for (const [label, value] of Object.entries({
+  bucket_count: backupEvidence.storage.bucket_count,
+  object_count: backupEvidence.storage.object_count,
+  total_bytes: backupEvidence.storage.total_bytes,
+  encrypted_archive_bytes: backupEvidence.storage.encrypted_archive_bytes,
+})) {
+  assert.ok(Number.isSafeInteger(value) && value > 0, `${label} must be a positive integer`)
+}
+const storageInventory = backupEvidence.production_storage_inventory
+const orphanedBucketTotal = Object.values(storageInventory.orphaned_by_bucket)
+  .reduce((total, count) => total + count, 0)
+assert.equal(
+  orphanedBucketTotal,
+  storageInventory.orphaned_user_prefix_objects,
+  'per-bucket orphan counts must equal the recorded orphan total',
+)
+assert.ok(
+  storageInventory.orphaned_user_prefix_objects <= backupEvidence.storage.object_count,
+  'orphan objects cannot exceed the total backed-up object count',
+)
+assert.ok(
+  storageInventory.orphaned_user_prefix_bytes <= backupEvidence.storage.total_bytes,
+  'orphan bytes cannot exceed the total backed-up byte count',
+)
+for (const id of ['GROWTH-MIGRATIONS', 'P1-13', 'P1-19']) {
+  const requirement = releaseManifest.requirements.find((row) => row.id === id)
+  assert.equal(requirement?.status, 'BLOCKED', `${id} must remain blocked by incomplete production work`)
+  assert.equal(requirement?.release_blocking, true, `${id} must remain release-blocking`)
+}
+for (const id of ['GROWTH-MIGRATIONS', 'P1-13']) {
+  const requirement = releaseManifest.requirements.find((row) => row.id === id)
+  assert.match(
+    requirement?.blocker ?? '',
+    /database|roles\/schema\/data/i,
+    `${id} must still require the production database backup`,
+  )
+}
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
 assert.ok(releaseManifest.contracts.optional_production_env_names.includes('ERROR_WEBHOOK_URL'))
 assert.equal(
