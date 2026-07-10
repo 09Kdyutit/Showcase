@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { checkRateLimit, isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import type { PortfolioContent } from '@/types/database'
 import { z } from 'zod'
 import { trackAsync } from '@/lib/analytics/track'
@@ -24,12 +24,6 @@ export async function POST(req: NextRequest) {
 
   const { portfolioId } = parsed.data
 
-  const isPro = await isProUser(user.id)
-  const rl = await checkRateLimit(user.id, 'resume_analyzed', isPro)
-  if (!rl.allowed) {
-    return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-  }
-
   // Load portfolio (must belong to user)
   const { data: portfolio } = await supabase
     .from('portfolios')
@@ -39,6 +33,13 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (!portfolio) return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+
+  // Resolve ownership before consuming quota. A caller must not lose allowance for a
+  // resource they cannot access, and ownership denials must remain deterministic even
+  // when AI is disabled or the caller has exhausted their quota.
+  const isPro = await isProUser(user.id)
+  const rl = await checkRateLimit(user.id, 'resume_analyzed', isPro)
+  if (!rl.allowed) return rateLimitResponse(rl)
 
   const content = (portfolio.content as unknown as Partial<PortfolioContent>) ?? {}
   const hero = content.hero

@@ -67,7 +67,17 @@ assert.ok(
 
 const privacyPage = read('src/app/privacy/page.tsx')
 assert.doesNotMatch(privacyPage, /Uploaded-file cleanup is retried/, 'privacy copy must not promise a retry queue that does not exist')
-assert.match(privacyPage, /cleanup is attempted/, 'privacy copy must describe best-effort storage cleanup accurately')
+assert.match(
+  privacyPage,
+  /cleanup cannot complete, deletion returns an error and keeps the account/,
+  'privacy copy must describe fail-closed Storage cleanup accurately',
+)
+const accountDeletion = read('src/app/api/account/delete/route.ts')
+assert.match(accountDeletion, /storage\.listBuckets\(\)/, 'account deletion must discover every current Storage bucket')
+assert.ok(
+  accountDeletion.indexOf('await removeStoragePrefix') < accountDeletion.indexOf('auth.admin.deleteUser'),
+  'all Storage cleanup must finish before Auth deletion',
+)
 
 const releaseGate = read('scripts/release-gate.mjs')
 for (const failClosedSignal of [

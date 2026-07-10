@@ -9,6 +9,14 @@ import type { NextConfig } from 'next'
 // branch — so production never ships 'unsafe-eval'. Centralizing it here makes that
 // guarantee explicit and testable, and documents the single source of truth.
 const isDev = process.env.NODE_ENV === 'development'
+// Local credentialed tests own a disposable Next.js dev server. Give that server an
+// isolated cache so a preceding/following developer process cannot leave either side
+// with a partial app-paths manifest. The exact opt-in is ignored outside development,
+// so production builds and ordinary local development continue using Next's default
+// `.next` directory.
+const localHarnessDistDir = isDev && process.env.SHOWCASE_LOCAL_HARNESS === 'true'
+  ? '.next-harness'
+  : undefined
 
 // Browser-based local integration tests talk directly to Supabase CLI. Permit only the
 // exact IPv4 loopback origin supplied by that disposable stack, and never add it to a
@@ -75,6 +83,7 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  ...(localHarnessDistDir ? { distDir: localHarnessDistDir } : {}),
   async headers() {
     return [
       {

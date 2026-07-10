@@ -32,13 +32,18 @@ export async function POST(request: NextRequest) {
     if (content !== undefined) updates.content = content
     if (theme !== undefined) updates.theme = theme
 
-    const { error } = await supabase
+    const { data: saved, error } = await supabase
       .from('portfolios')
       .update(updates)
       .eq('id', portfolioId)
       .eq('user_id', user.id)
+      .select('id')
+      .maybeSingle()
 
     if (error) throw error
+    if (!saved) {
+      return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+    }
 
     trackAsync(user.id, 'portfolio_edit_saved', {
       portfolio_id: portfolioId,

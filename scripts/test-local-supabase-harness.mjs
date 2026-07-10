@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import {
   PRODUCTION_PROJECT_REF,
   SUPABASE_CLI_VERSION,
+  assertSafeHarnessDistDir,
   assertSafeLocalStatus,
   assertSafeSupabaseCommand,
   assertSafeTestEnvironment,
@@ -18,12 +19,26 @@ import {
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LOCAL_DB_URL = `postgresql://postgres:${'post' + 'gres'}@127.0.0.1:54322/postgres`
 const packageJson = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'))
+const tsconfig = JSON.parse(readFileSync(resolve(ROOT, 'tsconfig.json'), 'utf8'))
+const harnessSource = readFileSync(resolve(ROOT, 'scripts/local-supabase-harness.mjs'), 'utf8')
 
-for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:pending-parse']) {
+for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:pending-parse', 'test:deletion']) {
   assert.match(
     packageJson.scripts?.[script] ?? '',
     /--env-file-if-exists=\.env\.local/,
     script + ' must accept the harness environment when .env.local is absent in CI',
+  )
+}
+
+for (const script of ['test:stripe-webhook-expanded', 'test:authorization-local']) {
+  assert.ok(packageJson.scripts?.[script], script + ' must be registered in package.json')
+  assert.ok(harnessSource.includes(`'${script}'`), script + ' must run in the local Supabase harness')
+}
+
+for (const generatedTypes of ['.next-harness/types/**/*.ts', '.next-harness/dev/types/**/*.ts']) {
+  assert.ok(
+    tsconfig.include?.includes(generatedTypes),
+    `tsconfig must include ${generatedTypes} so Next does not rewrite it during harness runs`,
   )
 }
 
@@ -57,6 +72,30 @@ function renderedCsp(nodeEnv, supabaseUrl) {
   return child.stdout
 }
 
+function renderedDistDir(nodeEnv, localHarnessFlag) {
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--no-warnings',
+      '--experimental-strip-types',
+      '--input-type=module',
+      '--eval',
+      "const config = (await import('./next.config.ts')).default; process.stdout.write(config.distDir ?? '<default>')",
+    ],
+    {
+      cwd: ROOT,
+      env: {
+        ...process.env,
+        NODE_ENV: nodeEnv,
+        SHOWCASE_LOCAL_HARNESS: localHarnessFlag,
+      },
+      encoding: 'utf8',
+    },
+  )
+  assert.equal(child.status, 0, child.stderr || 'could not render next.config.ts distDir')
+  return child.stdout
+}
+
 const SAFE_STATUS = {
   API_URL: 'http://127.0.0.1:54321',
   DB_URL: LOCAL_DB_URL,
@@ -75,6 +114,10 @@ assert.throws(
   /forbidden/,
 )
 assert.throws(() => assertSafeSupabaseCommand(['link', '--project-ref', PRODUCTION_PROJECT_REF]))
+assert.equal(assertSafeHarnessDistDir(resolve(ROOT, '.next-harness')), resolve(ROOT, '.next-harness'))
+for (const unsafeDirectory of [ROOT, resolve(ROOT, '.next'), resolve(ROOT, '..', '.next-harness')]) {
+  assert.throws(() => assertSafeHarnessDistDir(unsafeDirectory), /Refusing to remove/)
+}
 
 for (const unsafeStatus of [
   { ...SAFE_STATUS, API_URL: 'http://localhost:54321' },
@@ -101,11 +144,17 @@ assert.equal(overridden.EMAILS_ENABLED, 'false')
 assert.equal(overridden.KILL_SWITCH_AI, 'true')
 assert.equal(overridden.RUN_LIVE_TESTS, '1')
 assert.equal(overridden.LOCAL_SUPABASE_PORT, '54321')
+assert.equal(overridden.SHOWCASE_LOCAL_HARNESS, 'true')
+assert.match(overridden.RESEND_WEBHOOK_SECRET, /^whsec_[A-Za-z0-9+/]+={0,2}$/)
+assert.match(overridden.RESEND_DELIVERY_WEBHOOK_SECRET, /^whsec_[A-Za-z0-9+/]+={0,2}$/)
 
 const productionCsp = renderedCsp('production', SAFE_STATUS.API_URL)
 assert.ok(!productionCsp.includes('127.0.0.1'), 'production CSP must never gain loopback')
 assert.ok(!productionCsp.includes('localhost'), 'production CSP must never gain localhost')
 assert.ok(!productionCsp.includes('[::1]'), 'production CSP must never gain IPv6 loopback')
+assert.equal(renderedDistDir('production', 'true'), '<default>', 'production must ignore the harness cache gate')
+assert.equal(renderedDistDir('development', 'false'), '<default>', 'ordinary development must keep the default cache')
+assert.equal(renderedDistDir('development', 'true'), '.next-harness', 'the exact local harness gate must isolate its cache')
 
 const localDevelopmentCsp = renderedCsp('development', SAFE_STATUS.API_URL)
 assert.ok(

@@ -4,9 +4,10 @@
 // Local credentials stay in child-process memory: this script never writes an env file,
 // and its environment overrides any values loaded later from an existing .env.local.
 import { spawn, spawnSync } from 'node:child_process'
+import { rmSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
 export const SUPABASE_CLI_VERSION = '2.109.1'
@@ -16,6 +17,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const NPX = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const APP_URL = 'http://127.0.0.1:3100'
+const HARNESS_DIST_DIR = resolve(ROOT, '.next-harness')
 const START_EXCLUDES = 'analytics,edge-runtime,imgproxy,realtime,studio,vector'
 const DB_TEST_SCRIPTS = [
   'test:rls',
@@ -23,6 +25,7 @@ const DB_TEST_SCRIPTS = [
   'test:interview-rls',
   'test:ai-budget-live',
   'test:portfolio-entitlement-live',
+  'test:stripe-webhook-expanded',
 ]
 
 export function assertNoProductionReference(value, label = 'value') {
@@ -136,6 +139,11 @@ export function assertSafeTestEnvironment(env) {
 export function buildLocalTestEnvironment(status, baseEnv = process.env) {
   const local = assertSafeLocalStatus(status)
   const env = { ...baseEnv }
+  const standardWebhookPrefix = ['whsec', ''].join('_')
+  const localInboundWebhookSecret = standardWebhookPrefix
+    + Buffer.from('local-inbound-webhook-secret-32-bytes').toString('base64')
+  const localDeliveryWebhookSecret = standardWebhookPrefix
+    + Buffer.from('local-delivery-webhook-secret-32-byte').toString('base64')
 
   for (const name of [
     'SUPABASE_ACCESS_TOKEN',
@@ -157,6 +165,7 @@ export function buildLocalTestEnvironment(status, baseEnv = process.env) {
     SUPABASE_PROJECT_REF: 'local',
     DATABASE_URL: local.dbUrl,
     NEXT_PUBLIC_APP_URL: APP_URL,
+    SHOWCASE_LOCAL_HARNESS: 'true',
     LAUNCH_OPEN: 'true',
     EMAILS_ENABLED: 'false',
     LIFECYCLE_EMAILS_ENABLED: 'false',
@@ -174,8 +183,8 @@ export function buildLocalTestEnvironment(status, baseEnv = process.env) {
     OPENAI_API_KEY: 'local-disabled-no-network',
     GEMINI_API_KEY: '',
     RESEND_API_KEY: 'local-disabled-no-network',
-    RESEND_WEBHOOK_SECRET: 'local-disabled',
-    RESEND_DELIVERY_WEBHOOK_SECRET: 'local-disabled',
+    RESEND_WEBHOOK_SECRET: localInboundWebhookSecret,
+    RESEND_DELIVERY_WEBHOOK_SECRET: localDeliveryWebhookSecret,
     STRIPE_SECRET_KEY: 'sk_test_local_disabled',
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_local_disabled',
     STRIPE_WEBHOOK_SECRET: 'whsec_local_disabled',
@@ -302,10 +311,30 @@ async function assertHarnessPortAvailable() {
   })
 }
 
+export function assertSafeHarnessDistDir(directory) {
+  const candidate = resolve(String(directory ?? ''))
+  if (
+    candidate !== HARNESS_DIST_DIR
+    || dirname(candidate) !== ROOT
+    || basename(candidate) !== '.next-harness'
+  ) {
+    throw new Error('Refusing to remove anything except the repository local harness cache')
+  }
+  return candidate
+}
+
+function clearHarnessDistDir() {
+  rmSync(assertSafeHarnessDistDir(HARNESS_DIST_DIR), { recursive: true, force: true })
+}
+
 async function startHarnessApp(env, secrets) {
   // A server may already own the port while its health route is still compiling.
   // Probing the bind itself prevents the harness from mistaking that for a free port.
   await assertHarnessPortAvailable()
+  // This exact directory belongs only to the harness (next.config.ts requires the
+  // development-only SHOWCASE_LOCAL_HARNESS gate). Clear it only after proving another
+  // harness server is not active on the owned port.
+  clearHarnessDistDir()
 
   const child = spawn(
     NPM,
@@ -347,39 +376,45 @@ async function startHarnessApp(env, secrets) {
 }
 
 async function stopHarnessApp(child) {
-  if (!child || child.exitCode !== null) return
-  try {
-    if (process.platform === 'win32') child.kill('SIGTERM')
-    else process.kill(-child.pid, 'SIGTERM')
-  } catch {
-    child.kill('SIGTERM')
-  }
-  await delay(1_500)
-  if (child.exitCode === null) {
+  if (child && child.exitCode === null) {
     try {
-      if (process.platform === 'win32') child.kill('SIGKILL')
-      else process.kill(-child.pid, 'SIGKILL')
+      if (process.platform === 'win32') child.kill('SIGTERM')
+      else process.kill(-child.pid, 'SIGTERM')
     } catch {
-      child.kill('SIGKILL')
+      child.kill('SIGTERM')
+    }
+    await delay(1_500)
+    if (child.exitCode === null) {
+      try {
+        if (process.platform === 'win32') child.kill('SIGKILL')
+        else process.kill(-child.pid, 'SIGKILL')
+      } catch {
+        child.kill('SIGKILL')
+      }
     }
   }
+  clearHarnessDistDir()
 }
 
 function usage() {
-  console.log('Usage: npm run test:local-supabase -- [--db-only|--pending-parse-only] [--stop]')
+  console.log('Usage: npm run test:local-supabase -- [--db-only|--pending-parse-only|--authorization-only|--account-deletion-only] [--stop]')
   console.log('  --db-only            Skip the localhost Next.js route/browser test')
   console.log('  --pending-parse-only Run only the localhost pending-parse route/browser test')
+  console.log('  --authorization-only Run only the localhost API authorization audit')
+  console.log('  --account-deletion-only Run only the localhost account-deletion proof')
   console.log('  --stop               Stop Supabase and delete its local volume after the run')
 }
 
 async function main() {
   const options = new Set(process.argv.slice(2))
-  const allowed = new Set(['--db-only', '--pending-parse-only', '--stop', '--help'])
+  const allowed = new Set(['--db-only', '--pending-parse-only', '--authorization-only', '--account-deletion-only', '--stop', '--help'])
   for (const option of options) {
     if (!allowed.has(option)) throw new Error('Unknown option: ' + option)
   }
-  if (options.has('--db-only') && options.has('--pending-parse-only')) {
-    throw new Error('--db-only and --pending-parse-only are mutually exclusive')
+  const exclusiveModes = ['--db-only', '--pending-parse-only', '--authorization-only', '--account-deletion-only']
+    .filter((option) => options.has(option))
+  if (exclusiveModes.length > 1) {
+    throw new Error(exclusiveModes.join(' and ') + ' are mutually exclusive')
   }
   if (options.has('--help')) {
     usage()
@@ -406,7 +441,7 @@ async function main() {
     const env = buildLocalTestEnvironment(local.raw)
     const secrets = [local.safe.anonKey, local.safe.serviceRoleKey, local.safe.dbUrl]
 
-    if (!options.has('--pending-parse-only')) {
+    if (!options.has('--pending-parse-only') && !options.has('--authorization-only') && !options.has('--account-deletion-only')) {
       for (const script of DB_TEST_SCRIPTS) {
         console.log('\nRunning ' + script + ' against verified localhost...')
         try {
@@ -421,7 +456,15 @@ async function main() {
       console.log('\nStarting a harness-owned Next.js server on ' + APP_URL + '...')
       try {
         app = await startHarnessApp(env, secrets)
-        runNpmScript('test:pending-parse', env, secrets)
+        if (!options.has('--account-deletion-only') && !options.has('--authorization-only')) {
+          runNpmScript('test:pending-parse', env, secrets)
+        }
+        if (!options.has('--account-deletion-only') && !options.has('--pending-parse-only')) {
+          runNpmScript('test:authorization-local', env, secrets)
+        }
+        if (!options.has('--pending-parse-only') && !options.has('--authorization-only')) {
+          runNpmScript('test:deletion', env, secrets)
+        }
       } catch (error) {
         failures.push(error instanceof Error ? error.message : String(error))
       } finally {

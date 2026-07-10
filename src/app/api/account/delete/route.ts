@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
-// Every user-owned table has ON DELETE CASCADE to auth.users (verified directly against
-// the schema), so deleting the auth user cascades resumes, portfolios, audits,
-// generations, usage_events, saved_jobs, applications, tailored_assets, voice_profiles,
-// evidence_items, subscriptions, the profile row, and every interview_* table
-// (sessions, questions, answers, transcript_segments, evaluations, dimension_scores,
-// story_bank, drills, usage, shared_reports) automatically. Storage objects are not
-// part of the Postgres FK graph and must be removed explicitly.
+// Canonical migrations through 047 attach every user-owned row to auth.users with
+// ON DELETE CASCADE. The local account-deletion proof inventories those constraints
+// directly from Postgres and seeds every owned table, so schema additions cannot drift
+// past this route silently. Storage objects are outside that FK graph and must be
+// removed explicitly before the auth user is deleted.
 const schema = z.object({
   confirm: z.literal('DELETE'),
 })
@@ -68,15 +66,25 @@ export async function POST(request: NextRequest) {
 
     const service = await createServiceClient()
 
-    // Storage is outside the relational cascade. Walk every nested object under the user
-    // prefix so legacy/malformed paths cannot survive deletion. Cleanup is best effort: the
-    // auth deletion still proceeds, but every failure is logged for operator follow-up.
-    for (const bucket of ['resumes', 'portfolio-images', 'interview-recordings']) {
-      try {
-        await removeStoragePrefix(service, bucket, user.id)
-      } catch (err) {
-        console.error(`[account/delete] ${bucket} cleanup failed (continuing):`, err instanceof Error ? err.message : err)
-      }
+    // Discover buckets instead of maintaining a second hard-coded list. Every current
+    // upload path starts with the authenticated user id, and the deletion proof places
+    // both flat and deeply nested objects in every bucket before invoking this route.
+    // Fail closed: a 200 must never mean "account gone, uploaded files orphaned". A
+    // partial cleanup is safe to retry because object removal is idempotent.
+    const { data: buckets, error: bucketError } = await service.storage.listBuckets()
+    if (bucketError) throw bucketError
+
+    for (const bucket of buckets ?? []) {
+      await removeStoragePrefix(service, bucket.id, user.id)
+
+      // The interview retention worker may already have queued one of the paths we
+      // just removed. Delete those now-obsolete operational pointers as well.
+      const { error: queueError } = await service
+        .from('storage_deletion_queue')
+        .delete()
+        .eq('bucket', bucket.id)
+        .like('path', `${user.id}/%`)
+      if (queueError) throw queueError
     }
 
     const { error: deleteError } = await service.auth.admin.deleteUser(user.id)

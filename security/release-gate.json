@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "8a0effba4373f83ccee70bdda279ce782dae35f2",
-    "source_fingerprint_sha256": "316eedc537183f6db91af2bfa787c507ec0fdec582e5c7c00a39e974f35ac10c",
-    "verified_at": "2026-07-10T00:39:08-04:00"
+    "evidence_base_git_head": "5b793c6f9c3bdb504a84b0426b8fc56ab7eea68c",
+    "source_fingerprint_sha256": "0884a0dfef4fa0eea8d8b80fe684d02809e00c0059e801b0805727e9f4188051",
+    "verified_at": "2026-07-10T02:06:33-04:00"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -242,19 +242,17 @@
       "id": "P0-01",
       "area": "authorization",
       "description": "Authorization matrix covers the current API route surface",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "The existing matrix and adversarial suite covered a 21-route surface. The repository now contains 82 API route files, including new public, cron, growth, email-event, referral, ProofScore, and Founding endpoints. Those new boundaries have targeted offline checks but the matrix is not current.",
-      "blocker": "Regenerate the API authorization matrix for every current route and run credentialed cross-user/public/cron/webhook attacks against the disposable local stack; repeat the production-safe smoke subset after controlled promotion."
+      "evidence": "security/api-authorization-matrix.json is a machine-enforced one-to-one inventory of all 82 API route files and all 102 exported HTTP handlers. The static audit passed 9/9, including 80 session handlers, exact method coverage, owner filters, cron secrets, provider signatures, and service-only RPC grants."
     },
     {
       "id": "P0-02",
       "area": "authorization",
       "description": "Adversarial authorization suite covers the current API surface",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "The legacy 15-case suite passed and found two ownership-related 500s, but it predates the current 82-route surface and the migration-035-047 surface. It is useful regression coverage, not proof of the new endpoints.",
-      "blocker": "Expand the suite from the current authorization matrix and run it against the canonical local stack, including anonymous capacity, referral admission, cron secrets, webhook signatures, and service-only RPC boundaries."
+      "evidence": "The canonical disposable-stack authorization audit passed 186/186 twice around the exhaustive account-deletion run. It covers all 80 anonymous session boundaries, cross-user records, public/token redaction, referral admission/capacity, cron secrets, signed Stripe/Resend webhooks, unsubscribe confirmation, and direct anon/authenticated attacks on service-only RPCs."
     },
     {
       "id": "P0-03",
@@ -276,9 +274,10 @@
       "id": "P0-05",
       "area": "secrets",
       "description": "Credentials exposed in chat/terminal this session rotated",
-      "status": "PASS",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "Account owner explicitly confirmed (2026-06-22 release-closure session) that all previously-exposed credentials were rotated in their respective dashboards and updated in .env.local + Vercel: Supabase service-role key, Supabase database password, Stripe secret key, Stripe webhook secret, OpenAI API key, Gemini API key, jobs-provider API key. This confirmation is the account owner's direct statement, not inferred from code or environment-variable presence — no key value was inspected or printed by the assistant at any point."
+      "evidence": "The account owner previously confirmed that earlier exposed credentials were rotated. During the 2026-07-10 local email-test diagnosis, the existing Resend API key value was printed into a private agent tool log. No provider call or email occurred and all email delivery remains disabled, but that newly exposed credential has not yet been rotated.",
+      "blocker": "Revoke and replace the exposed Resend API key in Resend, local configuration, and the showcase-app production environment before any email feature or release is enabled."
     },
     {
       "id": "P0-06",
@@ -300,10 +299,9 @@
       "id": "P0-08",
       "area": "data-integrity",
       "description": "Account deletion covers the schema through canonical migration 047 and every storage bucket",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "The deletion route now recursively attempts all three storage prefixes and existing deletion tests passed on the legacy live schema. Canonical migrations 035-047 add growth, email, cost, capacity, and reservation records plus explicit Data API grants; the connected database lacks those migrations, so a current live cascade/retention proof is impossible today.",
-      "blocker": "Seed user-owned rows across the canonical local schema plus nested files, delete through the real route, and prove the intended cascade, unlink, suppression, and provider-retention behavior; repeat the non-destructive production checks after promotion."
+      "evidence": "The canonical local proof passed 20/20 after the 186-case authorization load: exact 48-migration ledger through 047; 29 CASCADE-owned tables; 8 intentional SET NULL relationships; all three discovered Storage buckets with flat, nested, and survivor files; forced Storage failure preserving the account; real authenticated route success; zero user/Auth residue; retained suppression/provider records; and complete synthetic cleanup."
     },
     {
       "id": "P0-RLS",
@@ -351,8 +349,8 @@
       "description": "Current Stripe webhook is idempotent and monotonic under retries and out-of-order delivery",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The legacy logical-migration-010 path passed its prior six-case test. The handler and test suite now depend on `20260710033041_launch_security_and_webhooks.sql` retry claims and `20260710033044_atomic_subscription_state.sql` atomic subscription snapshots, fetch current provider state, and handle Founding holds. Those migrations are not live and the expanded credentialed suite was intentionally not run against unknown production keys.",
-      "blocker": "Run the expanded duplicate, stale, retry, deletion, invoice, checkout, and Founding webhook suite locally with Showcase test-mode Stripe keys, then repeat one controlled refundable live transaction after production promotion."
+      "evidence": "The no-provider local suite passed 52/52 against canonical migrations: signature/tamper/staleness, exclusive claims, duplicates, busy/failed/stale retries, invoice states, paid/unpaid checkout validation, price/customer/user/plan conflicts, replacement ordering, atomic cancellation plus portfolio unpublish, lost-response retry, and Founding capacity/activation/release races. The configured real local Stripe credential is live-mode, so no Stripe API call was attempted.",
+      "blocker": "Configure genuine Stripe test-mode credentials and complete a provider-backed checkout/webhook/reconcile proof. After controlled production promotion, run the separately authorized small refundable live transaction."
     },
     {
       "id": "P1-02",
@@ -473,8 +471,8 @@
       "description": "Production authentication and lifecycle email are provider-verified and compliant",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The redirect bug is fixed and Resend core credentials exist, but the 2026-07-09 production environment check did not show the separate delivery webhook secret, unsubscribe signing secret, sender address, required physical postal address, or explicit email kill switches. Supabase custom auth SMTP was not re-verified in this pass.",
-      "blocker": "Configure custom auth SMTP plus the missing Resend/compliance variables; then test delivery, unsubscribe POST confirmation, bounce, complaint, and suppression before EMAILS_ENABLED=true."
+      "evidence": "Local Standard Webhooks verification now passes signed/tampered Resend vectors and the invite cron reports explicit disabled/configuration gates. Production still lacks confirmed custom auth SMTP, a physical postal address, complete compliance variables, and provider E2E proof; the existing Resend API key was also exposed in a private diagnostic log and is treated as compromised.",
+      "blocker": "Rotate the Resend API key, configure custom auth SMTP plus the missing sender/compliance variables and physical postal address, then test delivery, unsubscribe POST confirmation, bounce, complaint, and suppression before EMAILS_ENABLED=true."
     },
     {
       "id": "P1-17",
@@ -498,8 +496,8 @@
       "description": "Account deletion is verified against the current schema and retention policy",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The authenticated deletion route, recursive storage traversal, and public privacy language are implemented. Current live evidence predates canonical migrations 035-047 and therefore cannot substantiate the expanded policy yet.",
-      "blocker": "Complete the canonical local deletion proof required by P0-08, then verify the public policy against observed rows and storage objects."
+      "evidence": "The 20/20 canonical local proof now substantiates database/Auth/Storage deletion and the observed retained/unlinked rows, and public/internal privacy wording matches the fail-closed Storage behavior. It also confirmed suppression and provider idempotency retention.",
+      "blocker": "Define and provider-test account deletion for an active Stripe subscription, inventory/remediate any legacy production Storage object outside the current user-prefix convention, and repeat the production-safe deletion/retention inspection after controlled migration promotion."
     },
     {
       "id": "P1-20",

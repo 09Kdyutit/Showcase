@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
 import { recordTrustedEvent } from '@/lib/growth/trusted-events'
+import {
+  processClaimedStripeEvent,
+  stripeProductConfigFromEnv,
+  type SubscriptionSnapshot,
+} from '@/lib/stripe/webhook-events'
 import type Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -20,7 +25,6 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = await createServiceClient()
-  const eventCreatedAt = new Date(event.created * 1000).toISOString()
 
   // Claim, don't merely record. A handler can fail after the claim; the database keeps
   // that event retryable and atomically lets a later Stripe delivery reclaim it. This
@@ -45,162 +49,46 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    switch (event.type) {
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const eventSub = event.data.object as Stripe.Subscription
-        // Delivery can be delayed. Re-read Stripe so an old event carries the current
-        // provider snapshot, then let the database serialize it with any concurrent event.
-        const sub = await stripe.subscriptions.retrieve(eventSub.id)
-        const customerId = stripeObjectId(sub.customer)
-        const resolvedUserId = sub.metadata?.user_id
-          ?? eventSub.metadata?.user_id
-          ?? await getUserIdFromCustomer(supabase, customerId)
-        if (!resolvedUserId) throw new Error('Subscription event could not be mapped to a Showcase user')
-
-        await applySubscriptionSnapshot(supabase, {
-          userId: resolvedUserId,
-          subscription: sub,
-          customerId,
-          eventCreatedAt,
-          eventId: event.id,
+    await processClaimedStripeEvent(event, {
+      retrieveSubscription: (subscriptionId) => stripe.subscriptions.retrieve(subscriptionId),
+      resolveCustomerUserId: (customerId) => getUserIdFromCustomer(supabase, customerId),
+      applySubscriptionSnapshot: (input) => applySubscriptionSnapshot(supabase, input),
+      applySubscriptionDeletion: (input) => applySubscriptionDeletion(supabase, input),
+      activateFoundingSlot: async (input) => {
+        const { data, error } = await supabase.rpc('activate_founding_member_slot', {
+          p_reservation_id: input.reservationId,
+          p_user_id: input.userId,
+          p_checkout_session_id: input.checkoutSessionId,
+          p_subscription_id: input.subscriptionId,
         })
-        break
-      }
-
-      case 'customer.subscription.deleted': {
-        const sub = event.data.object as Stripe.Subscription
-        const customerId = stripeObjectId(sub.customer)
-        const userId = sub.metadata?.user_id ?? await getUserIdFromCustomer(supabase, customerId)
-        if (!userId) throw new Error('Deleted subscription could not be mapped to a Showcase user')
-        const applied = await applySubscriptionSnapshot(supabase, {
-          userId,
-          subscription: sub,
-          customerId,
-          eventCreatedAt,
-          eventId: event.id,
-          statusOverride: 'canceled',
+        if (error) throw error
+        return data === true
+      },
+      releaseFoundingSlot: async (input) => {
+        const { data, error } = await supabase.rpc('release_founding_member_slot', {
+          p_reservation_id: input.reservationId,
+          p_user_id: input.userId,
+          p_reason: input.reason,
         })
-
-        // A deletion for an older replaced subscription returns false atomically, so it
-        // cannot take a newly-paid user's work offline.
-        if (!applied) break
-
-        const { error: unpublishError } = await supabase
-          .from('portfolios')
-          .update({
-            status: 'draft',
-            published_at: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', userId)
-          .eq('status', 'published')
-        if (unpublishError) throw unpublishError
-        break
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice
-        const subscriptionRef = invoice.parent?.subscription_details?.subscription
-        if (subscriptionRef) {
-          const subscriptionId = typeof subscriptionRef === 'string' ? subscriptionRef : subscriptionRef.id
-          const sub = await stripe.subscriptions.retrieve(subscriptionId)
-          const customerId = stripeObjectId(sub.customer)
-          const userId = sub.metadata?.user_id ?? await getUserIdFromCustomer(supabase, customerId)
-          if (!userId) throw new Error('Failed invoice could not be mapped to a Showcase user')
-          await applySubscriptionSnapshot(supabase, {
-            userId,
-            subscription: sub,
-            customerId,
-            eventCreatedAt,
-            eventId: event.id,
-          })
-        }
-        break
-      }
-
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        // A completed Checkout Session is not necessarily paid when asynchronous payment
-        // methods are enabled. Capacity and conversion facts only become durable on payment.
-        if (session.mode === 'subscription' && session.subscription && session.payment_status === 'paid') {
-          const sub = await stripe.subscriptions.retrieve(stripeObjectId(session.subscription))
-          const userId = session.metadata?.user_id ?? sub.metadata?.user_id
-          if (!userId) throw new Error('Paid checkout could not be mapped to a Showcase user')
-          if (sub) {
-            const priceItem = sub.items.data[0]
-            const plan = session.metadata?.plan ?? sub.metadata?.plan ?? 'unknown'
-
-            if (plan === 'founding') {
-              const reservationId = session.metadata?.founding_reservation_id
-                ?? sub.metadata?.founding_reservation_id
-              if (!reservationId) throw new Error('Paid Founding checkout is missing its reservation id')
-
-              const { data: activated, error: activationError } = await supabase.rpc(
-                'activate_founding_member_slot',
-                {
-                  p_reservation_id: reservationId,
-                  p_user_id: userId,
-                  p_checkout_session_id: session.id,
-                  p_subscription_id: sub.id,
-                }
-              )
-              if (activationError || activated !== true) {
-                throw new Error(activationError?.message ?? 'Could not activate paid Founding Member slot')
-              }
-            }
-
-            // Capacity activation and the paid-checkout fact are monotonic. Mutable
-            // subscription state is serialized inside Postgres.
-            await applySubscriptionSnapshot(supabase, {
-              userId,
-              subscription: sub,
-              customerId: stripeObjectId(sub.customer),
-              eventCreatedAt,
-              eventId: event.id,
-            })
-
-            await recordTrustedEvent({
-              idempotencyKey: `stripe-checkout-completed:${session.id}`,
-              eventName: 'checkout_completed',
-              userId,
-              entityType: 'stripe_checkout_session',
-              entityId: session.id,
-              source: 'stripe_webhook',
-              metadata: {
-                plan,
-                price_id: priceItem?.price?.id ?? null,
-                subscription_id: sub.id,
-                founding: plan === 'founding',
-              },
-              occurredAt: eventCreatedAt,
-            }, supabase)
-          }
-        }
-        break
-      }
-
-      case 'checkout.session.expired': {
-        const session = event.data.object as Stripe.Checkout.Session
-        if (session.metadata?.plan !== 'founding') break
-
-        const userId = session.metadata?.user_id
-        const reservationId = session.metadata?.founding_reservation_id
-        if (!userId || !reservationId) {
-          throw new Error('Expired Founding checkout is missing reservation metadata')
-        }
-
-        const { error: releaseError } = await supabase.rpc('release_founding_member_slot', {
-          p_reservation_id: reservationId,
-          p_user_id: userId,
-          p_reason: 'checkout_session_expired',
-        })
-        if (releaseError) throw releaseError
-        // A false result is intentionally benign: an out-of-order expiry must never
-        // regress a slot that the paid-completion path already made active.
-        break
-      }
-    }
+        if (error) throw error
+        return data === true
+      },
+      recordCheckoutCompleted: (input) => recordTrustedEvent({
+        idempotencyKey: `stripe-checkout-completed:${input.session.id}`,
+        eventName: 'checkout_completed',
+        userId: input.userId,
+        entityType: 'stripe_checkout_session',
+        entityId: input.session.id,
+        source: 'stripe_webhook',
+        metadata: {
+          plan: input.plan,
+          price_id: input.priceId,
+          subscription_id: input.subscription.id,
+          founding: input.plan === 'founding',
+        },
+        occurredAt: input.eventCreatedAt,
+      }, supabase),
+    }, stripeProductConfigFromEnv())
 
     const { error: processedError } = await supabase
       .from('processed_webhook_events')
@@ -229,18 +117,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ received: true })
 }
 
-interface SubscriptionSnapshotInput {
-  userId: string
-  subscription: Stripe.Subscription
-  customerId: string
-  eventCreatedAt: string
-  eventId: string
-  statusOverride?: string
-}
-
 async function applySubscriptionSnapshot(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
-  input: SubscriptionSnapshotInput
+  input: SubscriptionSnapshot
 ): Promise<boolean> {
   const priceItem = input.subscription.items.data[0]
   const { data, error } = await supabase.rpc('apply_subscription_snapshot', {
@@ -261,6 +140,28 @@ async function applySubscriptionSnapshot(
   return data === true
 }
 
+async function applySubscriptionDeletion(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  input: SubscriptionSnapshot
+): Promise<boolean> {
+  const priceItem = input.subscription.items.data[0]
+  const { data, error } = await supabase.rpc('apply_subscription_deletion', {
+    p_user_id: input.userId,
+    p_stripe_customer_id: input.customerId,
+    p_stripe_subscription_id: input.subscription.id,
+    p_subscription_created_at: new Date(input.subscription.created * 1000).toISOString(),
+    p_price_id: priceItem?.price?.id ?? null,
+    p_current_period_end: priceItem?.current_period_end
+      ? new Date(priceItem.current_period_end * 1000).toISOString()
+      : null,
+    p_cancel_at_period_end: input.subscription.cancel_at_period_end,
+    p_event_created_at: input.eventCreatedAt,
+    p_event_id: input.eventId,
+  })
+  if (error) throw new Error(`Atomic subscription cancellation failed: ${error.message}`)
+  return data === true
+}
+
 async function getUserIdFromCustomer(supabase: Awaited<ReturnType<typeof createServiceClient>>, customerId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from('subscriptions')
@@ -269,10 +170,4 @@ async function getUserIdFromCustomer(supabase: Awaited<ReturnType<typeof createS
     .maybeSingle()
   if (error) throw new Error(`Could not resolve Stripe customer: ${error.message}`)
   return data?.user_id ?? null
-}
-
-function stripeObjectId(value: string | { id: string } | null): string {
-  if (typeof value === 'string') return value
-  if (value?.id) return value.id
-  throw new Error('Stripe object is missing an id')
 }

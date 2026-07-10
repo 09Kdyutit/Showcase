@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe/client'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { recordTrustedEvent } from '@/lib/growth/trusted-events'
+import {
+  stripeProductConfigFromEnv,
+  validatePaidCheckoutEntitlement,
+} from '@/lib/stripe/webhook-events'
 import { z } from 'zod'
 import type Stripe from 'stripe'
 
@@ -46,17 +50,29 @@ export async function POST(request: NextRequest) {
 
     // Service client bypasses RLS, exactly as the webhook does when it writes this row.
     const svc = await createServiceClient()
-    const plan = session.metadata?.plan ?? subscription.metadata?.plan ?? 'unknown'
-    if (plan === 'founding') {
-      const reservationId = session.metadata?.founding_reservation_id
-        ?? subscription.metadata?.founding_reservation_id
-      if (!reservationId) throw new Error('Paid Founding checkout is missing its reservation id')
+    const entitlement = await validatePaidCheckoutEntitlement(session, subscription, {
+      expectedUserId: user.id,
+      config: stripeProductConfigFromEnv(),
+      resolveCustomerUserId: async (customerId) => {
+        const { data, error } = await svc
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle()
+        if (error) throw new Error(`Could not resolve Stripe customer: ${error.message}`)
+        return data?.user_id ?? null
+      },
+    })
+    if (entitlement.plan === 'founding') {
+      if (!entitlement.foundingReservationId) {
+        throw new Error('Paid Founding checkout is missing its reservation id')
+      }
 
       const { data: activated, error: activationError } = await svc.rpc(
         'activate_founding_member_slot',
         {
-          p_reservation_id: reservationId,
-          p_user_id: user.id,
+          p_reservation_id: entitlement.foundingReservationId,
+          p_user_id: entitlement.userId,
           p_checkout_session_id: session.id,
           p_subscription_id: subscription.id,
         }
@@ -67,15 +83,9 @@ export async function POST(request: NextRequest) {
     }
 
     const observedAt = new Date().toISOString()
-    const customerId = typeof subscription.customer === 'string'
-      ? subscription.customer
-      : subscription.customer?.id
-        ?? (typeof session.customer === 'string' ? session.customer : session.customer?.id)
-    if (!customerId) throw new Error('Stripe session is missing its customer id')
-
     const { error: snapshotError } = await svc.rpc('apply_subscription_snapshot', {
-      p_user_id: user.id,
-      p_stripe_customer_id: customerId,
+      p_user_id: entitlement.userId,
+      p_stripe_customer_id: entitlement.customerId,
       p_stripe_subscription_id: subscription.id,
       p_subscription_created_at: new Date(subscription.created * 1000).toISOString(),
       p_status: status,
@@ -94,22 +104,22 @@ export async function POST(request: NextRequest) {
     await recordTrustedEvent({
       idempotencyKey: `stripe-checkout-completed:${session.id}`,
       eventName: 'checkout_completed',
-      userId: user.id,
+      userId: entitlement.userId,
       entityType: 'stripe_checkout_session',
       entityId: session.id,
       source: 'stripe_reconcile_session',
       metadata: {
-        plan,
-        price_id: priceItem?.price?.id ?? null,
+        plan: entitlement.plan,
+        price_id: entitlement.priceId,
         subscription_id: subscription.id,
-        founding: plan === 'founding',
+        founding: entitlement.plan === 'founding',
       },
     }, svc)
 
     const { data: effective, error: readError } = await svc
       .from('subscriptions')
       .select('status')
-      .eq('user_id', user.id)
+      .eq('user_id', entitlement.userId)
       .maybeSingle()
     if (readError) throw readError
     const effectiveStatus = effective?.status ?? status

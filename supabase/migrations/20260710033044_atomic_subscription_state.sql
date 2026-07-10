@@ -151,3 +151,73 @@ revoke all on function public.apply_subscription_snapshot(
 grant execute on function public.apply_subscription_snapshot(
   uuid, text, text, timestamptz, text, text, timestamptz, boolean, timestamptz, text
 ) to service_role;
+
+-- Cancellation has a second money-state effect: published work must become a private
+-- draft. Keep that transition in the same transaction as the subscription snapshot. If
+-- unpublishing fails, the snapshot rolls back and Stripe's retry can safely try both again;
+-- if the HTTP response is lost after commit, the retry sees the same canceled subscription
+-- and repeats the idempotent unpublish. A delayed deletion for a replaced subscription
+-- returns false and cannot affect the replacement subscriber's portfolio.
+create or replace function public.apply_subscription_deletion(
+  p_user_id uuid,
+  p_stripe_customer_id text,
+  p_stripe_subscription_id text,
+  p_subscription_created_at timestamptz,
+  p_price_id text,
+  p_current_period_end timestamptz,
+  p_cancel_at_period_end boolean,
+  p_event_created_at timestamptz,
+  p_event_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_is_current_cancellation boolean;
+begin
+  -- apply_subscription_snapshot takes and retains the per-user transaction lock, so the
+  -- verification and portfolio update below cannot race a replacement subscription.
+  perform public.apply_subscription_snapshot(
+    p_user_id,
+    p_stripe_customer_id,
+    p_stripe_subscription_id,
+    p_subscription_created_at,
+    'canceled',
+    p_price_id,
+    p_current_period_end,
+    p_cancel_at_period_end,
+    p_event_created_at,
+    p_event_id
+  );
+
+  select exists (
+    select 1
+    from public.subscriptions s
+    where s.user_id = p_user_id
+      and s.stripe_subscription_id = p_stripe_subscription_id
+      and s.status = 'canceled'
+  ) into v_is_current_cancellation;
+
+  if not v_is_current_cancellation then
+    return false;
+  end if;
+
+  update public.portfolios
+  set status = 'draft',
+      published_at = null,
+      updated_at = now()
+  where user_id = p_user_id
+    and status = 'published';
+
+  return true;
+end;
+$$;
+
+revoke all on function public.apply_subscription_deletion(
+  uuid, text, text, timestamptz, text, timestamptz, boolean, timestamptz, text
+) from public, anon, authenticated;
+grant execute on function public.apply_subscription_deletion(
+  uuid, text, text, timestamptz, text, timestamptz, boolean, timestamptz, text
+) to service_role;

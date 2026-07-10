@@ -10,7 +10,7 @@ configuration in `vercel.json`, and the documented provider settings have been d
 | Category | Examples | Retention / deletion behavior |
 |---|---|---|
 | Account and career data | profile, resumes, portfolios, projects, audits, jobs, applications, tailored assets, evidence, interview sessions and answers | User-owned rows reference `auth.users` with cascading deletion and are removed with the account. |
-| Uploaded files | resume files, portfolio images, interview recordings | `/api/account/delete` recursively attempts to remove every object under the user's prefix before deleting the auth user. Storage is outside the database cascade, so failures are logged for operator follow-up rather than silently described as guaranteed. |
+| Uploaded files | resume files, portfolio images, interview recordings | `/api/account/delete` discovers every Storage bucket and recursively removes objects under the user's prefix before deleting the auth user. A Storage list/remove failure aborts account deletion so the user can retry without receiving a false success. |
 | Billing state | local Stripe customer/subscription IDs and plan status | Local subscription rows are deleted with the account. Stripe remains the payment system of record and may retain customer and transaction records for its legal and operational obligations. Showcase does not store card or bank details. |
 | Waitlist | email, goal, referral and admission state | A waitlist row can remain after account deletion, with `converted_user_id` unlinked. Privacy deletion requests can be sent to `hello@tryshowcase.ink`. |
 | Anonymous ProofScore parse | resume text and parsed JSON behind an unguessable claim token | Available for at most 48 hours, deleted atomically when claimed, and expired rows are purged by the hourly retention job. The stash and claim endpoints also remove expired rows opportunistically. |
@@ -41,11 +41,13 @@ remain access-controlled.
 ## Deletion mechanics
 
 `POST /api/account/delete` requires an authenticated user and the exact `DELETE`
-confirmation. It recursively removes objects from `resumes`, `portfolio-images`, and
-`interview-recordings`, then calls Supabase Admin `deleteUser`. Database foreign keys remove
-the associated user-owned graph. Storage cleanup is best effort because object storage is not
-transactional with Auth; every failure is logged, and the public policy directs the user to
-contact support if they need cleanup verified after a provider outage.
+confirmation. It discovers every current Storage bucket, recursively removes objects beneath
+the authenticated user's prefix, clears matching retention-queue pointers, and only then calls
+Supabase Admin `deleteUser`. Database foreign keys remove the associated user-owned graph. A
+Storage list/remove failure returns an error before Auth deletion, leaving the account available
+for a safe retry; a local adversarial proof verifies this fail-closed behavior, nested paths,
+cross-user file survival, every canonical user-owned table, and intentional retained/unlinked
+records.
 
 ## Operational requirements
 

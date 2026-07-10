@@ -33,14 +33,17 @@ export async function POST(req: NextRequest) {
   let checkoutUserId: string | null = null
 
   try {
-    if (!isCheckoutEnabled()) {
-      return NextResponse.json({ error: KILL_SWITCH_MESSAGE }, { status: 503 })
-    }
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     checkoutUserId = user.id
+
+    // Keep authentication ahead of the operational gate. A disabled checkout must not
+    // turn this authenticated billing endpoint into an anonymously distinguishable 503
+    // surface, and enabling the feature later must not change its authorization order.
+    if (!isCheckoutEnabled()) {
+      return NextResponse.json({ error: KILL_SWITCH_MESSAGE }, { status: 503 })
+    }
 
     const body: unknown = await req.json().catch(() => ({}))
     const requestedPlan = body && typeof body === 'object' && 'plan' in body

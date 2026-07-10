@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
+import { createHmac } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { Resend } from 'resend'
 import {
   deriveLifecycleCandidates,
   lifecycleDeliveryKey,
@@ -111,6 +113,38 @@ assert.equal(normalizeEmailAddress('Showcase User <USER@Example.com>'), 'user@ex
 assert.equal(normalizeEmailAddress('A_B@Example.com'), 'a_b@example.com')
 assert.equal(normalizeEmailAddress('not-an-email'), null)
 
+// Resend delegates to Standard Webhooks: the secret is whsec_<base64>, and the
+// signed bytes are the untouched `${id}.${timestamp}.${rawBody}` string.
+const webhookKey = Buffer.from('showcase-standard-webhooks-test-key')
+const webhookSecret = `whsec_${webhookKey.toString('base64')}`
+const webhookPayload = JSON.stringify({ type: 'auth.matrix.ignored', data: {} })
+const webhookHeaders = {
+  id: 'msg_growth_automation_fixture',
+  timestamp: String(Math.floor(Date.now() / 1000)),
+  signature: '',
+}
+webhookHeaders.signature = `v1,${createHmac('sha256', webhookKey)
+  .update(`${webhookHeaders.id}.${webhookHeaders.timestamp}.${webhookPayload}`)
+  .digest('base64')}`
+const webhookVerifier = new Resend('local-verification-only')
+assert.deepEqual(
+  webhookVerifier.webhooks.verify({
+    payload: webhookPayload,
+    headers: webhookHeaders,
+    webhookSecret,
+  }),
+  JSON.parse(webhookPayload),
+  'Resend SDK must accept a correctly signed Standard Webhooks fixture',
+)
+assert.throws(
+  () => webhookVerifier.webhooks.verify({
+    payload: `${webhookPayload} `,
+    headers: webhookHeaders,
+    webhookSecret,
+  }),
+  'verification must bind the signature to the exact raw request body',
+)
+
 
 const migration = readFileSync(resolve('supabase/migrations/20260710033039_growth_automation.sql'), 'utf8')
 for (const required of [
@@ -133,6 +167,8 @@ assert.match(outbox, /idempotencyKey: delivery\.idempotency_key/)
 assert.match(outbox, /result\.error/)
 const deliveryWebhook = readFileSync(resolve('src/app/api/email/events/route.ts'), 'utf8')
 assert.match(deliveryWebhook, /resend\.webhooks\.verify/)
+assert.match(deliveryWebhook, /payload:\s*raw/)
+assert.match(deliveryWebhook, /headers:\s*\{\s*id:\s*headers\.id,\s*timestamp:\s*headers\.timestamp,\s*signature:\s*headers\.signature\s*\}/)
 assert.match(deliveryWebhook, /isFreshWebhookTimestamp/)
 assert.match(deliveryWebhook, /claim_email_provider_event/)
 assert.doesNotMatch(deliveryWebhook, /\.ilike\(/, 'provider suppression must use exact normalized equality')
@@ -232,5 +268,13 @@ assert.doesNotMatch(growthControl, /from\('ai_cost_events'\)/,
 const inviteBatch = readFileSync(resolve('src/lib/growth/invite-batch.ts'), 'utf8')
 assert.match(inviteBatch, /EMAILS_ENABLED !== 'true'/, 'global email kill switch must stop invite batches before claims')
 assert.match(inviteBatch, /EMAIL_POSTAL_ADDRESS/, 'invite batches must require a sender postal address')
+
+const inviteBatchRoute = readFileSync(resolve('src/app/api/cron/invite-batch/route.ts'), 'utf8')
+assert.match(inviteBatchRoute, /code:\s*'EMAILS_DISABLED'/)
+assert.match(inviteBatchRoute, /code:\s*'EMAILS_NOT_CONFIGURED'/)
+assert.ok(
+  inviteBatchRoute.indexOf("process.env.EMAILS_ENABLED !== 'true'") < inviteBatchRoute.indexOf('runInviteBatch({ limit })'),
+  'invite cron must report its disabled gate before claim or provider work',
+)
 
 console.log('growth automation tests passed')
