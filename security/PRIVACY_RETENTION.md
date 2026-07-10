@@ -1,9 +1,11 @@
 # Data Flow and Retention
 
-**Code-audited July 9, 2026.** This document describes the canonical repository through
-`20260710033047_explicit_data_api_grants.sql`. Production does not have these guarantees
-until canonical migrations `20260710033035`–`20260710033047`, the cron
-configuration in `vercel.json`, and the documented provider settings have been deployed.
+**Code- and production-audited July 10, 2026.** Production has the canonical 48-record
+application ledger through `20260710033047_explicit_data_api_grants.sql`, and clean
+revision `f968af8b5b25` deploys the daily cron routes in `vercel.json`. Email, checkout,
+AI, Gemini, jobs-provider calls, publishing, and Interview AI remain disabled; their
+provider-dependent guarantees do not become operational until the separate release gates
+and end-to-end tests pass.
 
 ## Data inventory
 
@@ -51,7 +53,9 @@ records.
 
 ## Operational requirements
 
-- Deploy `/api/cron/data-retention` hourly with a valid `CRON_SECRET`.
+- Keep the deployed `/api/cron/data-retention` job on its current once-daily 04:45 UTC
+  schedule with a valid `CRON_SECRET`; re-verify retention behavior before increasing its
+  cadence or enabling public traffic.
 - Keep `EMAILS_ENABLED=false` until Resend, signed webhook handling, a valid physical postal
   address, and the unsubscribe secret are configured.
 - Monitor cron and provider failures through `ERROR_WEBHOOK_URL` and logs.

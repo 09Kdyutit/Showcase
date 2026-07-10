@@ -4,15 +4,17 @@
 
 Production project `yogwhfrjhcbnvoxitcay` remains on Supabase Free, so it has no
 provider-managed automated database backup or point-in-time recovery. That is no longer
-the same as having no recoverable copy: backup `20260710T152940Z` contains an encrypted
-logical database capture and a separate download of every private Storage object, and
-both halves passed a disposable restore drill on 2026-07-10.
+the same as having no recoverable copy. Historical backup `20260710T152940Z` remains
+preserved, and fresh pre-migration backup `20260710T180210Z` contains an encrypted
+single-snapshot logical database capture plus a separate download of every private Storage
+object. Both halves passed a network-disconnected disposable restore drill on 2026-07-10.
 
-Machine-readable proof lives in `security/production-backup-evidence.json`. The encrypted
-bundle is outside the repository under the operator's `Showcase-backups` directory. Its
-passphrase is in macOS Keychain under service `Showcase production backup`, account
-`20260710T152940Z`; the passphrase and database password must never be committed or
-printed.
+Historical machine-readable proof lives in `security/production-backup-evidence.json`, and
+the fresh maintenance-window proof lives in `security/production-rollout-evidence.json`.
+Encrypted bundles are outside the repository under the operator's `Showcase-backups`
+directory. Each passphrase is in macOS Keychain under service
+`Showcase production backup` and its backup ID as the account; neither passphrases nor
+database passwords may be committed or printed.
 
 ## What was captured and verified
 
@@ -29,7 +31,7 @@ printed.
   are recorded separately.
 - Restore: a fresh migration-isolated local Supabase database was aligned to the source
   Auth and Storage versions while every non-database service was stopped. The restore
-  reproduced all 1,911 rows and their order-independent digests, 77 public-schema RLS
+  reproduced all 2,008 rows and their order-independent digests, 77 public-schema RLS
   policies, 16 enabled public-schema triggers, grants, constraints, indexes, functions,
   application/Auth/Storage migration ledgers, extensions, the additional signup trigger
   on `auth.users`, all nine application policies on `storage.objects`, and all 22 Storage

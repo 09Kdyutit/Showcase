@@ -118,6 +118,7 @@ assert.equal(releaseManifest.contracts.growth_migrations.length, 13)
 assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
 
 const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))
+const rolloutEvidence = JSON.parse(read('security/production-rollout-evidence.json'))
 assert.equal(backupEvidence.schema_version, 2)
 assert.equal(backupEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
 assert.equal(backupEvidence.backup_id, '20260710T152940Z')
@@ -209,6 +210,38 @@ for (const forbidden of [
   assert.doesNotMatch(serializedBackupEvidence, forbidden, 'backup evidence must not contain sensitive material')
 }
 
+assert.equal(rolloutEvidence.schema_version, 1)
+assert.equal(rolloutEvidence.status, 'COMPLETED_DARK')
+assert.equal(rolloutEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
+assert.equal(rolloutEvidence.source.deployed_git_head, 'f968af8b5b25167364f841b82b685af2cc39e236')
+assert.equal(rolloutEvidence.backup.backup_id, '20260710T180210Z')
+assert.equal(rolloutEvidence.backup.status, 'RESTORE_VERIFIED')
+assert.equal(rolloutEvidence.backup.plaintext_retained, false)
+assert.equal(rolloutEvidence.backup.database.total_table_rows, 2008)
+assert.equal(rolloutEvidence.backup.storage.object_count, 22)
+assert.equal(rolloutEvidence.database_rollout.post_rollout.application_migrations, 48)
+assert.equal(
+  rolloutEvidence.database_rollout.post_rollout.latest_application_migration,
+  '20260710033047',
+)
+assert.equal(rolloutEvidence.database_rollout.post_rollout.auth_migrations, 77)
+assert.equal(rolloutEvidence.database_rollout.post_rollout.storage_migrations, 61)
+assert.equal(rolloutEvidence.deployment.promoted_without_rebuild, true)
+assert.equal(rolloutEvidence.deployment.health_commit, 'f968af8b5b25')
+assert.equal(rolloutEvidence.deployment.database_healthy, true)
+assert.equal(rolloutEvidence.negative_smoke_tests.mutating_credentialed_suites_excluded, true)
+const serializedRolloutEvidence = JSON.stringify(rolloutEvidence)
+for (const forbidden of [
+  /\/Users\//,
+  /postgres(?:ql)?:\/\//i,
+  /pooler\.supabase\.com/i,
+  /\b(?:sk|whsec|sb_secret)_[A-Za-z0-9_-]+/,
+  /\bre_[A-Za-z0-9_-]{20,}\b/,
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/,
+]) {
+  assert.doesNotMatch(serializedRolloutEvidence, forbidden, 'rollout evidence must not contain sensitive material')
+}
+
 const migrationPreflight = JSON.parse(read('security/production-migration-preflight.json'))
 assert.equal(migrationPreflight.project_ref, 'yogwhfrjhcbnvoxitcay')
 assert.equal(migrationPreflight.status, 'READY_FOR_PAIRED_DEPLOYMENT_APPROVAL')
@@ -248,20 +281,23 @@ assert.ok(
   storageInventory.orphaned_user_prefix_bytes <= backupEvidence.storage.total_bytes,
   'orphan bytes cannot exceed the total backed-up byte count',
 )
-for (const id of ['GROWTH-MIGRATIONS', 'P1-19']) {
+for (const id of ['GROWTH-MIGRATIONS', 'GROWTH-PROD-DEPLOY']) {
   const requirement = releaseManifest.requirements.find((row) => row.id === id)
-  assert.equal(requirement?.status, 'BLOCKED', `${id} must remain blocked by incomplete production work`)
-  assert.equal(requirement?.release_blocking, true, `${id} must remain release-blocking`)
+  assert.equal(requirement?.status, 'PASS', `${id} must reflect the completed production rollout`)
+  assert.equal(requirement?.release_blocking, true, `${id} remains a mandatory release contract`)
+  assert.match(requirement?.evidence ?? '', /production-rollout-evidence\.json/)
 }
+const deletionRequirement = releaseManifest.requirements.find((row) => row.id === 'P1-19')
+assert.equal(deletionRequirement?.status, 'BLOCKED', 'P1-19 still needs provider-backed deletion proof')
+assert.equal(deletionRequirement?.release_blocking, true)
 const backupRequirement = releaseManifest.requirements.find((row) => row.id === 'P1-13')
 assert.equal(backupRequirement?.status, 'PASS', 'the full logical restore closes P1-13')
 assert.equal(backupRequirement?.release_blocking, true)
 assert.doesNotMatch(backupRequirement?.evidence ?? '', /19 objects|database.*blocked/i)
 const migrationRequirement = releaseManifest.requirements.find((row) => row.id === 'GROWTH-MIGRATIONS')
-assert.match(migrationRequirement?.blocker ?? '', /repair.*history/i)
-assert.match(migrationRequirement?.blocker ?? '', /dry-run/i)
-assert.match(migrationRequirement?.blocker ?? '', /apply.*reviewed batch/i)
-assert.doesNotMatch(migrationRequirement?.blocker ?? '', /create.*database.*backup/i)
+assert.match(migrationRequirement?.evidence ?? '', /history-only repair/i)
+assert.match(migrationRequirement?.evidence ?? '', /dry-run.*038-047/i)
+assert.match(migrationRequirement?.evidence ?? '', /48-record ledger through 047/i)
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
 assert.ok(releaseManifest.contracts.optional_production_env_names.includes('ERROR_WEBHOOK_URL'))
 assert.equal(

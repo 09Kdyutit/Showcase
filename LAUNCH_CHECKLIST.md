@@ -5,19 +5,21 @@ For the detailed, continuously updated release-readiness tracking, see
 source of truth. `security/EXECUTION_MANIFEST.md` is a dated historical record.
 This file is the short human-readable version.
 
-**Status as of 2026-07-10:** the paced-growth, ProofScore, lifecycle, referral,
-Founding Member, launch-security, and restore-verified backup work is complete locally.
-Production remains unchanged at 33 application migrations. Canonical
-`20260710033038`–`20260710033047`, new provider webhooks, cron schedules, and production
-smoke tests are not assumed live until the explicitly approved paired database/application
-rollout is complete.
+**Status as of 2026-07-10:** the authorized paired database/application rollout is
+complete and remains dark. Production has the exact 48-record application ledger through
+`20260710033047`; clean revision `f968af8b5b25167364f841b82b685af2cc39e236`
+is live on `app.tryshowcase.ink`, `/api/health` reports a healthy database, and the root
+redirects to `/waitlist`. Invites and Founding reservations remain paused at 10, while
+email, AI, Gemini, checkout, jobs-provider calls, publishing, and Interview AI remain
+disabled by explicit production controls.
 
-**Production observations, 2026-07-09/10:** `app.tryshowcase.ink` and `/api/health`
-return 200, the application ledger still ends at `20260703190040`, and the new retention
-and Founding routes are not deployed. The current production variable
-list is also missing the Founding price, cost-rate/AI ceiling, delivery-webhook,
-unsubscribe, postal-address, ProofScore salt, scorecard, and email-control settings.
-This is an existing healthy app—not yet the reviewed growth release.
+**Production observations, 2026-07-10:** fresh pre-migration backup
+`20260710T180210Z` restore-verified 2,008 rows and all 22 private Storage objects. The
+history-only repair was limited to `033`–`037`, the pinned dry-run showed exactly
+`038`–`047`, all 67 pre-existing object row counts remained unchanged, and negative
+Stripe/Resend/cron probes failed closed. Machine-readable proof is in
+`security/production-rollout-evidence.json`. This is a healthy closed-beta deployment,
+not approval for a broad public launch.
 
 ## Confirmed launch parameters
 
@@ -43,23 +45,25 @@ This is an existing healthy app—not yet the reviewed growth release.
   (Stripe keys, Supabase service-role key, DB password) in the Stripe and
   Supabase dashboards. The owner confirmed the earlier keys were rotated, but the Resend
   API key was later exposed in a private diagnostic log and must still be revoked and
-  replaced locally and in `showcase-app` before email or launch is enabled.
+  replaced locally and in `showcase-app` before email or launch is enabled. The production
+  database password also appeared in a private CLI dry-run log during this maintenance
+  window; rotate it now that the migration is complete, then update Keychain and every
+  operational `DATABASE_URL` without printing the replacement.
 
 - [x] **Create and restore-verify a production database-plus-Storage backup.**
-  Backup `20260710T152940Z` contains the single-snapshot logical database and all
-  22 private Storage objects. Its authenticated encrypted archives, row/catalog
-  inventories, migration ledgers, file hashes, the signup trigger on `auth.users`, and all
-  nine application policies on `storage.objects` passed a disposable restore drill. The
-  target, volumes, and 39 plaintext rehearsal files were removed. Supabase Free still has
-  no automated physical backup or PITR, so provider-managed coverage remains a later
-  reliability upgrade as funds permit.
+  Historical backup `20260710T152940Z` remains preserved, and fresh pre-migration backup
+  `20260710T180210Z` contains one exported logical database snapshot plus all 22 private
+  Storage objects. Its authenticated encrypted archives, 2,008-row inventory, normalized
+  catalog, migration ledgers, file hashes, signup trigger on `auth.users`, and all nine
+  application policies on `storage.objects` passed a network-disconnected disposable
+  restore. The target and volumes were destroyed and no plaintext remains. Supabase Free
+  still has no automated physical backup or PITR.
 
-- [ ] **Set every new env var in the deployment environment**, including
-  `LAUNCH_OPEN=false` for closed beta and `OPENAI_API_KEY` (not `AI_API_KEY` — the app uses
-  OpenAI, not Anthropic), the three Stripe Price IDs, both Resend webhook secrets,
-  cron/email controls, versioned AI cost rates, and a ProofScore IP salt. Reconcile
-  production against `.env.example`; prior configuration predates this growth pass.
-  Set `LAUNCH_OPEN=true` only after the beta exit gate is met.
+- [ ] **Complete the remaining production configuration.** Twenty-six fail-closed values
+  were written and read back before the promoted build. The only required names still
+  absent are `EMAIL_POSTAL_ADDRESS`, `RESEND_DELIVERY_WEBHOOK_SECRET`, and
+  `STRIPE_PRICE_ID_FOUNDING_ANNUAL`. Keep `LAUNCH_OPEN=false`; do not enable email,
+  checkout, or Founding until those real provider values and their end-to-end tests exist.
 
 - [x] **Use the real launch target — `showcase-app`
   (`https://app.tryshowcase.ink`), not the legacy project.**
@@ -78,22 +82,15 @@ This is an existing healthy app—not yet the reviewed growth release.
 - [x] **Reset a clean local Supabase stack through
   `20260710033047_explicit_data_api_grants.sql` and run the no-secret credentialed suite.**
   The canonical 48-record reset and 380/380 credentialed assertions pass.
-- [ ] **Authorize and execute the paired application/database promotion.** A rehearsal on
-  the restored production data proved that reapplying canonical
-  `20260710033033`–`20260710033037` changes neither inventory nor catalog, and patched
-  `20260710033038`–`20260710033047` applies cleanly with every post-migration invariant
-  passing. It also found and fixed a restricted-search-path pgcrypto bug. Production was
-  not changed. Migration `041`/`047` is incompatible with the current old web build, so
-  first configure fail-closed production variables and prepare an unaliased compatible
-  `showcase-app` deployment with `vercel deploy --prod --skip-domain`. In one explicitly
-  approved maintenance window, mark only the already-equivalent
-  `20260710033033`–`20260710033037` history rows, require a dry-run showing exactly
-  `20260710033038`–`20260710033047`, apply/read-only-verify that batch, and immediately
-  promote the prepared deployment. Never run a blind production `supabase db push`, and
-  never run the mutating credentialed suites against production. The reviewed batch includes
-  authority triggers, atomic Stripe state, paced invites, attribution, email
-  suppression, public ProofScore capacity, Founding Member reservations, and
-  completion-earned referral admission, high-entropy claim tokens, and consumable credits.
+- [x] **Authorize and execute the paired application/database promotion.** The approved
+  2026-07-10 window used clean, CI-verified revision `f968af8b5b25`, staged it unaliased,
+  restore-verified a fresh backup, repaired only equivalent history `033`–`037`, required
+  the pinned dry-run to show exactly `038`–`047`, and applied that batch. Read-only checks
+  confirmed 48/latest `047`, unchanged row counts for all pre-existing objects, paused
+  controls, and every RLS/ACL/index/constraint/trigger/data invariant. The staged build was
+  then promoted without rebuild and passed only negative/read-only production probes.
+  Preserve this sequence for future paired migrations; never run mutating credentialed
+  suites against production.
 
 - [ ] **Configure Resend webhooks and cron delivery.** Inbound mail uses
   `/api/email/inbound`; delivered/bounced/complained events use `/api/email/events`.

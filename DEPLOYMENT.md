@@ -130,24 +130,32 @@ order, from `001_initial_schema.sql` through
 provider secrets, and cleans up its synthetic data. A separate cloud staging project may be
 added later, but it is not required for the current closed-beta path.
 
-Production backup `20260710T152940Z` has passed its database-plus-Storage restore drill.
-Production still runs an older application build that is incompatible with the authority
-triggers and grants in migrations `20260710033041` and `20260710033047`. A database-only
-promotion would break portfolio generation, ProofScore persistence, and publish/unpublish.
-Do not point `supabase db push` at production or prepare a deployment without explicit
-approval for this coordinated maintenance window.
+Historical backup `20260710T152940Z` remains preserved. Fresh pre-migration backup
+`20260710T180210Z` also passed authenticated database-plus-Storage restore verification:
+67 database objects, 2,008 rows, the normalized public catalog, all three migration
+ledgers, the Auth signup trigger, nine Storage policies, and all 22 private Storage file
+hashes matched in a network-disconnected disposable target. The target was destroyed and
+no plaintext remains.
 
-The approved sequence, once that approval exists, is:
+The authorized 2026-07-10 paired rollout is complete. Production now has the canonical
+48-record application ledger through `20260710033047`, and clean revision
+`f968af8b5b25167364f841b82b685af2cc39e236` is live on canonical `showcase-app`.
+Invites and Founding reservations remain paused, the root redirects to `/waitlist`, and
+all provider/cost controls remain fail-closed. Exact proof lives in
+`security/production-rollout-evidence.json`.
+
+For future authority-boundary migrations, reuse the completed sequence:
 
 1. Configure every required production variable in its fail-closed state. Vercel variable
    changes do not change the already-running deployment.
 2. Build the reviewed compatible revision for the canonical `showcase-app` project without
    changing its domain alias: `vercel deploy --prod --skip-domain`.
-3. Enter the maintenance window. Repair only the already-equivalent migration-history rows
-   `20260710033033`–`20260710033037`; do not execute their SQL again.
-4. Require `supabase db push --linked --dry-run` to show exactly
-   `20260710033038`–`20260710033047`. Stop if it asks for `--include-all`, shows any earlier
-   migration, or differs from that ten-file list.
+3. Enter the explicitly authorized maintenance window. Repair migration history only when
+   a restored-data rehearsal proves the canonical SQL is already equivalent; do not execute
+   equivalent SQL again.
+4. Require the pinned `supabase db push --dry-run` to show exactly the reviewed pending
+   files. Stop if it asks for `--include-all`, shows any unexpected migration, or differs
+   from the approved list.
 5. Apply the ten migrations and verify ledgers, row-count invariants, RLS, ACLs, triggers,
    constraints, indexes, admission, attribution, referral state, and paused controls using
    read-only SQL.
