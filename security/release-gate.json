@@ -35,7 +35,7 @@
   },
   "verification": {
     "evidence_base_git_head": "42d5b5cc7e344dd782933cfcfa9f58fe15978b98",
-    "source_fingerprint_sha256": "09472c0bbe81c7323d1730b14974022a68fa6250bd06839e8a073a15cc9ad2f2",
+    "source_fingerprint_sha256": "9cdb767986caae650d4248221c5b2472c4d7c7ba5250298ae7113a7de1965dd2",
     "verified_at": "2026-07-09T22:56:21-04:00"
   },
   "contracts": {
