@@ -20,8 +20,14 @@ const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
 // without this, a social crawler fetching /waitlist's og:image would get redirected
 // to /waitlist itself instead of the actual image.
 const WAITLIST_ALLOWED_PATHS = [
+  '/', '/pricing', '/for-career-services', '/beta/feedback',
   '/waitlist', '/join', '/proofscore', '/privacy', '/terms', '/refund',
   '/opengraph-image', '/login', '/callback',
+]
+// Closed beta gates account admission and private product routes, not the public website,
+// published user work, or token-authorized shares.
+const WAITLIST_ALLOWED_PATH_PREFIXES = [
+  '/p/', '/proof/', '/shared/',
 ]
 const WAITLIST_ALLOWED_API_PREFIXES = [
   '/api/waitlist',
@@ -32,6 +38,8 @@ const WAITLIST_ALLOWED_API_PREFIXES = [
   '/api/cron/',
   '/api/proofscore',
   '/api/referral',
+  '/api/beta/feedback',
+  '/api/interviews/reports/',
   '/api/health',
   '/api/marketing/track',
 ]
@@ -93,6 +101,7 @@ export async function proxy(request: NextRequest) {
   const isReferralEntry = !!referralCode && (path === '/signup' || path === '/onboarding')
   const isLockdownBypass =
     WAITLIST_ALLOWED_PATHS.includes(path) ||
+    WAITLIST_ALLOWED_PATH_PREFIXES.some((p) => path.startsWith(p)) ||
     WAITLIST_ALLOWED_API_PREFIXES.some((p) => path.startsWith(p)) ||
     isInviteEntry ||
     isReferralEntry

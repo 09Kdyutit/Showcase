@@ -71,12 +71,22 @@ assert.doesNotMatch(existingBranch, /\.update\(/, 'an unverified duplicate submi
 
 const proxy = read('src/proxy.ts')
 for (const path of [
+  "'/'",
+  "'/pricing'",
+  "'/for-career-services'",
   '/api/cron/',
   '/api/email/unsubscribe',
   '/api/email/inbound',
+  '/api/beta/feedback',
+  '/api/interviews/reports/',
   '/api/proofscore',
+  '/p/',
+  '/proof/',
+  '/shared/',
   '/proofscore',
 ]) assert.ok(proxy.includes(path), `lockdown allowance missing: ${path}`)
+assert.match(proxy, /WAITLIST_ALLOWED_PATH_PREFIXES\.some/,
+  'closed beta must use prefix matching for published and token-authorized public routes')
 assert.ok(proxy.includes('showcase_admitted'), 'lockdown must recognize admitted accounts')
 
 const cron = read('src/app/api/cron/invite-batch/route.ts')
