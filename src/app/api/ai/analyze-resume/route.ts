@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { resumeParsePrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 import { hashString } from '@/lib/utils'
@@ -48,17 +48,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const rl = await checkRateLimit(user.id, 'resume_analyzed', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter },
-        { status: 429 }
-      )
-    }
-
     const inputHash = hashString(resumeText)
 
-    const { data: rawResult, meta } = await runPrompt(resumeParsePrompt, { resumeText })
+    const prompt = await runPromptWithQuota(resumeParsePrompt, { resumeText }, {
+      userId: user.id,
+      eventName: 'resume_analyzed',
+      isPro,
+    })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: rawResult, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
     const result = sanitizeParsedResume(rawResult, resumeText)
 

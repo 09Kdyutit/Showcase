@@ -1,7 +1,8 @@
 # Data Flow and Retention
 
-**Code-audited July 9, 2026.** This document describes the repository through migration
-`046`. Production does not have these guarantees until migrations `035`–`046`, the cron
+**Code-audited July 9, 2026.** This document describes the canonical repository through
+`20260710033047_explicit_data_api_grants.sql`. Production does not have these guarantees
+until canonical migrations `20260710033035`–`20260710033047`, the cron
 configuration in `vercel.json`, and the documented provider settings have been deployed.
 
 ## Data inventory

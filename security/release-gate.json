@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-09",
+  "updated_at": "2026-07-10",
   "release_target": "controlled production beta",
   "confirmed_launch_decisions": {
     "product_scope": "web application only",
@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "42d5b5cc7e344dd782933cfcfa9f58fe15978b98",
-    "source_fingerprint_sha256": "9cdb767986caae650d4248221c5b2472c4d7c7ba5250298ae7113a7de1965dd2",
-    "verified_at": "2026-07-09T22:56:21-04:00"
+    "evidence_base_git_head": "8a0effba4373f83ccee70bdda279ce782dae35f2",
+    "source_fingerprint_sha256": "574863b1d21d15a37f3276b2759d9bfd749f15b0a156a454999364d645950610",
+    "verified_at": "2026-07-10T00:29:37-04:00"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -58,18 +58,19 @@
       "P1-19"
     ],
     "growth_migrations": [
-      "035_referral_publish_credit.sql",
-      "036_pending_parses.sql",
-      "037_referral_completion_credit.sql",
-      "038_growth_admission.sql",
-      "039_growth_automation.sql",
-      "040_proofscore_public_capacity.sql",
-      "041_launch_security_and_webhooks.sql",
-      "042_founding_member_slots.sql",
-      "043_email_and_parse_hardening.sql",
-      "044_atomic_subscription_state.sql",
-      "045_referral_invite_pacing.sql",
-      "046_referral_abuse_and_credit_hardening.sql"
+      "20260710033035_referral_publish_credit.sql",
+      "20260710033036_pending_parses.sql",
+      "20260710033037_referral_completion_credit.sql",
+      "20260710033038_growth_admission.sql",
+      "20260710033039_growth_automation.sql",
+      "20260710033040_proofscore_public_capacity.sql",
+      "20260710033041_launch_security_and_webhooks.sql",
+      "20260710033042_founding_member_slots.sql",
+      "20260710033043_email_and_parse_hardening.sql",
+      "20260710033044_atomic_subscription_state.sql",
+      "20260710033045_referral_invite_pacing.sql",
+      "20260710033046_referral_abuse_and_credit_hardening.sql",
+      "20260710033047_explicit_data_api_grants.sql"
     ],
     "crons": {
       "/api/cron/interview-retention": "0 5 * * *",
@@ -133,16 +134,16 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-09 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (23/23), Founding, referral pacing, 65 deterministic AI-budget checks, X-only distribution invariants, launch security, and marketing truthfulness. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. git diff --check and gitleaks are clean."
+      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, and marketing truthfulness. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret database/browser suite passed 122/122 credentialed assertions, and git diff --check is clean."
     },
     {
       "id": "GROWTH-MIGRATIONS",
       "area": "database",
-      "description": "A clean 001-046 staging schema and reviewed 035-046 production promotion pass credentialed tests",
+      "description": "The canonical migration history resets cleanly and the controlled production promotion is recoverable and verified",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "A read-only npm run growth:status check on 2026-07-09 failed because public.growth_controls was absent from the connected Supabase schema cache. This proves migration 038 and the later growth schema are not live in that project; no production mutation was attempted.",
-      "blocker": "Create blank staging, apply the complete 001-046 dependency chain, and run credentialed adversarial tests there. Reconcile production's divergent migration ledger before promoting and verifying reviewed migrations 035-046."
+      "evidence": "2026-07-10 local proof: a blank Supabase reset applied all 48 canonical records from 001 through 20260710033047, migration list matched the local ledger, and db lint had zero errors. The no-secret credentialed suite passed 122/122 checks across core/interview RLS, referral crediting, pending-parse handoff, the dollar ledger, and the Free-generation mutex. Read-only production inspection still shows only the ledger through 20260703190040; no production mutation was attempted.",
+      "blocker": "Before any production history or schema write, create and verify a manual logical database backup plus a separate Storage download and restore drill. Then repair only the already-equivalent 20260710033033-20260710033037 history rows, require a dry-run showing only 20260710033038-20260710033047 pending, apply that reviewed batch, and rerun the credentialed suite against production. Stop if Supabase requests --include-all or proposes an earlier version."
     },
     {
       "id": "GROWTH-PROD-CONFIG",
@@ -159,8 +160,8 @@
       "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The canonical app and /api/health returned 200 on 2026-07-09, but public probes of /api/cron/data-retention and /api/stripe/founding-availability returned 404. The reviewed implementation remains an uncommitted working-tree change and was not deployed by this pass.",
-      "blocker": "Commit/review the working tree, configure the paid cron-capable Vercel plan, deploy to showcase-app, and verify every registered route and schedule."
+      "evidence": "The canonical app and /api/health returned 200 on 2026-07-09, but public probes of /api/cron/data-retention and /api/stripe/founding-availability returned 404. The reviewed implementation and its no-secret CI proof are prepared on the feature branch; this pass has deliberately not deployed them to production.",
+      "blocker": "Complete branch review, choose/configure a commercially suitable cron-capable hosting or scheduler plan, deploy only to showcase-app after the database backup/promotion, and verify every registered route and schedule."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
@@ -184,10 +185,9 @@
       "id": "P0-RACE",
       "area": "cost-abuse",
       "description": "AI quota, consumable credits, and pre-provider failures are atomic and user-fair",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "The earlier rate_limit_increment path passed a real concurrency test, and migration 046 now combines base quota, consumable bonus credit, and global request capacity in one transaction. Independent review found a remaining ordering defect: route quota and anonymous ProofScore capacity are claimed before the central dollar reservation, so a missing/exhausted dollar guard can consume a user credit or public/reserved audit slot without a provider attempt.",
-      "blocker": "Add an idempotent refund/reorder path for dollar-reservation denial, then apply migration 046 in staging and run adversarial parallel tests across base quota, bonus exhaustion, ProofScore reservation use, global request denial, and global dollar denial."
+      "evidence": "All authenticated OpenAI routes now order abuse-attempt throttle -> dollar reservation -> atomic product quota/referral credit -> provider. Public ProofScore orders IP attempt throttle -> dollar reservation -> daily or one-use capacity -> provider, and releases every unused pre-provider reservation. Local proof passed 100 deterministic budget checks, 30/30 live dollar-ledger checks (including 10-way near-cap concurrency and RPC denial), 26/26 ProofScore checks, and 10/10 Free-generation entitlement checks. Ten concurrent Free claims produced exactly one winner, nine clean denials, unchanged referral credits, one global-capacity increment, and a durable marker that survives portfolio deletion."
     },
     {
       "id": "P1-SECRET-GUARD",
@@ -200,11 +200,11 @@
     {
       "id": "P1-GLOBAL-CEILING",
       "area": "cost-abuse",
-      "description": "Global AI request-count and dollar ceilings are atomic, explicit, and staging-verified",
+      "description": "Global AI request-count and dollar ceilings are atomic, explicit, locally verified, and production-configured before launch",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "Migration 046 now contains the transactional request/bonus/global counter and an independent service-role-only general OpenAI dollar-reservation ledger. Deterministic offline tests cover the approved $4/day and $80/month general allocation, fail-closed rate parsing, and post-lock UTC boundary accounting. Production lacks the migration/configuration. Direct web-app Gemini paths are blocked by a fail-closed KILL_SWITCH_GEMINI, while the separate $1/$20 Interview Lab global precheck remains raceable. A 2026-07-09 read-only request returned 426 from the production live-interview-ws Edge URL, proving the legacy proxy is still deployed; the deployed revision predates its new fail-closed secret guard.",
-      "blocker": "Apply migration 046 in staging and prove concurrent request denial and dollar reservations. Set KILL_SWITCH_GEMINI=true and INTERVIEW_KILL_SWITCH=true. Remove the production Edge proxy's GEMINI_API_KEY or deploy the hardened revision with INTERVIEW_LIVE_PROXY_ENABLED unset/false. Only enable Google paths after the $1/$20 allocation is atomic."
+      "evidence": "`20260710033046_referral_abuse_and_credit_hardening.sql` contains the transactional request/bonus/global counter and an independent service-role-only general OpenAI dollar-reservation ledger. Local concurrency proof passed 30/30: exactly five of ten near-cap reservations won, denied IDs were not persisted, settlement/release/stale accounting was idempotent, and anon/authenticated RPC access was denied. Production still lacks the migration and required $4/$80 configuration. Direct web-app Gemini paths remain fail-closed; the separate $1/$20 Interview Lab precheck is not atomic and must stay disabled.",
+      "blocker": "After the verified backup and controlled migration promotion, configure and smoke-test the $4/$80 production ledger and request ceiling. Keep KILL_SWITCH_GEMINI=true and INTERVIEW_KILL_SWITCH=true, and disable/remove the legacy production Gemini Edge proxy secret. Only enable Google paths after their separate $1/$20 allocation has an atomic ledger and concurrency proof."
     },
     {
       "id": "P1-STRIPE-PRICEID",
@@ -245,7 +245,7 @@
       "status": "BLOCKED",
       "release_blocking": true,
       "evidence": "The existing matrix and adversarial suite covered a 21-route surface. The repository now contains 82 API route files, including new public, cron, growth, email-event, referral, ProofScore, and Founding endpoints. Those new boundaries have targeted offline checks but the matrix is not current.",
-      "blocker": "Regenerate the API authorization matrix for every current route and run credentialed cross-user/public/cron/webhook attacks against staging."
+      "blocker": "Regenerate the API authorization matrix for every current route and run credentialed cross-user/public/cron/webhook attacks against the disposable local stack; repeat the production-safe smoke subset after controlled promotion."
     },
     {
       "id": "P0-02",
@@ -253,8 +253,8 @@
       "description": "Adversarial authorization suite covers the current API surface",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The legacy 15-case suite passed and found two ownership-related 500s, but it predates the current 82-route surface and the migration-035-046 APIs. It is useful regression coverage, not proof of the new endpoints.",
-      "blocker": "Expand the suite from the current authorization matrix and run it against migrated staging, including anonymous capacity, referral admission, cron secrets, webhook signatures, and service-only RPC boundaries."
+      "evidence": "The legacy 15-case suite passed and found two ownership-related 500s, but it predates the current 82-route surface and the migration-035-047 surface. It is useful regression coverage, not proof of the new endpoints.",
+      "blocker": "Expand the suite from the current authorization matrix and run it against the canonical local stack, including anonymous capacity, referral admission, cron secrets, webhook signatures, and service-only RPC boundaries."
     },
     {
       "id": "P0-03",
@@ -299,20 +299,19 @@
     {
       "id": "P0-08",
       "area": "data-integrity",
-      "description": "Account deletion covers the schema through migration 046 and every storage bucket",
+      "description": "Account deletion covers the schema through canonical migration 047 and every storage bucket",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The deletion route now recursively attempts all three storage prefixes and existing deletion tests passed on the legacy live schema. Migrations 035-046 add growth, email, cost, capacity, and reservation records; the connected database lacks those migrations, so a current live cascade/retention proof is impossible today.",
-      "blocker": "After staging migrations, seed user-owned rows across the expanded schema plus nested files, delete through the real route, and prove the intended cascade, unlink, suppression, and provider-retention behavior."
+      "evidence": "The deletion route now recursively attempts all three storage prefixes and existing deletion tests passed on the legacy live schema. Canonical migrations 035-047 add growth, email, cost, capacity, and reservation records plus explicit Data API grants; the connected database lacks those migrations, so a current live cascade/retention proof is impossible today.",
+      "blocker": "Seed user-owned rows across the canonical local schema plus nested files, delete through the real route, and prove the intended cascade, unlink, suppression, and provider-retention behavior; repeat the non-destructive production checks after promotion."
     },
     {
       "id": "P0-RLS",
       "area": "authorization",
-      "description": "Two-user adversarial RLS isolation covers migrations through 046",
-      "status": "BLOCKED",
+      "description": "Two-user adversarial RLS isolation covers canonical migrations through 047",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "The RLS script now includes attempts to forge bonus/referral credits, audit rows, and publication authority, but those additions were not run because migrations 035-046 are absent from the connected database. The earlier 13-case legacy run remains valid only for its old schema.",
-      "blocker": "Apply migrations in staging and run the expanded two-user RLS suite before production promotion."
+      "evidence": "A blank canonical local schema passed 16/16 core two-user/anonymous RLS attacks and 26/26 Interview Lab attacks. The suite proved cross-user SELECT/UPDATE/DELETE isolation, impersonation denial, server-authority field guards, published-only anonymous portfolio reads, zero client writes to interview accounting, and denial of reserve/commit RPC execution to anon and authenticated roles. Migration 047's exact grant matrix and deployment-time ACL assertions also passed. Production application remains separately blocked by GROWTH-MIGRATIONS until that migration is promoted."
     },
     {
       "id": "P0-UPLOAD",
@@ -352,8 +351,8 @@
       "description": "Current Stripe webhook is idempotent and monotonic under retries and out-of-order delivery",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The legacy migration-010 path passed its prior six-case test. The handler and test suite now depend on migration 041 retry claims and migration 044 atomic subscription snapshots, fetch current provider state, and handle Founding holds. Those migrations are not live and the expanded credentialed suite was intentionally not run against unknown production keys.",
-      "blocker": "Apply migrations 041/044 to staging and run the expanded duplicate, stale, retry, deletion, invoice, checkout, and Founding webhook suite with test-mode Stripe keys."
+      "evidence": "The legacy logical-migration-010 path passed its prior six-case test. The handler and test suite now depend on `20260710033041_launch_security_and_webhooks.sql` retry claims and `20260710033044_atomic_subscription_state.sql` atomic subscription snapshots, fetch current provider state, and handle Founding holds. Those migrations are not live and the expanded credentialed suite was intentionally not run against unknown production keys.",
+      "blocker": "Run the expanded duplicate, stale, retry, deletion, invoice, checkout, and Founding webhook suite locally with Showcase test-mode Stripe keys, then repeat one controlled refundable live transaction after production promotion."
     },
     {
       "id": "P1-02",
@@ -446,16 +445,16 @@
     {
       "id": "P1-13",
       "area": "backup",
-      "description": "Production database has automated backups and a verified restore path",
+      "description": "Production user data has a verified recoverable backup path appropriate to the launch stage",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "security/BACKUP_RESTORE.md documents the procedure. The last verified Supabase organization state was the Free plan, with no automated backup or PITR coverage.",
-      "blocker": "Upgrade Supabase, confirm automated backup/PITR coverage, and complete one restore drill before accepting real customer/payment data at scale."
+      "evidence": "security/BACKUP_RESTORE.md documents the procedure. Read-only production inspection found a 19.6 MB database, three auth users, and 19 Storage objects totaling about 7.0 MB. The project is on Free with no automated backups; the founder declined a paid upgrade for now.",
+      "blocker": "Before migration or closed-beta expansion, create encrypted schema/data/roles dumps plus a separate download of every Storage object, verify checksums, and complete a local restore drill. Paid automated backups/PITR remain a later scale requirement when funds permit; database backups alone do not include Storage files."
     },
     {
       "id": "P1-14",
       "area": "deployment",
-      "description": "Staging config + deployment docs",
+      "description": "Safe local verification + deployment docs",
       "status": "PASS",
       "release_blocking": true,
       "evidence": "Updated existing DEPLOYMENT.md (fixed stale AI_API_KEY->OPENAI_API_KEY, added missing LAUNCH_OPEN/annual-price/Upstash env vars, added pre-deploy verification step) and LAUNCH_CHECKLIST.md (reconciled against what's actually done this session, added the backup-tier finding and the deployment-restriction finding). Also discovered a live Vercel deployment exists (casefile-ten.vercel.app) but is reserved for the waitlist only per explicit user instruction — documented as a hard constraint, not used for anything in this work."
@@ -499,8 +498,8 @@
       "description": "Account deletion is verified against the current schema and retention policy",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The authenticated deletion route, recursive storage traversal, and public privacy language are implemented. Current live evidence predates migrations 035-046 and therefore cannot substantiate the expanded policy yet.",
-      "blocker": "Complete the current-schema staging deletion proof required by P0-08, then verify the public policy against observed rows and storage objects."
+      "evidence": "The authenticated deletion route, recursive storage traversal, and public privacy language are implemented. Current live evidence predates canonical migrations 035-047 and therefore cannot substantiate the expanded policy yet.",
+      "blocker": "Complete the canonical local deletion proof required by P0-08, then verify the public policy against observed rows and storage objects."
     },
     {
       "id": "P1-20",
@@ -508,7 +507,7 @@
       "description": "Privacy/retention documentation",
       "status": "PASS",
       "release_blocking": false,
-      "evidence": "security/PRIVACY_RETENTION.md was re-audited against repository migrations through 046. It now covers Supabase/OpenAI/Stripe/Resend data flow, best-effort recursive storage cleanup, 48-hour anonymous parses, eight-day hashed rate counters, 90-day terminal email ledgers, suppression retention, and the hourly authenticated cleanup route. It explicitly states that these guarantees are not production facts until migrations and crons are deployed."
+      "evidence": "security/PRIVACY_RETENTION.md was re-audited against canonical repository migrations through 047. It now covers Supabase/OpenAI/Stripe/Resend data flow, best-effort recursive storage cleanup, 48-hour anonymous parses, eight-day hashed rate counters, 90-day terminal email ledgers, suppression retention, and the hourly authenticated cleanup route. It explicitly states that these guarantees are not production facts until migrations and crons are deployed."
     },
     {
       "id": "P2-01",

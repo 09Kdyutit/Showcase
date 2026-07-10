@@ -7,7 +7,7 @@
   controls.
 - Approved combined allocation: **$5/day and $100/month**.
 
-Until Interview Lab receives atomic reservations and a staging concurrency proof, set
+Until Interview Lab receives atomic reservations and its own concurrency proof, set
 `KILL_SWITCH_GEMINI=true` and `INTERVIEW_KILL_SWITCH=true`. In that state the enforceable
 provider ceiling is the lower, safe **$4/day and $80/month** OpenAI allocation; company prep
 uses its generic fallback, scanned PDFs require text paste, and the final $1/$20 is
@@ -17,7 +17,7 @@ The general guard is independent of `AI_GLOBAL_DAILY_LIMIT`, which remains a req
 abuse ceiling. Both checks apply.
 
 This migration makes the general $4/$80 allocation exact under concurrency. Interview Lab
-must remain kill-switched until its separate $1/$20 global precheck has also passed a staging
+must remain kill-switched until its separate $1/$20 global precheck has also passed an atomic
 concurrency test; otherwise its read-then-check implementation can race even though the
 configured allocation is correct.
 
@@ -53,6 +53,33 @@ The reservation table stores feature/model identifiers, versioned rates, token c
 costs, and timestamps. It has no prompt, resume, portfolio, request-body, or response-body
 column. Table access and all three RPCs are restricted to `service_role`.
 
+## Fair quota ordering
+
+Authenticated provider routes use `runPromptWithQuota`: a separate one-minute attempt
+throttle first bounds reservation churn, then the maximum dollar cost is reserved, then
+`consume_ai_request_quota` atomically consumes the feature allowance/referral credit and
+global request count, and only then may the provider run. A dollar denial or accounting
+outage therefore occurs before product quota can be consumed. If product quota denies, the
+unused dollar reservation is released idempotently.
+
+Public ProofScore keeps its three-per-IP counter first because that counter measures abuse
+attempts, not delivered audits. It then reserves dollars before claiming either a general
+daily audit or a one-use reserved audit. Every pre-provider exit releases the unused dollar
+reservation; release becomes a no-op as soon as a provider attempt starts, so a lost or
+ambiguous provider response can never be used to reopen spend capacity.
+
+Free first-portfolio generation uses three server-owned gates: `ai_generated_at` records the
+current portfolio write, a completed `generations` row preserves lifetime history even if
+that portfolio is deleted, and an atomic one-call/24-hour `portfolio_generated` quota stops
+parallel requests from multiplying the still-unclaimed entitlement. Clients cannot delete
+generation rows, and referral credits cannot extend this entitlement. A dollar denial
+happens before the quota claim and therefore leaves it available. Once a provider attempt
+starts, however, the quota remains consumed even if the provider later fails; retry may
+require waiting for the 24-hour window. This conservative behavior avoids an unsafe blind
+counter decrement or a replay-funded second provider call. Immediate failure refunds would
+require a claim-ID reservation/commit/release ledger and are intentionally not approximated
+here.
+
 ## Required production values
 
 ```dotenv
@@ -64,7 +91,7 @@ INTERVIEW_GLOBAL_DAILY_BUDGET_USD=1
 INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD=20
 ```
 
-Apply migration `046_referral_abuse_and_credit_hardening.sql` before deploying the code.
+Apply migration `20260710033046_referral_abuse_and_credit_hardening.sql` before deploying the code.
 The application deliberately fails closed if the migration/RPCs or required configuration
 are missing.
 
@@ -80,9 +107,21 @@ update themselves.
 ```bash
 npm run test:ai-budget
 npm run typecheck
+
+# Local Supabase concurrency proof for the Free first-generation mutex.
+eval "$(npx supabase status -o env)"
+RUN_LIVE_TESTS=1 \
+NEXT_PUBLIC_SUPABASE_URL="$API_URL" \
+SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+node scripts/test-portfolio-generation-entitlement-live.mjs
 ```
 
 The deterministic test covers decimal/rate parsing, cached-token settlement math, SQL
-serialization and stale behavior, service-role grants, central `runPrompt` integration,
-retry disabling, mock-mode bypass, and the approved allocation split. Database concurrency
-still needs the migration applied to staging for an integration test before production.
+serialization and stale behavior, service-role grants, reserve-before-quota ordering across
+all authenticated OpenAI routes, one-shot/idempotent reservation behavior, retry disabling,
+mock-mode bypass, public daily/reserved capacity ordering, and the approved allocation split.
+The local credentialed tests fire real parallel database transactions: the dollar ledger
+admits exactly five of ten near-cap reservations, while the Free portfolio entitlement
+admits exactly one of ten claims with no referral-credit consumption. Both clean up their
+rows and restore shared counters. After controlled production promotion, smoke-test the
+complete deployed request path before opening the launch dials.

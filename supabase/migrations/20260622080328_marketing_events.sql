@@ -1,4 +1,4 @@
--- 015_marketing_events.sql
+-- 20260622080328_marketing_events.sql
 -- Anonymous pre-signup funnel tracking (landing page, pricing, waitlist research
 -- journey). Distinct from usage_events, which requires an authenticated user_id —
 -- this table exists because most visitors deciding whether to trust Showcase have

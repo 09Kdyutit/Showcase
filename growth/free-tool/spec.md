@@ -82,7 +82,7 @@ cap-hits into an owned-channel list instead of bounces.
 
 - Reuse the audit engine + a resume-only prompt variant; **one AI call computes the full 11-dimension audit**, display logic does the layering
 - Anonymous rate limit: 3/IP/hour (existing `lib/rate-limit`) + global 25/day counter (same pattern as `AI_GLOBAL_DAILY_LIMIT` in `lib/ai/rate-limit.ts`)
-- **Parse handoff (already built):** the tool's scoring path stashes the parsed resume via `POST /api/proofscore/stash` (migration `036_pending_parses.sql`); the token goes to `localStorage['showcase_parse_token']`; onboarding claims it via `/api/proofscore/claim-parse` and skips upload + re-parse entirely
+- **Parse handoff (already built):** the tool's scoring path stashes the parsed resume via `POST /api/proofscore/stash` (migration `20260710033036_pending_parses.sql`); the token goes to `localStorage['showcase_parse_token']`; onboarding claims it via `/api/proofscore/claim-parse` and skips upload + re-parse entirely
 - **Data honesty:** the stash is stored server-side for **48h max, deleted on claim or expiry** — say exactly that in the tool's fine print ("saved for 48 hours so you can pick up where you left off, then deleted"). No-account users who never sign up: their stash simply expires. No PII in analytics events (existing `track.ts` rule)
 - The old spec's "do not store resume text" line is superseded by the 48h-TTL stash — the public copy must state the true behavior, not the old aspiration
 

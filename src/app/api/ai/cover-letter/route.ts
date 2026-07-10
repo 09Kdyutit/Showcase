@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { coverLetterPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import { trackAsync } from '@/lib/analytics/track'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
@@ -36,11 +36,6 @@ export async function POST(request: NextRequest) {
     let { jobDescription } = parsed.data
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'cover_letter', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-    }
-
     // Resolve the job from a saved job if one was chosen (and no description pasted).
     let resolvedCompany = company
     let resolvedRole = role
@@ -73,14 +68,20 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle()
 
-    const { data: result, meta } = await runPrompt(coverLetterPrompt, {
+    const prompt = await runPromptWithQuota(coverLetterPrompt, {
       candidateName: profile?.full_name ?? '',
       role: resolvedRole,
       company: resolvedCompany,
       jobDescription,
       resumeText: resolvedResumeText,
       tone,
+    }, {
+      userId: user.id,
+      eventName: 'cover_letter',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: result, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     trackAsync(user.id, 'cover_letter', { role: resolvedRole, company: resolvedCompany, saved_job_id: savedJobId ?? null })

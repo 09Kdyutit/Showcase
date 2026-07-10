@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { interviewAnswerScorePrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
@@ -34,16 +34,17 @@ export async function POST(request: NextRequest) {
 
     // Practice grading is cheap but abusable — rate-limit per user (Free vs Pro).
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'question_scored', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-    }
-
-    const { data } = await runPrompt(interviewAnswerScorePrompt, {
+    const prompt = await runPromptWithQuota(interviewAnswerScorePrompt, {
       question: questionText,
       answer: answerText,
       rubricFocus,
+    }, {
+      userId: user.id,
+      eventName: 'question_scored',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data } = prompt
 
     const total = data.clarity + data.action + data.impact + data.structure
     const label =

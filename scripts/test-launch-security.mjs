@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const read = (path) => readFileSync(resolve(path), 'utf8')
-const migration = read('supabase/migrations/041_launch_security_and_webhooks.sql')
+const migration = read('supabase/migrations/20260710033041_launch_security_and_webhooks.sql')
 const currentRoleGuards = migration.match(/current_user <> 'authenticated'/g) ?? []
 assert.equal(currentRoleGuards.length, 2, 'profile and portfolio triggers must guard authenticated PostgREST writes')
 assert.ok(!migration.includes("current_setting('request.jwt.claim.role'"), 'legacy PostgREST JWT GUC must not control authority guards')
@@ -44,7 +44,7 @@ assert.match(retentionRoute, /from\('rate_limit_counters'\).*delete/s, 'old abus
 assert.match(retentionRoute, /from\('email_deliveries'\).*attempts.*3/s, 'exhausted email payloads must be purged')
 assert.match(retentionRoute, /90 \* 86400_000/, 'terminal email records must have a bounded retention window')
 
-const growthMigration = read('supabase/migrations/039_growth_automation.sql')
+const growthMigration = read('supabase/migrations/20260710033039_growth_automation.sql')
 for (const retentionIndex of [
   'email_deliveries_terminal_retention_idx',
   'email_deliveries_exhausted_retention_idx',
@@ -86,7 +86,7 @@ assert.match(releaseGate, /release verification requires a clean Git working tre
 assert.match(releaseGate, /computeHeadFingerprint/, 'normal verification must hash committed blobs')
 const releaseManifest = JSON.parse(read('security/release-gate.json'))
 assert.equal(releaseManifest.schema_version, 1)
-assert.equal(releaseManifest.contracts.growth_migrations.length, 12)
+assert.equal(releaseManifest.contracts.growth_migrations.length, 13)
 assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
 assert.ok(releaseManifest.contracts.optional_production_env_names.includes('ERROR_WEBHOOK_URL'))

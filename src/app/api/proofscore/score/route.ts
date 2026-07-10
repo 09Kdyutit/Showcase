@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { runPrompt } from '@/lib/ai/client'
+import { preparePromptCall } from '@/lib/ai/client'
 import { resumeParsePrompt } from '@/lib/ai/prompts/registry'
 import { sanitizeParsedResume } from '@/lib/ai/sanitize-resume'
 import { isAIEnabled, KILL_SWITCH_MESSAGE } from '@/lib/feature-flags'
@@ -104,6 +104,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // The IP counter is an abuse-attempt throttle rather than a promised audit slot. Keep
+    // it ahead of budget reservation so one connection cannot churn reserve/release calls.
     const fingerprint = clientFingerprint(request)
     const ipLimit = await enforceAtomicLimit(
       service,
@@ -114,7 +116,7 @@ export async function POST(request: NextRequest) {
     if (!ipLimit.allowed) {
       return noStore(
         {
-          error: 'You have used the three audits available to this connection this hour. Please try again later.',
+          error: 'Too many audit attempts were started from this connection this hour. Please try again later.',
           code: 'IP_RATE_LIMITED',
           retryAfter: new Date(Date.now() + ipLimit.retry_after_seconds * 1000).toISOString(),
         },
@@ -122,57 +124,66 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const capacity = await claimDailyCapacity(service, reservationToken)
-    if (!capacity.allowed) {
-      const snapshot = await getCapacitySnapshot(service)
-      return noStore(
-        {
-          error: reservationToken
-            ? 'This reserved audit is no longer available.'
-            : "Today's 25 free audits are done.",
-          code: reservationToken ? 'RESERVATION_UNAVAILABLE' : 'DAILY_CAP_REACHED',
-          capacity: snapshot,
+    // Reserve the maximum dollar cost before consuming a daily slot or one-use reservation.
+    // A budget denial/outage therefore cannot burn actual public audit capacity.
+    const preparedPrompt = await preparePromptCall(resumeParsePrompt, { resumeText })
+    try {
+      const capacity = await claimDailyCapacity(service, reservationToken)
+      if (!capacity.allowed) {
+        const snapshot = await getCapacitySnapshot(service)
+        return noStore(
+          {
+            error: reservationToken
+              ? 'This reserved audit is no longer available.'
+              : "Today's 25 free audits are done.",
+            code: reservationToken ? 'RESERVATION_UNAVAILABLE' : 'DAILY_CAP_REACHED',
+            capacity: snapshot,
+          },
+          { status: 429 },
+        )
+      }
+
+      // The model extracts structure only. Every score and every priority below is computed by
+      // the deterministic engine; the provider never decides whether a resume deserves a 42.
+      const { data: rawResume, meta } = await preparedPrompt.run()
+      await recordPromptCost({ userId: null, meta })
+      const sanitizedResume = sanitizeParsedResume(rawResume, resumeText)
+      const result = buildPublicProofScore(sanitizedResume, targetRole, industry)
+
+      // Parse handoff is best-effort after the completed audit. A storage outage should not
+      // hide a score the visitor already spent capacity to compute; it only disables the
+      // onboarding shortcut for that response.
+      await service.from('pending_parses').delete().lt('expires_at', new Date().toISOString())
+      const { data: handoff, error: handoffError } = await service
+        .from('pending_parses')
+        .insert({
+          raw_text: resumeText,
+          parsed_json: sanitizedResume as unknown as Record<string, unknown>,
+        })
+        .select('token, expires_at')
+        .single()
+
+      if (handoffError) {
+        console.error('[proofscore/score] parse handoff unavailable:', handoffError.message)
+      }
+
+      return noStore({
+        data: {
+          result,
+          capacity: {
+            cap: 25,
+            remaining: capacity.remaining,
+          },
+          handoff: handoff
+            ? { token: handoff.token, expiresAt: handoff.expires_at }
+            : null,
         },
-        { status: 429 },
-      )
-    }
-
-    // The model extracts structure only. Every score and every priority below is computed by
-    // the deterministic engine; the provider never decides whether a resume deserves a 42.
-    const { data: rawResume, meta } = await runPrompt(resumeParsePrompt, { resumeText })
-    await recordPromptCost({ userId: null, meta })
-    const sanitizedResume = sanitizeParsedResume(rawResume, resumeText)
-    const result = buildPublicProofScore(sanitizedResume, targetRole, industry)
-
-    // Parse handoff is best-effort after the completed audit. A storage outage should not
-    // hide a score the visitor already spent capacity to compute; it only disables the
-    // onboarding shortcut for that response.
-    await service.from('pending_parses').delete().lt('expires_at', new Date().toISOString())
-    const { data: handoff, error: handoffError } = await service
-      .from('pending_parses')
-      .insert({
-        raw_text: resumeText,
-        parsed_json: sanitizedResume as unknown as Record<string, unknown>,
       })
-      .select('token, expires_at')
-      .single()
-
-    if (handoffError) {
-      console.error('[proofscore/score] parse handoff unavailable:', handoffError.message)
+    } finally {
+      // Idempotent and a no-op once run() begins, so ambiguous provider outcomes retain
+      // their conservative reservation while every pre-provider exit releases it.
+      await preparedPrompt.release()
     }
-
-    return noStore({
-      data: {
-        result,
-        capacity: {
-          cap: 25,
-          remaining: capacity.remaining,
-        },
-        handoff: handoff
-          ? { token: handoff.token, expiresAt: handoff.expires_at }
-          : null,
-      },
-    })
   } catch (error) {
     if (error instanceof ProofScoreCapacityError) {
       return noStore(

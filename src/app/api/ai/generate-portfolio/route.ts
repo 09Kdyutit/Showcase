@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { portfolioGenerationPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 import type { ParsedResume } from '@/types/database'
@@ -40,25 +40,36 @@ export async function POST(request: NextRequest) {
     // Server-decided: the client never controls this.
     const isPro = await isProUser(user.id)
     if (!isPro) {
-      const { count } = await supabase
-        .from('portfolios')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .not('ai_generated_at', 'is', null)
-      if ((count ?? 0) > 0) {
+      // Check both the live portfolio marker and the durable generation ledger. A user may
+      // delete a portfolio, but deleting it must not mint a fresh "first" generation.
+      // Generation rows have no portfolio FK and clients have no DELETE grant.
+      const [portfolioHistory, generationHistory] = await Promise.all([
+        service
+          .from('portfolios')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .not('ai_generated_at', 'is', null),
+        service
+          .from('generations')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('type', 'portfolio_generation')
+          .eq('status', 'completed'),
+      ])
+      const entitlementError = portfolioHistory.error ?? generationHistory.error
+      if (entitlementError) {
+        console.error('[generate-portfolio] free entitlement check unavailable:', entitlementError.message)
+        return NextResponse.json(
+          { error: 'Portfolio generation eligibility could not be verified. Please try again shortly.', code: 'ENTITLEMENT_UNAVAILABLE' },
+          { status: 503 },
+        )
+      }
+      if ((portfolioHistory.count ?? 0) > 0 || (generationHistory.count ?? 0) > 0) {
         return NextResponse.json(
           { error: 'Your free plan includes one AI portfolio generation. Upgrade to Pro to regenerate or build more portfolios.', code: 'PRO_REQUIRED' },
           { status: 403 }
         )
       }
-    }
-
-    const rl = await checkRateLimit(user.id, 'portfolio_generated', true)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter },
-        { status: 429 }
-      )
     }
 
     const body = await request.json()
@@ -94,13 +105,22 @@ export async function POST(request: NextRequest) {
 
     trackAsync(user.id, 'portfolio_generation_started', { portfolio_id: portfolioId })
 
-    const { data: rawResult, meta } = await runPrompt(portfolioGenerationPrompt, {
+    const prompt = await runPromptWithQuota(portfolioGenerationPrompt, {
       parsedResume: parsedResume as unknown as ParsedResume,
       targetRole,
       industry,
       portfolioGoal,
       links,
+    }, {
+      userId: user.id,
+      eventName: 'portfolio_generated',
+      // Free uses its atomic one-call quota as an in-flight mutex. Combined with the
+      // durable completed-generation history above, parallel requests and portfolio
+      // deletion cannot multiply the first generation. Pro keeps its ten-per-day limit.
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: rawResult, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
     const result = sanitizePortfolioCopy(rawResult)
 
@@ -147,7 +167,7 @@ export async function POST(request: NextRequest) {
 
     // Referral payout fires on the referred user's first portfolio COMPLETION — publishing
     // is Pro-only, so anchoring the reward there would gate a free user's referral payout
-    // behind their friend buying Pro (see 037_referral_completion_credit.sql; idempotent,
+    // behind their friend buying Pro (see 20260710033037_referral_completion_credit.sql; idempotent,
     // at most one payout per user, self-guarding). Never let a payout hiccup fail the
     // generation the user just spent their one free credit on.
     try {

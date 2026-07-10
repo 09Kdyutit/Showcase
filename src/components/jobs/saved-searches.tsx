@@ -5,7 +5,8 @@ import { Bookmark, BookmarkCheck, X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 // Saved job searches — re-run a filter set in one click. Alerts (email me on new Strong
-// matches) ride the existing weekly digest. Backend fails soft until migration 033 applies,
+// matches) ride the existing weekly digest. Backend fails soft until
+// 20260710033033_saved_searches.sql applies,
 // so this simply shows nothing until then rather than erroring.
 interface SavedSearch { id: string; label: string; filters: Record<string, unknown>; alerts_enabled: boolean }
 

@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 export const maxDuration = 15
 
-// Interview practice reminders. Fails soft until migration 034 (relation missing) so the
+// Interview practice reminders. Fails soft until 20260710033034_interview_reminders.sql applies (relation missing) so the
 // widget can ship ahead of the migration and light up when the table exists.
 const TABLE_MISSING = '42P01'
 

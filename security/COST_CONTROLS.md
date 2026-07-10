@@ -10,8 +10,12 @@ Per-provider financial damage containment, verified against actual current confi
   an atomic counter independent of per-user limits in `src/lib/ai/rate-limit.ts`.
 - **Global dollar limit:** general `runPrompt` traffic now reserves worst-case cost atomically
   before provider contact and settles to reported usage afterward, with fail-closed
-  **$4/day and $80/month** controls. Migration 046 and a staging concurrency run are still
-  required before that becomes production evidence.
+  **$4/day and $80/month** controls. The canonical migration and local concurrency proof
+  pass; production still needs the migration and exact environment values.
+- **Quota fairness:** authenticated OpenAI calls reserve dollars before consuming feature
+  quota/referral credits; public ProofScore reserves dollars before claiming general or
+  reserved daily capacity. Separate short-window user/IP attempt counters run first to bound
+  reservation churn, but those counters are abuse controls rather than paid/product credits.
 - **Approved total budget:** **$5/day and $100/month.** The separate Interview Lab allocation
   is $1/$20, but its global precheck is not yet atomic. Keep `INTERVIEW_KILL_SWITCH=true`;
   while disabled, the enforceable total is the lower, safe $4/$80 general ceiling.
@@ -50,8 +54,9 @@ Per-provider financial damage containment, verified against actual current confi
 
 - **Credential scope:** the local application environment currently contains live Showcase
   keys and the existing $15/month and $150/year live prices. The separately authenticated
-  Stripe CLI test credential belongs to another sandbox/account. Never mix them; staging
-  requires Showcase test-mode keys and recreated $15/$150/$99 test prices. Server-only.
+  Stripe CLI test credential belongs to another sandbox/account. Never mix them; local
+  provider tests require Showcase test-mode keys and recreated $15/$150/$99 test prices.
+  Server-only.
 - **Spend risk:** Stripe doesn't charge the platform for normal API/webhook usage at this volume; the relevant risk is fraudulent/spoofed *payment* activity, not provider cost — covered under Stripe security in the main findings, not here.
 - **Kill switch:** `KILL_SWITCH_CHECKOUT=true` — verified in `src/lib/feature-flags.ts`, checked in `create-checkout-session`.
 - **Owner:** account owner.
@@ -82,8 +87,10 @@ stricter: unset is disabled, and only the literal value `false` enables Google t
 
 ## Human actions required (cannot be completed from this session)
 
-1. Apply migration 046 in staging and prove both the request-quota transaction and general
-   dollar reservations under concurrency. Configure the OpenAI provider alert/limit as a
-   second boundary. Keep Interview Lab disabled until its separate global path is atomic.
+1. After the verified production backup, promote
+   `20260710033046_referral_abuse_and_credit_hardening.sql` in the reviewed batch and
+   smoke-test the already-proven request-quota and dollar ledgers. Configure the OpenAI
+   provider alert/limit as a second boundary. Keep Interview Lab disabled until its separate
+   global path is atomic.
 2. Confirm Vercel's billing alert configuration in the Vercel dashboard.
 3. Confirm jobdataapi's usage/budget dashboard, if one exists for the plan in use.

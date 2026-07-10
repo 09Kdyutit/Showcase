@@ -5,7 +5,8 @@ import { CalendarClock, X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 // "Practice reminder" — schedule a session; upcoming reminders show here, and the weekly
-// digest nudges you when one is due. Fails soft until migration 034 applies (shows the
+// digest nudges you when one is due. Fails soft until
+// 20260710033034_interview_reminders.sql applies (shows the
 // scheduler but persistence is a no-op until then).
 interface Reminder { id: string; remind_at: string; note: string | null }
 

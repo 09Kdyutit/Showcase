@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const read = (path) => readFileSync(join(ROOT, path), 'utf8')
 
-const migration = read('supabase/migrations/042_founding_member_slots.sql')
+const migration = read('supabase/migrations/20260710033042_founding_member_slots.sql')
 for (const invariant of [
   'reservations_paused boolean not null default true',
   'slot_limit integer not null default 10',
@@ -92,7 +92,7 @@ assert.ok(reconcile.includes('recordTrustedEvent('), 'reconciliation must use th
 assert.ok(reconcile.includes('stripe-checkout-completed:${session.id}'), 'webhook and reconciliation must share an idempotency key')
 assert.ok(!reconcile.includes('trackAsync(') && !reconcile.includes("from('usage_events')"), 'reconciliation must not use operational/browser analytics')
 
-const orderingMigration = read('supabase/migrations/044_atomic_subscription_state.sql')
+const orderingMigration = read('supabase/migrations/20260710033044_atomic_subscription_state.sql')
 assert.ok(orderingMigration.includes('pg_advisory_xact_lock'), 'subscription snapshots must serialize per user')
 assert.ok(orderingMigration.includes('stripe_subscription_created_at'), 'replacement subscriptions need an independent monotonic marker')
 assert.ok(orderingMigration.includes('last_webhook_event_id'), 'same-second events need a deterministic tie-break')

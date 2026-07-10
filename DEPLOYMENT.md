@@ -119,19 +119,22 @@ Redeploy after adding the webhook secret.
 ### 5. Apply Supabase migrations safely
 
 ```bash
-supabase login
-supabase link --project-ref <isolated-staging-project-ref>
-supabase db push
+npm run test:local-supabase:safety
+npm run test:local-supabase
 ```
 
-For a blank staging project, apply the complete repository history from `001` through
-`046_referral_abuse_and_credit_hardening.sql`; migrations `035`–`046` depend on earlier
-tables and functions. Run every credentialed/adversarial test there first.
+The approved no-cost path uses the pinned, disposable local Supabase stack rather than a
+second cloud project. It applies the complete canonical repository history in filename
+order, from `001_initial_schema.sql` through
+`20260710033047_explicit_data_api_grants.sql`, runs credentialed/adversarial tests without
+provider secrets, and cleans up its synthetic data. A separate cloud staging project may be
+added later, but it is not required for the current closed-beta path.
 
 Do **not** point `supabase db push` at production until its migration-history ledger is
-reconciled with the already-present schema. After reconciliation, promote only the reviewed
-`035`–`046` changes and verify them. Do not enable invites or Founding reservations until
-the schema, application, and webhook deployment are all live.
+reconciled with the already-present schema and a database-plus-Storage backup has passed a
+restore drill. After reconciliation, the dry-run must show only
+`20260710033038`–`20260710033047` pending. Do not enable invites or Founding reservations
+until the schema, application, and webhook deployment are all live.
 
 ### 5b. Configure Resend webhooks and Vercel cron
 

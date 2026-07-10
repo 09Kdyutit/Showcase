@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDrillDefinition } from '@/lib/interviews/drills'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { interviewAnswerScorePrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
@@ -40,17 +40,18 @@ export async function POST(
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'question_scored', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-    }
-
     // AI grades the drill answer against the drill's own objective + instructions.
-    const { data: ai } = await runPrompt(interviewAnswerScorePrompt, {
+    const prompt = await runPromptWithQuota(interviewAnswerScorePrompt, {
       question: definition.prompt,
       answer: parsed.data.answerText,
       rubricFocus: `${definition.label} — ${definition.objective}\n${definition.instructions}`,
+    }, {
+      userId: user.id,
+      eventName: 'question_scored',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: ai } = prompt
     const total = ai.clarity + ai.action + ai.impact + ai.structure
     const label =
       total >= 90 ? 'Excellent' : total >= 75 ? 'Good' : total >= 55 ? 'Fair' : 'Needs Work'

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { tailorApplicationPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
 import type { ParsedResume, JobListing } from '@/types/database'
@@ -38,11 +38,6 @@ export async function POST(
         error: 'Tailor Studio requires a Pro subscription.',
         code: 'PRO_REQUIRED',
       }, { status: 403 })
-    }
-
-    const rl = await checkRateLimit(user.id, 'job_tailored', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED' }, { status: 429 })
     }
 
     const { id: jobId } = await params
@@ -112,12 +107,18 @@ export async function POST(
     const resumeData = parsed_resume as unknown as ParsedResume
 
     // Run the tailor prompt - the most important AI call in the product
-    const { data: tailored, meta } = await runPrompt(tailorApplicationPrompt, {
+    const prompt = await runPromptWithQuota(tailorApplicationPrompt, {
       parsedResume: resumeData,
       job,
       generateCoverLetter: generate_cover_letter,
       generateRecruiterNote: generate_recruiter_note,
+    }, {
+      userId: user.id,
+      eventName: 'job_tailored',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: tailored, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     // Store the tailored asset

@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 export const maxDuration = 15
 
-// Saved job searches. Fails soft if migration 033 hasn't been applied yet (relation missing) —
+// Saved job searches. Fails soft if 20260710033033_saved_searches.sql has not applied yet (relation missing) —
 // returns an empty list / a friendly message instead of a 500, so the feature can ship ahead
 // of the migration and light up the moment the table exists.
 const TABLE_MISSING = '42P01'

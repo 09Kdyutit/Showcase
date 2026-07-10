@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-// Real test against the DB through migration 046: three-slot admission, high-entropy codes,
+// Real test against the DB through 20260710033046_referral_abuse_and_credit_hardening.sql:
+// three-slot admission, high-entropy codes,
 // new-account-only claims, concurrent replay idempotency, durable completion payout, and
 // true one-use bonus-credit consumption.
 //
-// Requires: migrations 035 through 046 applied. Run: npm run test:referral-credit
+// Requires: canonical versions 20260710033035 through 20260710033046 applied.
+// Run: npm run test:referral-credit
 import { createClient } from '@supabase/supabase-js'
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL

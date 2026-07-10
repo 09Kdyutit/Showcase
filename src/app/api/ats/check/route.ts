@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { atsCheckPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import { trackAsync } from '@/lib/analytics/track'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
@@ -30,14 +30,15 @@ export async function POST(request: NextRequest) {
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'ats_checked', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED' }, { status: 429 })
-    }
-
     const { resume_text, job_keywords, tailored_asset_id } = parsed.data
 
-    const { data: report, meta } = await runPrompt(atsCheckPrompt, { resumeText: resume_text, jobKeywords: job_keywords })
+    const prompt = await runPromptWithQuota(
+      atsCheckPrompt,
+      { resumeText: resume_text, jobKeywords: job_keywords },
+      { userId: user.id, eventName: 'ats_checked', isPro },
+    )
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: report, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     // Store ATS report on tailored asset if provided

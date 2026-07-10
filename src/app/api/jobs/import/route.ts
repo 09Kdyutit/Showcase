@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { jobParsePrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { fetchUrlSafely, UnsafeUrlError } from '@/lib/security/url-fetch-guard'
 import { extractJobFromHtml } from '@/lib/jobs/extract-job-text'
 import { computeMatchScore } from '@/lib/jobs/match'
@@ -39,11 +39,6 @@ export async function POST(request: NextRequest) {
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'job_imported', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED' }, { status: 429 })
-    }
-
     let { description, title, company } = parsed.data
     const { source_url } = parsed.data
 
@@ -75,7 +70,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the job description into structured data
-    const { data: structuredData, meta: parseMeta } = await runPrompt(jobParsePrompt, { jobText: description })
+    const prompt = await runPromptWithQuota(jobParsePrompt, { jobText: description }, {
+      userId: user.id,
+      eventName: 'job_imported',
+      isPro,
+    })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: structuredData, meta: parseMeta } = prompt
     await recordPromptCost({ userId: user.id, meta: parseMeta })
 
     // Extract title/company from description if not provided

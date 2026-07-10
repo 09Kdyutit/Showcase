@@ -10,6 +10,26 @@ import type { NextConfig } from 'next'
 // guarantee explicit and testable, and documents the single source of truth.
 const isDev = process.env.NODE_ENV === 'development'
 
+// Browser-based local integration tests talk directly to Supabase CLI. Permit only the
+// exact IPv4 loopback origin supplied by that disposable stack, and never add it to a
+// production CSP. Invalid, hostname-based, IPv6, and remote URLs all fail closed.
+function localSupabaseConnectSource(): string {
+  if (process.env.NODE_ENV === 'production') return ''
+  const configured = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!configured) return ''
+  try {
+    const parsed = new URL(configured)
+    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || !parsed.port) {
+      return ''
+    }
+    return ` ${parsed.origin}`
+  } catch {
+    return ''
+  }
+}
+
+const localSupabaseConnect = localSupabaseConnectSource()
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-XSS-Protection', value: '1; mode=block' },
@@ -44,7 +64,7 @@ const securityHeaders = [
       // browser over a WebSocket, authenticated with a short-lived ephemeral token
       // minted server-side (see src/lib/interviews/gemini/live.ts) — the real
       // GEMINI_API_KEY and the interviewer's system instruction never reach the browser.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com${localSupabaseConnect}`,
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'self'",
       "object-src 'none'",

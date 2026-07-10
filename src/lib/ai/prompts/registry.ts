@@ -16,8 +16,9 @@ import type { PromptSpec } from './types'
 
 // Canonical registry - every active production prompt, keyed by its stable id. This is the
 // single source of truth for prompt text, model tier, temperature, token limits, output
-// schema, and review eligibility. Route files must not hardcode any of those values; they
-// call runPrompt(REGISTRY.x, input) (see ../client.ts) instead.
+// schema, and review eligibility. Route files must not hardcode any of those values;
+// quota-bearing routes call runPromptWithQuota(REGISTRY.x, input, quota), while internal
+// non-quota flows call runPrompt(REGISTRY.x, input) (see ../client.ts).
 //
 // Two prompts that existed in the old flat prompts.ts file were NOT migrated here because
 // they have zero call sites anywhere in the app (confirmed via grep across src/):

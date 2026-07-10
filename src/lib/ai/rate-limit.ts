@@ -6,7 +6,10 @@ const LIMITS = {
   free: {
     resume_analyzed: { max: 3, windowHours: 24 },
     audit_completed: { max: 1, windowHours: 24 },
-    portfolio_generated: { max: 0, windowHours: 24 },
+    // Free gets one first-generation attempt per window. The route's server-owned
+    // ai_generated_at check remains the lifetime success gate; this atomic counter is the
+    // in-flight mutex that stops parallel first-generation requests reaching the provider.
+    portfolio_generated: { max: 1, windowHours: 24 },
     bullet_improved: { max: 5, windowHours: 24 },
     role_matched: { max: 2, windowHours: 24 },
     job_imported: { max: 3, windowHours: 24 },
@@ -37,11 +40,64 @@ const LIMITS = {
   },
 } as const
 
-type EventName = keyof typeof LIMITS.free
+export type EventName = keyof typeof LIMITS.free
 
 export type RateLimitResult =
   | { allowed: true }
   | { allowed: false; reason: string; retryAfter?: string; status?: 403 | 429 | 503 }
+
+/**
+ * A short-window attempt throttle, separate from product quota and referral credits.
+ * It intentionally runs before dollar reservation so one account cannot keep the global
+ * budget temporarily full with a flood of parallel reserve-then-deny requests.
+ */
+export async function checkAiReservationAttemptLimit(
+  userId: string,
+  isPro: boolean,
+): Promise<RateLimitResult> {
+  if (!isAIEnabled()) {
+    return { allowed: false, reason: KILL_SWITCH_MESSAGE, status: 503 }
+  }
+
+  try {
+    const supabase = await createServiceClient()
+    const { data, error } = await supabase
+      .rpc('rate_limit_increment', {
+        p_key: `ai:reservation-attempt:${userId}`,
+        p_window_seconds: 60,
+        p_max: isPro ? 30 : 10,
+      })
+      .single() as {
+        data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null
+        error: { message: string } | null
+      }
+
+    if (error || !data) {
+      console.error('[rate-limit/ai] reservation attempt throttle unavailable:', error?.message ?? 'no result')
+      return {
+        allowed: false,
+        reason: 'AI capacity could not be verified. Please try again shortly.',
+        status: 503,
+      }
+    }
+    if (!data.allowed) {
+      return {
+        allowed: false,
+        reason: 'Too many AI requests were started at once. Please wait a moment and try again.',
+        retryAfter: new Date(Date.now() + data.retry_after_seconds * 1000).toISOString(),
+        status: 429,
+      }
+    }
+    return { allowed: true }
+  } catch (error) {
+    console.error('[rate-limit/ai] reservation attempt throttle failed:', error instanceof Error ? error.message : 'unknown error')
+    return {
+      allowed: false,
+      reason: 'AI capacity could not be verified. Please try again shortly.',
+      status: 503,
+    }
+  }
+}
 
 export async function checkRateLimit(
   userId: string,
@@ -57,16 +113,6 @@ export async function checkRateLimit(
 
   const tier = isPro ? 'pro' : 'free'
   const limit = LIMITS[tier][eventName]
-
-  if (limit.max === 0) {
-    return {
-      allowed: false,
-      reason: isPro
-        ? `You have reached the limit for ${eventName}. Contact support.`
-        : 'This feature requires a Pro subscription. Upgrade to unlock it.',
-      status: isPro ? 429 : 403,
-    }
-  }
 
   try {
     const supabase = await createServiceClient()
@@ -86,7 +132,9 @@ export async function checkRateLimit(
         p_window_seconds: windowSeconds,
         p_base_max: limit.max,
         p_global_max: globalMax,
-        p_allow_bonus: !isPro,
+        // Referral credits add usage to ordinary Free AI tools, but they must never turn
+        // the one-time first-portfolio entitlement into regeneration/additional portfolios.
+        p_allow_bonus: !isPro && eventName !== 'portfolio_generated',
       })
       .single() as {
         data: {

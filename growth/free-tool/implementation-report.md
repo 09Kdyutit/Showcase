@@ -15,7 +15,7 @@
 
 ## Real capacity and reservation contract
 
-Migration `040_proofscore_public_capacity.sql` adds a service-only capacity ledger and one-use reservations:
+Migration `20260710033040_proofscore_public_capacity.sql` adds a service-only capacity ledger and one-use reservations:
 
 - Three attempts per IP fingerprint per rolling hour, enforced before provider spend.
 - Up to twenty-five provider-backed public audit attempts per UTC day (failed provider attempts still consume capacity so the spend bound remains real).
@@ -44,7 +44,7 @@ Migration `040_proofscore_public_capacity.sql` adds a service-only capacity ledg
 
 ## Deployment checklist
 
-1. Apply migrations through `040_proofscore_public_capacity.sql` in order before deploying the route.
+1. Apply migrations through `20260710033040_proofscore_public_capacity.sql` in canonical filename order before deploying the route.
 2. Confirm `OPENAI_API_KEY`, `RESEND_API_KEY`, Supabase service-role credentials, and `NEXT_PUBLIC_APP_URL` are present.
 3. Configure `OPENAI_COST_RATES_JSON` with a versioned rate for the parser model if cost-ledger coverage is required; the app intentionally does not guess missing prices.
 4. Optionally set `PROOFSCORE_IP_HASH_SALT`; otherwise the server derives a private salt from its service credential.

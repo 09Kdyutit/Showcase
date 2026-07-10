@@ -112,7 +112,7 @@ assert.equal(normalizeEmailAddress('A_B@Example.com'), 'a_b@example.com')
 assert.equal(normalizeEmailAddress('not-an-email'), null)
 
 
-const migration = readFileSync(resolve('supabase/migrations/039_growth_automation.sql'), 'utf8')
+const migration = readFileSync(resolve('supabase/migrations/20260710033039_growth_automation.sql'), 'utf8')
 for (const required of [
   'create table if not exists public.growth_attributions',
   'create table if not exists public.trusted_events',
@@ -145,7 +145,7 @@ assert.doesNotMatch(scorecardRoute, /from\('ai_cost_events'\)/,
 assert.match(scorecardRoute, /estimated_cost_nano_usd/)
 assert.match(scorecardRoute, /actual_cost_nano_usd/)
 
-const hardeningMigration = readFileSync(resolve('supabase/migrations/043_email_and_parse_hardening.sql'), 'utf8')
+const hardeningMigration = readFileSync(resolve('supabase/migrations/20260710033043_email_and_parse_hardening.sql'), 'utf8')
 for (const required of [
   'create or replace function public.claim_pending_parse',
   'delete from public.pending_parses p',

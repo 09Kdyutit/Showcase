@@ -45,7 +45,7 @@ assert.match(hostileInvite.html, /&lt;img/)
 assert.doesNotMatch(hostileConfirmation.html, /<img, welcome/, 'confirmation names must be escaped in HTML')
 assert.match(hostileConfirmation.html, /&lt;img/)
 
-const migration = read('supabase/migrations/038_growth_admission.sql')
+const migration = read('supabase/migrations/20260710033038_growth_admission.sql')
 for (const invariant of [
   'invites_paused boolean not null default true',
   'pg_advisory_xact_lock',

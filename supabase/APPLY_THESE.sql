@@ -1,8 +1,9 @@
 -- ============================================================================
 -- DEPRECATED SNAPSHOT: this convenience file stops at migration 037 and is NOT
 -- sufficient for the current growth/security release. On blank staging, use the pinned
--- Supabase CLI and apply every file in `supabase/migrations` from 001 through 046 in
--- numeric order. Do NOT run a blind `supabase db push` against production: its migration
+-- Supabase CLI and apply every file in `supabase/migrations` through
+-- `20260710033047_explicit_data_api_grants.sql` in canonical filename order. Do NOT run a
+-- blind `supabase db push` against production: its migration
 -- ledger diverges from the existing schema and must be reconciled first. Running only this
 -- file leaves invite admission, email suppression, authority guards, ProofScore capacity,
 -- Founding Member slots, atomic AI budgets, and Stripe ordering unapplied.

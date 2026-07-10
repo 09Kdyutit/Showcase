@@ -1,4 +1,4 @@
--- 018_interview_lab_grant_hygiene.sql
+-- 20260623195544_018_interview_lab_grant_hygiene.sql
 -- Same defense-in-depth as migration 016: revoke TRUNCATE/TRIGGER/REFERENCES from
 -- anon/authenticated on every new Interview Lab table. RLS already blocks all real
 -- access paths; this removes the unused table-level grants Supabase assigns by

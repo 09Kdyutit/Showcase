@@ -27,7 +27,7 @@ assert.deepEqual(
 )
 assert.equal(credits, 0)
 
-const migration = read('supabase/migrations/045_referral_invite_pacing.sql').toLowerCase()
+const migration = read('supabase/migrations/20260710033045_referral_invite_pacing.sql').toLowerCase()
 for (const invariant of [
   'referral_invite_limit integer not null default 0',
   'referral_invites_used integer not null default 0',
@@ -46,7 +46,7 @@ for (const invariant of [
 assert.match(migration, /revoke all on function public\.claim_referral\(uuid, text\)[\s\S]*authenticated/)
 assert.match(migration, /revoke all on function public\.grant_completion_referral_invites\(uuid, integer\)[\s\S]*authenticated/)
 
-const hardening = read('supabase/migrations/046_referral_abuse_and_credit_hardening.sql').toLowerCase()
+const hardening = read('supabase/migrations/20260710033046_referral_abuse_and_credit_hardening.sql').toLowerCase()
 for (const invariant of [
   "referral_code ~ '^[a-f0-9]{32}$'",
   'referral_claimed_at timestamptz',

@@ -9,6 +9,10 @@ import { createClient } from '@supabase/supabase-js'
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!URL || !ANON_KEY || !SERVICE_KEY) {
+  console.error('NEXT_PUBLIC_SUPABASE_URL, publishable key, and service-role key are required.')
+  process.exitCode = 1
+}
 
 let PASS = 0
 let FAIL = 0
@@ -29,11 +33,16 @@ async function signUp(email) {
 
 async function main() {
   const suffix = Date.now()
-  const a = await signUp(`rls-test-a-${suffix}@example.com`)
-  const b = await signUp(`rls-test-b-${suffix}@example.com`)
   const service = createClient(URL, SERVICE_KEY, { auth: { persistSession: false } })
-  console.log('User A:', a.userId)
-  console.log('User B:', b.userId)
+  const cleanupUserIds = []
+
+  try {
+    const a = await signUp(`rls-test-a-${suffix}@example.com`)
+    cleanupUserIds.push(a.userId)
+    const b = await signUp(`rls-test-b-${suffix}@example.com`)
+    cleanupUserIds.push(b.userId)
+    console.log('User A:', a.userId)
+    console.log('User B:', b.userId)
 
   // ── User A creates real data ─────────────────────────────────────────────
   const { data: resumeA, error: resumeErr } = await a.client
@@ -162,8 +171,21 @@ async function main() {
     record('Anonymous client loses access once portfolio is reverted to draft', (data?.length ?? 0) === 0)
   }
 
+  } finally {
+    for (const userId of cleanupUserIds) {
+      await service.auth.admin.deleteUser(userId).catch(() => {})
+    }
+  }
+
   console.log(`\n  RLS adversarial test: ${PASS} passed, ${FAIL} failed\n`)
-  process.exit(FAIL > 0 ? 1 : 0)
+  return FAIL > 0 ? 1 : 0
 }
 
-main().catch(e => { console.error('SCRIPT ERROR:', e.message); process.exit(1) })
+if (URL && ANON_KEY && SERVICE_KEY) {
+  main()
+    .then((code) => { process.exitCode = code })
+    .catch((e) => {
+      console.error('SCRIPT ERROR:', e.message)
+      process.exitCode = 1
+    })
+}

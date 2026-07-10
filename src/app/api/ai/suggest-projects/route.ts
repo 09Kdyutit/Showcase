@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { projectSuggestionsPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
@@ -37,14 +37,15 @@ export async function POST(request: NextRequest) {
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'project_suggested', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-    }
-
     // Free users only ever generate the 3 Beginner projects — Intermediate/Master are Pro,
     // so we never spend tokens producing content a free user can't unlock.
-    const { data, meta } = await runPrompt(projectSuggestionsPrompt, { resumeText: content, beginnerOnly: !isPro })
+    const prompt = await runPromptWithQuota(
+      projectSuggestionsPrompt,
+      { resumeText: content, beginnerOnly: !isPro },
+      { userId: user.id, eventName: 'project_suggested', isPro },
+    )
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     trackAsync(user.id, 'project_suggested', {

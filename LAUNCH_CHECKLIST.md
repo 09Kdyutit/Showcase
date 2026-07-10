@@ -5,8 +5,8 @@ For the detailed, continuously-updated release-readiness tracking, see
 source of truth. This file is the short human-readable version.
 
 **Status as of 2026-07-09:** the paced-growth, ProofScore, lifecycle, referral,
-Founding Member, and launch-security changes are implemented locally. Migrations
-035–046, new provider webhooks, cron schedules, and production smoke tests are not
+Founding Member, and launch-security changes are implemented locally. Canonical migrations
+`20260710033035`–`20260710033047`, new provider webhooks, cron schedules, and production smoke tests are not
 assumed live until a human applies and verifies them.
 
 **Read-only production check, 2026-07-09:** `app.tryshowcase.ink` and `/api/health`
@@ -67,10 +67,14 @@ This is an existing healthy app—not yet the reviewed growth release.
   `customer.subscription.{created,updated,deleted}`, and `invoice.payment_failed`.
   Re-verify the signing secret after the new deployment.
 
-- [ ] **Create clean staging and apply migrations 001–046 in numeric order.** A blank
-  project needs the complete dependency chain. Then reconcile the production migration
-  ledger with its already-present schema before promoting reviewed migrations 035–046;
-  never run a blind production `supabase db push`. The new migrations include
+- [x] **Reset a clean local Supabase stack through
+  `20260710033047_explicit_data_api_grants.sql` and run the no-secret credentialed suite.**
+  The canonical 48-record reset and 122/122 credentialed assertions pass.
+- [ ] **Back up and reconcile production before promotion.** Verify encrypted database
+  dumps, a separate Storage download, checksums, and a restore drill. Then mark only the
+  already-equivalent `20260710033033`–`20260710033037` history rows and require a dry-run
+  showing only `20260710033038`–`20260710033047`; never run a blind production
+  `supabase db push`. The reviewed batch includes
   authority triggers, atomic Stripe state, paced invites, attribution, email
   suppression, public ProofScore capacity, Founding Member reservations, and
   completion-earned referral admission, high-entropy claim tokens, and consumable credits.

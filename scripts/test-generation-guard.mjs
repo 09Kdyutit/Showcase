@@ -2,6 +2,7 @@
 // Pure logic tests for the AI-generation overwrite guard — the mechanism that decides
 // whether regenerating a portfolio is safe or needs the user to confirm an overwrite first.
 import { hasRealContent, isEditedSinceGeneration } from '../src/lib/portfolio/guard.ts'
+import { readFileSync } from 'node:fs'
 
 let PASS = 0
 let FAIL = 0
@@ -50,6 +51,45 @@ assert(
 assert(
   isEditedSinceGeneration({ hero: { headline: 'Y' } }, t0plus5s, t0) === true,
   'Content updated meaningfully after the last generation requires confirmation'
+)
+
+// ── Free first-generation concurrency contract ───────────────────────────────
+const rateLimitSource = readFileSync(new URL('../src/lib/ai/rate-limit.ts', import.meta.url), 'utf8')
+const routeSource = readFileSync(new URL('../src/app/api/ai/generate-portfolio/route.ts', import.meta.url), 'utf8')
+const quotaCallStart = routeSource.indexOf('runPromptWithQuota(portfolioGenerationPrompt')
+const quotaCallEnd = routeSource.indexOf('})', quotaCallStart)
+const quotaCall = routeSource.slice(quotaCallStart, quotaCallEnd)
+
+assert(
+  /portfolio_generated:\s*\{\s*max:\s*1,\s*windowHours:\s*24\s*\}/.test(rateLimitSource),
+  'Free portfolio generation has an atomic one-call in-flight quota'
+)
+assert(
+  rateLimitSource.includes("p_allow_bonus: !isPro && eventName !== 'portfolio_generated'"),
+  'Referral credits cannot extend the first-portfolio entitlement'
+)
+assert(
+  routeSource.includes('const [portfolioHistory, generationHistory] = await Promise.all(['),
+  'Lifetime generated-portfolio checks use the server-owned service client'
+)
+assert(
+  routeSource.includes(".from('generations')")
+    && routeSource.includes(".eq('type', 'portfolio_generation')")
+    && routeSource.includes(".eq('status', 'completed')"),
+  'Deleting a portfolio cannot erase the durable first-generation marker'
+)
+assert(
+  routeSource.indexOf('if (entitlementError)') > routeSource.indexOf('const entitlementError =')
+    && routeSource.indexOf('if (entitlementError)') < routeSource.indexOf('if ((portfolioHistory.count ?? 0) > 0'),
+  'Entitlement lookup failure denies generation instead of failing open'
+)
+assert(
+  quotaCallStart >= 0 && /\bisPro,\s*$/.test(quotaCall.trim()),
+  'Generation quota uses the authenticated account tier, not a hard-coded Pro tier'
+)
+assert(
+  !quotaCall.includes('isPro: true'),
+  'Free generation cannot inherit the ten-call Pro quota under parallel requests'
 )
 
 console.log(`\n  Generation overwrite-guard test: ${PASS} passed, ${FAIL} failed\n`)

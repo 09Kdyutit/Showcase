@@ -68,7 +68,8 @@ export async function POST(request: NextRequest) {
     }
 
     const newStatus = action === 'publish' ? 'published' : 'draft'
-    // Publication state is a server-authority field (migration 041); mutate it with the
+    // Publication state is a server-authority field
+    // (20260710033041_launch_security_and_webhooks.sql); mutate it with the
     // service client only after the cookie-bound client authenticated and owner-checked
     // the request above.
     const { error } = await service

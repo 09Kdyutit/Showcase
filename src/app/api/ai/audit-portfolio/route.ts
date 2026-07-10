@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { proofScoreExplanationPrompt } from '@/lib/ai/prompts/registry'
 import type { ParsedResumeOutput, PortfolioContentOutput } from '@/lib/ai/schemas'
 import { computeProofScore } from '@/lib/proofscore/engine'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
@@ -36,18 +36,6 @@ export async function POST(request: NextRequest) {
 
     const { portfolioId, resumeId, targetRole, industry } = parsed.data
     const isPro = await isProUser(user.id)
-
-    const rl = await checkRateLimit(user.id, 'audit_completed', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        {
-          error: rl.reason,
-          code: rl.reason.includes('Pro') ? 'PRO_REQUIRED' : 'RATE_LIMITED',
-          retryAfter: rl.retryAfter,
-        },
-        { status: isPro ? 429 : 403 }
-      )
-    }
 
     let portfolioContent: PortfolioContentOutput | null = null
     if (portfolioId) {
@@ -86,13 +74,19 @@ export async function POST(request: NextRequest) {
     // from structured facts, not AI judgment. AI is only used afterward to explain them.
     const deterministic = computeProofScore(parsedResume, portfolioContent, targetRole, industry, isPro)
 
-    const { data: explanation, meta } = await runPrompt(proofScoreExplanationPrompt, {
+    const prompt = await runPromptWithQuota(proofScoreExplanationPrompt, {
       resumeText,
       portfolioContent: portfolioContent as unknown as Record<string, unknown> | null,
       targetRole,
       industry,
       categories: deterministic.categories,
+    }, {
+      userId: user.id,
+      eventName: 'audit_completed',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: explanation, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     const explanationByKey = new Map(explanation.categories.map((c) => [c.key, c]))

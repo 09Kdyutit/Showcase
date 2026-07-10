@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { matchExplanationPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { checkRateLimit, isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { computeMatchScore } from '@/lib/jobs/match'
 import { getJobById } from '@/lib/jobs/providers'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
@@ -41,11 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'job_matched', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED' }, { status: 429 })
-    }
-
     const { job_id, job: inlineJob, parsed_resume, include_ai_explanation } = parsed.data
     const resumeData = parsed_resume as unknown as ParsedResume
 
@@ -94,13 +89,19 @@ export async function POST(request: NextRequest) {
     let aiExplanation: string | null = null
     if (include_ai_explanation && isPro) {
       try {
-        const { data: explanation, meta } = await runPrompt(matchExplanationPrompt, {
+        const prompt = await runPromptWithQuota(matchExplanationPrompt, {
           parsedResume: resumeData,
           job: jobListing,
           deterministicScore: score,
           matchedSkills: breakdown.matched_skills,
           missingSkills: breakdown.missing_skills,
+        }, {
+          userId: user.id,
+          eventName: 'job_matched',
+          isPro,
         })
+        if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+        const { data: explanation, meta } = prompt
         await recordPromptCost({ userId: user.id, meta })
         aiExplanation = [
           explanation.score_justification,
@@ -112,6 +113,11 @@ export async function POST(request: NextRequest) {
       } catch {
         // AI explanation failure is non-fatal - deterministic score is still valid
       }
+    } else {
+      // The deterministic match endpoint is independently rate-limited even when no
+      // provider explanation is requested. There is no dollar reservation to order here.
+      const rateLimit = await checkRateLimit(user.id, 'job_matched', isPro)
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit)
     }
 
     trackAsync(user.id, 'job_matched', { job_id: job_id ?? null, score, has_ai: !!aiExplanation })

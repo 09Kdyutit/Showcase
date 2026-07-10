@@ -12,9 +12,10 @@ native/mobile-store work to this runbook.
 
 1. Keep `LAUNCH_OPEN=false`, email delivery disabled, waitlist invites paused, and Founding
    reservations paused.
-2. On blank staging, apply the full migration chain `001` through `046` in numeric order.
-   Reconcile production's migration ledger before promoting reviewed migrations `035`
-   through `046`; never use a blind production `supabase db push`.
+2. Run `npm run test:local-supabase` against the disposable local stack. Before production,
+   verify a database-plus-Storage backup and restore drill, reconcile the already-present
+   `20260710033033`–`20260710033037` schema history, and require a dry-run showing only
+   `20260710033038`–`20260710033047` pending. Never use a blind production `supabase db push`.
 3. Deploy the application with every variable documented in `.env.example`.
 4. Verify all new routes return expected auth failures before enabling any provider:
    Stripe webhook, Resend inbound/events, cron routes, Founding availability, and ProofScore.
@@ -54,20 +55,18 @@ npm run verify
 npm run release:gate
 ```
 
-Then run staging/provider tests that intentionally need credentials:
+The no-secret local database/browser proof is:
 
 ```bash
-npm run staging:preflight
-npm run test:rls
-npm run test:stripe
-npm run test:referral-credit
+npm run test:local-supabase
 ```
 
-`staging:preflight` refuses to continue if the isolated worktree is linked to production,
-if its Supabase URL and project ref disagree, if Stripe is live-mode, or if any initial
-email/launch/spend switch is unpaused.
+Run provider tests that need credentials locally with Showcase test-mode Stripe keys. If a
+separate cloud staging project is added later, `staging:preflight` remains available and
+refuses production links, project-ref/URL mismatches, live Stripe mode, or unpaused launch
+switches.
 
-Do not run the Stripe checkout test against live keys. After staging passes, perform one
+Do not run the automated Stripe checkout test against live keys. After test mode passes, perform one
 small refundable live-mode transaction and verify webhook, entitlement, cancellation,
 automatic unpublish, and refund operations end to end.
 

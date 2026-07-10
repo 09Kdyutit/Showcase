@@ -1,4 +1,4 @@
--- 017_interview_lab.sql
+-- 20260623195458_017_interview_lab.sql
 -- Showcase Interview Lab — core schema, first slice.
 --
 -- Scope of this migration: session lifecycle, transcripts, deterministic scoring,

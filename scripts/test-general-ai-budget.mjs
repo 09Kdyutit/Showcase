@@ -118,7 +118,7 @@ checks += 1
 assert.match(new GeneralAiBudgetExceededError('monthly').message, /next month/i)
 checks += 1
 
-const migration = readFileSync(resolve('supabase/migrations/046_referral_abuse_and_credit_hardening.sql'), 'utf8')
+const migration = readFileSync(resolve('supabase/migrations/20260710033046_referral_abuse_and_credit_hardening.sql'), 'utf8')
 check(migration.includes('add column if not exists cached_input_tokens'),
   'secondary cost telemetry must persist cached input usage')
 check(migration.includes('add column if not exists cached_input_rate_per_million'),
@@ -156,10 +156,30 @@ check(!/(prompt|message|request_body|response_body|resume|portfolio)[_a-z]*\s/.t
   'budget table must never persist prompt or product-content bodies')
 
 const client = readFileSync(resolve('src/lib/ai/client.ts'), 'utf8')
-const runPromptIndex = client.indexOf('export async function runPrompt')
-const reserveIndex = client.indexOf('await reserveGeneralAiBudget', runPromptIndex)
+const preparePromptIndex = client.indexOf('export async function preparePromptCall')
+const reserveIndex = client.indexOf('await reserveGeneralAiBudget', preparePromptIndex)
+const quotaPromptIndex = client.indexOf('export async function runPromptWithQuota')
+const attemptLimitIndex = client.indexOf('await checkAiReservationAttemptLimit', quotaPromptIndex)
+const quotaPrepareIndex = client.indexOf('await preparePromptCall', quotaPromptIndex)
+const quotaConsumeIndex = client.indexOf('await checkRateLimit', quotaPromptIndex)
+const quotaProviderIndex = client.indexOf('await prepared.run()', quotaPromptIndex)
 const providerIndex = client.indexOf('openai.responses.parse')
-check(reserveIndex > runPromptIndex, 'runPrompt must reserve before entering its provider call path')
+check(reserveIndex > preparePromptIndex, 'prepared prompt must atomically reserve its maximum dollar cost')
+check(attemptLimitIndex > quotaPromptIndex && attemptLimitIndex < quotaPrepareIndex,
+  'a separate non-credit attempt throttle must bound authenticated reservation churn')
+check(quotaPrepareIndex > quotaPromptIndex && quotaPrepareIndex < quotaConsumeIndex,
+  'authenticated prompt flow must reserve dollars before consuming user quota/referral credit')
+check(quotaConsumeIndex < quotaProviderIndex,
+  'authenticated prompt flow must consume quota before contacting the provider')
+check(client.includes('if (!rateLimit.allowed) {\n    await prepared.release()'),
+  'a quota denial must idempotently release its unused dollar reservation')
+check(client.includes("state: 'ready' | 'releasing' | 'started' | 'released'"),
+  'prepared calls must serialize release and enforce one-shot provider use')
+check(client.includes("if (state === 'released' || state === 'started') return"),
+  'release must be idempotent and must not reopen spend after provider contact')
+const rateLimit = readFileSync(resolve('src/lib/ai/rate-limit.ts'), 'utf8')
+check(rateLimit.includes('ai:reservation-attempt:'),
+  'reservation churn must use a separate key that cannot consume product quota/referral credit')
 check(client.includes('await settleGeneralAiBudget(options.budgetReservation, usage)'), 'provider usage must settle the reservation')
 check(client.includes('await releaseGeneralAiBudget(options.budgetReservation)'), 'provider failure must release the reservation')
 check(client.includes('isDefinitiveProviderFailure(err)'), 'ambiguous network/parse failures must retain their maximum reservation')
@@ -173,6 +193,28 @@ check(client.includes('err.status < 500'), 'ambiguous provider 5xx failures must
 check(client.includes('![408, 409, 429].includes(err.status)'),
   'retry-class 408/409/429 responses must retain their reservation')
 check(providerIndex >= 0, 'central provider path must remain present')
+
+const quotaGuardedRoutes = [
+  'src/app/api/ai/analyze-resume/route.ts',
+  'src/app/api/ai/audit-portfolio/route.ts',
+  'src/app/api/ai/cover-letter/route.ts',
+  'src/app/api/ai/generate-portfolio/route.ts',
+  'src/app/api/ai/improve-resume/route.ts',
+  'src/app/api/ai/outreach/route.ts',
+  'src/app/api/ai/role-match/route.ts',
+  'src/app/api/ai/suggest-projects/route.ts',
+  'src/app/api/ats/check/route.ts',
+  'src/app/api/interviews/drills/[id]/attempt/route.ts',
+  'src/app/api/interviews/questions/score/route.ts',
+  'src/app/api/jobs/[id]/tailor/route.ts',
+  'src/app/api/jobs/import/route.ts',
+  'src/app/api/jobs/match/route.ts',
+]
+for (const routePath of quotaGuardedRoutes) {
+  const route = readFileSync(resolve(routePath), 'utf8')
+  check(route.includes('runPromptWithQuota('), `${routePath} must use reserve-before-quota flow`)
+  check(!route.includes('await runPrompt('), `${routePath} must not bypass reserve-before-quota flow`)
+}
 
 const envExample = readFileSync(resolve('.env.example'), 'utf8')
 check(envExample.includes('OPENAI_GENERAL_DAILY_BUDGET_USD=4'), 'general daily allocation must be $4')

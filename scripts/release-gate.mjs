@@ -36,18 +36,19 @@ const mustHaveRequirementIds = [
   'P1-19',
 ]
 const expectedGrowthMigrations = [
-  '035_referral_publish_credit.sql',
-  '036_pending_parses.sql',
-  '037_referral_completion_credit.sql',
-  '038_growth_admission.sql',
-  '039_growth_automation.sql',
-  '040_proofscore_public_capacity.sql',
-  '041_launch_security_and_webhooks.sql',
-  '042_founding_member_slots.sql',
-  '043_email_and_parse_hardening.sql',
-  '044_atomic_subscription_state.sql',
-  '045_referral_invite_pacing.sql',
-  '046_referral_abuse_and_credit_hardening.sql',
+  '20260710033035_referral_publish_credit.sql',
+  '20260710033036_pending_parses.sql',
+  '20260710033037_referral_completion_credit.sql',
+  '20260710033038_growth_admission.sql',
+  '20260710033039_growth_automation.sql',
+  '20260710033040_proofscore_public_capacity.sql',
+  '20260710033041_launch_security_and_webhooks.sql',
+  '20260710033042_founding_member_slots.sql',
+  '20260710033043_email_and_parse_hardening.sql',
+  '20260710033044_atomic_subscription_state.sql',
+  '20260710033045_referral_invite_pacing.sql',
+  '20260710033046_referral_abuse_and_credit_hardening.sql',
+  '20260710033047_explicit_data_api_grants.sql',
 ]
 const expectedCrons = {
   '/api/cron/interview-retention': '0 5 * * *',
@@ -143,7 +144,7 @@ if (!sameJson(sortedUnique(contracts.required_requirement_ids ?? []), sortedUniq
   failContract('required requirement ID contract does not match the checker')
 }
 if (!sameJson(contracts.growth_migrations, expectedGrowthMigrations)) {
-  failContract('growth migration contract does not match migrations 035-046')
+  failContract('growth migration contract does not match canonical migrations 035-047')
 }
 if (!sameJson(contracts.crons, expectedCrons)) failContract('cron contract does not match the checker')
 if (!sameJson(contracts.required_production_env_names, requiredProductionEnvNames)) {
@@ -155,7 +156,7 @@ if (!sameJson(contracts.optional_production_env_names, optionalProductionEnvName
 
 const migrationDir = join(root, 'supabase', 'migrations')
 const actualGrowthMigrations = readdirSync(migrationDir)
-  .filter((name) => /^(03[5-9]|04[0-6])_/.test(name))
+  .filter((name) => /^202607100330(?:3[5-9]|4[0-7])_/.test(name))
   .sort()
 if (!sameJson(actualGrowthMigrations, expectedGrowthMigrations)) {
   failContract(`growth migration files differ: ${actualGrowthMigrations.join(', ')}`)

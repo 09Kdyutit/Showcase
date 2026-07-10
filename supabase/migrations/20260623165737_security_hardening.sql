@@ -1,4 +1,4 @@
--- 016_security_hardening.sql
+-- 20260623165737_security_hardening.sql
 -- Adversarial security review findings (see security/DATA_AUTHORITY_MATRIX.md):
 --
 -- 1. handle_new_user() is SECURITY DEFINER with no pinned search_path. Exploitability

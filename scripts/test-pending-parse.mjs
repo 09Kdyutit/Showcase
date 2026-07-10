@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Real test of the ProofScore → onboarding parse handoff (migration 036 + the
+// Real test of the ProofScore → onboarding parse handoff
+// (20260710033036_pending_parses.sql + the
 // /api/proofscore/stash and /api/proofscore/claim-parse routes): stash anonymously, sign a
 // user up through the real UI, claim from the app origin (cookies ride along), and verify
 // the resumes row was created WITHOUT any AI call, the stash was deleted, the deterministic
 // sanitizer ran (tainted-context skill dropped), and expired/double claims are refused.
 //
-// Requires: migration 036 applied + dev server running at APP_URL.
+// Requires: 20260710033036_pending_parses.sql applied + dev server running at APP_URL.
 // Run: npm run test:pending-parse
 import { createClient } from '@supabase/supabase-js'
 import { chromium } from 'playwright'

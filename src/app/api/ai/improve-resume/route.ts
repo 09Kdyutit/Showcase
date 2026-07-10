@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { resumeBulletPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import { trackAsync } from '@/lib/analytics/track'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
@@ -32,15 +32,13 @@ export async function POST(request: NextRequest) {
     const { bullet, role, context } = parsed.data
     const isPro = await isProUser(user.id)
 
-    const rl = await checkRateLimit(user.id, 'bullet_improved', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter },
-        { status: 429 }
-      )
-    }
-
-    const { data: result, meta } = await runPrompt(resumeBulletPrompt, { bullet, role, context })
+    const prompt = await runPromptWithQuota(resumeBulletPrompt, { bullet, role, context }, {
+      userId: user.id,
+      eventName: 'bullet_improved',
+      isPro,
+    })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: result, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
 
     trackAsync(user.id, 'bullet_improved', { role, original_length: bullet.length })
