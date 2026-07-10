@@ -66,6 +66,7 @@ jobs:
           # checks; no real secret is needed to produce a build artifact.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder
+          OPENAI_API_KEY: ci-placeholder-not-a-real-key
           STRIPE_SECRET_KEY: sk_test_placeholder_for_ci_build_only
 
       - name: gitleaks secret scan
@@ -132,6 +133,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder
+          OPENAI_API_KEY: ci-placeholder-not-a-real-key
           STRIPE_SECRET_KEY: sk_test_placeholder_for_ci_build_only
 
       - name: Run staging adversarial suite
