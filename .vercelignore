@@ -1,0 +1,6 @@
+# Never upload agent scratch/worktrees (nested .git files break Vercel's file processing)
+.claude
+# Local evidence/artifacts that have no business in a deployment
+screenshots
+evals/results
+*.log
