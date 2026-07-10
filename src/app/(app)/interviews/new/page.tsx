@@ -114,6 +114,13 @@ export default function NewInterviewPage() {
         setSubmitting(false)
         return
       }
+      // Honesty over silence: if the server could not prepare every question the user
+      // picked (question generator down and the curated bank exhausted), say so up
+      // front instead of letting the lobby quietly show a shorter session.
+      const plannedCount = json.data?.planned_question_count
+      if (deliveryMode === 'text' && typeof plannedCount === 'number' && plannedCount < questionCount) {
+        toast.warning(`Heads up: this session has ${plannedCount} questions — we couldn't prepare all ${questionCount} you asked for right now.`)
+      }
       router.push(`/interviews/${json.data.id}/lobby`)
     } catch {
       toast.error('Something went wrong. Please try again.')

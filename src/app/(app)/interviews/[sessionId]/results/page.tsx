@@ -47,7 +47,7 @@ interface DimensionScore {
   explanation: string | null; confidence: 'low' | 'medium' | 'high' | null
 }
 interface SessionDetail {
-  session: { id: string; status: string; target_role: string; session_type: string; analysis_status: string }
+  session: { id: string; status: string; target_role: string; session_type: string; delivery_mode: string; analysis_status: string }
   questions: Question[]; transcript: TranscriptSegment[]
   latestEvaluation: Evaluation; dimensionScores: DimensionScore[]
   priorDimensionScores?: { dimension_id: string; score: number }[]
@@ -303,7 +303,9 @@ export default function InterviewResultsPage() {
   const answerAssessments = latestEvaluation?.result?.answerAssessments ?? []
   const assessmentByQuestionId = new Map(answerAssessments.map((a) => [a.questionId, a]))
   const hasAnalysis = !!latestEvaluation
-  const conversation = buildExchanges(transcript)
+  // Questions let candidate-only (text-mode) exchanges show their real planned question
+  // instead of the "Opening" placeholder.
+  const conversation = buildExchanges(transcript, questions)
   // Retry is keyed by the planned-question row id. Map each exchange back to its
   // question row via the interviewer segment's question_id, falling back to an exact
   // question-text match. Adaptive follow-ups with no question row simply get no
@@ -494,23 +496,41 @@ export default function InterviewResultsPage() {
           <CardHeader><CardTitle className="text-base">Delivery Signals</CardTitle></CardHeader>
           <CardContent className="space-y-6">
 
-            {/* Filler words */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">Filler word count</p>
-                <div className="text-right">
-                  <span className="text-lg font-bold text-foreground">{delivery.fillerCount}</span>
-                  <span className={`text-xs ml-2 ${fillerQuality(delivery.fillerCount, delivery.wordCount).color}`}>
-                    {fillerQuality(delivery.fillerCount, delivery.wordCount).label}
-                  </span>
+            {/* Filler words are a spoken-delivery signal - meaningless for typed answers,
+                so written sessions get a total-volume stat from the same computed data instead. */}
+            {session.delivery_mode === 'voice' ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">Filler word count</p>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-foreground">{delivery.fillerCount}</span>
+                    <span className={`text-xs ml-2 ${fillerQuality(delivery.fillerCount, delivery.wordCount).color}`}>
+                      {fillerQuality(delivery.fillerCount, delivery.wordCount).label}
+                    </span>
+                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Counts &ldquo;um,&rdquo; &ldquo;uh,&rdquo; &ldquo;you know,&rdquo; &ldquo;I mean,&rdquo; &ldquo;sort of,&rdquo; &ldquo;kind of,&rdquo; and similar
+                  filler words across your answers. Frequent fillers signal hesitation or lack of structure to interviewers  -
+                  even technically strong candidates lose credibility with high filler rates.
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Counts &ldquo;um,&rdquo; &ldquo;uh,&rdquo; &ldquo;you know,&rdquo; &ldquo;I mean,&rdquo; &ldquo;sort of,&rdquo; &ldquo;kind of,&rdquo; and similar
-                filler words across your answers. Frequent fillers signal hesitation or lack of structure to interviewers  - 
-                even technically strong candidates lose credibility with high filler rates.
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">Total written</p>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-foreground">{delivery.wordCount}</span>
+                    <span className="text-xs ml-2 text-muted-foreground">
+                      words across {responseDist?.total ?? 0} answer{(responseDist?.total ?? 0) !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This was a written session, so spoken-delivery signals like filler words aren&rsquo;t measured.
+                </p>
+              </div>
+            )}
 
             {/* Response length distribution */}
             {responseDist && responseDist.total > 0 && (

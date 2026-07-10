@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildInterviewPlan, primaryQuestionCount } from '@/lib/interviews/plan'
 import { isInterviewLiveEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
-import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
+import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES, type InterviewPlanQuestion } from '@/lib/interviews/schemas'
 import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
 import { generatePersonalizedQuestions } from '@/lib/interviews/gemini/question-gen'
 import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@/lib/interviews/gemini/question-gen'
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       limits.maxPrimaryQuestions,
     )
 
-    let aiGeneratedQuestions = undefined
+    let aiGeneratedQuestions: InterviewPlanQuestion[] | undefined = undefined
     let questionGenCost: { model: string; costUsd: number } | null = null
     if (isInterviewAnalysisEnabled()) {
       // isInterviewAnalysisEnabled() doubles as the gate for any Gemini API call here  -
@@ -241,6 +241,20 @@ export async function POST(request: NextRequest) {
       questionCountOverride,
       planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })
+
+    // Never let a short-delivered session pass silently: the plan builder tops up from
+    // the static bank, so a shortfall here means the combined AI+bank pool was exhausted
+    // (or the tier ceiling clamped the request). The requested count is persisted in
+    // session_plan.requestedQuestionCount and the creation UI surfaces the gap to the user.
+    if (plan.questions.length < questionCount) {
+      console.warn('[interviews/sessions] plan shortfall: delivered fewer questions than requested', {
+        requested: questionCount,
+        delivered: plan.questions.length,
+        sessionType: input.sessionType,
+        deliveryMode: input.deliveryMode,
+        aiQuestionCount: aiGeneratedQuestions?.length ?? 0,
+      })
+    }
 
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')

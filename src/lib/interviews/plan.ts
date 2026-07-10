@@ -99,45 +99,59 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
   const baseCount = input.questionCountOverride ?? primaryQuestionCount(input.durationMinutes)
   const targetCount = Math.min(baseCount, input.planLimits?.maxPrimaryQuestions ?? Infinity)
 
-  let candidateQuestions: InterviewPlanQuestion[]
+  // AI-generated path: use the pre-built questions, honour the target count ceiling
+  const aiCandidates = (input.aiGeneratedQuestions ?? []).slice(0, targetCount)
 
-  if (input.aiGeneratedQuestions && input.aiGeneratedQuestions.length > 0) {
-    // AI-generated path: use the pre-built questions, honour the target count ceiling
-    candidateQuestions = input.aiGeneratedQuestions.slice(0, targetCount)
-  } else {
-    // Static bank fallback
-    const available = getQuestionsForSessionType(input.sessionType)
-    if (available.length === 0) {
-      throw new Error(`No curated question templates exist yet for session type "${input.sessionType}" (question bank version ${QUESTION_BANK_VERSION})`)
-    }
-    const matching = available.filter((t) => t.difficulty === input.difficulty)
-    const rest = available.filter((t) => t.difficulty !== input.difficulty)
-    const selected = [...matching, ...rest].slice(0, targetCount)
-    candidateQuestions = selected.map((template, index) => ({
-      templateId: template.id,
-      orderIndex: index,
-      questionText: substitutePlaceholders(
-        (input.deliveryMode === 'voice' && template.voicePromptTemplate) ? template.voicePromptTemplate : template.promptTemplate,
-        input.targetRole,
-        input.targetCompany,
-      ),
-      competency: template.competency,
-      difficulty: template.difficulty,
-      selectionReason: template.difficulty === input.difficulty
-        ? `Matches requested difficulty (${input.difficulty}) for ${input.sessionType.replace(/_/g, ' ')}`
-        : `Filled from available bank - no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
-      sourceReferences: buildSourceReferences(input.sessionType, input.evidence),
-    }))
+  // Static bank pool - the primary source when no AI questions exist, and the top-up
+  // source when the AI under-delivered or the safety filter dropped some. Previously
+  // `slice(0, targetCount)` could only shrink the selection, so a 10-question request
+  // silently produced a 6-question session once the bank (or the AI) ran short.
+  const available = getQuestionsForSessionType(input.sessionType)
+  if (aiCandidates.length === 0 && available.length === 0) {
+    throw new Error(`No curated question templates exist yet for session type "${input.sessionType}" (question bank version ${QUESTION_BANK_VERSION})`)
   }
+  const matching = available.filter((t) => t.difficulty === input.difficulty)
+  const rest = available.filter((t) => t.difficulty !== input.difficulty)
+  const bankCandidates: InterviewPlanQuestion[] = [...matching, ...rest].map((template, index) => ({
+    templateId: template.id,
+    orderIndex: index,
+    questionText: substitutePlaceholders(
+      (input.deliveryMode === 'voice' && template.voicePromptTemplate) ? template.voicePromptTemplate : template.promptTemplate,
+      input.targetRole,
+      input.targetCompany,
+    ),
+    competency: template.competency,
+    difficulty: template.difficulty,
+    selectionReason: template.difficulty === input.difficulty
+      ? `Matches requested difficulty (${input.difficulty}) for ${input.sessionType.replace(/_/g, ' ')}`
+      : `Filled from available bank - no more ${input.difficulty} templates for ${input.sessionType.replace(/_/g, ' ')}`,
+    sourceReferences: buildSourceReferences(input.sessionType, input.evidence),
+  }))
 
   // Defense in depth: every question - even from the already-vetted static bank - is
   // re-checked here, since this function is also the path Gemini-personalized wording
   // would flow through in a future iteration. A question failing this is dropped, not
   // shown with a warning; the mission's filter is "deterministic prohibited-question
   // filtering," not "best-effort."
-  const { safeQuestions, blocked } = filterUnsafeQuestions(candidateQuestions)
+  const { safeQuestions: safeAi, blocked: blockedAi } = filterUnsafeQuestions(aiCandidates)
+  const { safeQuestions: safeBank, blocked: blockedBank } = filterUnsafeQuestions(bankCandidates)
+  const blocked = [...blockedAi, ...blockedBank]
   if (blocked.length > 0) {
     console.error('[interviews/plan] blocked unsafe question(s) at plan-build time', blocked.map((b) => ({ templateId: b.question.templateId, category: b.result.category })))
+  }
+
+  // AI questions first, then top up from the bank until the requested count is met or
+  // the combined pool is exhausted. Dedupe on question text so an AI question that
+  // happens to mirror a bank template is never asked twice.
+  const normalizeText = (text: string) => text.toLowerCase().replace(/\s+/g, ' ').trim()
+  const safeQuestions: InterviewPlanQuestion[] = [...safeAi]
+  const seenTexts = new Set(safeQuestions.map((q) => normalizeText(q.questionText)))
+  for (const q of safeBank) {
+    if (safeQuestions.length >= targetCount) break
+    const key = normalizeText(q.questionText)
+    if (seenTexts.has(key)) continue
+    seenTexts.add(key)
+    safeQuestions.push(q)
   }
   if (safeQuestions.length === 0) {
     throw new Error('All candidate questions were blocked by the safety filter - cannot build a plan')
@@ -159,6 +173,9 @@ export function buildInterviewPlan(input: BuildPlanInput): InterviewPlan {
     rubricVersion: rubric.version,
     forbiddenTopics: ['age', 'race_ethnicity', 'religion', 'pregnancy_family_plans', 'marital_status', 'disability_medical', 'sexual_orientation', 'citizenship_beyond_work_authorization', 'genetic_information', 'political_union_status', 'salary_history'],
     maxDurationSeconds,
+    // Record what the user asked for (pre-clamp) so a shortfall - questions.length
+    // below this - is persisted and surfaceable, never silent.
+    requestedQuestionCount: baseCount,
   }
 
   // Fail closed rather than store a malformed plan - this is the same discipline as
