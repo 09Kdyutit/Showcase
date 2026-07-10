@@ -40,8 +40,9 @@ native/mobile-store work to this runbook.
   to `kumar.dyutit09@gmail.com`. `EMAIL_POSTAL_ADDRESS` is unresolved, so keep
   `EMAILS_ENABLED=false` and `LIFECYCLE_EMAILS_ENABLED=false` until a valid physical
   postal address is configured and every delivery/suppression smoke test passes.
-- Vercel: set `CRON_SECRET`. The hourly lifecycle cron requires a paid/commercially suitable
-  Vercel plan; Hobby only permits once-daily cron schedules.
+- Vercel: set `CRON_SECRET`. Closed beta runs lifecycle and retention at most once daily so
+  it fits the current Hobby limit; upgrade to a commercially suitable plan before increasing
+  either schedule above once per day.
 - OpenAI: re-check the dated prices in `OPENAI_COST_RATES_JSON`, set a finite
   `AI_GLOBAL_DAILY_LIMIT` consistent with the approved **$5/day and $100/month** operating
   budget, configure the atomic general allocation at **$4/day and $80/month**, and keep

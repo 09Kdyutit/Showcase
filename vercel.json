@@ -5,9 +5,9 @@
   },
   "crons": [
     { "path": "/api/cron/interview-retention", "schedule": "0 5 * * *" },
-    { "path": "/api/cron/data-retention", "schedule": "45 * * * *" },
+    { "path": "/api/cron/data-retention", "schedule": "45 4 * * *" },
     { "path": "/api/cron/invite-batch", "schedule": "0 15 * * *" },
-    { "path": "/api/cron/lifecycle-email", "schedule": "15 * * * *" },
+    { "path": "/api/cron/lifecycle-email", "schedule": "0 13 * * *" },
     { "path": "/api/cron/weekly-digest", "schedule": "0 14 * * 1" },
     { "path": "/api/cron/growth-scorecard", "schedule": "30 14 * * 1" }
   ]

@@ -274,7 +274,7 @@ export function PublicProofScoreTool({ reservationToken }: { reservationToken?: 
               <div className="flex items-start gap-2.5">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Your text is sent to OpenAI to extract structure. Showcase keeps the pasted text and sanitized parse privately for a 48-hour signup handoff; after expiry it cannot be claimed and an hourly retention job removes it. Showcase does not use it to train its own models.
+                  Your text is sent to OpenAI to extract structure. Showcase keeps the pasted text and sanitized parse privately for a 48-hour signup handoff; after expiry it cannot be claimed and a daily retention job removes it. Showcase does not use it to train its own models.
                 </p>
               </div>
             </div>

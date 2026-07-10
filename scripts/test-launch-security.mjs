@@ -75,8 +75,12 @@ assert.equal(
   'Git pushes must not deploy before staging and required checks pass'
 )
 assert.ok(
-  vercel.crons.some((cron) => cron.path === '/api/cron/data-retention' && cron.schedule === '45 * * * *'),
-  'the hourly retention job must be deployed with the app'
+  vercel.crons.some((cron) => cron.path === '/api/cron/data-retention' && cron.schedule === '45 4 * * *'),
+  'the daily retention job must be deployed with the app on Vercel Hobby',
+)
+assert.ok(
+  vercel.crons.some((cron) => cron.path === '/api/cron/lifecycle-email' && cron.schedule === '0 13 * * *'),
+  'the daily lifecycle job must remain within the Vercel Hobby schedule limit',
 )
 
 const privacyPage = read('src/app/privacy/page.tsx')

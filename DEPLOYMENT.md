@@ -165,10 +165,10 @@ their separately authorized end-to-end tests pass.
 - Inbound/reply events: `https://your-domain.com/api/email/inbound`
 - Delivery events (`email.delivered`, `email.bounced`, `email.complained`):
   `https://your-domain.com/api/email/events`
-- `vercel.json` registers invite, lifecycle, hourly data retention, interview retention,
-  digest, and scorecard jobs.
-  Vercel Hobby rejects hourly cron expressions and is not intended for this commercial app;
-  use a suitable paid plan before deploying the lifecycle schedule.
+- `vercel.json` registers invite, lifecycle, daily data retention, interview retention,
+  digest, and scorecard jobs. The closed beta uses once-daily schedules so it remains
+  deployable on Vercel Hobby without another bill. Upgrade to a commercially suitable plan
+  before increasing either cleanup or lifecycle delivery above Hobby's daily limit.
 
 Verify RLS is active — see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
 

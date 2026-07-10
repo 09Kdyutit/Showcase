@@ -52,9 +52,9 @@ const expectedGrowthMigrations = [
 ]
 const expectedCrons = {
   '/api/cron/interview-retention': '0 5 * * *',
-  '/api/cron/data-retention': '45 * * * *',
+  '/api/cron/data-retention': '45 4 * * *',
   '/api/cron/invite-batch': '0 15 * * *',
-  '/api/cron/lifecycle-email': '15 * * * *',
+  '/api/cron/lifecycle-email': '0 13 * * *',
   '/api/cron/weekly-digest': '0 14 * * 1',
   '/api/cron/growth-scorecard': '30 14 * * 1',
 }
