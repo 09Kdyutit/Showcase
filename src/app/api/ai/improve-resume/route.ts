@@ -4,6 +4,8 @@ import { runPrompt } from '@/lib/ai/client'
 import { resumeBulletPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -39,12 +41,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: result, meta } = await runPrompt(resumeBulletPrompt, { bullet, role, context })
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'bullet_improved',
-      metadata: { role, original_length: bullet.length },
-    })
+    trackAsync(user.id, 'bullet_improved', { role, original_length: bullet.length })
 
     await supabase.from('generations').insert({
       user_id: user.id,

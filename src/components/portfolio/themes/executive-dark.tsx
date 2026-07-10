@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 import { Mail, ExternalLink, ArrowUpRight, Calendar } from 'lucide-react'
 import { cn, safeHref } from '@/lib/utils'
+import { configuredAppUrl } from '@/lib/app-url'
 import {
   type ThemeProps,
   normalizePortfolioContent,
@@ -424,7 +425,7 @@ export function ExecutiveDarkTheme({ portfolio, content }: ThemeProps) {
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 text-xs text-white/20">
           <span>{portfolio.title}</span>
           <a
-            href={`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'}?utm_source=portfolio_badge`}
+            href={`${configuredAppUrl()}?utm_source=portfolio_badge`}
             target="_blank"
             rel="noopener"
             className="hover:text-white/50 transition-colors"

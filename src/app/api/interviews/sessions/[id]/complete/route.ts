@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { recordCostEvent, estimateLiveVoiceCostUsd } from '@/lib/interviews/budget'
 import { getLiveModel } from '@/lib/interviews/gemini/models'
+import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
 
 export async function POST(
   _request: NextRequest,
@@ -48,6 +49,16 @@ export async function POST(
         costUsd: estimateLiveVoiceCostUsd(durationSeconds), estimated: true,
       })
     }
+
+    await recordTrustedEventSafe({
+      idempotencyKey: `meaningful-return:${user.id}:${completedAt.toISOString().slice(0, 10)}:interview:${id}`,
+      eventName: 'meaningful_return',
+      userId: user.id,
+      entityType: 'interview_session',
+      entityId: id,
+      source: 'interview_complete_route',
+      metadata: { activity: 'interview_completed', delivery_mode: session.delivery_mode },
+    })
 
     return NextResponse.json({ data: updated })
   } catch (err) {

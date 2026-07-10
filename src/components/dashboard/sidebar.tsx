@@ -70,7 +70,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       />
 
       {/* Logo */}
-      <div className="relative px-4 pt-5 pb-4">
+      <div className="sidebar-logo-row relative px-4 pt-5 pb-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
           <Logo />
           {isPro && (
@@ -305,12 +305,12 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 backdrop-blur-xl border-b"
         style={{ background: 'color-mix(in oklch, var(--color-background) 92%, transparent)', borderColor: 'var(--color-border)' }}
       >
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 py-3 -my-3">
           <Logo size="sm" />
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="p-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
@@ -321,7 +321,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         <div className="lg:hidden fixed inset-0 z-40 flex">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div
-            className="relative w-64 h-full overflow-y-auto"
+            className="relative w-64 h-full overflow-y-auto [&_.sidebar-logo-row]:hidden"
             style={{
               background: 'linear-gradient(180deg, var(--color-surface-50) 0%, var(--color-surface-0) 100%)',
               borderRight: '1px solid var(--color-border)',

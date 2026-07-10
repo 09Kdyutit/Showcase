@@ -1,6 +1,22 @@
-export function waitlistConfirmationEmail(name?: string | null): { subject: string; html: string; text: string } {
-  const firstName = name?.trim().split(' ')[0] ?? null
+function safeFirstName(name?: string | null): string | null {
+  const cleaned = name
+    ?.replace(/[\u0000-\u001f\u007f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned ? cleaned.split(' ')[0].slice(0, 80) : null
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[char] as string)
+}
+
+export function waitlistConfirmationEmail(name?: string | null, postalAddress?: string): { subject: string; html: string; text: string } {
+  const firstName = safeFirstName(name)
   const greeting = firstName ? `Hey ${firstName},` : 'Hey,'
+  const safeGreeting = escapeHtml(greeting)
+  const safePostalAddress = postalAddress?.trim() ? escapeHtml(postalAddress.trim()) : null
   const siteUrl = 'https://tryshowcase.ink'
 
   const subject = "You're on the Showcase waitlist"
@@ -51,7 +67,7 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
                 <span style="font-size:26px;color:#ffffff;">&#10003;</span>
               </div>
               <p style="margin:0 0 6px;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.03em;line-height:1.2;">You&rsquo;re on the list</p>
-              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.85);line-height:1.6;">${greeting} welcome to the Showcase waitlist.</p>
+              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.85);line-height:1.6;">${safeGreeting} welcome to the Showcase waitlist.</p>
             </td>
           </tr>
 
@@ -60,7 +76,7 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
             <td style="background-color:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-top:none;border-radius:0 0 20px 20px;padding:36px 40px 8px;">
 
               <p style="margin:0 0 28px;font-size:15px;color:#a3a3a3;line-height:1.7;">
-                We&rsquo;ll reach out as soon as access opens. No ETA &mdash; we&rsquo;re taking the time to get it right first.
+                Your spot is saved. We invite in small batches so each new user gets a reliable experience; when your turn opens, your single-use access link will arrive in this inbox.
               </p>
 
               <!-- CTA Button -->
@@ -139,6 +155,7 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
                 You&rsquo;re receiving this because you signed up at <a href="${siteUrl}" style="color:#737373;text-decoration:underline;">tryshowcase.ink</a> &middot;
                 <a href="mailto:hello@tryshowcase.ink?subject=Unsubscribe" style="color:#737373;text-decoration:underline;">Unsubscribe</a>
               </p>
+              ${safePostalAddress ? `<p style="margin:0 0 10px;font-size:11px;color:#525252;line-height:1.6;">Showcase &middot; ${safePostalAddress}</p>` : ''}
               <p style="margin:0;font-size:11px;color:#404040;">Showcase &mdash; Turn your experience into evidence.</p>
             </td>
           </tr>
@@ -154,7 +171,7 @@ export function waitlistConfirmationEmail(name?: string | null): { subject: stri
 
 You're on the Showcase waitlist.
 
-We'll reach out as soon as access opens. No ETA - we want to get it right first.
+Your spot is saved. We invite in small batches so each new user gets a reliable experience. When your turn opens, your single-use access link will arrive in this inbox.
 
 Visit: ${siteUrl}
 
@@ -175,7 +192,7 @@ Questions? Reply to this email or write to hello@tryshowcase.ink
 -
 Showcase · Turn your experience into evidence.
 You're receiving this because you signed up at tryshowcase.ink.
-To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".`
+To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".${postalAddress?.trim() ? `\nShowcase · ${postalAddress.trim()}` : ''}`
 
   return { subject, html, text }
 }

@@ -6,8 +6,21 @@ Per-provider financial damage containment, verified against actual current confi
 
 - **Credential scope:** standard API key (not a scoped/restricted key — OpenAI does not currently offer per-key spend caps the way Stripe offers restricted keys). Server-only, guarded by `import 'server-only'` in `src/lib/ai/openai.ts` and `src/lib/ai/client.ts`.
 - **Per-user limit:** enforced server-side, atomic (fixed this session — see `security/EXECUTION_MANIFEST.md`). 3–25 calls/day per event type depending on tier and free/Pro.
-- **Global limit:** **NEW this session.** `AI_GLOBAL_DAILY_LIMIT` (default 2000/day), atomic counter independent of per-user limits, in `src/lib/ai/rate-limit.ts`.
+- **Global request limit:** `AI_GLOBAL_DAILY_LIMIT` (explicitly configured; example 2,000/day),
+  an atomic counter independent of per-user limits in `src/lib/ai/rate-limit.ts`.
+- **Global dollar limit:** general `runPrompt` traffic now reserves worst-case cost atomically
+  before provider contact and settles to reported usage afterward, with fail-closed
+  **$4/day and $80/month** controls. Migration 046 and a staging concurrency run are still
+  required before that becomes production evidence.
+- **Approved total budget:** **$5/day and $100/month.** The separate Interview Lab allocation
+  is $1/$20, but its global precheck is not yet atomic. Keep `INTERVIEW_KILL_SWITCH=true`;
+  while disabled, the enforceable total is the lower, safe $4/$80 general ceiling.
 - **Kill switch:** `KILL_SWITCH_AI=true` — checked first in `checkRateLimit()`, before any quota math. Verified present in `src/lib/feature-flags.ts`.
+- **Gemini boundary:** `KILL_SWITCH_GEMINI` fails closed unless explicitly set to `false`.
+  Keep it `true` for launch: company prep falls back to generic guidance, scanned-PDF
+  vision falls back to manual paste, Interview Lab remains disabled, and the legacy Edge
+  WebSocket proxy separately requires `INTERVIEW_LIVE_PROXY_ENABLED=true` as a Supabase
+  secret. These paths must not be enabled until they join an atomic dollar ledger.
 - **Account-level budget/alert:** **BLOCKED** — requires the OpenAI dashboard (Settings → Limits), which this session has no access to. Human action required: set a monthly spend limit and an email alert threshold directly in the OpenAI account.
 - **Owner:** account owner.
 - **Rotation procedure:** see `CREDENTIAL_ROTATION.md`.
@@ -35,14 +48,20 @@ Per-provider financial damage containment, verified against actual current confi
 
 ## Stripe
 
-- **Credential scope:** standard secret key (test mode, confirmed via `test:stripe-config` this session). Server-only.
+- **Credential scope:** the local application environment currently contains live Showcase
+  keys and the existing $15/month and $150/year live prices. The separately authenticated
+  Stripe CLI test credential belongs to another sandbox/account. Never mix them; staging
+  requires Showcase test-mode keys and recreated $15/$150/$99 test prices. Server-only.
 - **Spend risk:** Stripe doesn't charge the platform for normal API/webhook usage at this volume; the relevant risk is fraudulent/spoofed *payment* activity, not provider cost — covered under Stripe security in the main findings, not here.
 - **Kill switch:** `KILL_SWITCH_CHECKOUT=true` — verified in `src/lib/feature-flags.ts`, checked in `create-checkout-session`.
 - **Owner:** account owner.
 
 ## Redis / rate-limit provider
 
-- **Status:** not currently provisioned (Upstash). The Postgres-backed atomic rate limiter (`rate_limit_increment()`, migration 011) is the production rate-limiting mechanism today and was verified this session to correctly serialize concurrent requests (10 parallel → exactly N allowed, not race-bypassed). P1-05 in the release gate is open and non-blocking pending an Upstash account decision; this is not a security gap today, just a future scalability one if request volume grows enough that Postgres-row-level locking becomes a bottleneck.
+- **Status:** encrypted production variables for Upstash were confirmed by name on
+  2026-07-09, without reading their values. The correctness boundary remains the
+  Postgres-backed atomic limiter and migration-046 quota transaction; Upstash is a scaling
+  optimization, not the proof for AI quota or dollar-budget enforcement.
 
 ## Monitoring provider
 
@@ -53,14 +72,18 @@ Per-provider financial damage containment, verified against actual current confi
 | Switch | Verified location | Effect when set to `true` |
 |---|---|---|
 | `KILL_SWITCH_AI` | `src/lib/feature-flags.ts`, `src/lib/ai/rate-limit.ts` | Every AI route returns a safe 503-equivalent message before calling OpenAI |
+| `KILL_SWITCH_GEMINI` | `src/lib/feature-flags.ts` and every Gemini client boundary | All Google provider calls are disabled unless explicitly set to `false` |
 | `KILL_SWITCH_CHECKOUT` | `src/lib/feature-flags.ts`, `create-checkout-session/route.ts` | New checkout sessions blocked; existing subscriptions/webhooks unaffected |
 | `KILL_SWITCH_JOBS_PROVIDER` | `src/lib/feature-flags.ts`, `jobs/providers/index.ts` | Falls back to the fixture provider instead of calling the external jobs API |
 | `KILL_SWITCH_PUBLISHING` | `src/lib/feature-flags.ts`, `portfolio/publish/route.ts` | New publishes blocked; already-published portfolios remain live |
 
-All four default to enabled (unset = on); flipping requires a deliberate env var change, never accidental.
+The four legacy product features default to enabled when their switch is unset. Gemini is
+stricter: unset is disabled, and only the literal value `false` enables Google traffic.
 
 ## Human actions required (cannot be completed from this session)
 
-1. Set an OpenAI monthly spend limit + alert threshold in the OpenAI dashboard.
+1. Apply migration 046 in staging and prove both the request-quota transaction and general
+   dollar reservations under concurrency. Configure the OpenAI provider alert/limit as a
+   second boundary. Keep Interview Lab disabled until its separate global path is atomic.
 2. Confirm Vercel's billing alert configuration in the Vercel dashboard.
 3. Confirm jobdataapi's usage/budget dashboard, if one exists for the plan in use.

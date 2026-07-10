@@ -80,20 +80,110 @@ export default function OnboardingPage() {
   const [editOpen, setEditOpen] = useState(false)
   const generatingRef = useRef(false)
 
-  // Claim a pending referral once (profile is guaranteed to exist by the time onboarding
-  // renders). Fire-and-forget; clears the stash regardless so it never double-fires.
+  // Claim a pending completion referral. Keep it retryable on transient failure; on
+  // success refresh the JWT so proxy sees the admission metadata written by the DB RPC.
   useEffect(() => {
-    const ref = typeof window !== 'undefined' ? localStorage.getItem('showcase_ref') : null
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('invite')) {
+      // Admission paths are mutually exclusive. Prefer the email-bound waitlist token and
+      // never spend a member's referral slot on the same account.
+      localStorage.removeItem('showcase_ref')
+      return
+    }
+    const fromUrl = params.get('ref')?.trim().toUpperCase()
+    const ref = fromUrl || localStorage.getItem('showcase_ref')
     if (!ref) return
-    localStorage.removeItem('showcase_ref')
-    void fetch('/api/referral/claim', {
+    if (!/^[A-F0-9]{32}$/.test(ref)) {
+      localStorage.removeItem('showcase_ref')
+      router.replace('/waitlist')
+      return
+    }
+    void (async () => {
+      try {
+        const response = await fetch('/api/referral/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: ref }),
+        })
+        const result = await response.json().catch(() => ({})) as { data?: { claimed?: boolean } }
+        if (response.ok && result.data?.claimed === true) {
+          localStorage.removeItem('showcase_ref')
+          await createClient().auth.refreshSession()
+          router.replace('/onboarding')
+          router.refresh()
+          return
+        }
+        if (response.ok || response.status === 400 || response.status === 403 || response.status === 409) {
+          localStorage.removeItem('showcase_ref')
+          toast.error('This referral invite is no longer available. Join the waitlist for access.')
+          router.replace('/waitlist')
+        }
+      } catch {
+        // Keep the code in local storage for a later retry.
+      }
+    })()
+  }, [router])
+
+  // OAuth and email-confirmation callbacks cannot redeem admission until a real auth session
+  // exists. Carry the single-use token through the callback, redeem it here, then immediately
+  // remove it from both the URL and local storage. Transient failures keep the token retryable.
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('invite')?.trim().toLowerCase()
+    const token = fromUrl || localStorage.getItem('showcase_invite')
+    if (!token || !/^[a-f0-9]{48}$/.test(token)) return
+
+    void fetch('/api/waitlist/admission', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: ref }),
-    }).catch(() => {})
-  }, [])
+      body: JSON.stringify({ token }),
+    }).then(async (response) => {
+      if (response.ok) {
+        localStorage.removeItem('showcase_invite')
+        await createClient().auth.refreshSession()
+        router.replace('/onboarding')
+        router.refresh()
+        return
+      }
+      if (response.status === 400 || response.status === 403) {
+        localStorage.removeItem('showcase_invite')
+        toast.error('This invite is expired, already used, or belongs to another email address.')
+      }
+    }).catch(() => {
+      // Keep the token for a later retry; admission must never be lost to a network blip.
+    })
+  }, [router])
 
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
+
+  // If the user ran the free ProofScore tool before signing up, their resume was already
+  // parsed there and stashed server-side; claim it by token and land them straight on the
+  // review step — no re-upload, no second parse (no AI call at all on this path). Clear the
+  // stash key up front so a failed claim can never loop; failure just falls back to upload.
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('showcase_parse_token') : null
+    if (!token) return
+    localStorage.removeItem('showcase_parse_token')
+    void (async () => {
+      setPhase('analyzing')
+      setBusyMsg('Picking up the resume from your ProofScore…')
+      try {
+        const res = await fetch('/api/proofscore/claim-parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+        const { data } = await res.json()
+        if (res.ok && data?.claimed && data.parsed) {
+          applyParsedResume(data.parsed as ParsedResume)
+          setPhase('review')
+          return
+        }
+      } catch {
+        // fall through to upload
+      }
+      setPhase('upload')
+    })()
+  }, [])
 
   const [targetRole, setTargetRole] = useState('')
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null)
@@ -109,6 +199,17 @@ export default function OnboardingPage() {
     setBusyMsg(msgs[0])
     const iv = setInterval(() => { i = (i + 1) % msgs.length; setBusyMsg(msgs[i]) }, 2200)
     return () => clearInterval(iv)
+  }
+
+  function applyParsedResume(result: ParsedResume) {
+    setParsed(result)
+    const inferredRole = result.experience?.[0]?.role ?? ''
+    setTargetRole(inferredRole)
+    setIndustry(guessIndustry(inferredRole))
+    setExperienceLevel(mapSeniority(result.seniority_level))
+    if (result.links?.linkedin) setLinkedin(result.links.linkedin)
+    if (result.links?.github) setGithub(result.links.github)
+    if (result.links?.website ?? result.links?.portfolio) setWebsite((result.links.website || result.links.portfolio) ?? '')
   }
 
   async function handleResumeText(text: string) {
@@ -134,17 +235,7 @@ export default function OnboardingPage() {
       const { data, error } = await res.json()
       if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that resume')
 
-      const result = data as ParsedResume
-      setParsed(result)
-
-      const inferredRole = result.experience?.[0]?.role ?? ''
-      setTargetRole(inferredRole)
-      setIndustry(guessIndustry(inferredRole))
-      setExperienceLevel(mapSeniority(result.seniority_level))
-      if (result.links?.linkedin) setLinkedin(result.links.linkedin)
-      if (result.links?.github) setGithub(result.links.github)
-      if (result.links?.website ?? result.links?.portfolio) setWebsite((result.links.website || result.links.portfolio) ?? '')
-
+      applyParsedResume(data as ParsedResume)
       setPhase('review')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not analyze that resume. You can try again or skip for now.')

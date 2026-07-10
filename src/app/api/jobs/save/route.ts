@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       if ((count ?? 0) >= FREE_SAVED_JOBS_LIMIT) {
         return NextResponse.json(
           {
-            error: `Free plan is limited to ${FREE_SAVED_JOBS_LIMIT} saved jobs. Upgrade to Pro for unlimited saves, or archive an existing one.`,
+            error: `Free plan is limited to ${FREE_SAVED_JOBS_LIMIT} non-archived saved jobs. Upgrade to Pro to remove this Free cap, or archive an existing one.`,
             code: 'PRO_REQUIRED',
           },
           { status: 403 }

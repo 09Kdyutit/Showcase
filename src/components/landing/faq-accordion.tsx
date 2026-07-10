@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: 'What is the difference between Free and Pro?',
-    a: 'Free gives you resume parsing, a basic ProofScore preview, an unpublished draft portfolio, job browsing with demo data, and one ATS check. Pro ($15/month) unlocks everything: full AI portfolio generation, all 11 ProofScore categories, personalized job matching, Tailor Studio, the Truth Ledger, interview evidence briefs, ATS export validation, and the full application pipeline.',
+    a: 'Free gives you resume parsing, one AI portfolio generation, the full 11-part ProofScore once per day, draft building and editing, and useful daily AI limits. Pro ($15/month or $150/year) adds live publishing, portfolio regeneration, higher limits, voice interviews, personalized job tools, and standalone HTML export.',
   },
   {
     q: 'Will my resume sound AI-generated?',
@@ -43,11 +43,11 @@ const FAQS = [
   },
   {
     q: 'How does Showcase handle my resume data?',
-    a: 'Your resume is processed by OpenAI\'s API to generate and improve your portfolio and application content. It is never shared, sold, used to train AI models, or given to third parties. You own your data and can delete it at any time from settings.',
+    a: 'Your resume is sent to the service providers listed in our Privacy Policy only when needed to parse, generate, or improve your content. Showcase does not sell it, and API data is not used to train OpenAI models. You own your data and can delete your account and stored materials from settings.',
   },
   {
     q: 'Can I cancel my subscription anytime?',
-    a: 'Yes. Cancel from billing settings anytime - no questions asked. You keep Pro access until the end of your current billing period. We offer a 7-day money-back guarantee if you have not used Pro features.',
+    a: 'Yes. Cancel from billing settings anytime. You keep Pro access until the end of your current billing period. Refund requests made within 7 days are eligible only before substantive use of Pro features; see the refund policy for exact conditions.',
   },
 ]
 

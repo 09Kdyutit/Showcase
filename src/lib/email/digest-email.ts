@@ -12,6 +12,13 @@ export interface DigestData {
   followUpCount: number // applied jobs that could use a nudge
   readinessBand: string | null // interview readiness, e.g. "Interview Ready"
   newInterviewSince: boolean // has practiced recently
+  postalAddress: string
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[char] as string)
 }
 
 /** Returns null when there's genuinely nothing worth emailing about (don't spam empty digests). */
@@ -49,9 +56,9 @@ export function weeklyDigestEmail(d: DigestData): { subject: string; html: strin
   const rowsHtml = lines.map((l) => `
     <tr>
       <td style="padding:16px 0;border-bottom:1px solid #1c1c22;">
-        <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8a8a94;">${l.label}</div>
-        <div style="font-size:20px;font-weight:700;color:#fafafa;margin-top:4px;">${l.value}</div>
-        <a href="${l.href}" style="font-size:13px;color:#818cf8;text-decoration:none;">${l.cta}</a>
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#8a8a94;">${escapeHtml(l.label)}</div>
+        <div style="font-size:20px;font-weight:700;color:#fafafa;margin-top:4px;">${escapeHtml(l.value)}</div>
+        <a href="${escapeHtml(l.href)}" style="font-size:13px;color:#818cf8;text-decoration:none;">${escapeHtml(l.cta)}</a>
       </td>
     </tr>`).join('')
 
@@ -63,14 +70,15 @@ export function weeklyDigestEmail(d: DigestData): { subject: string; html: strin
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#0f0f13;border:1px solid #1c1c22;border-radius:16px;padding:32px;">
         <tr><td>
           <div style="font-size:22px;font-weight:800;color:#fafafa;">Showcase</div>
-          <p style="color:#d4d4d8;font-size:16px;line-height:1.5;margin:20px 0 8px;">${greeting}</p>
+          <p style="color:#d4d4d8;font-size:16px;line-height:1.5;margin:20px 0 8px;">${escapeHtml(greeting)}</p>
           <p style="color:#a1a1aa;font-size:15px;line-height:1.5;margin:0 0 8px;">Here's where your job search stands this week.</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml}</table>
           <a href="${d.appUrl}/dashboard" style="display:inline-block;margin-top:24px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:15px;text-decoration:none;padding:12px 24px;border-radius:9999px;">Open Showcase</a>
           <p style="color:#52525b;font-size:12px;line-height:1.5;margin-top:28px;">
             You're getting this because you have a Showcase account.
-            <a href="${d.unsubscribeUrl}" style="color:#71717a;">Unsubscribe from weekly emails</a>.
+            <a href="${escapeHtml(d.unsubscribeUrl)}" style="color:#71717a;">Unsubscribe from weekly emails</a>.
           </p>
+          <p style="color:#52525b;font-size:11px;line-height:1.5;margin-top:10px;">Showcase &middot; ${escapeHtml(d.postalAddress.trim())}</p>
         </td></tr>
       </table>
     </td></tr>
@@ -84,6 +92,7 @@ export function weeklyDigestEmail(d: DigestData): { subject: string; html: strin
     '',
     `Open Showcase: ${d.appUrl}/dashboard`,
     `Unsubscribe: ${d.unsubscribeUrl}`,
+    `Showcase · ${d.postalAddress.trim()}`,
   ].join('\n')
 
   return { subject, html, text }

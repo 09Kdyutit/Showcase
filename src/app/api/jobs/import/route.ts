@@ -8,6 +8,8 @@ import { extractJobFromHtml } from '@/lib/jobs/extract-job-text'
 import { computeMatchScore } from '@/lib/jobs/match'
 import { z } from 'zod'
 import type { JobListing, ParsedResume } from '@/types/database'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -73,7 +75,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the job description into structured data
-    const { data: structuredData } = await runPrompt(jobParsePrompt, { jobText: description })
+    const { data: structuredData, meta: parseMeta } = await runPrompt(jobParsePrompt, { jobText: description })
+    await recordPromptCost({ userId: user.id, meta: parseMeta })
 
     // Extract title/company from description if not provided
     const inferredTitle = title ?? extractTitle(description)
@@ -117,11 +120,7 @@ export async function POST(request: NextRequest) {
       matchBreakdown = result.breakdown
     }
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'job_imported',
-      metadata: { source: source_url ? 'url' : 'paste', has_url: !!source_url },
-    })
+    trackAsync(user.id, 'job_imported', { source: source_url ? 'url' : 'paste', has_url: !!source_url })
 
     return NextResponse.json({
       data: {

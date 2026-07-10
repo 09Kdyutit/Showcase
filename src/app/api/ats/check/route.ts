@@ -4,6 +4,8 @@ import { runPrompt } from '@/lib/ai/client'
 import { atsCheckPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -36,6 +38,7 @@ export async function POST(request: NextRequest) {
     const { resume_text, job_keywords, tailored_asset_id } = parsed.data
 
     const { data: report, meta } = await runPrompt(atsCheckPrompt, { resumeText: resume_text, jobKeywords: job_keywords })
+    await recordPromptCost({ userId: user.id, meta })
 
     // Store ATS report on tailored asset if provided
     if (tailored_asset_id) {
@@ -46,14 +49,10 @@ export async function POST(request: NextRequest) {
         .eq('user_id', user.id)
     }
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'ats_checked',
-      metadata: {
-        score: report.overall_score,
-        keywords_checked: job_keywords.length,
-        issues_found: report.issues.length,
-      },
+    trackAsync(user.id, 'ats_checked', {
+      score: report.overall_score,
+      keywords_checked: job_keywords.length,
+      issues_found: report.issues.length,
     })
 
     await supabase.from('generations').insert({

@@ -28,7 +28,7 @@ export function Footer() {
                 { href: '/signup', label: 'Get started free' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">
+                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
                     {l.label}
                   </Link>
                 </li>
@@ -44,7 +44,7 @@ export function Footer() {
                 { href: '/refund', label: 'Refund Policy' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">
+                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
                     {l.label}
                   </Link>
                 </li>

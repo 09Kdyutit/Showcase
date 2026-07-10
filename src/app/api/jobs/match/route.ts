@@ -8,6 +8,8 @@ import { getJobById } from '@/lib/jobs/providers'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
 import type { JobListing, ParsedResume } from '@/types/database'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -92,13 +94,14 @@ export async function POST(request: NextRequest) {
     let aiExplanation: string | null = null
     if (include_ai_explanation && isPro) {
       try {
-        const { data: explanation } = await runPrompt(matchExplanationPrompt, {
+        const { data: explanation, meta } = await runPrompt(matchExplanationPrompt, {
           parsedResume: resumeData,
           job: jobListing,
           deterministicScore: score,
           matchedSkills: breakdown.matched_skills,
           missingSkills: breakdown.missing_skills,
         })
+        await recordPromptCost({ userId: user.id, meta })
         aiExplanation = [
           explanation.score_justification,
           `Strength: ${explanation.top_strength}`,
@@ -111,11 +114,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'job_matched',
-      metadata: { job_id, score, has_ai: !!aiExplanation },
-    })
+    trackAsync(user.id, 'job_matched', { job_id: job_id ?? null, score, has_ai: !!aiExplanation })
 
     return NextResponse.json({ data: { score, breakdown } })
   } catch (err) {

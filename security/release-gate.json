@@ -1,14 +1,193 @@
 {
-  "updated_at": "2026-07-02",
+  "schema_version": 1,
+  "updated_at": "2026-07-09",
   "release_target": "controlled production beta",
+  "confirmed_launch_decisions": {
+    "product_scope": "web application only",
+    "business_name": "Showcase",
+    "public_founder": "Kumar Dyutit",
+    "market": "English-speaking worldwide with US-focused marketing and no geo-restriction",
+    "launch_mode": "closed beta",
+    "starting_invites_per_day": 10,
+    "ai_budget_usd": {
+      "daily": 5,
+      "monthly": 100
+    },
+    "founding_offer": {
+      "spots": 10,
+      "price_usd_per_year": 99,
+      "enable_after": "Stripe test-mode verification passes"
+    },
+    "email": {
+      "support_and_privacy": "hello@tryshowcase.ink",
+      "inbound_forward_to": "hello@tryshowcase.ink",
+      "weekly_scorecard": "kumar.dyutit09@gmail.com",
+      "postal_address_status": "unresolved",
+      "required_delivery_state": "disabled"
+    },
+    "distribution": {
+      "x_account": "@Showcase_app1",
+      "linkedin": "not available; not a launch channel",
+      "buffer": "approved for drafts",
+      "first_partner_wave_size": 5,
+      "partner_drafts_require_approval_before_send": true
+    }
+  },
+  "verification": {
+    "evidence_base_git_head": "42d5b5cc7e344dd782933cfcfa9f58fe15978b98",
+    "source_fingerprint_sha256": "114d69e59b4ec4c3b075a1646604109f27fad6bb9982e2c0c244ac1c84ed29d0",
+    "verified_at": "2026-07-09T22:51:43-04:00"
+  },
+  "contracts": {
+    "required_requirement_ids": [
+      "GROWTH-CODE",
+      "GROWTH-MIGRATIONS",
+      "GROWTH-PROD-CONFIG",
+      "GROWTH-PROD-DEPLOY",
+      "GROWTH-PROVIDER-E2E",
+      "GROWTH-DISTRIBUTION-APPROVAL",
+      "P0-RACE",
+      "P1-GLOBAL-CEILING",
+      "P0-01",
+      "P0-02",
+      "P0-08",
+      "P0-RLS",
+      "P1-01",
+      "P1-13",
+      "P1-16",
+      "P1-19"
+    ],
+    "growth_migrations": [
+      "035_referral_publish_credit.sql",
+      "036_pending_parses.sql",
+      "037_referral_completion_credit.sql",
+      "038_growth_admission.sql",
+      "039_growth_automation.sql",
+      "040_proofscore_public_capacity.sql",
+      "041_launch_security_and_webhooks.sql",
+      "042_founding_member_slots.sql",
+      "043_email_and_parse_hardening.sql",
+      "044_atomic_subscription_state.sql",
+      "045_referral_invite_pacing.sql",
+      "046_referral_abuse_and_credit_hardening.sql"
+    ],
+    "crons": {
+      "/api/cron/interview-retention": "0 5 * * *",
+      "/api/cron/data-retention": "45 * * * *",
+      "/api/cron/invite-batch": "0 15 * * *",
+      "/api/cron/lifecycle-email": "15 * * * *",
+      "/api/cron/weekly-digest": "0 14 * * 1",
+      "/api/cron/growth-scorecard": "30 14 * * 1"
+    },
+    "required_production_env_names": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "DATABASE_URL",
+      "STRIPE_SECRET_KEY",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_PRICE_ID_PRO_MONTHLY",
+      "STRIPE_PRICE_ID_PRO_ANNUAL",
+      "STRIPE_PRICE_ID_FOUNDING_ANNUAL",
+      "OPENAI_API_KEY",
+      "OPENAI_COST_RATES_JSON",
+      "OPENAI_GENERAL_DAILY_BUDGET_USD",
+      "OPENAI_GENERAL_MONTHLY_BUDGET_USD",
+      "AI_GLOBAL_DAILY_LIMIT",
+      "INTERVIEW_GLOBAL_DAILY_BUDGET_USD",
+      "INTERVIEW_GLOBAL_MONTHLY_BUDGET_USD",
+      "INTERVIEW_KILL_SWITCH",
+      "KILL_SWITCH_AI",
+      "KILL_SWITCH_GEMINI",
+      "KILL_SWITCH_CHECKOUT",
+      "KILL_SWITCH_JOBS_PROVIDER",
+      "KILL_SWITCH_PUBLISHING",
+      "NEXT_PUBLIC_APP_URL",
+      "CRON_SECRET",
+      "RESEND_API_KEY",
+      "RESEND_WEBHOOK_SECRET",
+      "INBOUND_FORWARD_TO",
+      "RESEND_DELIVERY_WEBHOOK_SECRET",
+      "UNSUBSCRIBE_SIGNING_SECRET",
+      "RESEND_FROM_EMAIL",
+      "EMAIL_POSTAL_ADDRESS",
+      "EMAILS_ENABLED",
+      "LIFECYCLE_EMAILS_ENABLED",
+      "GROWTH_SCORECARD_EMAIL",
+      "PROOFSCORE_IP_HASH_SALT",
+      "LAUNCH_OPEN"
+    ],
+    "optional_production_env_names": [
+      "ERROR_WEBHOOK_URL",
+      "INVITE_EXCLUDE",
+      "BUFFER_API_KEY",
+      "BUFFER_ORGANIZATION_ID",
+      "FOUNDER_NAME"
+    ]
+  },
   "requirements": [
+    {
+      "id": "GROWTH-CODE",
+      "area": "growth",
+      "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
+      "status": "PASS",
+      "release_blocking": true,
+      "evidence": "2026-07-09 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (23/23), Founding, referral pacing, 65 deterministic AI-budget checks, X-only distribution invariants, launch security, and marketing truthfulness. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. git diff --check and gitleaks are clean."
+    },
+    {
+      "id": "GROWTH-MIGRATIONS",
+      "area": "database",
+      "description": "A clean 001-046 staging schema and reviewed 035-046 production promotion pass credentialed tests",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": "A read-only npm run growth:status check on 2026-07-09 failed because public.growth_controls was absent from the connected Supabase schema cache. This proves migration 038 and the later growth schema are not live in that project; no production mutation was attempted.",
+      "blocker": "Create blank staging, apply the complete 001-046 dependency chain, and run credentialed adversarial tests there. Reconcile production's divergent migration ledger before promoting and verifying reviewed migrations 035-046."
+    },
+    {
+      "id": "GROWTH-PROD-CONFIG",
+      "area": "deployment",
+      "description": "Every production variable and provider boundary required by the growth system is configured",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": "Read-only `vercel env ls production` on 2026-07-09 confirmed core credentials and INBOUND_FORWARD_TO but did not list STRIPE_PRICE_ID_FOUNDING_ANNUAL, the versioned OpenAI rate table, the atomic $4/$80 general budget values, the $1/$20 Interview allocation and kill switch, AI_GLOBAL_DAILY_LIMIT, the fail-closed Gemini switch, the four general product kill switches, Resend delivery/unsubscribe/from/postal/email controls, the scorecard recipient, or the ProofScore salt. ERROR_WEBHOOK_URL is optional monitoring, not a functional blocker.",
+      "blocker": "Create and verify the missing production configuration. EMAIL_POSTAL_ADDRESS remains unresolved, so EMAILS_ENABLED and LIFECYCLE_EMAILS_ENABLED must remain false. Keep invites at zero, the 10-spot $99/year Founding offer unavailable, and the launch dial closed until their required smoke tests pass."
+    },
+    {
+      "id": "GROWTH-PROD-DEPLOY",
+      "area": "deployment",
+      "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": "The canonical app and /api/health returned 200 on 2026-07-09, but public probes of /api/cron/data-retention and /api/stripe/founding-availability returned 404. The reviewed implementation remains an uncommitted working-tree change and was not deployed by this pass.",
+      "blocker": "Commit/review the working tree, configure the paid cron-capable Vercel plan, deploy to showcase-app, and verify every registered route and schedule."
+    },
+    {
+      "id": "GROWTH-PROVIDER-E2E",
+      "area": "reliability",
+      "description": "Production email, Stripe, referral, retention, and rollback paths pass controlled end-to-end smoke tests",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": null,
+      "blocker": "After migrations/config/deploy: test signed Resend events and suppression, one small refundable Stripe transaction, Founding hold expiry, referral completion credit, cron authentication, retention cleanup, and emergency kill switches."
+    },
+    {
+      "id": "GROWTH-DISTRIBUTION-APPROVAL",
+      "area": "distribution",
+      "description": "Founder-approved X content and first partner wave are ready for manual release",
+      "status": "NOT_STARTED",
+      "release_blocking": false,
+      "evidence": "The queue now contains twenty X-only drafts at exactly four posts/week for five weeks; export and Buffer-Idea helpers reject non-X channels and never publish. growth/distribution/partner-wave-1-review.md contains five personalized founder drafts from twenty official-page hypotheses. Dry runs confirmed that nothing was posted, scheduled, or contacted.",
+      "blocker": "Replace metric/evidence placeholders, approve each X row before saving it as a Buffer draft, and obtain founder approval for all five notes in partner-wave-1-review.md before any public contact-form submission."
+    },
     {
       "id": "P0-RACE",
       "area": "cost-abuse",
-      "description": "AI-quota rate limiter is atomic under real concurrency",
-      "status": "PASS",
+      "description": "AI quota, consumable credits, and pre-provider failures are atomic and user-fair",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "CRITICAL FINDING, FIXED AND VERIFIED. checkRateLimit() in src/lib/ai/rate-limit.ts did a non-atomic SELECT-COUNT-then-insert-later check. Real adversarial attack: 10 parallel requests against /api/ai/analyze-resume (free-tier limit 3/24h) on live production -> 10/10 succeeded (real OpenAI calls). Fixed by routing through the existing atomic rate_limit_increment() Postgres RPC (same one already used correctly by the non-AI Postgres rate limiter). Re-ran identical attack against the fixed, redeployed production build: exactly 3/10 succeeded, 7/10 correctly rejected with 429-equivalent. This affects every route using checkRateLimit: analyze-resume, audit-portfolio, generate-portfolio, improve-resume, role-match, jobs/import, jobs/match, jobs/[id]/tailor, ats/check."
+      "evidence": "The earlier rate_limit_increment path passed a real concurrency test, and migration 046 now combines base quota, consumable bonus credit, and global request capacity in one transaction. Independent review found a remaining ordering defect: route quota and anonymous ProofScore capacity are claimed before the central dollar reservation, so a missing/exhausted dollar guard can consume a user credit or public/reserved audit slot without a provider attempt.",
+      "blocker": "Add an idempotent refund/reorder path for dollar-reservation denial, then apply migration 046 in staging and run adversarial parallel tests across base quota, bonus exhaustion, ProofScore reservation use, global request denial, and global dollar denial."
     },
     {
       "id": "P1-SECRET-GUARD",
@@ -21,10 +200,11 @@
     {
       "id": "P1-GLOBAL-CEILING",
       "area": "cost-abuse",
-      "description": "Global AI-spend ceiling independent of per-user limits",
-      "status": "PASS",
-      "release_blocking": false,
-      "evidence": "Gap: per-user limits don't bound aggregate spend if an attacker spreads calls across many free accounts, each individually within its own quota. Added a platform-wide daily atomic counter (AI_GLOBAL_DAILY_LIMIT, default 2000/day) checked before the per-user counter in checkRateLimit(), using the same rate_limit_increment() RPC."
+      "description": "Global AI request-count and dollar ceilings are atomic, explicit, and staging-verified",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": "Migration 046 now contains the transactional request/bonus/global counter and an independent service-role-only general OpenAI dollar-reservation ledger. Deterministic offline tests cover the approved $4/day and $80/month general allocation, fail-closed rate parsing, and post-lock UTC boundary accounting. Production lacks the migration/configuration. Direct web-app Gemini paths are blocked by a fail-closed KILL_SWITCH_GEMINI, while the separate $1/$20 Interview Lab global precheck remains raceable. A 2026-07-09 read-only request returned 426 from the production live-interview-ws Edge URL, proving the legacy proxy is still deployed; the deployed revision predates its new fail-closed secret guard.",
+      "blocker": "Apply migration 046 in staging and prove concurrent request denial and dollar reservations. Set KILL_SWITCH_GEMINI=true and INTERVIEW_KILL_SWITCH=true. Remove the production Edge proxy's GEMINI_API_KEY or deploy the hardened revision with INTERVIEW_LIVE_PROXY_ENABLED unset/false. Only enable Google paths after the $1/$20 allocation is atomic."
     },
     {
       "id": "P1-STRIPE-PRICEID",
@@ -61,18 +241,20 @@
     {
       "id": "P0-01",
       "area": "authorization",
-      "description": "API ownership matrix complete, no missing ownership checks",
-      "status": "PASS",
+      "description": "Authorization matrix covers the current API route surface",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "security/API_AUTHORIZATION_MATRIX.md — all 21 routes reviewed, zero missing ownership checks"
+      "evidence": "The existing matrix and adversarial suite covered a 21-route surface. The repository now contains 82 API route files, including new public, cron, growth, email-event, referral, ProofScore, and Founding endpoints. Those new boundaries have targeted offline checks but the matrix is not current.",
+      "blocker": "Regenerate the API authorization matrix for every current route and run credentialed cross-user/public/cron/webhook attacks against staging."
     },
     {
       "id": "P0-02",
       "area": "authorization",
-      "description": "Adversarial cross-user API test suite passes",
-      "status": "PASS",
+      "description": "Adversarial authorization suite covers the current API surface",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "test:authorization 15/15 (found and fixed 2 real PGRST116-caused 500s in jobs/save and applications PATCH)"
+      "evidence": "The legacy 15-case suite passed and found two ownership-related 500s, but it predates the current 82-route surface and the migration-035-046 APIs. It is useful regression coverage, not proof of the new endpoints.",
+      "blocker": "Expand the suite from the current authorization matrix and run it against migrated staging, including anonymous capacity, referral admission, cron secrets, webhook signatures, and service-only RPC boundaries."
     },
     {
       "id": "P0-03",
@@ -117,18 +299,20 @@
     {
       "id": "P0-08",
       "area": "data-integrity",
-      "description": "Account deletion cascades correctly, no orphaned private data",
-      "status": "PASS",
+      "description": "Account deletion covers the schema through migration 046 and every storage bucket",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "test:deletion 13/13. Was a non-functional stub (toast 'contact support') before this session; built /api/account/delete + real type-DELETE-to-confirm UI. All tables have ON DELETE CASCADE to auth.users; storage cleaned explicitly."
+      "evidence": "The deletion route now recursively attempts all three storage prefixes and existing deletion tests passed on the legacy live schema. Migrations 035-046 add growth, email, cost, capacity, and reservation records; the connected database lacks those migrations, so a current live cascade/retention proof is impossible today.",
+      "blocker": "After staging migrations, seed user-owned rows across the expanded schema plus nested files, delete through the real route, and prove the intended cascade, unlink, suppression, and provider-retention behavior."
     },
     {
       "id": "P0-RLS",
       "area": "authorization",
-      "description": "Two-user adversarial RLS isolation",
-      "status": "PASS",
+      "description": "Two-user adversarial RLS isolation covers migrations through 046",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "test:rls 13/13"
+      "evidence": "The RLS script now includes attempts to forge bonus/referral credits, audit rows, and publication authority, but those additions were not run because migrations 035-046 are absent from the connected database. The earlier 13-case legacy run remains valid only for its old schema.",
+      "blocker": "Apply migrations in staging and run the expanded two-user RLS suite before production promotion."
     },
     {
       "id": "P0-UPLOAD",
@@ -136,7 +320,7 @@
       "description": "Magic-byte verification, size/MIME bucket enforcement",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "test:uploads 8/8"
+      "evidence": "The eight-case upload suite passed magic-byte, MIME, size, and storage-boundary checks; the reviewed growth work did not change those validators."
     },
     {
       "id": "P0-XSS",
@@ -144,7 +328,7 @@
       "description": "javascript:/data: URI rejection on public portfolio",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "test:xss 4/4"
+      "evidence": "The four-case public-portfolio XSS suite passed javascript: and data: URI rejection; the marketing truth pass did not weaken those sanitizers."
     },
     {
       "id": "P0-INJECTION",
@@ -165,10 +349,11 @@
     {
       "id": "P1-01",
       "area": "stripe",
-      "description": "Webhook event idempotency",
-      "status": "PASS",
+      "description": "Current Stripe webhook is idempotent and monotonic under retries and out-of-order delivery",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "test:stripe-webhook 6/6 — duplicate event ids short-circuited via processed_webhook_events unique constraint, out-of-order events rejected via last_webhook_event_at comparison (migration 010)"
+      "evidence": "The legacy migration-010 path passed its prior six-case test. The handler and test suite now depend on migration 041 retry claims and migration 044 atomic subscription snapshots, fetch current provider state, and handle Founding holds. Those migrations are not live and the expanded credentialed suite was intentionally not run against unknown production keys.",
+      "blocker": "Apply migrations 041/044 to staging and run the expanded duplicate, stale, retry, deletion, invoice, checkout, and Founding webhook suite with test-mode Stripe keys."
     },
     {
       "id": "P1-02",
@@ -198,10 +383,9 @@
       "id": "P1-05",
       "area": "rate-limiting",
       "description": "Upstash Redis wired for production",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": false,
-      "evidence": null,
-      "blocker": "Requires Upstash account creation"
+      "evidence": "Read-only Vercel production environment inspection on 2026-07-09 confirmed both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured as encrypted values; a newer production deployment exists after those variables were created. No secret value was read or printed."
     },
     {
       "id": "P1-06",
@@ -262,10 +446,11 @@
     {
       "id": "P1-13",
       "area": "backup",
-      "description": "Backup/restore documented, PITR confirmed",
-      "status": "PASS",
+      "description": "Production database has automated backups and a verified restore path",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "security/BACKUP_RESTORE.md. IMPORTANT FINDING: checked the live Supabase org directly (get_organization) — plan is 'free', which has ZERO automated backups and ZERO PITR. This is a real, currently-unmitigated production risk, now documented with the exact upgrade path and an interim manual pg_dump mitigation. 'Documented' is PASS; the underlying backup coverage itself is a separate, real gap surfaced in LAUNCH_CHECKLIST.md as a must-do-before-launch billing decision."
+      "evidence": "security/BACKUP_RESTORE.md documents the procedure. The last verified Supabase organization state was the Free plan, with no automated backup or PITR coverage.",
+      "blocker": "Upgrade Supabase, confirm automated backup/PITR coverage, and complete one restore drill before accepting real customer/payment data at scale."
     },
     {
       "id": "P1-14",
@@ -278,18 +463,19 @@
     {
       "id": "P1-15",
       "area": "deployment",
-      "description": "Actual staging deployment exists",
+      "description": "Canonical production deployment exists and is publicly reachable",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "Created new Vercel project 'showcase-app' (distinct from waitlist-only casefile-ten.vercel.app), user-confirmed via AskUserQuestion before any secrets were pushed. Pushed all 13 required env vars (values never printed, verified present via 'vercel env ls' showing names/Encrypted status only). Found and fixed a real deployment bug: the project's auto-detected Framework Preset was 'Other' (silently breaks all dynamic routing/proxy — every route 404'd including static-looking ones), not caused by anything in this app's code; fixed by adding vercel.json with explicit framework:'nextjs'. Disabled Vercel's default SSO deployment-protection wall (user-confirmed) since Stripe webhook delivery and real human checkout both require unauthenticated public access. Live and publicly reachable at https://showcase-app-three.vercel.app — verified /, /waitlist, /login, /pricing, /privacy all return 200, /api/health returns real DB+Stripe+OpenAI config-present checks."
+      "evidence": "Read-only verification on 2026-07-09: Vercel project showcase-app owns https://app.tryshowcase.ink; the canonical home page and /api/health both returned 200 with database, Stripe, and OpenAI checks true. This verifies the existing production app only; GROWTH-PROD-DEPLOY separately blocks until the reviewed growth build is live."
     },
     {
       "id": "P1-16",
       "area": "email",
-      "description": "Production SMTP/email readiness",
-      "status": "PASS",
-      "release_blocking": false,
-      "evidence": "security/EMAIL_READINESS.md. Found and fixed a real bug while writing it: signup/login magic-link emailRedirectTo pointed at /auth/callback, which doesn't exist (the (auth) route group is stripped from the URL — the real path is /callback, matching Supabase's documented redirect allowlist). Email confirmation and magic-link sign-in were broken end to end. Also documented: no custom SMTP configured, relying on Supabase's built-in dev-only email service, which is not production-appropriate."
+      "description": "Production authentication and lifecycle email are provider-verified and compliant",
+      "status": "BLOCKED",
+      "release_blocking": true,
+      "evidence": "The redirect bug is fixed and Resend core credentials exist, but the 2026-07-09 production environment check did not show the separate delivery webhook secret, unsubscribe signing secret, sender address, required physical postal address, or explicit email kill switches. Supabase custom auth SMTP was not re-verified in this pass.",
+      "blocker": "Configure custom auth SMTP plus the missing Resend/compliance variables; then test delivery, unsubscribe POST confirmation, bounce, complaint, and suppression before EMAILS_ENABLED=true."
     },
     {
       "id": "P1-17",
@@ -297,7 +483,7 @@
       "description": "CI security workflow file exists",
       "status": "PASS",
       "release_blocking": false,
-      "evidence": ".github/workflows/security.yml, YAML-validated. Static job (typecheck/lint/build/verify.mjs/gitleaks) runs on every push/PR with no secrets needed. Live adversarial-test job (test:rls/authorization/deletion/csrf/abuse/stripe/headers + release:gate) is guarded behind secret presence so it skips cleanly (not fails) until repo secrets are configured — can't actually execute yet, no git remote exists."
+      "evidence": ".github/workflows/security.yml exists locally and was updated for the repository root, offline launch suite, and explicit live-test gating. A GitHub remote now exists, but the workflow change and required repository variables/secrets still need to be committed and configured before CI execution is proven."
     },
     {
       "id": "P1-18",
@@ -310,10 +496,11 @@
     {
       "id": "P1-19",
       "area": "privacy",
-      "description": "Account deletion route exists and works",
-      "status": "PASS",
+      "description": "Account deletion is verified against the current schema and retention policy",
+      "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "Same as P0-08 — built this session, test:deletion 13/13"
+      "evidence": "The authenticated deletion route, recursive storage traversal, and public privacy language are implemented. Current live evidence predates migrations 035-046 and therefore cannot substantiate the expanded policy yet.",
+      "blocker": "Complete the current-schema staging deletion proof required by P0-08, then verify the public policy against observed rows and storage objects."
     },
     {
       "id": "P1-20",
@@ -321,7 +508,7 @@
       "description": "Privacy/retention documentation",
       "status": "PASS",
       "release_blocking": false,
-      "evidence": "security/PRIVACY_RETENTION.md — accurate against the live 19-table schema, documents what's deleted on account deletion vs. preserved (waitlist_signups), AI provider data sharing. Found 107 leftover @example.com test accounts in the live profiles table from this session's testing; cleaned up via scripts/cleanup-test-accounts.mjs (real auth.admin.deleteUser(), user-approved before running). profiles table is back to genuine rows only."
+      "evidence": "security/PRIVACY_RETENTION.md was re-audited against repository migrations through 046. It now covers Supabase/OpenAI/Stripe/Resend data flow, best-effort recursive storage cleanup, 48-hour anonymous parses, eight-day hashed rate counters, 90-day terminal email ledgers, suppression retention, and the hourly authenticated cleanup route. It explicitly states that these guarantees are not production facts until migrations and crons are deployed."
     },
     {
       "id": "P2-01",
@@ -358,10 +545,10 @@
     {
       "id": "IL-00",
       "area": "interview-lab",
-      "description": "Interview Lab master switch — now genuinely flipped on in local/dev, NOT yet deployed to production",
+      "description": "Interview Lab runtime and sub-feature switches fail closed and are configured explicitly",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "isInterviewLabRuntimeEnabled() = isGeminiPaidProjectConfirmed() && isGeminiInterviewEnabled() — both must be explicitly true, default unset = disabled. Sub-features (isInterviewLiveEnabled/isInterviewAnalysisEnabled/isInterviewRecordingEnabled) require the master gate AND their own flag. test:interview-live-config covers the fail-closed matrix. The account owner provided a real, billed Gemini API key and explicitly confirmed via AskUserQuestion that billing is active and Gemini's ToS for processing real users' voice data has been reviewed — only on that basis was GEMINI_PAID_PROJECT_CONFIRMED=true set, per this repo's own standing rule that this flag is a literal compliance attestation never to be set without genuine confirmation. All flags are set in .env.local and verified end-to-end against the real, live Gemini API in this session (see IL-11 through IL-16 below). HONEST CAVEAT: these env vars have NOT been pushed to Vercel production — Interview Lab remains disabled in the actual deployed app until a human explicitly sets them there and redeploys."
+      "evidence": "isInterviewLabRuntimeEnabled() requires both the paid-project attestation and Interview Lab switch; live, analysis, and recording also require their own flags. test:interview-live-config covers the fail-closed matrix. The account owner previously confirmed billing and terms review. The production variable names and a newer production deployment were verified read-only on 2026-07-09; encrypted values were not inspected, so individual switches remain an operator-controlled product decision."
     },
     {
       "id": "IL-01",
@@ -513,10 +700,9 @@
       "id": "IL-NOT-STARTED-DEPLOY",
       "area": "deployment",
       "description": "Gemini Interview Lab env vars deployed to Vercel production",
-      "status": "NOT_STARTED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": null,
-      "blocker": "GEMINI_PAID_PROJECT_CONFIRMED/GEMINI_INTERVIEW_ENABLED/INTERVIEW_LIVE_ENABLED/INTERVIEW_ANALYSIS_ENABLED/INTERVIEW_RECORDING_ENABLED and the new real GEMINI_API_KEY exist only in .env.local; not pushed to Vercel and not deployed. Interview Lab — including this Hub redesign — remains fully disabled in production until a human does this deliberately."
+      "evidence": "Read-only `vercel env ls production` on 2026-07-09 confirmed GEMINI_API_KEY, GEMINI_PAID_PROJECT_CONFIRMED, GEMINI_INTERVIEW_ENABLED, INTERVIEW_LIVE_ENABLED, INTERVIEW_ANALYSIS_ENABLED, and INTERVIEW_RECORDING_ENABLED as encrypted production values. The latest production deployment was created after those variables. This verifies deployment presence, not the product decision to keep any individual flag true or false."
     },
     {
       "id": "IL-17",

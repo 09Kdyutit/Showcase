@@ -25,8 +25,10 @@ import { TypewriterSection } from '@/components/landing/typewriter-section'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { SpotlightCard } from '@/components/landing/spotlight-card'
 import { TrustSection } from '@/components/landing/trust-section'
+import { configuredAppHost } from '@/lib/app-url'
 
 export default function LandingPage() {
+  const appHost = configuredAppHost()
   return (
     // overflow-x-clip (not hidden): hidden creates a scroll container that silently
     // kills every position:sticky descendant (the How-it-works stage); clip doesn't.
@@ -100,8 +102,8 @@ export default function LandingPage() {
                   },
                   {
                     icon: 'Eye',
-                    title: 'A public page recruiters will actually open',
-                    desc: 'showcase.app/p/your-name, clean, fast, no login required, works on any device.',
+                    title: 'A public page built to open anywhere',
+                    desc: `${appHost}/p/your-name — a clean Pro-hosted page with no visitor login required.`,
                     proof: 'One link, zero logins',
                   },
                 ] as const).map(({ icon, title, desc, proof }, i) => (
@@ -175,8 +177,8 @@ export default function LandingPage() {
                 ProofScore does not just score your résumé. It improves it.
               </h2>
               <p className="text-lg leading-relaxed mb-8" style={{ color: 'oklch(62% 0.02 255)' }}>
-                Most portfolios fail silently. Recruiters close the tab without telling you why.
-                ProofScore audits your materials across 11 categories, shows you exactly what is
+                Reviewers rarely tell you which evidence was missing from an application.
+                ProofScore audits your materials across 11 categories, shows you what is
                 weak and what evidence is missing, then rewrites your bullets and tells you the
                 specific line to add so your score actually goes up. It is a scan and a fix in one.
               </p>
@@ -186,7 +188,7 @@ export default function LandingPage() {
                   'Project depth and case study quality',
                   'Proof strength: are your claims backed up?',
                   'Keyword relevance for your target role',
-                  'Hiring risk gaps that could cost you the interview',
+                  'Evidence gaps that could weaken credibility',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm text-foreground/80">
                     <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'oklch(54% 0.230 255)' }} />
@@ -259,16 +261,16 @@ export default function LandingPage() {
         >
           <div className="max-w-5xl mx-auto">
             <AnimatedSection className="mb-16">
-              <SectionLabel number="06" className="mb-6">Real results</SectionLabel>
+              <SectionLabel number="06" className="mb-6">Illustrated example</SectionLabel>
               <h2
                 className="font-bold tracking-tight text-balance mb-4"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
               >
                 The same experience.
-                <br />Two completely different outcomes.
+                <br />Two different presentations.
               </h2>
               <p style={{ color: 'oklch(60% 0.014 262)' }}>
-                One version gets skimmed and closed. The other gets a call.
+                Compare what a reviewer can understand when claims are supported by clearer evidence.
               </p>
               <p className="text-xs mt-2 uppercase tracking-widest" style={{ color: 'oklch(62% 0.022 258)' }}>
                 Fictional demonstration data
@@ -321,17 +323,17 @@ export default function LandingPage() {
                   <hr className="divider-dashed mb-6" />
                   <ul className="space-y-3 mb-8">
                     {[
-                      'Resume parsing and analysis preview',
-                      'Basic ProofScore preview (first 3 categories)',
-                      'Draft portfolio (unpublished)',
-                      '1 portfolio project',
+                      'Resume parsing and 3 analyses per day',
+                      'One AI portfolio generation',
+                      'Full ProofScore audit (all 11 categories)',
+                      'Build, edit, and preview portfolio drafts',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.008 255)' }}>
                         <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'oklch(64% 0.022 258)' }} />
                         {f}
                       </li>
                     ))}
-                    {['Full AI generation', 'Complete ProofScore audit', 'Public portfolio publishing', 'PDF export'].map((f) => (
+                    {['Portfolio regeneration', 'Public portfolio publishing', 'Higher AI limits', 'Standalone HTML export'].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.022 258)' }}>
                         <Lock className="h-4 w-4 mt-0.5 shrink-0" />
                         {f}
@@ -375,7 +377,7 @@ export default function LandingPage() {
                       >
                         Pro
                       </p>
-                      <Badge variant="pro">Most popular</Badge>
+                      <Badge variant="pro">Publish + scale</Badge>
                     </div>
                     <div className="flex items-baseline gap-1 mb-6">
                       <span className="text-4xl font-bold tracking-tight">$15</span>
@@ -385,14 +387,11 @@ export default function LandingPage() {
                     <ul className="space-y-3 mb-8">
                       {[
                         'Everything in Free',
-                        'Full AI portfolio generation from resume',
-                        'Complete ProofScore audit (all 11 categories)',
-                        'Resume bullet improvement',
+                        '10 portfolio generations and full audits per day',
                         'Public portfolio at /p/your-name',
-                        'PDF and recruiter summary export',
-                        'Role-specific portfolio versions',
-                        'Unlimited portfolio projects',
-                        'Priority AI processing',
+                        '15 tailored applications and 40 cover letters per day',
+                        '20 voice interviews per billing period',
+                        'Standalone HTML portfolio export',
                       ].map((f) => (
                         <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
                           <CheckCircle2
@@ -466,8 +465,8 @@ export default function LandingPage() {
                 <br />Start proving them.
               </h2>
               <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: 'oklch(62% 0.016 262)' }}>
-                Build a portfolio that makes recruiters stop scrolling.
-                Get your ProofScore. Know exactly where you stand.
+                Build a portfolio that makes your real work easier to understand.
+                Get your ProofScore and see exactly which evidence needs attention.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <TrackedLink

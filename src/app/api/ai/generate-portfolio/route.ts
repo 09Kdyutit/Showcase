@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { runPrompt } from '@/lib/ai/client'
 import { portfolioGenerationPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
@@ -9,6 +9,8 @@ import type { ParsedResume } from '@/types/database'
 import { isEditedSinceGeneration } from '@/lib/portfolio/guard'
 import { sanitizePortfolioCopy } from '@/lib/portfolio/sanitize-copy'
 import { isGeminiReviewEnabled, callGeminiReviewer } from '@/lib/ai/gemini'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -29,6 +31,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const service = await createServiceClient()
 
     // Free includes the FIRST portfolio generation - it's the product's core aha moment
     // (onboarding promises "one click builds your full portfolio from this", and an empty
@@ -98,10 +101,11 @@ export async function POST(request: NextRequest) {
       portfolioGoal,
       links,
     })
+    await recordPromptCost({ userId: user.id, meta })
     const result = sanitizePortfolioCopy(rawResult)
 
     const generatedAt = new Date().toISOString()
-    await supabase
+    const { error: portfolioUpdateError } = await service
       .from('portfolios')
       .update({
         content: result as unknown as Record<string, unknown>,
@@ -111,14 +115,49 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', portfolioId)
       .eq('user_id', user.id)
+    if (portfolioUpdateError) throw portfolioUpdateError
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'portfolio_generated',
-      metadata: { portfolio_id: portfolioId, target_role: targetRole },
+    await recordTrustedEventSafe({
+      idempotencyKey: `portfolio-generated:${user.id}:${portfolioId}:${generatedAt}`,
+      eventName: 'portfolio_generated',
+      userId: user.id,
+      entityType: 'portfolio',
+      entityId: portfolioId,
+      source: 'ai_generate_portfolio_route',
+      occurredAt: generatedAt,
+      metadata: { target_role: targetRole },
+    }, service)
+
+    trackAsync(user.id, 'portfolio_generated', {
+      portfolio_id: portfolioId,
+      target_role: targetRole,
     })
 
-    await supabase.from('generations').insert({
+    // Completion earns this user their real, bounded allocation of three admission links.
+    // The RPC is idempotent and never lowers a founder top-up or previously-used count.
+    try {
+      const { error: inviteGrantError } = await service.rpc('grant_completion_referral_invites', {
+        p_user_id: user.id,
+        p_invite_count: 3,
+      })
+      if (inviteGrantError) throw inviteGrantError
+    } catch (err) {
+      console.error('[ai/generate-portfolio] referral invite grant failed (continuing):', err instanceof Error ? err.message : err)
+    }
+
+    // Referral payout fires on the referred user's first portfolio COMPLETION — publishing
+    // is Pro-only, so anchoring the reward there would gate a free user's referral payout
+    // behind their friend buying Pro (see 037_referral_completion_credit.sql; idempotent,
+    // at most one payout per user, self-guarding). Never let a payout hiccup fail the
+    // generation the user just spent their one free credit on.
+    try {
+      const { error: referralCreditError } = await service.rpc('credit_referrer_on_completion', { p_completed_user: user.id })
+      if (referralCreditError) throw referralCreditError
+    } catch (err) {
+      console.error('[ai/generate-portfolio] referral credit failed (continuing):', err instanceof Error ? err.message : err)
+    }
+
+    const { error: generationError } = await service.from('generations').insert({
       user_id: user.id,
       type: 'portfolio_generation',
       output: result as unknown as Record<string, unknown>,
@@ -128,6 +167,7 @@ export async function POST(request: NextRequest) {
       provider: meta.provider,
       status: 'completed',
     })
+    if (generationError) throw generationError
 
     // Gemini shadow review hook - a strict no-op today. isGeminiReviewEnabled() checks
     // AI_REVIEW_MODE (default 'off'), a configured key, per-task eligibility, and the

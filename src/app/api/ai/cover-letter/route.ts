@@ -4,6 +4,8 @@ import { runPrompt } from '@/lib/ai/client'
 import { coverLetterPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -79,12 +81,9 @@ export async function POST(request: NextRequest) {
       resumeText: resolvedResumeText,
       tone,
     })
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'cover_letter',
-      metadata: { role: resolvedRole, company: resolvedCompany, saved_job_id: savedJobId ?? null },
-    })
+    trackAsync(user.id, 'cover_letter', { role: resolvedRole, company: resolvedCompany, saved_job_id: savedJobId ?? null })
 
     return NextResponse.json({ data: { ...result, model: meta.model } })
   } catch (err) {

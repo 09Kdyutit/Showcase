@@ -97,6 +97,7 @@ export async function DELETE(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const service = await createServiceClient()
 
     // Refund any still-'reserved' (never-answered) usage slot before deleting - a
     // session abandoned before the first real answer must not permanently cost the
@@ -104,7 +105,25 @@ export async function DELETE(
     // 'committed' (genuinely answered) is intentionally left alone here: deleting a
     // completed session must never refund quota, or "complete, get full value,
     // delete, get the slot back" would be a real, repeatable exploit.
-    await releaseAbandonedSessionUsage(await createServiceClient(), id, user.id)
+    await releaseAbandonedSessionUsage(service, id, user.id)
+
+    // Storage objects are outside the FK cascade. Remove every retained recording for
+    // this owned session before deleting its answer rows, otherwise their paths are lost.
+    const { data: recordedAnswers } = await supabase
+      .from('interview_answers')
+      .select('audio_storage_path')
+      .eq('session_id', id)
+      .eq('user_id', user.id)
+      .not('audio_storage_path', 'is', null)
+    const recordingPaths = (recordedAnswers ?? [])
+      .map((answer) => answer.audio_storage_path)
+      .filter((path): path is string => typeof path === 'string' && path.startsWith(`${user.id}/${id}/`))
+    if (recordingPaths.length > 0) {
+      const { error: storageError } = await service.storage.from('interview-recordings').remove(recordingPaths)
+      if (storageError) {
+        console.error('[interviews/sessions/[id] DELETE] recording cleanup failed:', storageError.message)
+      }
+    }
 
     // Ownership re-checked explicitly via .eq('user_id', ...) even though RLS already
     // enforces it - defense in depth, same pattern as every other delete route in

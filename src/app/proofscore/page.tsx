@@ -1,99 +1,118 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { PublicProofScoreTool } from '@/components/proofscore/public-proofscore-tool'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { CATEGORY_DEFINITIONS, type ProofScoreCategoryKey } from '@/lib/proofscore/engine'
 
 export const metadata: Metadata = {
-  title: 'How ProofScore Works',
+  title: 'Free Resume ProofScore — See What Your Resume Actually Proves',
   description:
-    'ProofScore audits your résumé and portfolio across 11 categories and tells you exactly what is weak, what evidence is missing, and what to fix first - not a vague AI confidence score.',
+    'Paste your resume and get an honest 0–100 ProofScore across 11 evidence-based dimensions. See every score and two complete fixes with no account required.',
   alternates: { canonical: '/proofscore' },
   openGraph: {
-    title: 'How ProofScore Works - Showcase',
-    description: 'An honest audit, not a vanity score. See exactly what is strong, what is weak, and what to fix.',
+    title: 'Find out what your resume actually proves',
+    description: 'A free 11-dimension resume audit with real scores, specific evidence, and no invented wins.',
     url: '/proofscore',
   },
 }
 
-// Mirrors src/lib/proofscore/engine.ts's CATEGORY_DEFINITIONS exactly - this page
-// must never describe a category, weight, or behavior the real engine doesn't have.
-const CATEGORIES = [
-  { name: 'Role positioning', desc: 'Does your headline or current role title share any language with the role you are targeting?' },
-  { name: 'First-impression clarity', desc: 'Is there a summary or subheadline, and is it long enough to actually say something - not blank, not one line?' },
-  { name: 'Target-role alignment', desc: 'How many of your target role and industry’s terms actually appear in your résumé content?' },
-  { name: 'Evidence strength', desc: 'What share of your experience bullets read as specific evidence rather than a vague claim?' },
-  { name: 'Quantified impact', desc: 'What share of your bullets include a number, percentage, or measurable outcome?' },
-  { name: 'Project depth', desc: 'Do your projects have a substantive description or a stated outcome, or just a title?' },
-  { name: 'Case-study quality', desc: 'For published portfolio projects: how many of problem, process, outcome, and supporting proof are present?' },
-  { name: 'Credibility signals', desc: 'Education, certifications, and professional links that make your claims checkable.' },
-  { name: 'Contact readiness', desc: 'Can a recruiter actually reach you - is there an email and at least one professional link?' },
-  { name: 'Keyword support', desc: 'How many distinct skills are listed, relative to what ATS keyword matching typically needs?' },
-  { name: 'Presentation clarity', desc: 'Do your roles have dates, and is the bullet count per role in a reasonable range?' },
-]
+const CATEGORY_DESCRIPTIONS: Record<ProofScoreCategoryKey, string> = {
+  role_positioning: 'Whether your headline or current role clearly points toward the work you want.',
+  first_impression: 'Whether your summary gives a reviewer enough useful context at a glance.',
+  target_role_alignment: 'How much of the target role’s language is supported by your actual experience.',
+  evidence_strength: 'The share of experience bullets that show specific action rather than vague responsibility.',
+  quantified_impact: 'The share of bullets with a real number, percentage, scope, or measurable outcome.',
+  project_depth: 'Whether projects document a substantive contribution and a clear outcome.',
+  case_study_quality: 'Whether problem, process, outcome, and supporting proof are present.',
+  credibility_signals: 'Education, certifications, and links that make important claims checkable.',
+  contact_readiness: 'Whether a reviewer can reach you and inspect at least one professional profile or work sample.',
+  keyword_support: 'Whether you have enough relevant, supported skills for people and screening software to recognize.',
+  presentation_clarity: 'Whether dates and bullet counts make your progression easy to scan.',
+}
 
-export default function ProofScorePage() {
+const CATEGORIES = CATEGORY_DEFINITIONS.map((category) => ({
+  name: category.name,
+  desc: CATEGORY_DESCRIPTIONS[category.key],
+}))
+
+interface PageProps {
+  searchParams: Promise<{ reservation?: string | string[] }>
+}
+
+export default async function ProofScorePage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const reservationToken = typeof params.reservation === 'string' ? params.reservation : undefined
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-24 pb-32 px-4 sm:px-6 max-w-4xl mx-auto">
-        <Badge variant="outline" className="mb-4">Methodology</Badge>
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6 text-balance">
-          ProofScore is an audit, not a vanity score
-        </h1>
-        <p className="text-muted-foreground text-lg leading-relaxed mb-12 max-w-2xl">
-          Most feedback on a résumé or portfolio is vague - &ldquo;looks good&rdquo; or &ldquo;needs work.&rdquo;
-          ProofScore breaks your materials into 11 specific categories, scores each one 0-100, and
-          tells you exactly what to fix and why it matters to a recruiter.
-        </p>
+      <main className="px-4 pb-28 pt-24 sm:px-6 sm:pt-28">
+        <div className="mx-auto max-w-5xl">
+          <header className="mx-auto mb-9 max-w-3xl text-center sm:mb-12">
+            <Badge variant="outline" className="mb-4 border-brand-500/30 bg-brand-500/[0.06] text-brand-300">
+              Free · no account needed
+            </Badge>
+            <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Find out what your resume <span className="text-gradient">actually proves.</span>
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Paste your resume. Get an honest 0–100 ProofScore across 11 dimensions—what is strong, what is weak, and exactly what to fix first. We never inflate, and we never invent.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground sm:text-sm">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> All 11 scores visible</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Two complete fixes</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> No card</span>
+            </div>
+          </header>
 
-        <div className="glass-card p-6 sm:p-8 mb-12 border-emerald-500/10 bg-emerald-500/[0.02]">
-          <div className="flex items-start gap-4">
-            <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-foreground mb-1">How the score is calculated</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Each category is scored against your actual résumé and portfolio content - not a generic
-                rubric applied blindly. A low score means a real, specific gap (e.g. &ldquo;3 of 8 bullets have
-                no measurable outcome&rdquo;), not an arbitrary number. ProofScore never raises a score by
-                inventing evidence that is not in your source material - if proof is missing, the category
-                stays low and the gap is named so you can go fix it.
+          <PublicProofScoreTool reservationToken={reservationToken} />
+
+          <section className="mt-20 sm:mt-28" aria-labelledby="methodology-heading">
+            <div className="mx-auto mb-8 max-w-2xl text-center">
+              <Badge variant="outline" className="mb-3">Methodology</Badge>
+              <h2 id="methodology-heading" className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                An audit, not a vanity score
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                AI extracts the structure of your resume. A fixed, deterministic engine then scores countable facts in that structure, so the model never gets to decide that you “feel like” a 74.
               </p>
             </div>
-          </div>
-        </div>
 
-        <h2 className="text-2xl font-bold tracking-tight mb-6">The 11 categories</h2>
-        <div className="space-y-3 mb-16">
-          {CATEGORIES.map(({ name, desc }) => (
-            <div key={name} className="glass-card p-5 flex items-start gap-4">
-              <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-1" />
-              <div>
-                <p className="text-sm font-semibold text-foreground mb-1">{name}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+            <div className="mb-8 rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.03] p-5 sm:p-7">
+              <div className="flex items-start gap-3.5">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">How the number is calculated</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    Each category uses concrete signals such as target-role term overlap, strong versus vague bullets, documented metrics, project completeness, contact details, and timeline clarity. The 11 fixed weights sum to 100. A missing resume-only case study scores zero because no case study was supplied—we name the gap instead of guessing.
+                  </p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="glass-card p-6 sm:p-8 mb-16">
-          <h2 className="text-xl font-bold text-foreground mb-4">What ProofScore will not do</h2>
-          <ul className="space-y-2.5 text-sm text-muted-foreground">
-            <li>It will not invent a metric, employer, project, or certification to raise your score.</li>
-            <li>It will not guarantee an interview, an offer, or any specific hiring outcome.</li>
-            <li>It will not silently fix a gap - missing evidence is flagged for you to address, not filled in.</li>
-          </ul>
-        </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {CATEGORIES.map(({ name, desc }, index) => (
+                <div key={name} className="glass-card flex items-start gap-3.5 p-4 sm:p-5">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-xs font-bold text-brand-300">{index + 1}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{name}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-        <div className="text-center">
-          <Button asChild variant="gradient" size="xl" className="gap-2 shadow-glow">
-            <Link href="/signup">
-              Start free
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+            <div className="mt-8 glass-card p-5 sm:p-7">
+              <h3 className="text-lg font-bold text-foreground">What ProofScore will not do</h3>
+              <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-muted-foreground">
+                <li>It will not invent a metric, employer, project, skill, or certification to raise your score.</li>
+                <li>It will not predict or guarantee an interview, an offer, or a hiring outcome.</li>
+                <li>It will not hide the other nine numbers behind blur; only their deeper diagnoses and fixes continue after signup.</li>
+              </ul>
+            </div>
+          </section>
         </div>
       </main>
       <Footer />

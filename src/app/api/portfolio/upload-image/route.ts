@@ -33,9 +33,12 @@ export async function POST(request: NextRequest) {
 
     const form = await request.formData()
     const file = form.get('file') as File | null
-    const slot = (form.get('slot') as string) ?? 'headshot' // headshot | hero | project-{n}
+    const slot = String(form.get('slot') ?? 'headshot') // headshot | hero | project-{n}
 
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    if (!/^(headshot|hero|project-\d{1,3})$/.test(slot)) {
+      return NextResponse.json({ error: 'Invalid image slot' }, { status: 400 })
+    }
     if (file.size > MAX_SIZE) return NextResponse.json({ error: 'File too large (max 5 MB)' }, { status: 413 })
     if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ error: 'Unsupported image type' }, { status: 415 })
 

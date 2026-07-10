@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Mail, ArrowUpRight, Globe, ArrowRight } from 'lucide-react'
 import { safeHref } from '@/lib/utils'
+import { configuredAppUrl } from '@/lib/app-url'
 import { type ThemeProps, normalizePortfolioContent, getInitials } from './shared'
 
 // ── The preset theme engine ─────────────────────────────────────────────────────
@@ -318,7 +319,7 @@ function ContactSection({ p, c, name }: { p: ThemePreset; c: ReturnType<typeof n
       )}
       <div style={{ marginTop: 30 }}><SocialLinks p={p} c={c} center /></div>
       <a
-        href={`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'}?utm_source=portfolio_badge`}
+        href={`${configuredAppUrl()}?utm_source=portfolio_badge`}
         target="_blank"
         rel="noopener"
         style={{ marginTop: 50, fontSize: 12, color: p.palette.muted, fontFamily: p.fonts.mono, letterSpacing: '0.04em', textDecoration: 'none', display: 'inline-block' }}

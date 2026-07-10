@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { extractPdfViaVision, isGarbledPdfText } from '@/lib/ai/pdf-vision'
+import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { trackAsync } from '@/lib/analytics/track'
+import { isGeminiEnabled } from '@/lib/feature-flags'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB - stays under typical serverless body limits
 
@@ -82,14 +85,25 @@ export async function POST(request: NextRequest) {
       const cleanedText = text.replace(/\n{3,}/g, '\n\n').trim()
       if (cleanedText.length < 300 || isGarbledPdfText(cleanedText)) {
         try {
-          const visionText = await withTimeout(extractPdfViaVision(buffer))
+          // The fallback is a real provider call over private resume data. It therefore
+          // shares the central AI kill switch, global cost ceiling, and per-user quota.
+          const privateVisionEnabled =
+            isGeminiEnabled()
+            && process.env.GEMINI_PRIVATE_DATA_ENABLED === 'true'
+            && !!process.env.GEMINI_API_KEY
+          const isPro = privateVisionEnabled ? await isProUser(user.id) : false
+          const quota = privateVisionEnabled
+            ? await checkRateLimit(user.id, 'resume_pdf_vision', isPro)
+            : { allowed: false as const }
+          const visionText = quota.allowed
+            ? await withTimeout(extractPdfViaVision(buffer))
+            : ''
           if (visionText.length >= 50) {
             text = visionText
             usedVisionFallback = true
-            await supabase.from('usage_events').insert({
-              user_id: user.id,
-              event_name: 'resume_pdf_vision',
-              metadata: { triggered_by: cleanedText.length < 300 ? 'thin_text' : 'garbled_text', text_before: cleanedText.length },
+            trackAsync(user.id, 'resume_pdf_vision', {
+              triggered_by: cleanedText.length < 300 ? 'thin_text' : 'garbled_text',
+              text_before: cleanedText.length,
             })
           }
         } catch (visionErr) {

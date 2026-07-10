@@ -1,3 +1,5 @@
+import { isAIEnabled, isGeminiEnabled } from '../feature-flags.ts'
+
 // Interview Lab's legal/cost/safety gate - every flag here defaults to the SAFEST,
 // most-disabled state on an unset env var. This mirrors src/lib/ai/gemini.ts's
 // isGeminiPrivateDataAllowed()/isGeminiReviewEnabled() pattern (the only other place
@@ -42,6 +44,7 @@ export function isInterviewKillSwitchActive(): boolean {
  *  of it. */
 export function isInterviewLabRuntimeEnabled(): boolean {
   if (isInterviewKillSwitchActive()) return false
+  if (!isAIEnabled() || !isGeminiEnabled()) return false
   return isGeminiPaidProjectConfirmed() && isGeminiInterviewEnabled() && isGeminiTermsCompatibilityConfirmed()
 }
 

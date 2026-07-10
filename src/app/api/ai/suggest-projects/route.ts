@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { runPrompt } from '@/lib/ai/client'
 import { projectSuggestionsPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -42,12 +44,13 @@ export async function POST(request: NextRequest) {
 
     // Free users only ever generate the 3 Beginner projects — Intermediate/Master are Pro,
     // so we never spend tokens producing content a free user can't unlock.
-    const { data } = await runPrompt(projectSuggestionsPrompt, { resumeText: content, beginnerOnly: !isPro })
+    const { data, meta } = await runPrompt(projectSuggestionsPrompt, { resumeText: content, beginnerOnly: !isPro })
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'project_suggested',
-      metadata: { resume_id: resumeId ?? null, count: data.suggestions.length, is_pro: isPro },
+    trackAsync(user.id, 'project_suggested', {
+      resume_id: resumeId ?? null,
+      count: data.suggestions.length,
+      is_pro: isPro,
     })
 
     return NextResponse.json({ data: { suggestions: data.suggestions.slice(0, 9), tier: isPro ? 'pro' : 'free' } })

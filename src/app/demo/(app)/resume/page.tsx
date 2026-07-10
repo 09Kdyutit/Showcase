@@ -148,7 +148,7 @@ export default function DemoResumePage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
+                  'px-5 py-3.5 text-sm max-sm:px-2 max-sm:text-[13px] font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
                   activeTab === tab.id
                     ? 'border-brand-500 text-brand-400'
                     : 'border-transparent text-muted-foreground hover:text-foreground',

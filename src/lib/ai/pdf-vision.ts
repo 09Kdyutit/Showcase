@@ -1,12 +1,18 @@
 import 'server-only'
 import { GoogleGenAI } from '@google/genai'
+import { isAIEnabled, isGeminiEnabled } from '../feature-flags.ts'
 
 // Vision-based PDF text extraction via Gemini.
 // Used as a fallback when the standard pdf-parse text layer is empty (scanned/outlined-font PDFs)
 // or garbled (multi-column designer layouts where the text stream order is wrong).
 // Requires GEMINI_API_KEY and GEMINI_PRIVATE_DATA_ENABLED=true - if either is absent, returns ''.
 export async function extractPdfViaVision(buffer: Buffer): Promise<string> {
-  if (!process.env.GEMINI_API_KEY) {
+  // Resume files contain private personal data. A key by itself is never consent to
+  // transmit that data to another provider; production must opt in explicitly after the
+  // privacy/provider review has been completed.
+  if (!isAIEnabled() || !isGeminiEnabled()
+    || !process.env.GEMINI_API_KEY
+    || process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true') {
     return ''
   }
 

@@ -77,15 +77,15 @@ export function ProductShowcase() {
           {/* Floating live chips — anchored to the frame itself so they ride its corners */}
           <FloatingChip className="-top-4 left-10" delay={0.4}>
             <span className="w-2 h-2 rounded-full" style={{ background: 'oklch(72% 0.17 160)', boxShadow: '0 0 8px oklch(72% 0.17 160)' }} />
-            <span className="text-foreground/90">Interview readiness: <span style={{ color: 'oklch(72% 0.17 160)' }}>Strong</span></span>
+            <span className="text-foreground/90">Portfolio draft: <span style={{ color: 'oklch(72% 0.17 160)' }}>Ready to review</span></span>
           </FloatingChip>
           <FloatingChip className="top-20 -right-7" delay={1.6}>
             <Sparkles className="h-3.5 w-3.5" style={{ color: 'oklch(70% 0.17 255)' }} />
-            <span className="text-foreground/90">Portfolio published → <span style={{ color: 'oklch(70% 0.17 255)' }}>/p/your-name</span></span>
+            <span className="text-foreground/90">Pro publishing preview → <span style={{ color: 'oklch(70% 0.17 255)' }}>/p/your-name</span></span>
           </FloatingChip>
           <FloatingChip className="-bottom-4 left-1/3" delay={2.8}>
             <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'oklch(72% 0.17 160)' }} />
-            <span className="text-foreground/90">3 recruiter views today</span>
+            <span className="text-foreground/90">11 ProofScore categories scored</span>
           </FloatingChip>
           {/* Frame */}
           <div
@@ -110,7 +110,7 @@ export function ProductShowcase() {
                 className="flex-1 max-w-sm mx-auto text-center text-xs py-1 rounded-md font-medium"
                 style={{ background: 'var(--color-surface-200)', color: 'oklch(90% 0.015 258)' }}
               >
-                showcase.app/dashboard
+                app.tryshowcase.ink/dashboard
               </div>
               <div className="w-14" />
             </div>
@@ -152,7 +152,7 @@ export function ProductShowcase() {
                 <div className="relative">
                   <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'oklch(63% 0.20 255)' }}>Dashboard</p>
                   <p className="text-display text-xl font-semibold text-foreground">Hey, you.</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'oklch(62% 0.02 258)' }}>Your ProofScore is 87 — recruiter ready.</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'oklch(62% 0.02 258)' }}>Illustrative ProofScore: 87, with evidence gaps listed below.</p>
                 </div>
 
                 <div className="relative grid grid-cols-3 gap-3">
@@ -187,9 +187,9 @@ export function ProductShowcase() {
 
                 <div className="relative grid grid-cols-3 gap-3">
                   {[
-                    { label: 'Portfolios', value: '2 live' },
-                    { label: 'Jobs matched', value: '14 strong' },
-                    { label: 'Mock interviews', value: '5 passed' },
+                    { label: 'Portfolio drafts', value: '2 saved' },
+                    { label: 'Saved jobs', value: '4 tracked' },
+                    { label: 'Practice sessions', value: '5 completed' },
                   ].map(({ label, value }) => (
                     <div
                       key={label}
@@ -211,7 +211,7 @@ export function ProductShowcase() {
                 >
                   <Sparkles className="h-4 w-4 shrink-0" style={{ color: 'oklch(70% 0.17 255)' }} />
                   <p className="text-xs" style={{ color: 'oklch(78% 0.01 255)' }}>
-                    <span className="font-semibold text-foreground">Next best action:</span> add a metric to your dashboard case study — it lifts Evidence strength past 90.
+                    <span className="font-semibold text-foreground">Next suggested action:</span> add a verified metric to strengthen the dashboard case study&apos;s evidence.
                   </p>
                 </div>
 

@@ -1,78 +1,57 @@
-# Data Flow & Retention
+# Data Flow and Retention
 
-**Verified against the live schema (`yogwhfrjhcbnvoxitcay`, 19 tables, all RLS-enabled)
-on 2026-06-19.**
+**Code-audited July 9, 2026.** This document describes the repository through migration
+`046`. Production does not have these guarantees until migrations `035`–`046`, the cron
+configuration in `vercel.json`, and the documented provider settings have been deployed.
 
-## What personal data is stored, and where
+## Data inventory
 
-| Table | What it holds | Deleted when account is deleted? |
+| Category | Examples | Retention / deletion behavior |
 |---|---|---|
-| `profiles` | Name, email, target role, industry, experience level | Yes — `ON DELETE CASCADE` from `auth.users` |
-| `resumes` | Raw resume text, parsed structure, uploaded file metadata | Yes |
-| `portfolios` | Generated portfolio content, public slug | Yes |
-| `projects` | Portfolio project entries | Yes |
-| `audits` | ProofScore audit results (may include resume excerpts) | Yes |
-| `generations` | AI-generated content history | Yes |
-| `usage_events` | Feature-usage events (used for rate limiting and analytics) | Yes |
-| `feedback` / `beta_feedback` | User-submitted feedback text | Yes |
-| `job_listings_cache` | Cached third-party job postings — **not personal data**, shared across users | N/A (not user-owned) |
-| `saved_jobs` | Jobs a user saved/imported | Yes |
-| `applications` | Application tracking entries | Yes |
-| `tailored_assets` | AI-tailored resume/cover-letter variants | Yes |
-| `voice_profiles` | Writing-style profile derived from the user's own resume | Yes |
-| `evidence_items` | Extracted accomplishment evidence | Yes |
-| `subscriptions` | Stripe customer/subscription IDs, plan status | Yes |
-| `processed_webhook_events` | Stripe event IDs (idempotency tracking) | No — contains no personal data, just event IDs |
-| `rate_limit_counters` | IP/user rate-limit counters | No — ephemeral, expires via its own time window |
-| `waitlist_signups` | Pre-signup waitlist data (email, goals, referral info) | **No** — `converted_user_id` is set to `NULL` (`ON DELETE SET NULL`), the waitlist record itself is preserved |
+| Account and career data | profile, resumes, portfolios, projects, audits, jobs, applications, tailored assets, evidence, interview sessions and answers | User-owned rows reference `auth.users` with cascading deletion and are removed with the account. |
+| Uploaded files | resume files, portfolio images, interview recordings | `/api/account/delete` recursively attempts to remove every object under the user's prefix before deleting the auth user. Storage is outside the database cascade, so failures are logged for operator follow-up rather than silently described as guaranteed. |
+| Billing state | local Stripe customer/subscription IDs and plan status | Local subscription rows are deleted with the account. Stripe remains the payment system of record and may retain customer and transaction records for its legal and operational obligations. Showcase does not store card or bank details. |
+| Waitlist | email, goal, referral and admission state | A waitlist row can remain after account deletion, with `converted_user_id` unlinked. Privacy deletion requests can be sent to `hello@tryshowcase.ink`. |
+| Anonymous ProofScore parse | resume text and parsed JSON behind an unguessable claim token | Available for at most 48 hours, deleted atomically when claimed, and expired rows are purged by the hourly retention job. The stash and claim endpoints also remove expired rows opportunistically. |
+| ProofScore reservation | email and one future audit date | Deleted after the reserved date has passed. The email is used to send the requested reservation link, not enrolled in lifecycle marketing. |
+| Growth and usage facts | attribution, trusted product events, feature usage, aggregate AI cost events | Used for product operation, abuse control, and aggregate measurement. User-owned rows follow their schema foreign-key behavior; aggregate/non-user facts may remain without resume contents. |
+| Rate-limit counters | hashed client fingerprint or user key, feature and window | Purged after eight days by the hourly retention job. Raw IP addresses are not written to these counters. |
+| Email delivery ledger | recipient, rendered message, provider ID and delivery state | Completed/suppressed deliveries and exhausted failures are purged after 90 days. Pending/retryable work remains until delivered, suppressed, or exhausted. |
+| Email provider events | signed Resend webhook identifiers and status | Processed and failed event claims are purged after 90 days. |
+| Email suppressions | normalized email and bounce, complaint, or manual suppression reason | Retained so Showcase continues honoring opt-outs, bounces, and complaints. |
+| Stripe webhook claims | provider event IDs used for idempotency | May remain for payment integrity and replay protection; they do not contain resume text. |
 
-**Storage (not Postgres):** the `resumes` bucket holds uploaded resume files
-(PDF/DOCX/TXT) under a `{user_id}/` prefix, RLS-scoped via Storage policies.
-Deleted explicitly by `/api/account/delete` (best-effort; the auth user
-deletion itself proceeds even if storage cleanup fails, since an orphaned file
-under a deleted user's prefix is unreachable — RLS is scoped to `auth.uid()`,
-which no longer exists once the user is gone).
+## Processors and data flows
 
-## Account deletion: what actually happens
+- **Supabase** provides database, authentication, and object storage.
+- **OpenAI** receives the text needed for AI analysis or generation requested by the user.
+  Calls are server-side; private API keys are never shipped to the browser.
+- **Stripe** handles checkout and payment details. Showcase stores only identifiers and
+  subscription state required to grant access and reconcile webhooks.
+- **Resend** receives recipient and rendered-message data for emails that the user requested
+  or that are allowed by the configured lifecycle program.
+- **Job-data provider:** if enabled, search terms are sent to that provider. Resume text is
+  not required for the search request.
 
-Verified end-to-end this session (`scripts/test-account-deletion.mjs`, 13/13):
-calling `auth.admin.deleteUser()` (service-role, via `/api/account/delete`)
-cascades every row above marked "Yes" automatically — confirmed via direct
-`pg_constraint` inspection, every user-owned table has `ON DELETE CASCADE` to
-`auth.users(id)`. The one deliberate exception is `waitlist_signups`, which
-keeps its row (for product-research purposes — top-of-funnel deletion would
-make waitlist conversion data structurally incoherent) but unlinks it from the
-now-deleted user.
+Showcase does not sell resume or portfolio data and does not use it to train its own AI
+models. Published portfolios are intentionally public; unpublished portfolio and resume data
+remain access-controlled.
 
-**What deletion does NOT do:** it does not reach into Stripe to delete the
-customer object or payment history — Stripe is the source of truth for
-financial records and is generally subject to its own retention requirements
-(tax/accounting law in most jurisdictions requires keeping payment records for
-years, independent of a user's deletion request). The local `subscriptions`
-row is deleted, but the Stripe customer object persists. This is normal and
-expected for payment-processing systems, but should be stated plainly in the
-privacy policy if it isn't already.
+## Deletion mechanics
 
-## AI providers and third-party data sharing
+`POST /api/account/delete` requires an authenticated user and the exact `DELETE`
+confirmation. It recursively removes objects from `resumes`, `portfolio-images`, and
+`interview-recordings`, then calls Supabase Admin `deleteUser`. Database foreign keys remove
+the associated user-owned graph. Storage cleanup is best effort because object storage is not
+transactional with Auth; every failure is logged, and the public policy directs the user to
+contact support if they need cleanup verified after a provider outage.
 
-- **OpenAI**: resume text, job descriptions, and portfolio content are sent to
-  OpenAI's API for analysis/generation (server-side only — verified this
-  session that no client-side code calls OpenAI directly). Per OpenAI's API
-  terms, API data is not used for model training by default. This is an
-  external processor relationship that belongs in the privacy policy.
-- **Stripe**: name, email, and payment details for billing.
-- **Supabase**: hosts all of the above (database + auth + storage).
-- No other third party receives user data. The jobs-search feature, when a
-  real provider is configured (vs. fixture/demo data), sends search queries
-  (not personal resume data) to that provider.
+## Operational requirements
 
-## Test-account hygiene
-
-This session's adversarial test suites create real accounts against the live
-project (most don't clean up after themselves — only `test:deletion` does).
-107 leftover `*@example.com` test accounts accumulated and were removed via
-`scripts/cleanup-test-accounts.mjs` (real `auth.admin.deleteUser()` calls, same
-mechanism as the verified account-deletion feature — not a raw table DELETE).
-`profiles` is back down to genuine rows only as of 2026-06-19. Re-run that
-script if running the test suites again leaves accounts behind — it only ever
-targets `@example.com` (RFC 2606 reserved, no real user can have this domain).
+- Deploy `/api/cron/data-retention` hourly with a valid `CRON_SECRET`.
+- Keep `EMAILS_ENABLED=false` until Resend, signed webhook handling, a valid physical postal
+  address, and the unsubscribe secret are configured.
+- Monitor cron and provider failures through `ERROR_WEBHOOK_URL` and logs.
+- Run `npm run test:launch-offline` on every release and the credentialed staging suites before
+  enabling public traffic.
+- Re-audit this document whenever the schema, providers, or retention job changes.

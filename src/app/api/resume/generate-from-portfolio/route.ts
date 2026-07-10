@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import type { PortfolioContent } from '@/types/database'
 import { z } from 'zod'
+import { trackAsync } from '@/lib/analytics/track'
 
 const schema = z.object({ portfolioId: z.string().uuid() })
 
@@ -119,11 +120,10 @@ export async function POST(req: NextRequest) {
     resumeId = newResume.id
   }
 
-  await supabase.from('usage_events').insert({
-    user_id: user.id,
-    event_type: 'resume_generated_from_portfolio',
-    metadata: { portfolio_id: portfolioId, resume_id: resumeId },
-  }).throwOnError()
+  trackAsync(user.id, 'resume_generated_from_portfolio', {
+    portfolio_id: portfolioId,
+    resume_id: resumeId,
+  })
 
   return NextResponse.json({ data: { resumeId, title: resumeTitle } })
 }

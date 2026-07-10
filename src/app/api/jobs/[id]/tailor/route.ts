@@ -6,6 +6,9 @@ import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { FIXTURE_JOBS } from '@/lib/jobs/providers/fixture'
 import { z } from 'zod'
 import type { ParsedResume, JobListing } from '@/types/database'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -115,6 +118,7 @@ export async function POST(
       generateCoverLetter: generate_cover_letter,
       generateRecruiterNote: generate_recruiter_note,
     })
+    await recordPromptCost({ userId: user.id, meta })
 
     // Store the tailored asset
     const { data: asset, error: assetErr } = await supabase
@@ -155,15 +159,20 @@ export async function POST(
         .eq('user_id', user.id)
     }
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'job_tailored',
-      metadata: {
-        job_id: jobId,
-        cover_letter: generate_cover_letter,
-        recruiter_note: generate_recruiter_note,
-        truth_entries: tailored.truth_map.length,
-      },
+    trackAsync(user.id, 'job_tailored', {
+      job_id: jobId,
+      cover_letter: generate_cover_letter,
+      recruiter_note: generate_recruiter_note,
+      truth_entries: tailored.truth_map.length,
+    })
+    await recordTrustedEventSafe({
+      idempotencyKey: `meaningful-return:${user.id}:${new Date().toISOString().slice(0, 10)}:job-tailor:${jobId}`,
+      eventName: 'meaningful_return',
+      userId: user.id,
+      entityType: 'job',
+      entityId: jobId,
+      source: 'job_tailor_route',
+      metadata: { activity: 'job_tailored' },
     })
 
     await supabase.from('generations').insert({

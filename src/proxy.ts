@@ -5,23 +5,75 @@ import { isTrustedOrigin } from '@/lib/security/origin-check'
 const PROTECTED_ROUTES = ['/dashboard', '/builder', '/audit', '/resume', '/settings', '/billing', '/onboarding']
 const AUTH_ROUTES = ['/login']
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-// Stripe (and any future webhook provider) signs its own payloads - the signature
+// Webhook providers sign their own payloads - the signature
 // check in the route handler is the real authentication, and the request is
-// legitimately cross-origin by design (it originates from Stripe's servers, not a
+// legitimately cross-origin by design (it originates from provider servers, not a
 // browser), so Origin enforcement doesn't apply to it.
-const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook']
+const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook', '/api/email/events']
 
-// Pre-launch lockdown: the entire app - including the marketing homepage, /pricing,
-// /login, /signup, and every authenticated route - redirects to /waitlist. Existing
-// accounts get zero exception; there is no query string or path that opens a door.
-// Set LAUNCH_OPEN=true (env var on Vercel, not a query param) on launch day to lift this.
+// Pre-launch admission: public waitlist/proof routes stay available, invited people can use
+// a single-use token to reach signup, and existing/admitted accounts keep product access.
+// LAUNCH_OPEN=true lifts admission entirely; it is still an env flag, never a query switch.
 const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
 // /opengraph-image is a code-generated route (app/opengraph-image.tsx) with no file
 // extension, so it isn't caught by the matcher's image-extension exclusion below  - 
 // without this, a social crawler fetching /waitlist's og:image would get redirected
 // to /waitlist itself instead of the actual image.
-const WAITLIST_ALLOWED_PATHS = ['/waitlist', '/privacy', '/terms', '/refund', '/opengraph-image']
-const WAITLIST_ALLOWED_API_PREFIXES = ['/api/waitlist', '/api/stripe/webhook', '/api/health', '/api/marketing/track']
+const WAITLIST_ALLOWED_PATHS = [
+  '/waitlist', '/join', '/proofscore', '/privacy', '/terms', '/refund',
+  '/opengraph-image', '/login', '/callback',
+]
+const WAITLIST_ALLOWED_API_PREFIXES = [
+  '/api/waitlist',
+  '/api/stripe/webhook',
+  '/api/email/inbound',
+  '/api/email/events',
+  '/api/email/unsubscribe',
+  '/api/cron/',
+  '/api/proofscore',
+  '/api/referral',
+  '/api/health',
+  '/api/marketing/track',
+]
+const INVITE_TOKEN_PATTERN = /^[a-f0-9]{48}$/
+
+function requestInviteToken(request: NextRequest): string | null {
+  const direct = request.nextUrl.searchParams.get('invite')?.trim().toLowerCase()
+  if (direct && INVITE_TOKEN_PATTERN.test(direct)) return direct
+
+  const next = request.nextUrl.searchParams.get('next')
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null
+  try {
+    const nested = new URL(next, 'https://showcase.local').searchParams.get('invite')?.trim().toLowerCase()
+    return nested && INVITE_TOKEN_PATTERN.test(nested) ? nested : null
+  } catch {
+    return null
+  }
+}
+
+function requestReferralCode(request: NextRequest): string | null {
+  const direct = request.nextUrl.searchParams.get('ref')?.trim().toUpperCase()
+  if (direct && /^[A-F0-9]{32}$/.test(direct)) return direct
+
+  const next = request.nextUrl.searchParams.get('next')
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null
+  try {
+    const nested = new URL(next, 'https://showcase.local').searchParams.get('ref')?.trim().toUpperCase()
+    return nested && /^[A-F0-9]{32}$/.test(nested) ? nested : null
+  } catch {
+    return null
+  }
+}
+
+function lockdownResponse(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: 'Invite required while early access is active' }, { status: 403 })
+  }
+  const url = request.nextUrl.clone()
+  url.pathname = '/waitlist'
+  url.search = ''
+  return NextResponse.redirect(url)
+}
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
@@ -35,18 +87,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Cross-origin request rejected' }, { status: 403 })
   }
 
-  if (!LAUNCH_OPEN) {
-    const isAllowed =
-      WAITLIST_ALLOWED_PATHS.includes(path) ||
-      WAITLIST_ALLOWED_API_PREFIXES.some((p) => path.startsWith(p))
-    if (!isAllowed) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/waitlist'
-      url.search = ''
-      return NextResponse.redirect(url)
-    }
-    return NextResponse.next({ request })
-  }
+  const inviteToken = requestInviteToken(request)
+  const isInviteEntry = !!inviteToken && (path === '/signup' || path === '/onboarding')
+  const referralCode = requestReferralCode(request)
+  const isReferralEntry = !!referralCode && (path === '/signup' || path === '/onboarding')
+  const isLockdownBypass =
+    WAITLIST_ALLOWED_PATHS.includes(path) ||
+    WAITLIST_ALLOWED_API_PREFIXES.some((p) => path.startsWith(p)) ||
+    isInviteEntry ||
+    isReferralEntry
 
   let supabaseResponse = NextResponse.next({ request })
 
@@ -55,6 +104,7 @@ export async function proxy(request: NextRequest) {
 
   // Without credentials, pass through all requests unauthenticated
   if (!supabaseUrl || !supabaseKey) {
+    if (!LAUNCH_OPEN && !isLockdownBypass) return lockdownResponse(request)
     const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
     if (isProtected) {
       const url = request.nextUrl.clone()
@@ -83,6 +133,10 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  if (!LAUNCH_OPEN && !isLockdownBypass && user?.app_metadata?.showcase_admitted !== true) {
+    return lockdownResponse(request)
+  }
 
   const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
   const isAuthRoute = AUTH_ROUTES.some((r) => path.startsWith(r))

@@ -1,11 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { X, Sparkles, PhoneCall, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { X, Sparkles, AlertTriangle, CheckCircle2 } from 'lucide-react'
 
-// "Real results" rebuilt as a transformation scene: the weak resume bullet on the left
-// gets visibly rebuilt (animated energy beam) into the case study on the right, while
-// recruiter-attention meters drain/fill and verdict stamps slam in. Fictional data.
+// Illustrative transformation: the same source material becomes a clearer case-study
+// structure. It compares information quality, not invented hiring outcomes.
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -167,17 +166,17 @@ export function BeforeAfter() {
         </div>
 
         <div className="rounded-2xl p-4" style={{ background: 'var(--color-surface-100)', border: `1px solid color-mix(in oklch, ${RED} 18%, var(--color-border))` }}>
-          <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: RED }}>What a recruiter sees</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: RED }}>What the evidence shows</p>
           <p className="text-sm leading-relaxed" style={{ color: 'oklch(62% 0.015 258)' }}>
             No problem stated. No outcome. No way to tell if this mattered or took a weekend.
           </p>
         </div>
 
-        <AttentionMeter label="Recruiter attention" fill="8 seconds" from="100%" to="5%" color={RED} delay={0.5} />
+        <AttentionMeter label="Evidence clarity" fill="Low" from="100%" to="18%" color={RED} delay={0.5} />
 
         <div className="mt-auto pt-2">
-          <Stamp text="Tab closed" color={RED} delay={1.9} icon={X} />
-          <p className="text-xs mt-3" style={{ color: `color-mix(in oklch, ${RED} 75%, transparent)` }}>No callback.</p>
+          <Stamp text="Evidence gaps" color={RED} delay={1.9} icon={X} />
+          <p className="text-xs mt-3" style={{ color: `color-mix(in oklch, ${RED} 75%, transparent)` }}>Scope and outcome remain unclear.</p>
         </div>
       </motion.div>
 
@@ -251,13 +250,13 @@ export function BeforeAfter() {
           </div>
         </motion.div>
 
-        <AttentionMeter label="Recruiter attention" fill="Full read — 2:40" from="5%" to="100%" color={GREEN} delay={0.6} />
+        <AttentionMeter label="Evidence clarity" fill="Structured" from="18%" to="88%" color={GREEN} delay={0.6} />
 
         <div className="mt-auto pt-2 flex items-center gap-4 flex-wrap">
-          <Stamp text="Interview booked" color={GREEN} delay={2.1} icon={PhoneCall} />
+          <Stamp text="Ready to review" color={GREEN} delay={2.1} icon={CheckCircle2} />
           <p className="text-xs flex items-center gap-1.5" style={{ color: `color-mix(in oklch, ${GREEN} 85%, transparent)` }}>
             <CheckCircle2 className="h-3.5 w-3.5" />
-            The recruiter knows exactly what to ask.
+            The remaining evidence gap is explicit.
           </p>
         </div>
       </motion.div>

@@ -3,7 +3,7 @@ import { PostgresRateLimiter } from './postgres'
 import { UpstashRateLimiter } from './distributed'
 import type { RateLimiter } from './types'
 
-export type { RateLimiter, RateLimitCheckResult } from './types'
+export type { RateLimiter, RateLimitCheckOptions, RateLimitCheckResult } from './types'
 
 let cached: RateLimiter | null = null
 

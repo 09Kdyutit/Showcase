@@ -1,21 +1,46 @@
-export function betaInviteEmail(name: string | null | undefined, appUrl: string): { subject: string; html: string; text: string } {
-  const firstName = name?.trim().split(' ')[0] ?? null
+import { buildInviteSignupUrl } from '../growth/admission.ts'
+
+function safeFirstName(name: string | null | undefined): string | null {
+  const cleaned = name
+    ?.replace(/[\u0000-\u001f\u007f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned ? cleaned.split(' ')[0].slice(0, 80) : null
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[char] as string)
+}
+
+export function betaInviteEmail(
+  name: string | null | undefined,
+  appUrl: string,
+  inviteToken: string,
+  postalAddress?: string,
+): { subject: string; html: string; text: string } {
+  const firstName = safeFirstName(name)
   const greeting = firstName ? `Hi ${firstName},` : 'Hi,'
+  const signupUrl = buildInviteSignupUrl(appUrl, inviteToken)
 
   const subject = firstName ? `${firstName}, your Showcase invite is here` : 'Your Showcase invite is here'
+  const safeGreeting = escapeHtml(greeting)
+  const safeSubject = escapeHtml(subject)
+  const safePostalAddress = postalAddress?.trim() ? escapeHtml(postalAddress.trim()) : null
   const preheader = 'You’re one of the first in. Turn your resume into proof of work in about 10 minutes.'
 
   // Outcome-focused — what they walk away with, not features.
   const outcomes: [string, string][] = [
-    ['A published portfolio', 'Your real experience, rewritten as case studies a recruiter can scan and trust in seconds — with a shareable link.'],
+    ['A portfolio draft', 'Your real experience organized into evidence-based case studies you can review and edit. Publishing the live page is a Pro feature.'],
     ['A ProofScore&trade;', 'An honest 0&ndash;100 audit across 11 dimensions, each with a specific fix. No fluff, no invented wins.'],
-    ['Matched roles', 'Real openings ranked against your actual evidence — so you see where you’re strong before you apply.'],
+    ['A role-match view', 'Compare available role requirements with the evidence in your resume before you apply.'],
   ]
 
   const steps: [string, string][] = [
     ['Create your account', 'Sign up with this email address so we can link you to your invite.'],
     ['Upload your resume', 'That’s the only input. Showcase parses it and builds everything from there.'],
-    ['Explore &amp; tell us what’s rough', 'Publish a portfolio, run an interview drill, tailor an application — then hit reply. You’re here to help us get it right.'],
+    ['Review &amp; tell us what’s rough', 'Read your draft, run ProofScore, edit anything that feels off, and then hit reply. You’re here to help us get it right.'],
   ]
 
   const html = `<!DOCTYPE html>
@@ -25,7 +50,7 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="dark" />
   <meta name="supported-color-schemes" content="dark" />
-  <title>${subject}</title>
+  <title>${safeSubject}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#000000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#000000;">${preheader}</div>
@@ -48,7 +73,7 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
                 <span style="font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Early access &middot; you're one of the first</span>
               </div>
               <p style="margin:0 0 8px;font-size:30px;font-weight:800;color:#ffffff;letter-spacing:-0.03em;line-height:1.15;">You&rsquo;re in.</p>
-              <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.9);line-height:1.6;">${greeting} your Showcase access is open.</p>
+              <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.9);line-height:1.6;">${safeGreeting} your Showcase access is open.</p>
             </td>
           </tr>
 
@@ -84,7 +109,7 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:14px;">
                 <tr>
                   <td align="center">
-                    <a href="${appUrl}/signup" target="_blank" style="display:inline-block;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#be185d,#ec4899);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 0;border-radius:12px;text-align:center;">
+                    <a href="${signupUrl}" target="_blank" style="display:inline-block;width:100%;box-sizing:border-box;background:linear-gradient(135deg,#be185d,#ec4899);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:16px 0;border-radius:12px;text-align:center;">
                       Claim your access &rarr;
                     </a>
                   </td>
@@ -122,13 +147,13 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
                 </tr>`).join('')}
               </table>
 
-              <!-- Referral / bring-a-friend -->
+              <!-- Referral program explanation -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.16);border-radius:12px;margin:8px 0 24px;">
                 <tr>
                   <td style="padding:18px 20px;">
-                    <p style="margin:0 0 5px;font-size:14px;font-weight:700;color:#ffffff;">Know someone job-hunting?</p>
+                    <p style="margin:0 0 5px;font-size:14px;font-weight:700;color:#ffffff;">This invite is only for your email</p>
                     <p style="margin:0;font-size:13px;color:#c4c4c4;line-height:1.65;">
-                      Forward this so they can grab an early spot too. And once you&rsquo;re in, your <strong style="color:#ffffff;">referral link</strong> (in Settings) earns you bonus AI credits for everyone who joins through it.
+                      Please don&rsquo;t forward this single-use link. After you complete your first portfolio, Showcase gives you three member invites of your own. Each friend gets 5 consumable AI credits, and you get 5 when that friend completes a first portfolio.
                     </p>
                   </td>
                 </tr>
@@ -137,7 +162,7 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
               <!-- Fallback link -->
               <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;line-height:1.6;">
                 Button not working? Paste this into your browser:<br/>
-                <a href="${appUrl}/signup" style="color:#f472b6;text-decoration:underline;word-break:break-all;">${appUrl}/signup</a>
+                <a href="${signupUrl}" style="color:#f472b6;text-decoration:underline;word-break:break-all;">${signupUrl}</a>
               </p>
 
             </td>
@@ -147,12 +172,13 @@ export function betaInviteEmail(name: string | null | undefined, appUrl: string)
           <tr>
             <td style="padding:26px 12px 0;text-align:center;">
               <p style="margin:0 0 6px;font-size:12px;color:#737373;line-height:1.7;">
-                Hit a bug or have a question? Just reply &mdash; a real person reads every one &mdash; or write to <a href="mailto:hello@tryshowcase.ink" style="color:#f472b6;text-decoration:none;">hello@tryshowcase.ink</a>
+                Hit a bug or have a question? Reply to this email or write to <a href="mailto:hello@tryshowcase.ink" style="color:#f472b6;text-decoration:none;">hello@tryshowcase.ink</a>
               </p>
               <p style="margin:0 0 14px;font-size:12px;color:#525252;line-height:1.7;">
                 You&rsquo;re receiving this because you joined the waitlist at tryshowcase.ink &middot;
                 <a href="mailto:hello@tryshowcase.ink?subject=Unsubscribe" style="color:#737373;text-decoration:underline;">Unsubscribe</a>
               </p>
+              ${safePostalAddress ? `<p style="margin:0 0 10px;font-size:11px;color:#525252;line-height:1.6;">Showcase &middot; ${safePostalAddress}</p>` : ''}
               <p style="margin:0;font-size:11px;color:#404040;">Showcase &mdash; Turn your experience into evidence.</p>
             </td>
           </tr>
@@ -170,27 +196,27 @@ You're in — your Showcase early access is open. You're one of the first people
 
 Upload one thing — your resume — and in about ten minutes you'll have:
 
-  ✓ A published portfolio — your real experience rewritten as case studies, with a shareable link.
+  ✓ A portfolio draft — your real experience organized into evidence-based case studies. Publishing is a Pro feature.
   ✓ A ProofScore™ — an honest 0–100 audit across 11 dimensions, each with a specific fix.
-  ✓ Matched roles — real openings ranked against your actual evidence.
+  ✓ A role-match view — compare available role requirements with your actual evidence.
 
-Claim your access: ${appUrl}/signup
+Claim your access: ${signupUrl}
 (Sign up with this email address. Free to use, no card needed.)
 
 YOUR FIRST 10 MINUTES
   1. Create your account — use this email address.
   2. Upload your resume — that's the only input.
-  3. Explore and tell us what's rough — publish a portfolio, run an interview drill, tailor an application, then reply. You're here to help us get it right.
+  3. Review and tell us what's rough — read your draft, run ProofScore, edit anything that feels off, then reply.
 
-KNOW SOMEONE JOB-HUNTING?
-Forward this so they can grab an early spot too. And once you're in, your referral link (in Settings) earns you bonus AI credits for everyone who joins through it.
+THIS INVITE IS ONLY FOR YOUR EMAIL
+Please don't forward this single-use link. After you complete your first portfolio, Showcase gives you three member invites of your own. Each friend gets 5 consumable AI credits, and you get 5 when that friend completes a first portfolio.
 
-Hit a bug or have a question? Just reply — a real person reads every one — or write to hello@tryshowcase.ink
+Hit a bug or have a question? Reply to this email or write to hello@tryshowcase.ink
 
 -
 Showcase · Turn your experience into evidence.
 You're receiving this because you joined the waitlist at tryshowcase.ink.
-To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".`
+To unsubscribe, email hello@tryshowcase.ink with subject "Unsubscribe".${postalAddress?.trim() ? `\nShowcase · ${postalAddress.trim()}` : ''}`
 
   return { subject, html, text }
 }

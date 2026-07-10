@@ -375,6 +375,11 @@
     .sui-headline-sharp {
       -webkit-mask-image: none;
       mask-image: none;
+      /* The base layer is hidden below, so the sharp layer must occupy normal
+         layout space or the .sui-headline wrapper collapses to 0 height and the
+         headline paints over the content underneath it. */
+      position: static;
+      inset: auto;
     }
     .sui-headline-base { display: none; }
   }

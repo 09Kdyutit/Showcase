@@ -14,6 +14,12 @@ export const MARKETING_EVENTS = [
   'billing_period_selected',
   'waitlist_submitted',
   'signup_started',
+  'proofscore_tool_viewed',
+  'proofscore_tool_started',
+  'proofscore_tool_completed',
+  'proofscore_tool_capped',
+  'proofscore_signup_clicked',
+  'proofscore_reservation_submitted',
   // Public portfolio view (anonymous visitor on /p/[slug]). Slug + referrer host are
   // public, non-sensitive identifiers, so they fit this table's no-private-data rule.
   'portfolio_view',
@@ -21,8 +27,9 @@ export const MARKETING_EVENTS = [
 // checkout_started/checkout_completed and the rest of the post-signup funnel
 // (resume_uploaded, portfolio_generated, proofscore_viewed, portfolio_published,
 // signup_completed) already have a real user_id by the time they fire and are
-// tracked server-side via src/lib/analytics/track.ts's BetaEvent union instead  - 
-// this file only covers the anonymous, pre-account part of the journey.
+// tracked server-side instead. Portfolio preview/completion facts additionally go through
+// the authenticated growth endpoint and trusted_events; this file only covers anonymous,
+// pre-account observations and must never be used as a launch-gate source.
 
 export type MarketingEvent = (typeof MARKETING_EVENTS)[number]
 
@@ -40,4 +47,9 @@ export const ALLOWED_METADATA_KEYS = new Set([
   'already_joined',
   'slug',    // public portfolio slug (portfolio_view)
   'ref',     // referrer host only, e.g. "linkedin.com" — never a full URL
+  'score_band',       // coarse 20-point band only; never resume content
+  'remaining',        // live public-tool capacity after a completed audit
+  'has_target_role',  // whether the optional target-role field was supplied
+  'reservation',      // none / ready / early / used / expired / invalid
+  'already_reserved', // repeat reservation submit without another email
 ])

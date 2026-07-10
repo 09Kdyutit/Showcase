@@ -1,4 +1,4 @@
-import type { RateLimiter, RateLimitCheckResult } from './types'
+import type { RateLimiter, RateLimitCheckOptions, RateLimitCheckResult } from './types'
 
 // Upstash Redis REST API, called directly via fetch - no SDK dependency needed for a
 // single atomic command. Only used when UPSTASH_REDIS_REST_URL/TOKEN are configured;
@@ -10,7 +10,12 @@ export class UpstashRateLimiter implements RateLimiter {
     private readonly token: string
   ) {}
 
-  async check(key: string, max: number, windowSeconds: number): Promise<RateLimitCheckResult> {
+  async check(
+    key: string,
+    max: number,
+    windowSeconds: number,
+    options?: RateLimitCheckOptions,
+  ): Promise<RateLimitCheckResult> {
     try {
       // Pipeline: INCR the key, then set expiry only if this was the first increment
       // (NX), so the window doesn't keep sliding on every request.
@@ -34,6 +39,7 @@ export class UpstashRateLimiter implements RateLimiter {
         retryAfterSeconds: ttl > 0 ? ttl : windowSeconds,
       }
     } catch (err) {
+      if (options?.failOpen === false) throw err
       console.error('[rate-limit/upstash] check failed, failing open:', err instanceof Error ? err.message : err)
       return { allowed: true, currentCount: 0, retryAfterSeconds: 0 }
     }

@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { apiErrorMessage } from '@/lib/utils'
+import { configuredAppUrl } from '@/lib/app-url'
 import type { Profile } from '@/types/database'
 
 const EXPERIENCE_LEVELS = [
@@ -39,7 +40,8 @@ export default function SettingsPage() {
   const [industry, setIndustry] = useState('')
   const [expLevel, setExpLevel] = useState('')
   const [digestEnabled, setDigestEnabled] = useState(true)
-  const [referral, setReferral] = useState<{ code: string; count: number; bonus: number } | null>(null)
+  const appOrigin = configuredAppUrl()
+  const [referral, setReferral] = useState<{ code: string; count: number; bonus: number; limit: number; used: number } | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -54,8 +56,14 @@ export default function SettingsPage() {
         setIndustry(data.industry ?? '')
         setExpLevel(data.experience_level ?? '')
         setDigestEnabled((data as { email_digest_enabled?: boolean }).email_digest_enabled ?? true)
-        const d = data as { referral_code?: string; referral_count?: number; bonus_credits?: number }
-        if (d.referral_code) setReferral({ code: d.referral_code, count: d.referral_count ?? 0, bonus: d.bonus_credits ?? 0 })
+        const d = data as { referral_code?: string; referral_count?: number; bonus_credits?: number; referral_invite_limit?: number; referral_invites_used?: number }
+        if (d.referral_code) setReferral({
+          code: d.referral_code,
+          count: d.referral_count ?? 0,
+          bonus: d.bonus_credits ?? 0,
+          limit: d.referral_invite_limit ?? 0,
+          used: d.referral_invites_used ?? 0,
+        })
       }
       setLoading(false)
     })
@@ -99,6 +107,22 @@ export default function SettingsPage() {
       setDeleting(false)
       setDeleteDialogOpen(false)
       setDeleteConfirmText('')
+    }
+  }
+
+  async function copyReferralLink() {
+    if (!referral || referral.used >= referral.limit) return
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${referral.code}`)
+      fetch('/api/growth/referral-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: 'copy' }),
+        keepalive: true,
+      }).catch(() => {})
+      toast.success('Referral link copied')
+    } catch {
+      toast.error('Could not copy the referral link')
     }
   }
 
@@ -175,25 +199,32 @@ export default function SettingsPage() {
         <div className="glass-card p-6 space-y-4 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 opacity-40" style={{ background: 'radial-gradient(ellipse 60% 80% at 100% 0%, color-mix(in oklch, var(--color-brand-500) 12%, transparent), transparent)' }} />
           <div className="relative">
-            <h2 className="text-sm font-semibold text-foreground">Refer friends, earn credits</h2>
+            <h2 className="text-sm font-semibold text-foreground">Refer a friend, help each other</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Share your link. Each friend who signs up gives you <span className="text-brand-300 font-semibold">3 bonus AI credits</span> (extra ProofScores, résumé rewrites, and more).
+              Your friend starts with <span className="text-brand-300 font-semibold">+5 AI credits</span>. You earn <span className="text-brand-300 font-semibold">+5 AI credits</span> when they complete their first portfolio—not just for sending the link.
             </p>
+            {referral.limit > 0 ? (
+              <p className="mt-2 text-xs font-semibold text-brand-300">
+                {Math.max(0, referral.limit - referral.used)} of {referral.limit} completion-earned invites remaining
+              </p>
+            ) : (
+              <p className="mt-2 text-xs font-semibold text-brand-300">
+                Complete your first portfolio to earn 3 member invites.
+              </p>
+            )}
           </div>
           <div className="relative flex items-center gap-2">
             <div className="flex-1 min-w-0 px-3 py-2 rounded-lg text-sm font-mono truncate" style={{ background: 'var(--color-surface-200)', border: '1px solid var(--color-border)', color: 'oklch(80% 0.01 255)' }}>
-              {(typeof window !== 'undefined' ? window.location.origin : '')}/signup?ref={referral.code}
+              {appOrigin}/signup?ref={referral.code}
             </div>
             <Button
               variant="secondary"
               size="sm"
               className="shrink-0"
-              onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${referral.code}`).catch(() => {})
-                toast.success('Referral link copied')
-              }}
+              onClick={copyReferralLink}
+              disabled={referral.limit === 0 || referral.used >= referral.limit}
             >
-              Copy
+              {referral.limit === 0 ? 'Locked' : referral.used >= referral.limit ? 'All claimed' : 'Copy'}
             </Button>
           </div>
           <div className="relative flex items-center gap-6 text-sm">
@@ -203,7 +234,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <span className="text-2xl font-bold text-brand-300 stat-number">{referral.bonus}</span>
-              <span className="text-xs text-muted-foreground ml-1.5">bonus credits earned</span>
+              <span className="text-xs text-muted-foreground ml-1.5">AI credits available</span>
             </div>
           </div>
         </div>
@@ -257,7 +288,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-foreground">Delete account</p>
-            <p className="text-xs text-muted-foreground">Permanently delete your account and all data. This cannot be undone.</p>
+            <p className="text-xs text-muted-foreground">Delete your account and user-owned Showcase data. Limited waitlist and payment-provider records may be retained under the Privacy Policy.</p>
           </div>
           <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
             Delete
@@ -271,7 +302,8 @@ export default function SettingsPage() {
             <DialogTitle>Delete your account</DialogTitle>
             <DialogDescription>
               This permanently deletes your profile, resumes, portfolios, audits, saved jobs,
-              applications, tailored assets, and subscription record. This cannot be undone.
+              applications, tailored assets, and local subscription record. An unlinked waitlist
+              record and Stripe&apos;s required payment records may remain. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-1.5">

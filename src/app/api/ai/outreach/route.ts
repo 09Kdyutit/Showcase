@@ -4,6 +4,8 @@ import { runPrompt } from '@/lib/ai/client'
 import { outreachMessagePrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 export const maxDuration = 60
 
@@ -78,11 +80,13 @@ export async function POST(request: NextRequest) {
       resumeText: resolvedResumeText,
       outreachType,
     })
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'outreach_message',
-      metadata: { role: resolvedRole, company: resolvedCompany, type: outreachType, saved_job_id: savedJobId ?? null },
+    trackAsync(user.id, 'outreach_message', {
+      role: resolvedRole,
+      company: resolvedCompany,
+      type: outreachType,
+      saved_job_id: savedJobId ?? null,
     })
 
     return NextResponse.json({ data: { ...result, model: meta.model } })

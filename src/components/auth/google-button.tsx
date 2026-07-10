@@ -18,13 +18,16 @@ function GoogleLogo() {
 export function GoogleButton({
   next = '/dashboard',
   label = 'Continue with Google',
+  disabled = false,
 }: {
   next?: string
   label?: string
+  disabled?: boolean
 }) {
   const [loading, setLoading] = useState(false)
 
   async function handleGoogle() {
+    if (disabled) return
     setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
@@ -45,7 +48,7 @@ export function GoogleButton({
     <button
       type="button"
       onClick={handleGoogle}
-      disabled={loading}
+      disabled={loading || disabled}
       className="google-btn w-full h-11 rounded-xl flex items-center justify-center gap-3 text-sm font-semibold text-foreground disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {loading ? (

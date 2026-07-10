@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import JSZip from 'jszip'
+import { configuredAppUrl } from '@/lib/app-url'
 
 export const maxDuration = 30
 
@@ -12,7 +13,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'
+    const appUrl = configuredAppUrl()
 
     const [{ data: profile }, { data: resume }, { data: audit }, { data: portfolios }] = await Promise.all([
       supabase.from('profiles').select('full_name, target_role').eq('id', user.id).maybeSingle(),

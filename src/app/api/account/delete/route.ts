@@ -13,6 +13,44 @@ const schema = z.object({
   confirm: z.literal('DELETE'),
 })
 
+type ServiceClient = Awaited<ReturnType<typeof createServiceClient>>
+
+async function removeStoragePrefix(
+  service: ServiceClient,
+  bucket: string,
+  prefix: string,
+  depth = 0
+): Promise<void> {
+  if (depth > 8) throw new Error(`storage nesting exceeds cleanup limit in ${bucket}`)
+
+  const files: string[] = []
+  const folders: string[] = []
+  let offset = 0
+  const limit = 100
+
+  for (;;) {
+    const { data, error } = await service.storage.from(bucket).list(prefix, { limit, offset })
+    if (error) throw error
+    const entries = data ?? []
+    for (const entry of entries) {
+      const path = `${prefix}/${entry.name}`
+      // Supabase folder placeholders have no object id; real stored objects do.
+      if (entry.id) files.push(path)
+      else folders.push(path)
+    }
+    if (entries.length < limit) break
+    offset += limit
+  }
+
+  for (const folder of folders) {
+    await removeStoragePrefix(service, bucket, folder, depth + 1)
+  }
+  for (let i = 0; i < files.length; i += 100) {
+    const { error } = await service.storage.from(bucket).remove(files.slice(i, i + 100))
+    if (error) throw error
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -30,31 +68,15 @@ export async function POST(request: NextRequest) {
 
     const service = await createServiceClient()
 
-    // Best-effort storage cleanup - proceed with account deletion even if this fails,
-    // since an orphaned private file under a now-deleted user's prefix is unreachable
-    // (RLS-scoped to auth.uid(), which no longer exists) and not a real exposure risk.
-    try {
-      const { data: files } = await service.storage.from('resumes').list(user.id)
-      if (files && files.length > 0) {
-        await service.storage.from('resumes').remove(files.map((f) => `${user.id}/${f.name}`))
+    // Storage is outside the relational cascade. Walk every nested object under the user
+    // prefix so legacy/malformed paths cannot survive deletion. Cleanup is best effort: the
+    // auth deletion still proceeds, but every failure is logged for operator follow-up.
+    for (const bucket of ['resumes', 'portfolio-images', 'interview-recordings']) {
+      try {
+        await removeStoragePrefix(service, bucket, user.id)
+      } catch (err) {
+        console.error(`[account/delete] ${bucket} cleanup failed (continuing):`, err instanceof Error ? err.message : err)
       }
-    } catch (err) {
-      console.error('[account/delete] storage cleanup failed (continuing):', err instanceof Error ? err.message : err)
-    }
-
-    // interview-recordings nests one level deeper (${userId}/${sessionId}/${file}),
-    // so a flat list() of the user's own prefix only returns subfolder names, not
-    // files - list each subfolder too before removing.
-    try {
-      const { data: sessionFolders } = await service.storage.from('interview-recordings').list(user.id)
-      for (const folder of sessionFolders ?? []) {
-        const { data: recordings } = await service.storage.from('interview-recordings').list(`${user.id}/${folder.name}`)
-        if (recordings && recordings.length > 0) {
-          await service.storage.from('interview-recordings').remove(recordings.map((f) => `${user.id}/${folder.name}/${f.name}`))
-        }
-      }
-    } catch (err) {
-      console.error('[account/delete] interview recordings cleanup failed (continuing):', err instanceof Error ? err.message : err)
     }
 
     const { error: deleteError } = await service.auth.admin.deleteUser(user.id)

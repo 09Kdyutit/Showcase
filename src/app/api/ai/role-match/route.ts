@@ -5,6 +5,8 @@ import { roleMatchPrompt } from '@/lib/ai/prompts/registry'
 import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import type { ParsedResume } from '@/types/database'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -44,12 +46,9 @@ export async function POST(request: NextRequest) {
       targetRole,
       industry,
     })
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'role_matched',
-      metadata: { target_role: targetRole, industry },
-    })
+    trackAsync(user.id, 'role_matched', { target_role: targetRole, industry })
 
     await supabase.from('generations').insert({
       user_id: user.id,

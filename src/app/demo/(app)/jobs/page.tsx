@@ -114,7 +114,7 @@ function JobCard({
         </div>
         <button
           onClick={e => { e.stopPropagation(); onSave() }}
-          className={cn('shrink-0 p-1 rounded-md transition-colors', isSaved ? 'text-brand-400' : 'text-muted-foreground/40 hover:text-muted-foreground')}
+          className={cn('shrink-0 p-1 max-lg:p-2.5 max-lg:-m-1.5 rounded-md transition-colors', isSaved ? 'text-brand-400' : 'text-muted-foreground/40 hover:text-muted-foreground')}
         >
           {isSaved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
         </button>
@@ -436,14 +436,14 @@ export default function DemoJobsPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="border-b border-border bg-surface-50 px-4 lg:px-6 py-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between max-sm:flex-wrap max-sm:gap-y-2">
           <div className="flex items-center gap-1">
             {(['browse', 'for-you', 'pipeline'] as Tab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all capitalize',
+                  'px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all capitalize whitespace-nowrap max-sm:px-2.5',
                   tab === t ? 'bg-surface-300 text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-surface-200'
                 )}
               >
@@ -456,7 +456,7 @@ export default function DemoJobsPage() {
               </button>
             ))}
           </div>
-          <Badge variant="outline" className="text-xs text-amber-400/70 border-amber-500/20 bg-amber-500/5">
+          <Badge variant="outline" className="text-xs text-amber-400/70 border-amber-500/20 bg-amber-500/5 whitespace-nowrap">
             Demo listings
           </Badge>
         </div>

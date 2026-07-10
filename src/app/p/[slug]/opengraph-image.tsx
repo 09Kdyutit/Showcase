@@ -8,7 +8,7 @@ export const alt = 'Portfolio on Showcase'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
-// Per-portfolio social card: when someone shares showcase.app/p/their-name in LinkedIn,
+// Per-portfolio social card: when someone shares the configured /p/their-name URL,
 // a group chat, or Twitter, this renders a rich preview with their real name, role, and
 // tagline instead of a bare link — turning every published portfolio into a growth surface.
 const iconBase64 = readFileSync(join(process.cwd(), 'public', 'logo-icon.png')).toString('base64')

@@ -121,7 +121,7 @@ function CategoryCard({ cat, index }: { cat: Category; index: number }) {
       <div className="bg-surface-300/60 rounded-xl p-3 flex items-start gap-2">
         <Info className="h-3.5 w-3.5 text-brand-400 shrink-0 mt-0.5" />
         <p className="text-xs text-foreground/80 flex-1 leading-relaxed">{cat.explanation}</p>
-        <button onClick={copyFix} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
+        <button onClick={copyFix} className="text-muted-foreground hover:text-foreground transition-colors shrink-0 max-lg:p-2.5 max-lg:-m-2.5">
           {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
         </button>
       </div>
@@ -314,7 +314,7 @@ export default function DemoAuditPage() {
               </div>
               <button
                 onClick={copyAfter}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors max-lg:py-2 max-lg:-my-2"
               >
                 {afterCopied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
                 {afterCopied ? 'Copied!' : 'Copy'}

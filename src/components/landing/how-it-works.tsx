@@ -30,7 +30,7 @@ const STEPS: Step[] = [
   {
     icon: Zap, step: '02', title: 'AI builds your portfolio',
     desc: 'We turn your experience into structured case studies.',
-    detail: 'Each project becomes a problem → role → process → outcome narrative a recruiter can scan and trust in seconds.',
+    detail: 'Each project becomes a problem → role → process → outcome narrative that makes the available evidence easier to scan.',
   },
   {
     icon: BarChart3, step: '03', title: 'Get your ProofScore',
@@ -40,7 +40,7 @@ const STEPS: Step[] = [
   {
     icon: Target, step: '04', title: 'Discover matched roles',
     desc: 'A personalized feed scored against your real evidence.',
-    detail: 'Jobs ranked by how well your actual proof lines up with the role — see where you qualify before you apply.',
+    detail: 'Jobs ranked by how well your actual proof lines up with the role — compare strengths and gaps before you apply.',
   },
   {
     icon: ArrowRight, step: '05', title: 'Tailor and apply',
@@ -130,7 +130,7 @@ function VizBuild() {
       >
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-bold text-foreground">Internal Analytics Dashboard</p>
-          <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'oklch(72% 0.17 160 / 0.12)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.25)' }}>
+          <span className="flex items-center gap-1 text-[9px] max-sm:text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'oklch(72% 0.17 160 / 0.12)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.25)' }}>
             <CheckCircle2 className="h-2.5 w-2.5" /> evidence attached
           </span>
         </div>
@@ -144,7 +144,7 @@ function VizBuild() {
               className="flex items-center gap-2.5 rounded-lg px-3 py-2"
               style={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)' }}
             >
-              <span className="text-[9px] font-bold uppercase tracking-wider w-14 shrink-0" style={{ color: c }}>{tag}</span>
+              <span className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider w-14 shrink-0" style={{ color: c }}>{tag}</span>
               <span className="text-[11px] truncate" style={{ color: 'oklch(72% 0.01 255)' }}>{text}</span>
             </motion.div>
           ))}
@@ -185,7 +185,7 @@ function VizScore() {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-bold text-foreground stat-number">87</span>
-          <span className="text-[9px] uppercase tracking-widest" style={{ color: 'oklch(63% 0.02 258)' }}>ProofScore</span>
+          <span className="text-[9px] max-sm:text-[10px] uppercase tracking-widest" style={{ color: 'oklch(63% 0.02 258)' }}>ProofScore</span>
         </div>
       </div>
       <div className="w-full max-w-xs space-y-2.5">
@@ -258,7 +258,7 @@ function VizTailor() {
         className="rounded-xl px-4 py-3"
         style={{ background: 'var(--color-surface-100)', border: '1px solid oklch(62% 0.22 25 / 0.22)' }}
       >
-        <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(62% 0.18 25)' }}>Generic</p>
+        <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(62% 0.18 25)' }}>Generic</p>
         <p className="text-[11px] line-through decoration-1" style={{ color: 'oklch(55% 0.02 258)' }}>
           Worked on analytics dashboard for internal team.
         </p>
@@ -279,7 +279,7 @@ function VizTailor() {
         className="rounded-xl px-4 py-3"
         style={{ background: 'color-mix(in oklch, oklch(72% 0.17 160) 6%, var(--color-surface-100))', border: '1px solid oklch(72% 0.17 160 / 0.28)', boxShadow: '0 10px 30px oklch(0% 0 0 / 0.35)' }}
       >
-        <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(72% 0.17 160)' }}>Tailored for Product Designer</p>
+        <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(72% 0.17 160)' }}>Tailored for Product Designer</p>
         <p className="text-[11px] leading-relaxed text-foreground/90">
           Built an ops analytics dashboard adopted by 3 teams, cutting weekly reporting from 4 hours to 20 minutes.
         </p>
@@ -288,7 +288,7 @@ function VizTailor() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.75 }}
-        className="mx-auto inline-flex items-center gap-1.5 text-[9px] font-mono px-2.5 py-1 rounded-md"
+        className="mx-auto inline-flex items-center gap-1.5 text-[9px] max-sm:text-[10px] font-mono px-2.5 py-1 rounded-md"
         style={{ background: 'oklch(72% 0.17 160 / 0.08)', border: '1px solid oklch(72% 0.17 160 / 0.22)', color: 'oklch(74% 0.15 160)' }}
       >
         <CheckCircle2 className="h-2.5 w-2.5" /> Truth Ledger: sourced from resume.pdf
@@ -338,7 +338,7 @@ export function HowItWorks() {
 
         {/* NOTE: the stage column must stretch to the full row height (no items-start)
             so the inner sticky element can travel the entire steps column. */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Sticky stage (desktop) */}
           <div className="hidden lg:block">
           <div className="sticky top-28">
@@ -422,7 +422,7 @@ export function HowItWorks() {
                 </AnimatePresence>
               </div>
 
-              <p className="absolute bottom-3 right-5 text-[8px] uppercase tracking-widest" style={{ color: 'oklch(45% 0.02 258)' }}>
+              <p className="absolute bottom-3 right-5 text-[8px] max-sm:text-[10px] uppercase tracking-widest" style={{ color: 'oklch(45% 0.02 258)' }}>
                 Fictional demonstration data
               </p>
             </div>

@@ -7,6 +7,7 @@ import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 import { hashString } from '@/lib/utils'
 import { sanitizeParsedResume } from '@/lib/ai/sanitize-resume'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
     const inputHash = hashString(resumeText)
 
     const { data: rawResult, meta } = await runPrompt(resumeParsePrompt, { resumeText })
+    await recordPromptCost({ userId: user.id, meta })
     const result = sanitizeParsedResume(rawResult, resumeText)
 
     if (resumeId) {
@@ -80,10 +82,9 @@ export async function POST(request: NextRequest) {
       status: 'completed',
     })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'resume_analyzed',
-      metadata: { resume_id: resumeId, word_count: resumeText.split(' ').length },
+    trackAsync(user.id, 'resume_analyzed', {
+      resume_id: resumeId ?? null,
+      word_count: resumeText.split(' ').length,
     })
     trackAsync(user.id, 'resume_parsed', {
       resume_id: resumeId ?? null,

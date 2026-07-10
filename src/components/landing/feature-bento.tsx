@@ -99,7 +99,7 @@ function VizPortfolio() {
             <div className="h-1 w-2/3 rounded-full" style={{ background: 'oklch(55% 0.02 258 / 0.4)' }} />
             <div className="flex items-center gap-1 mt-2">
               <CheckCircle2 className="h-2.5 w-2.5" style={{ color: 'oklch(72% 0.17 160)' }} />
-              <span className="text-[8px] font-semibold" style={{ color: 'oklch(72% 0.17 160)' }}>evidence attached</span>
+              <span className="text-[8px] max-sm:text-[10px] font-semibold" style={{ color: 'oklch(72% 0.17 160)' }}>evidence attached</span>
             </div>
           </div>
         ))}
@@ -109,7 +109,7 @@ function VizPortfolio() {
         {['oklch(63% 0.20 255)', 'oklch(62% 0.22 285)', 'oklch(72% 0.17 160)', 'oklch(78% 0.15 85)', 'oklch(65% 0.2 330)'].map((c) => (
           <span key={c} className="w-3.5 h-3.5 rounded-full border border-white/10" style={{ background: c }} />
         ))}
-        <span className="text-[9px] ml-1" style={{ color: 'oklch(58% 0.02 258)' }}>40 themes</span>
+        <span className="text-[9px] max-sm:text-[10px] ml-1" style={{ color: 'oklch(58% 0.02 258)' }}>40 themes</span>
       </div>
     </div>
   )
@@ -150,7 +150,7 @@ function VizProofScore() {
       <div className="w-full space-y-2">
         {bars.map(({ label, v, c }, i) => (
           <div key={label} className="flex items-center gap-2">
-            <span className="text-[9px] w-14 shrink-0" style={{ color: 'oklch(60% 0.02 258)' }}>{label}</span>
+            <span className="text-[9px] max-sm:text-[10px] w-14 shrink-0" style={{ color: 'oklch(60% 0.02 258)' }}>{label}</span>
             <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-surface-300)' }}>
               <motion.div
                 className="h-full rounded-full"
@@ -161,7 +161,7 @@ function VizProofScore() {
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.4 + i * 0.12 }}
               />
             </div>
-            <span className="text-[9px] font-bold w-5 text-right stat-number" style={{ color: c }}>{v}</span>
+            <span className="text-[9px] max-sm:text-[10px] font-bold w-5 text-right stat-number" style={{ color: c }}>{v}</span>
           </div>
         ))}
       </div>
@@ -184,10 +184,10 @@ function VizJobs() {
         >
           <div className="min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">{role}</p>
-            <p className="text-[9px]" style={{ color: 'oklch(58% 0.02 258)' }}>{co}</p>
+            <p className="text-[9px] max-sm:text-[10px]" style={{ color: 'oklch(58% 0.02 258)' }}>{co}</p>
           </div>
           <span
-            className="flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-full shrink-0"
+            className="flex items-center gap-1 text-[9px] max-sm:text-[10px] font-bold px-2 py-1 rounded-full shrink-0"
             style={{ background: `color-mix(in oklch, ${tone} 14%, transparent)`, color: tone, border: `1px solid color-mix(in oklch, ${tone} 28%, transparent)` }}
           >
             <Target className="h-2.5 w-2.5" />
@@ -203,14 +203,14 @@ function VizTailor() {
   return (
     <div className="space-y-2.5">
       <div className="rounded-xl p-3" style={{ background: 'var(--color-surface-0)', border: '1px solid oklch(62% 0.22 25 / 0.2)' }}>
-        <p className="text-[8px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(62% 0.18 25)' }}>Before</p>
+        <p className="text-[8px] max-sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(62% 0.18 25)' }}>Before</p>
         <p className="text-[11px] leading-snug" style={{ color: 'oklch(58% 0.02 258)' }}>Worked on analytics dashboard for internal team.</p>
       </div>
       <div className="flex justify-center">
         <ArrowRight className="h-3.5 w-3.5 rotate-90 transition-transform duration-500 group-hover:translate-y-0.5" style={{ color: 'oklch(63% 0.20 255)' }} />
       </div>
       <div className="rounded-xl p-3" style={{ background: 'color-mix(in oklch, oklch(72% 0.17 160) 6%, var(--color-surface-0))', border: '1px solid oklch(72% 0.17 160 / 0.25)' }}>
-        <p className="text-[8px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(72% 0.17 160)' }}>Tailored for the role</p>
+        <p className="text-[8px] max-sm:text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'oklch(72% 0.17 160)' }}>Tailored for the role</p>
         <p className="text-[11px] leading-snug text-foreground/85">Built an ops analytics dashboard adopted by 3 teams, cutting weekly reporting from 4 hours to 20 minutes.</p>
       </div>
     </div>
@@ -236,7 +236,7 @@ function VizInterview() {
       </div>
       <div className="flex items-center gap-2 pt-1">
         {['Structure 82', 'Clarity 78', 'Evidence 90'].map((s) => (
-          <span key={s} className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'oklch(72% 0.17 160 / 0.1)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.22)' }}>
+          <span key={s} className="text-[8px] max-sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'oklch(72% 0.17 160 / 0.1)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.22)' }}>
             {s}
           </span>
         ))}
@@ -274,7 +274,7 @@ export function FeatureBento() {
         <CellHeader
           icon={Zap}
           title="AI Portfolio Builder"
-          desc="Turns your resume into structured, evidence-based case studies — published at one clean link. No design skills needed."
+          desc="Turns your resume into structured, evidence-based case studies in a private draft. Pro adds publishing at one clean link."
         />
         <VizPortfolio />
       </Cell>

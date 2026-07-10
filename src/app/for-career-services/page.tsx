@@ -39,7 +39,7 @@ export default function CareerServicesPage() {
             'Students upload a résumé and get a structured portfolio draft, not a blank page to start from.',
             'ProofScore flags specific, concrete gaps (e.g. "3 of 8 bullets have no measurable outcome") your advisors can act on directly.',
             'Nothing is fabricated - Showcase will not invent an internship, metric, or skill a student does not have.',
-            'Students control what gets published. A draft stays private until the student chooses to share it.',
+            'Drafts stay private. Live sharing is available only when publishing is enabled on a Pro account.',
           ].map((s) => (
             <div key={s} className="glass-card p-5 text-sm text-muted-foreground leading-relaxed">{s}</div>
           ))}

@@ -160,7 +160,7 @@ export default function DemoDashboardPage() {
               <p className="text-xs font-medium text-muted-foreground mb-3">Score breakdown</p>
               {CATEGORIES.map((cat) => (
                 <div key={cat.name} className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground w-36 shrink-0 truncate">{cat.name}</span>
+                  <span className="text-xs text-muted-foreground w-36 max-[400px]:w-28 shrink-0 truncate">{cat.name}</span>
                   <div className="flex-1 h-1.5 bg-surface-300 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${cat.score >= 80 ? 'bg-emerald-500' : cat.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
@@ -186,14 +186,14 @@ export default function DemoDashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Setup complete</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 max-lg:space-y-0">
             {SETUP_STEPS.map((step) => (
-              <Link key={step.label} href={step.href} className="flex items-center gap-3 group">
+              <Link key={step.label} href={step.href} className="flex items-center gap-3 group max-lg:py-1.5 max-lg:first:-mt-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span className="text-sm text-foreground/80 group-hover:text-foreground transition-colors truncate">{step.label}</span>
               </Link>
             ))}
-            <div className="pt-2 border-t border-border/60">
+            <div className="pt-2 border-t border-border/60 max-lg:mt-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">All steps complete</span>
                 <span className="text-emerald-400 font-semibold">4 / 4</span>

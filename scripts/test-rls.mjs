@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 let PASS = 0
 let FAIL = 0
@@ -30,6 +31,7 @@ async function main() {
   const suffix = Date.now()
   const a = await signUp(`rls-test-a-${suffix}@example.com`)
   const b = await signUp(`rls-test-b-${suffix}@example.com`)
+  const service = createClient(URL, SERVICE_KEY, { auth: { persistSession: false } })
   console.log('User A:', a.userId)
   console.log('User B:', b.userId)
 
@@ -53,7 +55,7 @@ async function main() {
     .select()
     .single()
 
-  const { data: auditA } = await a.client
+  const { data: auditA } = await service
     .from('audits')
     .insert({ user_id: a.userId, resume_id: resumeA.id, audit_type: 'proofscore', overall_score: 42, category_scores: {}, findings: [], recommendations: [] })
     .select()
@@ -118,8 +120,35 @@ async function main() {
     record('User B cannot INSERT a row with User A\'s user_id', (data?.length ?? 0) === 0, error?.message)
   }
 
+  console.log('\n── Server-authority fields ──')
+  {
+    const { error } = await a.client.from('profiles').update({ bonus_credits: 60 }).eq('id', a.userId)
+    const { data: check } = await service.from('profiles').select('bonus_credits').eq('id', a.userId).single()
+    record('User cannot mint their own referral credits', !!error && check?.bonus_credits !== 60, error?.message)
+  }
+  {
+    const { error } = await a.client.from('audits').insert({
+      user_id: a.userId,
+      resume_id: resumeA.id,
+      audit_type: 'proofscore',
+      overall_score: 100,
+      category_scores: {},
+      findings: [],
+      recommendations: [],
+    })
+    record('User cannot forge a server-computed ProofScore audit', !!error, error?.message)
+  }
+  {
+    const { error } = await a.client
+      .from('portfolios')
+      .update({ status: 'published', published_at: new Date().toISOString() })
+      .eq('id', portfolioA.id)
+    const { data: check } = await service.from('portfolios').select('status').eq('id', portfolioA.id).single()
+    record('User cannot bypass Pro by directly publishing', !!error && check?.status === 'draft', error?.message)
+  }
+
   console.log('\n── Published portfolio (intended public surface) ──')
-  await a.client.from('portfolios').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', portfolioA.id)
+  await service.from('portfolios').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', portfolioA.id)
   {
     const anon = createClient(URL, ANON_KEY)
     const { data } = await anon.from('portfolios').select('*').eq('id', portfolioA.id).eq('status', 'published')
@@ -127,7 +156,7 @@ async function main() {
   }
   {
     // Re-draft and confirm anon access is revoked
-    await a.client.from('portfolios').update({ status: 'draft' }).eq('id', portfolioA.id)
+    await service.from('portfolios').update({ status: 'draft', published_at: null }).eq('id', portfolioA.id)
     const anon = createClient(URL, ANON_KEY)
     const { data } = await anon.from('portfolios').select('*').eq('id', portfolioA.id)
     record('Anonymous client loses access once portfolio is reverted to draft', (data?.length ?? 0) === 0)

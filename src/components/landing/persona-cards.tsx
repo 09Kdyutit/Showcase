@@ -11,7 +11,7 @@ const PERSONAS = [
   {
     icon: GraduationCap,
     title: 'The Student',
-    desc: 'Turning coursework and internships into credible, recruiter-ready case studies.',
+    desc: 'Turning coursework and internships into credible, evidence-based case studies.',
     from: 'class projects',
     to: 'case studies',
     hue: 'oklch(63% 0.20 255)', // brand blue

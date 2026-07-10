@@ -41,11 +41,11 @@ export default function DemoOnboardingPage() {
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
           {STEPS.map((s, i) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
+            <div key={s} className="flex items-center gap-2 flex-1 max-sm:flex-auto max-sm:last:flex-none">
               <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0 transition-all duration-200 ${i === 0 ? 'bg-brand-500/20 text-brand-400 border border-brand-500/40' : 'bg-surface-200 text-muted-foreground/40'}`}>
                 {i + 1}
               </div>
-              <span className={`text-xs font-medium transition-colors ${i === 0 ? 'text-foreground' : 'text-muted-foreground/50'}`}>{s}</span>
+              <span className={`text-xs font-medium transition-colors ${i === 0 ? 'text-foreground' : 'text-muted-foreground/50 max-sm:hidden'}`}>{s}</span>
               {i < STEPS.length - 1 && <div className="h-px flex-1 ml-1 rounded-full bg-border" />}
             </div>
           ))}

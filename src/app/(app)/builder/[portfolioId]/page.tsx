@@ -20,6 +20,11 @@ import { portfolioGoalLabel } from '@/lib/constants'
 import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
 import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
 import { ImageUploader } from '@/components/portfolio/image-uploader'
+import { CompletionReferralDialog } from '@/components/referrals/completion-referral-dialog'
+import { PublishPaywallDialog } from '@/components/billing/publish-paywall-dialog'
+import { configuredAppHost } from '@/lib/app-url'
+
+const APP_HOST = configuredAppHost()
 
 interface BuilderPageProps {
   params: Promise<{ portfolioId: string }>
@@ -50,7 +55,11 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     linkedin_url: string | null
     github_url: string | null
     website_url: string | null
+    referral_code: string | null
   } | null>(null)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [referralDialogOpen, setReferralDialogOpen] = useState(false)
+  const [publishPaywallOpen, setPublishPaywallOpen] = useState(false)
   const [genMsg, setGenMsg] = useState('')
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -59,6 +68,18 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   // re-renders (and the `generating` state/disabled prop actually reflect the first click)
   // would otherwise both pass an `if (generating) return` check and fire two generations.
   const generatingRef = useRef(false)
+  const previewTrackedRef = useRef(false)
+
+  const recordGeneratedPreview = useCallback(() => {
+    if (previewTrackedRef.current) return
+    previewTrackedRef.current = true
+    fetch('/api/growth/portfolio-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ portfolio_id: portfolioId }),
+      keepalive: true,
+    }).catch(() => {})
+  }, [portfolioId])
 
   async function load() {
     // Guard against a non-id route value (e.g. "new") reaching a `.eq('id', …)` query,
@@ -72,7 +93,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       supabase.from('subscriptions').select('status').maybeSingle(),
       supabase.from('resumes').select('raw_text, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle(),
       user
-        ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url').eq('id', user.id).single()
+        ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url, referral_code').eq('id', user.id).single()
         : Promise.resolve({ data: null }),
       // Display-only signal for the free-tier generation allowance; the server route
       // re-checks this authoritatively on every generate call.
@@ -87,11 +108,24 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     setContent(c)
     lastSavedRef.current = { title: portfolioRes.data.title, targetRole: portfolioRes.data.target_role ?? '', content: c }
     setIsPro(subRes.data?.status === 'active' || subRes.data?.status === 'trialing')
-    setHasUsedFreeGeneration((genCountRes.count ?? 0) > 0)
+    const generatedCount = genCountRes.count ?? 0
+    setHasUsedFreeGeneration(generatedCount > 0)
     setResumeText(resumeRes.data?.raw_text ?? '')
     setParsedResume((resumeRes.data?.parsed_json as unknown as ParsedResume) ?? null)
-    setProfileMeta(profileRes.data ?? null)
+    const loadedProfile = profileRes.data as unknown as {
+      industry: string | null
+      portfolio_goal: string | null
+      linkedin_url: string | null
+      github_url: string | null
+      website_url: string | null
+      referral_code: string | null
+    } | null
+    setProfileMeta(loadedProfile)
+    setReferralCode(loadedProfile?.referral_code ?? null)
     setLoading(false)
+    if (loadedProfile?.referral_code && portfolioRes.data.ai_generated_at && generatedCount === 1) {
+      window.setTimeout(() => maybeOpenReferralPrompt(loadedProfile.referral_code), 250)
+    }
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
@@ -139,6 +173,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     if (!loading) hasLoadedRef.current = true
   }, [loading])
 
+  useEffect(() => {
+    if (!loading && portfolio?.ai_generated_at) recordGeneratedPreview()
+  }, [loading, portfolio?.ai_generated_at, recordGeneratedPreview])
+
   function updateContent(updater: (prev: Partial<PortfolioContent>) => Partial<PortfolioContent>) {
     setContent(updater)
   }
@@ -147,12 +185,34 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   function updateRole(v: string) { setTargetRole(v) }
   function updateTheme(v: ThemeId) { setTheme(v) }
 
+  function maybeOpenReferralPrompt(code: string | null) {
+    if (!code) return
+    try {
+      if (window.localStorage.getItem(`showcase_referral_prompted:${code}`)) return
+    } catch {
+      // A disabled localStorage should not break the completion experience.
+    }
+    setReferralDialogOpen(true)
+  }
+
+  function handleReferralDialogOpenChange(open: boolean) {
+    setReferralDialogOpen(open)
+    if (!open) {
+      try {
+        if (referralCode) window.localStorage.setItem(`showcase_referral_prompted:${referralCode}`, new Date().toISOString())
+      } catch {
+        // Best-effort frequency guard only. Settings keeps the referral link available.
+      }
+    }
+  }
+
   async function generatePortfolio(confirmOverwrite = false) {
     // Free includes the first generation; regeneration needs Pro. The server enforces
     // this authoritatively - this check just gives a clear message without a round trip.
     if (!isPro && hasUsedFreeGeneration) { toast.error('Your free plan includes one AI generation. Upgrade to Pro to regenerate.'); return }
     if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
     if (generatingRef.current) return
+    const isFirstGeneration = !hasUsedFreeGeneration
     generatingRef.current = true
 
     setGenerating(true)
@@ -220,7 +280,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       }
       updateContent(() => data)
       setHasUsedFreeGeneration(true)
+      recordGeneratedPreview()
       toast.success('Portfolio generated! Review and edit the content below.')
+      if (isFirstGeneration) maybeOpenReferralPrompt(referralCode)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Generation failed. Please try again.')
     } finally {
@@ -242,7 +304,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       const data = await res.json()
       if (!res.ok) {
         if (data.code === 'PRO_REQUIRED') {
-          toast.error('Upgrade to Pro to publish your portfolio publicly')
+          setPublishPaywallOpen(true)
         } else {
           throw new Error(data.error ?? 'Failed to update')
         }
@@ -411,7 +473,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             className="gap-1.5 text-xs"
           >
             {portfolio?.status === 'published' ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
-            {portfolio?.status === 'published' ? 'Unpublish' : 'Publish'}
+            {portfolio?.status === 'published' ? 'Unpublish' : isPro ? 'Publish' : 'Publish live · Pro'}
           </Button>
         </div>
       </div>
@@ -677,7 +739,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
                       </div>
                       <span className="text-xs text-muted-foreground/50 flex-1 text-center font-mono">
-                        showcase.app/p/{portfolio?.slug}
+                        {APP_HOST}/p/{portfolio?.slug}
                       </span>
                       {portfolio?.status === 'published'
                         ? <Badge variant="success" className="text-xs shrink-0">Live</Badge>
@@ -1101,7 +1163,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   <div className="space-y-1.5">
                     <Label>Public URL</Label>
                     <div className="flex items-center gap-2 px-3 py-2 bg-surface-100 border border-border rounded-xl text-sm">
-                      <span className="text-muted-foreground/60 text-xs font-mono">showcase.app/p/</span>
+                      <span className="text-muted-foreground/60 text-xs font-mono">{APP_HOST}/p/</span>
                       <span className="text-foreground text-xs font-mono">{portfolio?.slug}</span>
                     </div>
                     <p className="text-xs text-muted-foreground/50">Slug cannot be changed after creation.</p>
@@ -1129,7 +1191,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       className="gap-1.5"
                     >
                       {portfolio?.status === 'published' ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
-                      {portfolio?.status === 'published' ? 'Unpublish' : 'Publish'}
+                      {portfolio?.status === 'published' ? 'Unpublish' : isPro ? 'Publish' : 'Publish live · Pro'}
                     </Button>
                   </div>
                   {portfolio?.status === 'published' && portfolio?.slug && (
@@ -1138,7 +1200,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-emerald-400">Your portfolio is live</p>
                         <Link href={`/p/${portfolio.slug}`} target="_blank" className="text-xs text-emerald-400/70 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-0.5">
-                          showcase.app/p/{portfolio.slug}
+                          {APP_HOST}/p/{portfolio.slug}
                           <ExternalLink className="h-2.5 w-2.5" />
                         </Link>
                       </div>
@@ -1186,6 +1248,26 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
           </Tabs>
         </div>
       </div>
+      {referralCode && (
+        <CompletionReferralDialog
+          key={referralCode}
+          open={referralDialogOpen}
+          onOpenChange={handleReferralDialogOpenChange}
+          referralCode={referralCode}
+        />
+      )}
+      {portfolio && (
+        <PublishPaywallDialog
+          open={publishPaywallOpen}
+          onOpenChange={setPublishPaywallOpen}
+          portfolioId={portfolioId}
+          title={title}
+          slug={portfolio.slug}
+          targetRole={targetRole}
+          theme={theme}
+          content={content}
+        />
+      )}
     </div>
   )
 }

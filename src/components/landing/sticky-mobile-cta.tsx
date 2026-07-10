@@ -8,7 +8,13 @@ export function StickyMobileCTA() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const handler = () => setVisible(window.scrollY > 500)
+    // Show after the hero, but hide again near the page end so the bar never
+    // covers the footer's copyright row or duplicates the final CTA.
+    const handler = () =>
+      setVisible(
+        window.scrollY > 500 &&
+          window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 300
+      )
     window.addEventListener('scroll', handler, { passive: true })
     handler()
     return () => window.removeEventListener('scroll', handler)

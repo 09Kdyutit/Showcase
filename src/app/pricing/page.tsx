@@ -8,55 +8,47 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { TrackedLink } from '@/components/landing/tracked-link'
+import { configuredAppHost } from '@/lib/app-url'
+
+const APP_HOST = configuredAppHost()
 
 const FREE_FEATURES = [
-  'Resume text parsing',
+  'Resume parsing and up to 3 analyses / day',
   'One AI portfolio generation',
-  'Basic ProofScore preview (3 categories)',
-  'Draft portfolio (unpublished)',
-  '1 portfolio',
+  'Full ProofScore (all 11 categories), 1 audit / day',
+  'Build, edit, and preview portfolio drafts',
+  '5 AI bullet improvements / day',
   'Browse job listings (demo data)',
-  'Import up to 3 job descriptions',
+  'Import up to 3 job descriptions / day',
   'Basic role-content match score',
-  '1 ATS check',
-  'Pipeline with up to 5 active roles',
+  '1 ATS check / day',
+  'Up to 5 saved, non-archived jobs',
 ]
 const FREE_LOCKED = [
-  'Unlimited AI regeneration',
-  'Complete ProofScore (11 categories)',
   'Public portfolio publishing',
-  'PDF export',
-  'Resume bullet improvement',
+  'Portfolio regeneration and additional AI-built portfolios',
+  'Higher daily AI limits',
+  'Live voice and recorded interviews',
+  'Standalone HTML portfolio export',
   'Personalized For You job feed',
   'Full match explanations',
   'Tailor Studio (role-specific resume)',
-  'Truth Ledger with source tracing',
-  'Interview preparation brief',
-  'ATS export validation',
-  'Full application pipeline',
 ]
 const PRO_FEATURES = [
   'Everything in Free',
-  'Live AI voice interviews - talk to an interviewer that adapts to your answers',
-  '20 voice interviews / month, up to 30 minutes each',
-  'Company-specific interviews (Google, Meta, Stripe & any company)',
-  'Real interviewer-grade feedback after every session',
-  '150 written practice interviews / month',
-  'Full AI portfolio generation from resume',
-  'Complete ProofScore audit - all 11 categories',
-  'AI resume bullet improvement',
-  'Public portfolio at showcase.app/p/your-name',
-  'PDF and recruiter summary export',
-  'Role-specific portfolio versions',
-  'Unlimited portfolios',
+  `Publish a live portfolio at ${APP_HOST}/p/your-name`,
+  '10 portfolio generations and 10 full audits / day',
+  '25 resume analyses and 50 bullet improvements / day',
+  '15 tailored applications and 40 cover letters / day',
+  '20 voice or recorded interviews / billing period',
+  '150 written interviews / billing period',
+  'Company-specific interview practice and feedback',
+  'Standalone HTML portfolio export',
   'Personalized job feed with explainable match scores',
   'Tailor Studio - role-specific resume in one click',
   'Truth Ledger - every change traced to your real experience',
-  'ATS readiness check and export validation',
-  'Full application pipeline with stage tracking',
-  'Cover letter and recruiter note generation',
-  'Priority AI processing',
-  'Email support',
+  '20 ATS readiness checks / day',
+  'Application stage tracking without the Free five-job cap',
 ]
 
 export default function PricingPage() {
@@ -75,8 +67,8 @@ export default function PricingPage() {
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
             Free gets you the transformation: a real portfolio draft and your first ProofScore.
-            Pro takes it from draft to shareable — publish it, tailor it per role, and fix every
-            evidence gap.
+            Pro takes it from draft to shareable — publish it, tailor it per role, and work
+            through the evidence gaps it identifies.
           </p>
         </div>
 
@@ -151,16 +143,16 @@ export default function PricingPage() {
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-brand-400 uppercase tracking-wider">Showcase Pro</p>
-                  <Badge variant="pro">{isAnnual ? 'Best value' : 'Most popular'}</Badge>
+                  <Badge variant="pro">{isAnnual ? 'Best value' : 'Monthly'}</Badge>
                 </div>
                 {isAnnual ? (
                   <>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-5xl font-bold">$12.50</span>
-                      <span className="text-muted-foreground">/month</span>
+                      <span className="text-5xl font-bold">$150</span>
+                      <span className="text-muted-foreground">/year</span>
                     </div>
                     <p className="text-sm text-emerald-400 font-medium mb-1">
-                      $150 billed annually - save $30 vs monthly
+                      $12.50/month equivalent - save $30
                     </p>
                     <p className="text-sm text-muted-foreground line-through opacity-50">$180/year if monthly</p>
                   </>
@@ -186,13 +178,13 @@ export default function PricingPage() {
                 <Button asChild variant="gradient" size="lg" className="w-full gap-2 shadow-glow">
                   <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_pro_card">
                     <Zap className="h-4 w-4" />
-                    Start with Pro
+                    Create my free portfolio
                     <ArrowRight className="h-4 w-4" />
                   </TrackedLink>
                 </Button>
                 <div className="flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-emerald-500/8 border border-emerald-500/20">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                  <p className="text-xs text-emerald-400/90 text-center">7-day refund policy - no questions asked</p>
+                  <p className="text-xs text-emerald-400/90 text-center">7-day refund eligibility before substantive Pro use</p>
                 </div>
                 <p className="text-xs text-muted-foreground/60 text-center">Secure payment via Stripe</p>
               </div>
@@ -206,13 +198,13 @@ export default function PricingPage() {
           <div className="space-y-4">
             {[
               { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data - portfolio content, ProofScore history, and uploaded materials - is preserved.' },
-              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can explore the product and see its value before upgrading. Most people upgrade after seeing their first ProofScore audit.' },
+              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can build a draft and run your first ProofScore before deciding whether publishing and higher limits are worth upgrading for.' },
               { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.' },
-              { q: 'Can I get a refund?', a: 'Yes. If you are not satisfied within the first 7 days of your Showcase Pro subscription, we will refund you in full - no questions asked. Just reach out to our support team.' },
+              { q: 'Can I get a refund?', a: 'You can request a refund within 7 days if you have not substantively used Pro features. See the refund policy for the exact conditions.' },
               { q: 'Will Showcase invent experience I do not have?', a: 'Never. Our AI only works with what you provide. It will rewrite and improve how your real experience is presented, but it will not fabricate metrics, employers, projects, or certifications. It will tell you what evidence is missing and suggest where to add proof.' },
-              { q: 'Can I have multiple portfolios?', a: 'Yes, Showcase Pro supports unlimited portfolios. This is useful for targeting different roles or industries - for example, a separate portfolio for product management roles and one for consulting roles.' },
+              { q: 'Can I have multiple portfolios?', a: 'Yes. You can build and edit portfolio drafts on Free. Your first AI generation is included; regenerating or AI-building additional portfolios requires Pro, and publishing any live portfolio is a Pro feature.' },
               { q: 'What file formats can I import?', a: 'You can paste your resume as plain text, or upload a PDF or DOCX file. Showcase parses it automatically and uses it as the foundation for your portfolio content.' },
-              { q: 'Who can see my public portfolio?', a: 'Only you can see your draft portfolio. When you publish it as a Showcase Pro user, your portfolio becomes publicly accessible at showcase.app/p/your-name. You can unpublish it at any time.' },
+              { q: 'Who can see my public portfolio?', a: `Only you can see your draft portfolio. When you publish it as a Showcase Pro user, it becomes publicly accessible at ${APP_HOST}/p/your-name. You can unpublish it at any time.` },
             ].map(({ q, a }) => (
               <div key={q} className="glass-card p-5">
                 <h3 className="font-semibold text-sm text-foreground mb-2">{q}</h3>

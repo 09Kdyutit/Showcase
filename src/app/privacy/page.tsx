@@ -8,16 +8,16 @@ export default function PrivacyPage() {
       <Navbar />
       <main className="pt-24 pb-32 px-4 sm:px-6 max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-12">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+        <p className="text-muted-foreground mb-12">Effective July 9, 2026</p>
         <div className="space-y-8 text-sm text-foreground/80 leading-relaxed">
           {[
             { h: 'What we collect', body: 'We collect your email address, name, and professional information you choose to provide (resume, projects, links). We also collect usage data to improve the product.' },
-            { h: 'How we use your data', body: 'We use your data to: generate and display your portfolio, provide ProofScore analysis, deliver the service, and improve our product. We process your resume with OpenAI\'s API under a data processing agreement.' },
-            { h: 'What we do not do', body: 'We do not sell your resume or portfolio data to third parties. We do not use your data to train AI models. We do not share your private resume data with other users.' },
+            { h: 'How we use your data', body: 'We use your data to generate and display your portfolio, provide ProofScore and other requested analysis, deliver emails, secure the service, process billing, and improve the product. This requires service providers including Supabase (hosting and authentication), OpenAI (requested AI analysis and generation), Stripe (billing), Resend (email), and any job-data provider enabled for search.' },
+            { h: 'What we do not do', body: 'We do not sell your resume or portfolio data. We do not use it to train our own AI models, and we do not expose private resume data to other Showcase users.' },
             { h: 'Public portfolios', body: 'If you publish your portfolio, it becomes publicly accessible at your portfolio URL. Unpublished portfolios are private and only accessible by you.' },
-            { h: 'Data retention', body: 'We retain your data as long as your account is active. You can delete your account and all associated data by contacting support.' },
-            { h: 'Security', body: 'We use Supabase with row-level security to ensure your data is only accessible by you. Payment data is handled entirely by Stripe and never stored on our servers.' },
-            { h: 'Contact', body: 'For privacy requests, contact support@showcase.app.' },
+            { h: 'Data retention and deletion', body: 'User-owned app records are retained while your account is active and are deleted when you use Delete account in Settings. Uploaded-file cleanup is attempted as part of that deletion. If a storage provider is temporarily unavailable, contact us so we can verify cleanup. A waitlist record may remain after being unlinked from the deleted account, suppression records may remain so we continue honoring opt-outs, provider webhook identifiers may remain for security, and Stripe retains customer and payment records under its own legal and operational requirements.' },
+            { h: 'Security and payments', body: 'We use Supabase row-level security and server-side authorization to separate user data. Stripe handles card and bank details; Showcase stores only the Stripe customer/subscription identifiers and plan status needed to manage access.' },
+            { h: 'Contact', body: 'For privacy requests, contact hello@tryshowcase.ink.' },
           ].map(({ h, body }) => (
             <div key={h}>
               <h2 className="text-lg font-semibold text-foreground mb-3">{h}</h2>

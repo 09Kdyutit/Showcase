@@ -7,7 +7,7 @@ import { TrackedLink } from './tracked-link'
 import { EvidenceField } from './evidence-field'
 import { ProofAssembly } from './proof-assembly'
 
-const TRUST = ['No credit card required', 'Free ProofScore preview', 'Setup in 5 minutes']
+const TRUST = ['No credit card required', 'Free ProofScore preview', 'First draft in about 10 minutes']
 
 // Shared headline so the blurred base layer and the sharp spotlight layer stay identical.
 const HEADLINE = (

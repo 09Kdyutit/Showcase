@@ -1,6 +1,7 @@
 import 'server-only'
 import { GoogleGenAI } from '@google/genai'
 import { InterviewGeminiNotConfiguredError } from './errors.ts'
+import { isAIEnabled, isGeminiEnabled } from '../../feature-flags.ts'
 
 // Single cached client, same pattern as src/lib/ai/gemini.ts's getClient(). One
 // GoogleGenAI instance for the whole module - analysis.ts and live.ts both call this
@@ -8,6 +9,9 @@ import { InterviewGeminiNotConfiguredError } from './errors.ts'
 let cachedClient: GoogleGenAI | null = null
 
 export function getInterviewGeminiClient(): GoogleGenAI {
+  if (!isAIEnabled() || !isGeminiEnabled()) {
+    throw new InterviewGeminiNotConfiguredError('Gemini spend is kill-switched')
+  }
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new InterviewGeminiNotConfiguredError('GEMINI_API_KEY is not set')
   if (!cachedClient) {
@@ -24,6 +28,9 @@ export function getInterviewGeminiClient(): GoogleGenAI {
 let cachedTokenClient: GoogleGenAI | null = null
 
 export function getInterviewGeminiTokenClient(): GoogleGenAI {
+  if (!isAIEnabled() || !isGeminiEnabled()) {
+    throw new InterviewGeminiNotConfiguredError('Gemini spend is kill-switched')
+  }
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new InterviewGeminiNotConfiguredError('GEMINI_API_KEY is not set')
   if (!cachedTokenClient) {

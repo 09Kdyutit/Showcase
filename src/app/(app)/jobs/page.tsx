@@ -437,7 +437,7 @@ function PipelineView({ savedJobs, isPro }: { savedJobs: SavedJob[]; isPro: bool
           <span className="text-muted-foreground">
             <span className="text-foreground font-medium">{activeSaved} / 5</span> saved jobs on the free plan
           </span>
-          <Link href="/billing" className="text-brand-400 hover:text-brand-300 font-medium">Upgrade for unlimited</Link>
+          <Link href="/billing" className="text-brand-400 hover:text-brand-300 font-medium">Remove the Free five-job cap</Link>
         </div>
       )}
       {/* Stats row */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe/client'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { recordTrustedEvent } from '@/lib/growth/trusted-events'
 import { z } from 'zod'
 import type Stripe from 'stripe'
 
@@ -45,25 +46,77 @@ export async function POST(request: NextRequest) {
 
     // Service client bypasses RLS, exactly as the webhook does when it writes this row.
     const svc = await createServiceClient()
-    const { error } = await svc.from('subscriptions').upsert({
-      user_id: user.id,
-      stripe_customer_id: (subscription.customer as string) ?? (session.customer as string) ?? null,
-      stripe_subscription_id: subscription.id,
-      status,
-      price_id: priceItem?.price?.id ?? null,
-      // current_period_end lives on the subscription item as of Stripe API 2025-03-31+.
-      current_period_end: priceItem?.current_period_end
+    const plan = session.metadata?.plan ?? subscription.metadata?.plan ?? 'unknown'
+    if (plan === 'founding') {
+      const reservationId = session.metadata?.founding_reservation_id
+        ?? subscription.metadata?.founding_reservation_id
+      if (!reservationId) throw new Error('Paid Founding checkout is missing its reservation id')
+
+      const { data: activated, error: activationError } = await svc.rpc(
+        'activate_founding_member_slot',
+        {
+          p_reservation_id: reservationId,
+          p_user_id: user.id,
+          p_checkout_session_id: session.id,
+          p_subscription_id: subscription.id,
+        }
+      )
+      if (activationError || activated !== true) {
+        throw new Error(activationError?.message ?? 'Could not activate paid Founding Member slot')
+      }
+    }
+
+    const observedAt = new Date().toISOString()
+    const customerId = typeof subscription.customer === 'string'
+      ? subscription.customer
+      : subscription.customer?.id
+        ?? (typeof session.customer === 'string' ? session.customer : session.customer?.id)
+    if (!customerId) throw new Error('Stripe session is missing its customer id')
+
+    const { error: snapshotError } = await svc.rpc('apply_subscription_snapshot', {
+      p_user_id: user.id,
+      p_stripe_customer_id: customerId,
+      p_stripe_subscription_id: subscription.id,
+      p_subscription_created_at: new Date(subscription.created * 1000).toISOString(),
+      p_status: status,
+      p_price_id: priceItem?.price?.id ?? null,
+      p_current_period_end: priceItem?.current_period_end
         ? new Date(priceItem.current_period_end * 1000).toISOString()
         : null,
-      cancel_at_period_end: subscription.cancel_at_period_end ?? false,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' })
-    if (error) throw error
+      p_cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+      p_event_created_at: observedAt,
+      p_event_id: `reconcile:${session.id}:${subscription.id}:${status}`,
+    })
+    if (snapshotError) throw new Error(`Atomic subscription reconciliation failed: ${snapshotError.message}`)
 
-    const pro = status === 'active' || status === 'trialing'
+    // Same idempotency key as the webhook: whichever paid, server-verified path wins the
+    // race records the conversion once, and a retry safely repairs any later step.
+    await recordTrustedEvent({
+      idempotencyKey: `stripe-checkout-completed:${session.id}`,
+      eventName: 'checkout_completed',
+      userId: user.id,
+      entityType: 'stripe_checkout_session',
+      entityId: session.id,
+      source: 'stripe_reconcile_session',
+      metadata: {
+        plan,
+        price_id: priceItem?.price?.id ?? null,
+        subscription_id: subscription.id,
+        founding: plan === 'founding',
+      },
+    }, svc)
+
+    const { data: effective, error: readError } = await svc
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (readError) throw readError
+    const effectiveStatus = effective?.status ?? status
+    const pro = effectiveStatus === 'active' || effectiveStatus === 'trialing'
     // If we had to heal, the webhook was late/lost — log it so silent failures are visible.
     if (pro) console.warn('[reconcile-session] self-healed Pro for user', user.id, 'session', session.id)
-    return NextResponse.json({ status, pro, healed: true })
+    return NextResponse.json({ status: effectiveStatus, pro, healed: true })
   } catch (err) {
     console.error('[reconcile-session]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Reconcile failed' }, { status: 500 })

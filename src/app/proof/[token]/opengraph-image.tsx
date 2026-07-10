@@ -17,9 +17,15 @@ export default async function ProofOgImage({ params }: { params: Promise<{ token
   let score = 0
   let role = ''
   try {
-    if (/^[a-f0-9]{16,48}$/.test(token)) {
+    if (/^[a-f0-9]{64}$/.test(token)) {
       const supabase = await createServiceClient()
-      const { data } = await supabase.from('audits').select('overall_score, user_id').eq('share_token', token).maybeSingle()
+      const { data } = await supabase
+        .from('audits')
+        .select('overall_score, user_id')
+        .eq('share_token', token)
+        .is('share_token_revoked_at', null)
+        .gt('share_token_expires_at', new Date().toISOString())
+        .maybeSingle()
       if (data && typeof data.overall_score === 'number') {
         score = data.overall_score
         const { data: p } = await supabase.from('profiles').select('target_role').eq('id', data.user_id).maybeSingle()

@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { scoreLabel } from '@/lib/utils'
+import { configuredAppUrl } from '@/lib/app-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,12 +16,14 @@ type Category = { name: string; score: number }
 // resume_id and any private content are never selected here). Filtering by a random opaque
 // token is the authorization — no user session needed to view a shared score.
 async function loadShared(token: string): Promise<{ score: number; categories: Category[]; role: string | null } | null> {
-  if (!/^[a-f0-9]{16,48}$/.test(token)) return null
+  if (!/^[a-f0-9]{64}$/.test(token)) return null
   const supabase = await createServiceClient()
   const { data: audit } = await supabase
     .from('audits')
     .select('overall_score, category_scores, user_id')
     .eq('share_token', token)
+    .is('share_token_revoked_at', null)
+    .gt('share_token_expires_at', new Date().toISOString())
     .maybeSingle()
   if (!audit || typeof audit.overall_score !== 'number') return null
 
@@ -56,7 +59,7 @@ export default async function SharedProofScorePage({ params }: Props) {
   const shared = await loadShared(token)
   if (!shared) notFound()
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://showcase-app-three.vercel.app'
+  const appUrl = configuredAppUrl()
 
   return (
     <div className="relative min-h-screen bg-background flex items-center justify-center p-6 overflow-hidden">

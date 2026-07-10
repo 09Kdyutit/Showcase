@@ -10,8 +10,11 @@ Do not run paid ads, launch on Product Hunt, or do broad PR until every criterio
 
 All of the following must be true:
 
-### Publish rate
-- [ ] ≥ 40% of invited beta users published a portfolio  
+### Completion rate
+<!-- Updated 2026-07-06: publishing is Pro-only (final decision), so the activation event is
+     COMPLETION — generation finished + full preview/ProofScore viewed. Publish is a Pro
+     conversion metric (Gate 2), not an activation metric. -->
+- [ ] ≥ 40% of invited beta users completed a portfolio (generated + viewed the full preview/ProofScore)
   _Current: __%_
 
 ### Portfolio quality
@@ -31,7 +34,7 @@ All of the following must be true:
   _Current: avg __ / 10, __% would recommend_
 
 ### Activation
-- [ ] Waitlist → publish median time ≤ 72 hours (among those who published)
+- [ ] Waitlist → completion median time ≤ 72 hours (among those who completed)
   _Current: __ hours_
 
 ### Legal / compliance
@@ -54,7 +57,7 @@ All Gate 1 criteria plus:
 - [ ] At least 5 users have come back to the product after their initial session (day-7 retention ≥ 20%)
 
 ### Portfolio sharing evidence
-- [ ] At least 5 users have shared their portfolio link in a real application or social post (verified via analytics or self-report)
+- [ ] At least 5 users have shared their published portfolio link in a real application or social post (verified via analytics or self-report — publishing is Pro, so this doubles as paid-adoption evidence)
 
 ### Support capacity
 - [ ] Can handle 5x current user volume without personal founder support needed for core loop issues
@@ -69,6 +72,16 @@ All Gate 1 + Gate 2 criteria plus:
 - [ ] At least 1 user story where portfolio directly contributed to a job interview or offer
 - [ ] Analytics confirm organic referral traffic (share rate > 0 from portfolio pages)
 - [ ] 100+ total waitlist signups
+
+---
+
+## Gate L — Launch gates (from `.agents/marketing/06-launch-plan.md`)
+
+Product Hunt / Show HN specifically also require, on top of Gate 1:
+
+- [ ] ≥ 3 paying customers (active Pro or Founding subscriptions in Stripe — not trials, not comps)
+- [ ] ≥ 50% activation: signup → first portfolio **completed** ≤ 72h, trailing 30 days
+- [ ] The 500-signup-day cost drill executed and passed (global AI limit trips gracefully; kill switch verified; worst-case daily dollar ceiling written down)
 
 ---
 
