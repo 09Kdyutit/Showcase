@@ -34,9 +34,15 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "e883f59137b5ca9532341ef7e1d2e14267a67874",
-    "source_fingerprint_sha256": "cc6571b1e034c6896c267479179fc4287e04e97b5ade19be08d1d1d743db787c",
-    "verified_at": "2026-07-12T04:11:32Z"
+    "evidence_base_git_head": "70f0305094ee34982b775a05a0bf7d9e0ec2e6b3",
+    "source_fingerprint_sha256": "84a893e979019267954805b63aa5d625b031f59e11b82acb190b8c4b4ac2c1ea",
+    "verified_at": "2026-07-12T06:39:00Z",
+    "squash_reconciliation": {
+      "production_source_git_head": "e883f59137b5ca9532341ef7e1d2e14267a67874",
+      "reviewed_branch_git_head": "3df63ead08bf2444dd6c23ded8364bc3fc7b66e3",
+      "main_squash_git_head": "70f0305094ee34982b775a05a0bf7d9e0ec2e6b3",
+      "tree_equivalence": "The main squash commit has the exact reviewed branch tree; production remains on the separately attested e883f591 source."
+    }
   },
   "contracts": {
     "required_requirement_ids": [
