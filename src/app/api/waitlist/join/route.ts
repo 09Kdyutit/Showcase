@@ -8,8 +8,6 @@ import { isEmailSuppressed } from '@/lib/email/suppressions'
 import { generateAdmissionToken, generateWaitlistReferralCode } from '@/lib/growth/admission'
 import { clientFingerprint } from '@/lib/proofscore/capacity'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const schema = z.object({
   email: z.string().email('Please enter a valid email address').toLowerCase(),
   full_name: z.string().max(120).optional(),
@@ -177,7 +175,9 @@ export async function POST(req: NextRequest) {
     if (!emailSuppressed && process.env.EMAILS_ENABLED === 'true') {
       const { subject, html, text } = waitlistConfirmationEmail(data.full_name, process.env.EMAIL_POSTAL_ADDRESS)
       try {
-        const response = await resend.emails.send({
+        const resendKey = process.env.RESEND_API_KEY
+        if (!resendKey) throw new Error('RESEND_API_KEY is not configured')
+        const response = await new Resend(resendKey).emails.send({
           from: 'Showcase <hello@tryshowcase.ink>',
           to: data.email,
           subject,

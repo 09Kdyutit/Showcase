@@ -18,7 +18,7 @@ flow still completes correctly after the fix.
 Auth emails (signup confirmation, magic link, password reset) are sent through
 Supabase Auth. The production custom-SMTP configuration still needs to be verified.
 
-The application now has local Resend paths for waitlist, invite, ProofScore, lifecycle,
+The application now has local Resend paths for waitlist, invite, Evidence Audit, lifecycle,
 scorecard, inbound reply, delivery-event, unsubscribe, and suppression handling. Those
 paths are not considered production-ready until their configuration and signed provider
 events pass the release smoke tests.
@@ -66,4 +66,4 @@ explicitly approved for public email footers.
 
 Stripe handles its own receipt/invoice emails independently — no app-level
 email integration is needed for billing. This does not cover Showcase's auth,
-waitlist, invite, ProofScore, lifecycle, scorecard, or inbound-reply surfaces.
+waitlist, invite, Evidence Audit, lifecycle, scorecard, or inbound-reply surfaces.

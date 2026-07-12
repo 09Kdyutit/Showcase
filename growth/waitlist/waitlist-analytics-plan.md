@@ -105,7 +105,7 @@ Target funnel:
 5. Invite acceptance rate: % of invited users who create an account
 6. Onboarding completion: % who complete a portfolio after signup
 7. Feedback submission rate: % of onboarded users who fill feedback form
-8. Feedback rating average: ProofScore average from beta_feedback.rating
+8. Feedback rating average: Evidence Audit average from beta_feedback.rating
 
 ## No third-party analytics needed for beta
 

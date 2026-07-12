@@ -1,6 +1,6 @@
 # AI Setup
 
-Showcase uses the OpenAI API for resume parsing, portfolio generation, ProofScore audits, and bullet improvement.
+Showcase uses the OpenAI API for resume parsing, portfolio generation, Evidence Audits, and bullet improvement.
 
 ## Get an API key
 
@@ -14,7 +14,7 @@ AI calls are rate-limited per user (`src/lib/ai/rate-limit.ts`):
 | Action | Free tier | Pro tier |
 |--------|-----------|----------|
 | Resume analysis | 3/day | 25/day |
-| ProofScore audit | 1/day | 10/day |
+| Evidence Audit | 1/day | 10/day |
 | Portfolio generation | 0 (Pro required) | 10/day |
 | Bullet improvement | 5/day | 50/day |
 | Role matching | 2/day | 20/day |

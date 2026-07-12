@@ -199,7 +199,7 @@ export default function LandingPage() {
               <TrackedLink
                 href="/signup"
                 event="hero_primary_cta_clicked"
-                ctaLabel="proofscore_spotlight"
+                ctaLabel="evidence_review_spotlight"
                 className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm text-white transition-all duration-200 hover:scale-[1.02]"
                 style={{
                   background: 'oklch(54% 0.230 255)',

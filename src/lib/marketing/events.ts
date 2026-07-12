@@ -14,12 +14,6 @@ export const MARKETING_EVENTS = [
   'billing_period_selected',
   'waitlist_submitted',
   'signup_started',
-  'proofscore_tool_viewed',
-  'proofscore_tool_started',
-  'proofscore_tool_completed',
-  'proofscore_tool_capped',
-  'proofscore_signup_clicked',
-  'proofscore_reservation_submitted',
   // Public portfolio view (anonymous visitor on /p/[slug]). Slug + referrer host are
   // public, non-sensitive identifiers, so they fit this table's no-private-data rule.
   'portfolio_view',
@@ -47,9 +41,4 @@ export const ALLOWED_METADATA_KEYS = new Set([
   'already_joined',
   'slug',    // public portfolio slug (portfolio_view)
   'ref',     // referrer host only, e.g. "linkedin.com" — never a full URL
-  'score_band',       // coarse 20-point band only; never resume content
-  'remaining',        // live public-tool capacity after a completed audit
-  'has_target_role',  // whether the optional target-role field was supplied
-  'reservation',      // none / ready / early / used / expired / invalid
-  'already_reserved', // repeat reservation submit without another email
 ])

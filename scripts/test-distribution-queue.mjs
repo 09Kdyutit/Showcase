@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 const queue = JSON.parse(readFileSync('growth/distribution/content-queue.json', 'utf8'))
 assert.deepEqual(queue.rules.approvedChannels, ['x'])
@@ -39,14 +39,14 @@ const firstWave = partners.targets.filter((target) => target.wave === 1)
 assert.equal(firstWave.length, 5)
 assert.ok(firstWave.every((target) => target.status === 'researched'))
 
-const packet = readFileSync('growth/distribution/partner-wave-1-review.md', 'utf8')
-for (const target of firstWave) {
-  assert.ok(packet.includes(`## ${target.organization}`), `missing partner draft: ${target.organization}`)
-}
-assert.match(packet, /Nothing was sent|not a bulk-send list/i)
+assert.equal(
+  existsSync('growth/distribution/partner-wave-1-review.md'),
+  false,
+  'the retired ProofScore partner packet must not remain reusable',
+)
 
 const bufferSync = readFileSync('scripts/sync-buffer-ideas.mjs', 'utf8')
 assert.match(bufferSync, /createIdea/)
 assert.doesNotMatch(bufferSync, /createPost|createUpdate|schedulePost|publishPost/)
 
-console.log('distribution queue invariants passed: 20 X drafts, 4/week, 5 unsent partner drafts')
+console.log('distribution queue invariants passed: 20 X drafts, 4/week, 5 researched partner targets, no retired packet')

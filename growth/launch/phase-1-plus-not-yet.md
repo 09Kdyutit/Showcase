@@ -41,9 +41,9 @@ Do not start any of these. Do not plan timelines for any of these. Read `phase-g
 - Each page: 600–800 words, real examples, no fake testimonials
 - Do not build until 5+ real portfolios per persona exist as examples
 
-### 5. Free tool launch (ProofScore Preview)
-- See `growth/free-tool/spec.md`
-- Build and launch after Gate 1
+### 5. Retired acquisition experiment
+- The anonymous scoring-tool specification was deleted on 2026-07-11.
+- Do not recreate or launch it after any gate.
 
 ### 6. Referral program
 - The waitlist already generates referral codes

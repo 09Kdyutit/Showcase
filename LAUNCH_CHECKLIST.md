@@ -104,7 +104,7 @@ not approval for a broad public launch.
 
 - [ ] Sign up with a real email → verify email → complete onboarding
 - [ ] Paste a resume → run AI analysis → verify results make sense
-- [ ] Run a ProofScore audit → verify 11 categories appear
+- [ ] Run an Evidence Audit → verify 11 categories appear
 - [ ] Use Stripe test card `4242 4242 4242 4242` → complete checkout → verify Pro status
 - [ ] Generate the first portfolio on Free; verify regeneration requires Pro
 - [ ] Publish portfolio → visit `/p/your-slug` → verify it loads publicly
@@ -114,7 +114,7 @@ not approval for a broad public launch.
 - [ ] Expire/cancel a Founding checkout → verify its temporary hold releases but an active slot never regresses
 - [ ] Send to Resend's safe `bounced@resend.dev` and `complained@resend.dev` test
   addresses → verify signed webhook suppression across lifecycle, waitlist, invite, and
-  ProofScore emails
+  Evidence Audit emails
 - [ ] Delete a test account → confirm it can no longer log in
 - [ ] Run a real Stripe **live-mode** transaction once (small/refundable) before
   announcing — everything to date has only been verified against test-mode keys
@@ -140,7 +140,7 @@ not approval for a broad public launch.
 - CSRF/Origin enforcement on all state-changing API routes (`test:csrf`)
 - Security headers, including CSP without `unsafe-eval` (`test:headers`)
 - Account deletion, cascading correctly across all tables + storage (`test:deletion`)
-- Pro publishing authority and higher-limit gating are enforced server-side; the first portfolio generation and one full daily ProofScore remain Free by design
+- Pro publishing authority and higher-limit gating are enforced server-side; the first portfolio generation and one full daily Evidence Audit remain Free by design
 - Secret scanning: gitleaks clean (`test:secrets`)
 
 ## Still genuinely open (requires production/external verification)

@@ -37,6 +37,25 @@ for (const activeAsset of [
   assert.doesNotMatch(source, /free\s+proofscore/i, `${activeAsset} must not restore the retired pitch`)
 }
 
+for (const publicCopyAsset of [
+  'src/app/page.tsx',
+  'src/app/pricing/page.tsx',
+]) {
+  const source = read(publicCopyAsset)
+  assert.doesNotMatch(source, /proof\s*score/i, `${publicCopyAsset} must use Evidence Audit language`)
+}
+
+// The legacy waitlist is a separately deployed sibling project and is not present in
+// standalone casefile CI checkouts. Scan it whenever the local workspace includes it.
+for (const siblingWaitlistAsset of [
+  '../waitlist/src/app/page.tsx',
+  '../waitlist/src/lib/waitlist-email.ts',
+]) {
+  if (!existsSync(siblingWaitlistAsset)) continue
+  const source = read(siblingWaitlistAsset)
+  assert.doesNotMatch(source, /proof\s*score/i, `${siblingWaitlistAsset} must use Evidence Audit language`)
+}
+
 assert.ok(existsSync('src/app/(app)/audit/page.tsx'), 'authenticated Evidence Audit UI must remain')
 assert.ok(existsSync('src/lib/proofscore/engine.ts'), 'authenticated audit engine and user data contract must remain')
 

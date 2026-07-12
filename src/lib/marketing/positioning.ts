@@ -1,5 +1,5 @@
 // Single source of truth for Showcase's public-facing positioning. Every marketing
-// page (/, /pricing, /waitlist, /for-career-services, /proofscore) should pull
+// page (/, /pricing, /waitlist, /for-career-services) should pull
 // headline territory, audience language, and trust copy from here rather than
 // re-deriving it - the point is that a visitor reading any two pages back-to-back
 // never hits a contradiction.

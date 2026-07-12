@@ -11,7 +11,6 @@ export const maxDuration = 20
 // reply-to set to the original sender — so "just reply to this email" actually reaches a
 // human, and that human can reply straight back.
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FORWARD_TO = process.env.INBOUND_FORWARD_TO || ''
 const SECRET = process.env.RESEND_WEBHOOK_SECRET || ''
 
@@ -98,6 +97,11 @@ export async function POST(request: NextRequest) {
     await finish('failed', 'INBOUND_FORWARD_TO is not configured')
     return NextResponse.json({ error: 'Inbound forwarding is not configured' }, { status: 503 })
   }
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) {
+    await finish('failed', 'RESEND_API_KEY is not configured')
+    return NextResponse.json({ error: 'Inbound forwarding is not configured' }, { status: 503 })
+  }
 
   const header = `New reply to Showcase\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}${files.length ? `\nAttachments: ${files.join(', ')} (open in Resend to download)` : ''}`
   const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;">
@@ -111,7 +115,7 @@ export async function POST(request: NextRequest) {
   </div>`
 
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await new Resend(resendKey).emails.send({
       from: 'Showcase inbound <hello@tryshowcase.ink>',
       to: FORWARD_TO,
       replyTo: from, // reply from your inbox goes straight to the actual person

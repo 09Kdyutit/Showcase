@@ -12,9 +12,9 @@ All of the following must be true:
 
 ### Completion rate
 <!-- Updated 2026-07-06: publishing is Pro-only (final decision), so the activation event is
-     COMPLETION — generation finished + full preview/ProofScore viewed. Publish is a Pro
+     COMPLETION — generation finished + full preview/Evidence Audit viewed. Publish is a Pro
      conversion metric (Gate 2), not an activation metric. -->
-- [ ] ≥ 40% of invited beta users completed a portfolio (generated + viewed the full preview/ProofScore)
+- [ ] ≥ 40% of invited beta users completed a portfolio (generated + viewed the full preview/Evidence Audit)
   _Current: __%_
 
 ### Portfolio quality

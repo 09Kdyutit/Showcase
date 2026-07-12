@@ -197,7 +197,7 @@ See `security/EXECUTION_MANIFEST.md` for the full release-readiness checklist an
 
 - [ ] Sign up → verify email → complete onboarding
 - [ ] Paste a resume → analyze
-- [ ] Run a ProofScore audit
+- [ ] Run an Evidence Audit
 - [ ] Go to billing → click Upgrade → complete checkout with test card `4242 4242 4242 4242`
 - [ ] Verify Pro subscription appears in dashboard
 - [ ] Generate portfolio with AI (Pro)
