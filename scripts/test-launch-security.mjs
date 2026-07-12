@@ -127,6 +127,7 @@ assert.equal(
 
 const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))
 const rolloutEvidence = JSON.parse(read('security/production-rollout-evidence.json'))
+const retirementEvidence = JSON.parse(read('security/public-proofscore-retirement-evidence.json'))
 assert.equal(backupEvidence.schema_version, 2)
 assert.equal(backupEvidence.project_ref, 'yogwhfrjhcbnvoxitcay')
 assert.equal(backupEvidence.backup_id, '20260710T152940Z')
@@ -300,6 +301,41 @@ for (const forbidden of [
   assert.doesNotMatch(serializedRolloutEvidence, forbidden, 'rollout evidence must not contain sensitive material')
 }
 
+assert.equal(retirementEvidence.schema_version, 1)
+assert.equal(retirementEvidence.status, 'COMPLETED')
+assert.equal(retirementEvidence.source.git_head, 'e883f59137b5ca9532341ef7e1d2e14267a67874')
+assert.equal(retirementEvidence.source.ci_run_id, 29178574841)
+assert.equal(retirementEvidence.source.ci_status, 'success')
+assert.equal(retirementEvidence.grace_guard.strictly_after_boundary, true)
+assert.equal(retirementEvidence.grace_guard.pending_parses_active, 0)
+assert.equal(retirementEvidence.grace_guard.reservations_actionable, 0)
+assert.equal(retirementEvidence.database.application_migrations, 49)
+assert.equal(retirementEvidence.database.migration_applied, '20260712035035')
+assert.deepEqual(retirementEvidence.database.retired_schema_paths_present, [])
+assert.equal(retirementEvidence.database.retired_rate_limit_counters, 0)
+assert.ok(retirementEvidence.database.preserved_authenticated_audits >= 3)
+assert.ok(retirementEvidence.database.preserved_profiles >= 5)
+assert.equal(retirementEvidence.environment.retired_variable_present_after_cleanup, false)
+assert.equal(retirementEvidence.environment.serving_runtime_built_after_retired_variable_removal, true)
+assert.equal(retirementEvidence.deployment.production_deployment_id, 'dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e')
+assert.equal(retirementEvidence.deployment.health_commit, 'e883f59137b5')
+assert.equal(retirementEvidence.public_route_verification.claim_parse_api_status, 404)
+assert.equal(retirementEvidence.public_route_verification.root_retired_copy_hits, 0)
+assert.equal(retirementEvidence.deployment_cleanup.total_removed_during_retirement_session, 192)
+assert.equal(retirementEvidence.deployment_cleanup.remaining_ready_deployments, 3)
+assert.equal(retirementEvidence.rollback.mode, 'roll_forward_only')
+const serializedRetirementEvidence = JSON.stringify(retirementEvidence)
+for (const forbidden of [
+  /\/Users\//,
+  /postgres(?:ql)?:\/\//i,
+  /pooler\.supabase\.com/i,
+  /\b(?:sk|whsec|sb_secret)_[A-Za-z0-9_-]+/,
+  /\bre_[A-Za-z0-9_-]{20,}\b/,
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/,
+]) {
+  assert.doesNotMatch(serializedRetirementEvidence, forbidden, 'retirement evidence must not contain sensitive material')
+}
+
 const migrationPreflight = JSON.parse(read('security/production-migration-preflight.json'))
 assert.equal(migrationPreflight.project_ref, 'yogwhfrjhcbnvoxitcay')
 assert.equal(migrationPreflight.status, 'READY_FOR_PAIRED_DEPLOYMENT_APPROVAL')
@@ -341,10 +377,10 @@ assert.ok(
 )
 for (const id of ['GROWTH-MIGRATIONS', 'GROWTH-PROD-DEPLOY']) {
   const requirement = releaseManifest.requirements.find((row) => row.id === id)
-  assert.equal(requirement?.status, 'BLOCKED', `${id} must fail closed until migration 048 is live-proven`)
+  assert.equal(requirement?.status, 'PASS', `${id} must record the completed migration 048 proof`)
   assert.equal(requirement?.release_blocking, true, `${id} remains a mandatory release contract`)
-  assert.match(requirement?.evidence ?? '', /production-rollout-evidence\.json/)
-  assert.match(requirement?.blocker ?? '', /048|20260712035035/)
+  assert.match(requirement?.evidence ?? '', /public-proofscore-retirement-evidence\.json/)
+  assert.equal('blocker' in requirement, false, `${id} must not retain a completed blocker`)
 }
 const deletionRequirement = releaseManifest.requirements.find((row) => row.id === 'P1-19')
 assert.equal(deletionRequirement?.status, 'BLOCKED', 'P1-19 still needs provider-backed deletion proof')
@@ -354,9 +390,8 @@ assert.equal(backupRequirement?.status, 'PASS', 'the full logical restore closes
 assert.equal(backupRequirement?.release_blocking, true)
 assert.doesNotMatch(backupRequirement?.evidence ?? '', /19 objects|database.*blocked/i)
 const migrationRequirement = releaseManifest.requirements.find((row) => row.id === 'GROWTH-MIGRATIONS')
-assert.match(migrationRequirement?.evidence ?? '', /history-only repair/i)
-assert.match(migrationRequirement?.evidence ?? '', /dry-run.*038-047/i)
-assert.match(migrationRequirement?.evidence ?? '', /48-record ledger through 047/i)
+assert.match(migrationRequirement?.evidence ?? '', /dry-run showed only 20260712035035/i)
+assert.match(migrationRequirement?.evidence ?? '', /49-record ledger through 048/i)
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('ABUSE_IP_HASH_SALT'))
 assert.equal(releaseManifest.contracts.required_production_env_names.includes('PROOFSCORE_IP_HASH_SALT'), false)

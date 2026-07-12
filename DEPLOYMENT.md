@@ -139,30 +139,28 @@ ledgers, the Auth signup trigger, nine Storage policies, and all 22 private Stor
 hashes matched in a network-disconnected disposable target. The target was destroyed and
 no plaintext remains.
 
-The authorized 2026-07-10 paired rollout is complete. Production has the canonical
-48-record application ledger through `20260710033047`; at that maintenance window,
-revision `7b150783085b6e98a161225b76f82ca12a57ae7a` was promoted and verified. Exact
-historical proof lives in `security/production-rollout-evidence.json`.
+The authorized 2026-07-10 paired rollout is complete. Its historical 48-record application
+ledger through `20260710033047` and revision
+`7b150783085b6e98a161225b76f82ca12a57ae7a` remain recorded in
+`security/production-rollout-evidence.json`.
 
-The later app-only public-funnel cleanup is currently deployed as
-`dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB` on canonical `showcase-app`. Direct signup is open,
-`/proofscore` redirects permanently to the landing page, and the retired anonymous public
-APIs return 404. `/api/health` remains HTTP 200 but its embedded commit metadata still
-reports `e29041c`; use the deployment/source ledger, not that stale metadata field, to
-identify the promoted cleanup source, which matches `97e9bd7`.
+The separately authorized public-funnel retirement completed on 2026-07-12. Production now
+has the canonical 49-record ledger through `20260712035035`, and exact source
+`e883f59137b5ca9532341ef7e1d2e14267a67874` is served by canonical deployment
+`dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e`. Direct signup is open; `/proofscore` and nested legacy
+paths redirect permanently to the landing page; all four retired APIs return 404; and
+`/api/health` identifies `e883f59137b5` with database, Stripe, and OpenAI checks green.
 
-Migration 048 is a forward-only retirement change prepared after that historical rollout;
-it is not covered by the 2026-07-10 evidence and must not be described as applied until a
-separate authorized promotion verifies a 49-record production ledger through
-`20260712035035`. Its compatible build requires a private, random `ABUSE_IP_HASH_SALT` of at
-least 32 characters and no longer reads the retired `PROOFSCORE_IP_HASH_SALT` variable.
+Migration 048 ran only after its hard grace boundary and active-data guards cleared. It
+dropped the three retired tables and three service-only RPCs, removed only the retired
+counter prefixes, and preserved authenticated Evidence Audit data. The obsolete
+`PROOFSCORE_IP_HASH_SALT` project variable was removed; the serving runtime was rebuilt
+afterward with the private neutral `ABUSE_IP_HASH_SALT`. Exact proof is in
+`security/public-proofscore-retirement-evidence.json`.
 
-Migration 048 is an explicit exception to the historical database-first sequence below. Its
-new code is backward-compatible with schema 047, while the previous code still queries the
-tables that 048 removes. Therefore: configure the salt, stage and smoke-test the new build
-unaliased, promote that exact build to canonical, verify canonical routes and authenticated
-Evidence Audit, and only then apply 048 and perform database read-back. After the tables are
-dropped, do not roll back to an older application build; recovery is roll-forward only.
+This retirement is forward-only. Do not roll back to an older application build because it
+would query objects removed by migration 048; recovery must roll forward from the current
+compatible source.
 
 For future authority-boundary migrations other than the documented 048 exception, reuse the
 completed sequence:

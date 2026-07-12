@@ -1,12 +1,11 @@
 # Data Flow and Retention
 
-**Code-audited July 11, 2026; production evidence remains dated July 10.** Production has
-the canonical 48-record application ledger through
-`20260710033047_explicit_data_api_grants.sql`. The repository's 49th migration,
-`20260712035035_retire_public_proofscore_infrastructure.sql`, is prepared but is not covered
-by that production evidence until it is separately applied and verified. Provider-dependent
-guarantees remain governed by their separate production controls and end-to-end release
-gates; this document does not infer their current state from the dated rollout evidence.
+**Code- and production-audited July 12, 2026.** Production has the canonical 49-record
+application ledger through
+`20260712035035_retire_public_proofscore_infrastructure.sql`. The guarded migration and
+compatible application build were separately applied and verified in
+`security/public-proofscore-retirement-evidence.json`. Provider-dependent guarantees remain
+governed by their separate production controls and end-to-end release gates.
 
 ## Data inventory
 
@@ -16,7 +15,7 @@ gates; this document does not infer their current state from the dated rollout e
 | Uploaded files | resume files, portfolio images, interview recordings | `/api/account/delete` discovers every Storage bucket and recursively removes objects under the user's prefix before deleting the auth user. A Storage list/remove failure aborts account deletion so the user can retry without receiving a false success. |
 | Billing state | local Stripe customer/subscription IDs and plan status | Local subscription rows are deleted with the account. Stripe remains the payment system of record and may retain customer and transaction records for its legal and operational obligations. Showcase does not store card or bank details. |
 | Waitlist | email, goal, referral and admission state | A waitlist row can remain after account deletion, with `converted_user_id` unlinked. Privacy deletion requests can be sent to `hello@tryshowcase.ink`. |
-| Retired anonymous-funnel remnants | legacy pending resume parse rows and public-audit reservation emails | Migration 048 refuses to run before the final grace boundary, while any unexpired parse exists, or while any still-actionable reservation exists. It then drops the empty/expired-only legacy tables and deletes only their exact rate-limit prefixes. Until that migration is production-applied, migration 047's bounded retention behavior remains the live database contract. |
+| Retired anonymous-funnel remnants | legacy pending resume parse rows and public-audit reservation emails | Migration 048 ran only after the final grace boundary with zero unexpired parses and zero actionable reservations. The three legacy tables and three RPCs are absent in production, and only their exact retired rate-limit prefixes were deleted. |
 | Growth and usage facts | attribution, trusted product events, feature usage, aggregate AI cost events | Used for product operation, abuse control, and aggregate measurement. User-owned rows follow their schema foreign-key behavior; aggregate/non-user facts may remain without resume contents. |
 | Rate-limit counters | salted, hashed client fingerprint or user key, feature and window | Eligible for purge after eight days and removed by the daily retention job. Raw IP addresses are not written to these counters; remaining public endpoints fail closed in production unless `ABUSE_IP_HASH_SALT` contains at least 32 characters. |
 | Email delivery ledger | recipient, rendered message, provider ID and delivery state | Completed/suppressed deliveries and exhausted failures are purged after 90 days. Pending/retryable work remains until delivered, suppressed, or exhausted. |

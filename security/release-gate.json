@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-11",
+  "updated_at": "2026-07-12",
   "release_target": "controlled production beta",
   "confirmed_launch_decisions": {
     "product_scope": "web application only",
@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "97e9bd796ce56fa03b0ac9544a89d6d5415799d4",
-    "source_fingerprint_sha256": "5788990e71f5c62028c3288a9f3f110f8a4a638391b70aa124dd9313aa77fc42",
-    "verified_at": "2026-07-12T03:39:29Z"
+    "evidence_base_git_head": "e883f59137b5ca9532341ef7e1d2e14267a67874",
+    "source_fingerprint_sha256": "cc6571b1e034c6896c267479179fc4287e04e97b5ade19be08d1d1d743db787c",
+    "verified_at": "2026-07-12T04:11:32Z"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -135,16 +135,15 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion. Follow-up source cleanup removed the retired stash test from the disposable local-Supabase harness and removed the three retired public APIs from the authorization matrices; the harness-safety and retirement regressions pass. On 2026-07-12 at 02:46Z, revision 97e9bd7 was re-verified after purging the obsolete public ProofScore marketing packet: the complete launch-offline suite passed, npm run verify again passed 60 static checks, TypeScript, lint with zero errors, and the optimized 108-page/route build, and git diff --check remained clean. On 2026-07-12, the prepared final infrastructure-retirement tree removed the claim route and capacity helper, introduced the generic fail-closed 32-character abuse-salt boundary, added guarded migration 048, and reconciled the authorization inventory to 78 route files and 97 handlers. The complete launch-offline suite passed; npm run verify passed 60 static checks, TypeScript, lint with zero errors, and an optimized 107-route build; local harness safety and git diff checks passed. Database application and credentialed post-drop proofs remain correctly blocked behind the migration time/data gates and separate production rollout requirements."
+      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion. Follow-up source cleanup removed the retired stash test from the disposable local-Supabase harness and removed the three retired public APIs from the authorization matrices; the harness-safety and retirement regressions pass. On 2026-07-12 at 02:46Z, revision 97e9bd7 was re-verified after purging the obsolete public ProofScore marketing packet: the complete launch-offline suite passed, npm run verify again passed 60 static checks, TypeScript, lint with zero errors, and the optimized 108-page/route build, and git diff --check remained clean. Final source e883f591 removed the claim route and capacity helper, introduced the generic fail-closed 32-character abuse-salt boundary, added guarded migration 048, and reconciled the authorization inventory to 78 route files and 97 handlers. The complete launch-offline suite and npm run verify passed with 60 static checks, TypeScript, zero lint errors, and an optimized 107-route build. Both local and GitHub disposable stacks applied all 49 migrations and passed 178 API authorization and 20 account-deletion assertions. Exact production evidence is recorded in security/public-proofscore-retirement-evidence.json."
     },
     {
       "id": "GROWTH-MIGRATIONS",
       "area": "database",
       "description": "The canonical migration history resets cleanly and the controlled production promotion is recoverable and verified",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/production-rollout-evidence.json records the authorized 2026-07-10 maintenance window. Fresh backup 20260710T180210Z passed authenticated database-plus-Storage restore verification against 2,008 rows immediately before the first write. Production history-only repair was limited to equivalent migrations 033-037; the pinned CLI dry-run then showed exactly 038-047 and that reviewed batch applied successfully. Read-only verification proved the canonical 48-record ledger through 047, unchanged row counts for all 67 pre-existing objects, unchanged 77/61 Auth/Storage ledgers, 13 expected new tables, paused controls, one Auth signup trigger, nine Storage policies, and zero RLS/ACL/index/constraint/trigger/admission/attribution/referral/webhook invariant violations.",
-      "blocker": "Migration 048 is prepared but not applied. After 2026-07-12 03:50:34+00, verify the time and active-data guards on an isolated local reset, stage and smoke-test the backward-compatible build unaliased, promote that exact build to canonical and probe it, then require the production dry-run to show only 20260712035035. Apply it in the authorized window and record read-only proof of the 49-record ledger plus the three retired RPC/table removals."
+      "evidence": "security/production-rollout-evidence.json preserves the authorized 2026-07-10 maintenance window and restore-verified backup. On 2026-07-12, the migration 048 server-clock guard cleared strictly after 03:50:34Z with 0 active pending parses, 0 actionable reservations, and 0 active PostgreSQL waitlist/referral windows. Local and GitHub disposable stacks applied all 49 migrations and passed their credentialed suites. The pinned production dry-run showed only 20260712035035; the compatible build was promoted first; then migration 048 applied. Read-back proved the canonical 49-record ledger through 048, all three retired tables and three RPCs absent, retired counters at zero, and 3 audits, 6 authenticated audit usage events, 5 profiles, and 5 Auth users preserved. Exact proof is in security/public-proofscore-retirement-evidence.json."
     },
     {
       "id": "GROWTH-PROD-CONFIG",
@@ -152,17 +151,16 @@
       "description": "Every production variable and provider boundary required by the growth system is configured",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "Production configuration was re-audited on 2026-07-10 under the prior 37-name contract. Twenty-six launch, email, AI, Gemini, checkout, jobs, publishing, Interview, and budget values were explicitly written and read back in their fail-closed state; AI_GLOBAL_DAILY_LIMIT was temporarily 1. The prior ProofScore-specific salt and unsubscribe secret were generated without disclosure. The current contract retires that product-specific variable and requires ABUSE_IP_HASH_SALT instead. On 2026-07-11, a fresh 64-character hexadecimal value was generated without disclosure and added to the canonical showcase-app Production environment as a Sensitive value; `vercel env ls production` read-back confirmed its encrypted presence. EMAIL_POSTAL_ADDRESS, the provider-issued RESEND_DELIVERY_WEBHOOK_SECRET, and STRIPE_PRICE_ID_FOUNDING_ANNUAL also remained absent in the last verified audit. ERROR_WEBHOOK_URL is optional monitoring, not a functional blocker.",
+      "evidence": "Production configuration was re-audited on 2026-07-10 under the prior 37-name contract. Twenty-six launch, email, AI, Gemini, checkout, jobs, publishing, Interview, and budget values were explicitly written and read back in their fail-closed state; AI_GLOBAL_DAILY_LIMIT was temporarily 1. On 2026-07-11, a fresh 64-character hexadecimal ABUSE_IP_HASH_SALT was generated without disclosure and added to canonical showcase-app Production as a Sensitive value. After migration 048 and canonical verification, PROOFSCORE_IP_HASH_SALT was removed; read-back showed only the neutral encrypted salt, and the serving deployment was rebuilt afterward. EMAIL_POSTAL_ADDRESS, the provider-issued RESEND_DELIVERY_WEBHOOK_SECRET, and STRIPE_PRICE_ID_FOUNDING_ANNUAL also remained absent in the last verified audit. ERROR_WEBHOOK_URL is optional monitoring, not a functional blocker.",
       "blocker": "Keep EMAILS_ENABLED and LIFECYCLE_EMAILS_ENABLED false until a real physical postal address and provider-issued delivery-webhook secret are configured. Keep checkout and Founding reservations paused until the account/mode-matched $99/year recurring Stripe Price is created and test-mode verification passes."
     },
     {
       "id": "GROWTH-PROD-DEPLOY",
       "area": "deployment",
       "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
-      "status": "BLOCKED",
+      "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/production-rollout-evidence.json preserves the initial production recovery authority. On 2026-07-11, revision 130d12a was built as unaliased production deployment dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec in the canonical showcase-app project; the rollback deployment at that checkpoint was dpl_3X2VgsCGKtGEEJ6fJWhiuvWsPuTN. Candidate probes returned 200 for root, one permanent redirect from /proofscore and nested legacy paths to root, 404 for retired score/reserve/stash APIs, no retired public copy in root or signup HTML, and green production health with commit 130d12a0e7a4. The exact candidate was then promoted without rebuild. Canonical https://app.tryshowcase.ink repeated the same probes and health result at 2026-07-12T01:19:24.256Z; https://tryshowcase.ink remained unchanged and reachable. The later public-copy cleanup is production deployment dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB; Vercel inspection at 2026-07-12T02:46Z showed READY status in the canonical showcase-app project with app.tryshowcase.ink attached, and the canonical health endpoint remained HTTP 200 with database, Stripe, and OpenAI checks green. A subsequent exhaustive deployment audit found 187 historical READY showcase-app deployments whose public /proofscore HTML still contained the retired tool; all 187 were removed, including the obsolete git-main and test-integration aliases. The former dpl_3X2VgsCGKtGEEJ6fJWhiuvWsPuTN rollback was among those removed. Final READY inventory retains current clean dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB, clean retirement rollback dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec, its clean preview, and three pre-feature deployments whose /proofscore routes return 404; canonical app health and redirect behavior remained green.",
-      "blocker": "The backward-compatible build that removes the final claim route, legacy capacity helper, onboarding handoff, retention references, and proxy exemption is not yet staged or promoted. The required Production ABUSE_IP_HASH_SALT is now configured; after the hard grace boundary and post-boundary checks, stage the build unaliased, smoke-test it against the existing 047 schema, promote that exact build to canonical, and verify canonical routes plus authenticated Evidence Audit before applying migration 048. Once 048 drops the legacy objects, rollback is roll-forward only because an older build would query removed tables."
+      "evidence": "Exact source e883f59137b5ca9532341ef7e1d2e14267a67874 passed local and GitHub CI, was staged and smoke-tested against schema 047, and was promoted before migration 048. After the obsolete product-specific salt was removed, the same exact source was rebuilt as dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e and promoted to app.tryshowcase.ink. Canonical root/signup/health return 200 without redirect; health reports e883f59137b5 with database, Stripe, and OpenAI green; /proofscore and nested paths return 308 to root; score, reserve, stash, and claim-parse APIs return 404; root HTML has zero retired-copy hits; and tryshowcase.ink remains unchanged. All four application aliases resolve to the exact build. A total of 192 obsolete deployments were removed during the retirement session; the final READY inventory is the clean canonical deployment plus two pre-feature 404-only deployments. Exact proof is in security/public-proofscore-retirement-evidence.json."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
@@ -187,7 +185,7 @@
       "description": "AI quota, consumable credits, and pre-provider failures are atomic and user-fair",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "All authenticated OpenAI routes order abuse-attempt throttle -> dollar reservation -> atomic product quota/referral credit -> provider. Local proof passed 100 deterministic budget checks, 30/30 live dollar-ledger checks (including 10-way near-cap concurrency and RPC denial), and 10/10 Free-generation entitlement checks. Ten concurrent Free portfolio claims produced exactly one winner, nine clean denials, unchanged referral credits, one global-capacity increment, and a durable marker that survives portfolio deletion. The anonymous ProofScore provider/capacity path is retired: the final regression proves the score, reserve, stash, and claim routes plus the capacity helper are absent, while guarded migration 048 removes their three service-only RPCs and tables. Remaining public endpoints cannot spend the OpenAI budget."
+      "evidence": "All authenticated OpenAI routes order abuse-attempt throttle -> dollar reservation -> atomic product quota/referral credit -> provider. Local proof passed 100 deterministic budget checks, 30/30 live dollar-ledger checks (including 10-way near-cap concurrency and RPC denial), and 10/10 Free-generation entitlement checks. Ten concurrent Free portfolio claims produced exactly one winner, nine clean denials, unchanged referral credits, one global-capacity increment, and a durable marker that survives portfolio deletion. The anonymous ProofScore provider/capacity path is retired: the final regression and canonical probes prove the score, reserve, stash, and claim routes plus capacity helper are absent, and production migration 048 removed their three service-only RPCs and tables. Remaining public endpoints cannot spend the OpenAI budget."
     },
     {
       "id": "P1-SECRET-GUARD",
@@ -244,7 +242,7 @@
       "description": "Authorization matrix covers the current API route surface",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/api-authorization-matrix.json is a machine-enforced one-to-one inventory of all 82 API route files and all 102 exported HTTP handlers. The static audit passed 9/9, including 80 session handlers, exact method coverage, owner filters, cron secrets, provider signatures, and service-only RPC grants."
+      "evidence": "security/api-authorization-matrix.json is a machine-enforced one-to-one inventory of all 78 API route files and all 97 exported HTTP handlers. The static audit passed 9/9, including 79 session handlers, exact method coverage, owner filters, cron secrets, provider signatures, and service-only RPC grants."
     },
     {
       "id": "P0-02",
@@ -252,7 +250,7 @@
       "description": "Adversarial authorization suite covers the current API surface",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "The canonical disposable-stack authorization audit passed 186/186 twice around the exhaustive account-deletion run. It covers all 80 anonymous session boundaries, cross-user records, public/token redaction, referral admission/capacity, cron secrets, signed Stripe/Resend webhooks, unsubscribe confirmation, and direct anon/authenticated attacks on service-only RPCs."
+      "evidence": "The post-retirement canonical disposable-stack authorization audit passed 178/178 around the exhaustive account-deletion run. It covers all 79 anonymous session boundaries, cross-user records, public/token redaction, referral admission/capacity, cron secrets, signed Stripe/Resend webhooks, unsubscribe confirmation, and direct anon/authenticated attacks on every remaining service-only RPC."
     },
     {
       "id": "P0-03",
@@ -298,18 +296,18 @@
     {
       "id": "P0-08",
       "area": "data-integrity",
-      "description": "Account deletion covers the schema through canonical migration 047 and every storage bucket",
+      "description": "Account deletion covers the schema through canonical migration 048 and every storage bucket",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "The canonical local proof passed 20/20 after the 186-case authorization load: exact 48-migration ledger through 047; 29 CASCADE-owned tables; 8 intentional SET NULL relationships; all three discovered Storage buckets with flat, nested, and survivor files; forced Storage failure preserving the account; real authenticated route success; zero user/Auth residue; retained suppression/provider records; and complete synthetic cleanup."
+      "evidence": "The canonical local proof passed 20/20 after the 178-case authorization load: exact 49-migration ledger through 048; 29 CASCADE-owned tables; 8 intentional SET NULL relationships; all three discovered Storage buckets with flat, nested, and survivor files; forced Storage failure preserving the account; real authenticated route success; zero user/Auth residue; retained suppression/provider records; and complete synthetic cleanup."
     },
     {
       "id": "P0-RLS",
       "area": "authorization",
-      "description": "Two-user adversarial RLS isolation covers canonical migrations through 047",
+      "description": "Two-user adversarial RLS isolation covers canonical migrations through 048",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "A blank canonical local schema passed 16/16 core two-user/anonymous RLS attacks and 26/26 Interview Lab attacks. The suite proved cross-user SELECT/UPDATE/DELETE isolation, impersonation denial, server-authority field guards, published-only anonymous portfolio reads, zero client writes to interview accounting, and denial of reserve/commit RPC execution to anon and authenticated roles. Migration 047's exact grant matrix and deployment-time ACL assertions passed locally, and the completed production rollout's read-only audit found zero public tables without RLS, function ACL violations, or service-only table ACL violations."
+      "evidence": "A blank canonical 49-migration schema through 048 passed 16/16 core two-user/anonymous RLS attacks and 26/26 Interview Lab attacks. The suite proved cross-user SELECT/UPDATE/DELETE isolation, impersonation denial, server-authority field guards, published-only anonymous portfolio reads, zero client writes to interview accounting, and denial of reserve/commit RPC execution to anon and authenticated roles. Migration 047's exact grant matrix remains enforced, while 048 removes only retired service-only objects; production read-back found the retired paths absent and authenticated audit data preserved."
     },
     {
       "id": "P0-UPLOAD",
@@ -495,8 +493,8 @@
       "description": "Account deletion is verified against the current schema and retention policy",
       "status": "BLOCKED",
       "release_blocking": true,
-      "evidence": "The 20/20 canonical local proof substantiates database/Auth/Storage deletion and the observed retained/unlinked rows, and public/internal privacy wording matches the fail-closed Storage behavior. A 2026-07-10 read-only production inventory classified the then-present 19 private objects and found 11 orphan candidates (781,697 bytes: 6 resumes and 5 interview recordings). The later full backup captured 22 objects but deliberately did not delete or reclassify anything.",
-      "blocker": "Define and provider-test account deletion for an active Stripe subscription; with the verified backup preserved, obtain explicit approval and reconcile or remove the 11 private orphan candidates; then repeat the production-safe deletion/retention inspection after controlled migration promotion."
+      "evidence": "The post-retirement 20/20 canonical local proof covers all 49 migrations and substantiates database/Auth/Storage deletion plus the observed retained/unlinked rows; public/internal privacy wording matches the fail-closed Storage behavior. Migration 048 production read-back preserved all 5 profiles and 3 authenticated audits. A 2026-07-10 read-only production inventory classified the then-present 19 private objects and found 11 orphan candidates (781,697 bytes: 6 resumes and 5 interview recordings). The later full backup captured 22 objects but deliberately did not delete or reclassify anything.",
+      "blocker": "Define and provider-test account deletion for an active Stripe subscription; with the verified backup preserved, obtain explicit approval and reconcile or remove the 11 private orphan candidates; then repeat the production-safe deletion/retention inspection."
     },
     {
       "id": "P1-20",
@@ -504,7 +502,7 @@
       "description": "Privacy/retention documentation",
       "status": "PASS",
       "release_blocking": false,
-      "evidence": "security/PRIVACY_RETENTION.md was re-audited against canonical repository migrations through 047 and the completed dark production deployment. It covers Supabase/OpenAI/Stripe/Resend data flow, fail-closed recursive storage cleanup, 48-hour anonymous parse expiry, the once-daily retention schedule, eight-day hashed rate counters, 90-day terminal email ledgers, suppression retention, and the authenticated cleanup route. Provider-dependent guarantees remain explicitly gated while their features are disabled."
+      "evidence": "security/PRIVACY_RETENTION.md was re-audited against the canonical 49-migration repository and production ledger through 048. It covers Supabase/OpenAI/Stripe/Resend data flow, fail-closed recursive storage cleanup, the completed removal of expired anonymous parse/reservation remnants, the once-daily retention schedule, eight-day neutral hashed rate counters, 90-day terminal email ledgers, suppression retention, and the authenticated cleanup route. Provider-dependent guarantees remain explicitly gated while their features are disabled."
     },
     {
       "id": "P2-01",
