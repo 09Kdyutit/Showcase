@@ -25,7 +25,7 @@ const COMMANDS: Cmd[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', keywords: 'home overview' },
   { id: 'resume', label: 'Resume & Cover Letters', icon: FileText, href: '/resume', keywords: 'cv builder cover letter' },
   { id: 'portfolio', label: 'Portfolio Builder', icon: Briefcase, href: '/builder', keywords: 'portfolio site publish' },
-  { id: 'proofscore', label: 'ProofScore', icon: BarChart3, href: '/audit', keywords: 'audit score readiness' },
+  { id: 'proofscore', label: 'Evidence Audit', icon: BarChart3, href: '/audit', keywords: 'audit evidence score readiness' },
   { id: 'projects', label: 'Project Ideas', icon: Lightbulb, href: '/projects', keywords: 'projects build ideas' },
   { id: 'jobs', label: 'Jobs', icon: Search, href: '/jobs', keywords: 'jobs search pipeline apply tailor' },
   { id: 'opportunities', label: 'Opportunities', icon: Compass, href: '/opportunities', keywords: 'hackathons scholarships internships' },
@@ -34,7 +34,7 @@ const COMMANDS: Cmd[] = [
   { id: 'billing', label: 'Billing', icon: CreditCard, href: '/billing', keywords: 'billing plan pro upgrade subscription' },
   // Actions
   { id: 'new-interview', label: 'Start an interview', hint: 'Action', icon: Zap, href: '/interviews/new', keywords: 'practice new interview start' },
-  { id: 'run-audit', label: 'Run a ProofScore', hint: 'Action', icon: BarChart3, href: '/audit', keywords: 'audit run score' },
+  { id: 'run-audit', label: 'Run an evidence audit', hint: 'Action', icon: BarChart3, href: '/audit', keywords: 'audit run evidence score' },
   { id: 'cover-letter', label: 'Write a cover letter', hint: 'Action', icon: Mail, href: '/resume', keywords: 'cover letter write' },
   { id: 'upgrade', label: 'Upgrade to Pro', hint: 'Action', icon: Zap, href: '/billing', keywords: 'upgrade pro pay' },
 ]

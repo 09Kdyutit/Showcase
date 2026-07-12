@@ -1,5 +1,12 @@
 # Showcase Launch Posts
 
+> **RETIRED / HISTORICAL COPY — NEVER PUBLISH OR SCHEDULE. Founder decision,
+> 2026-07-11.** These drafts promote the old waitlist and public ProofScore positioning.
+> They are retained only to preserve the prior launch record. Current public copy leads with
+> the editable, evidence-first portfolio, states `Build, edit, and preview free; publish with
+> Pro`, and links to the tracked application landing page. Do not reuse the ProofScore tease,
+> private-beta CTA, waitlist language, or any placeholder link below.
+
 All copy below is honest, founder-voice, no fake numbers, no hype.
 
 ---

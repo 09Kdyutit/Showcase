@@ -282,7 +282,7 @@ export function FeatureBento() {
       <Cell className="md:col-span-2" delay={0.08}>
         <CellHeader
           icon={BarChart3}
-          title="ProofScore Audit"
+          title="Evidence Audit"
           desc="An 11-category hiring-readiness score with concrete fixes."
         />
         <VizProofScore />

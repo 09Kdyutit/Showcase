@@ -1,5 +1,13 @@
 # Free Tool Spec: "ProofScore" (free layer)
 
+> **RETIRED / HISTORICAL — DO NOT BUILD, DEPLOY, OR DISTRIBUTE. Founder decision,
+> 2026-07-11.** The anonymous public ProofScore tool, no-account scoring flow, capacity
+> reservation funnel, and `/proofscore` acquisition destination have been removed from the
+> current product and marketing plan. The public funnel is the tracked application landing
+> page → signup; ProofScore exists only as authenticated in-product feedback. Everything below
+> is preserved solely as design and implementation history and must not be treated as a backlog,
+> launch dependency, CTA source, or authorization to restore the retired flow.
+
 **Status:** Spec only — **build pre-launch.** This tool is the landing experience for the
 Product Hunt / Show HN launch (see `.agents/marketing/06-launch-plan.md`), so it ships
 *before* launch week, not after Gate 1. Gate 1 (`../beta/phase-gate.md`) still gates the

@@ -91,22 +91,25 @@ automatic unpublish, and refund operations end to end.
    `/api/stripe/founding-availability`.
 4. Keep invites paused until the full onboarding path passes. Start with exactly 10/day, never
    above the support and AI-cost ceiling shown by `npm run growth:status`.
-5. Set `LAUNCH_OPEN=true` only when Gate 1 is met. The waitlist and ProofScore stay public
-   while it is false, so traffic can arrive without granting product access.
+5. Treat `LAUNCH_OPEN` as a production access control, not a marketing funnel. When direct
+   signup is authorized and healthy, public traffic goes from the tracked app landing page to
+   signup. Do not use the waitlist or `/proofscore` as a fallback acquisition route, and do not
+   recreate an anonymous public ProofScore or reservation flow.
 
 ## 5. Operate the first 30 days
 
 - Monday: read the weekly scorecard; update the phase gates using trusted events.
-- Daily: run `npm run growth:status`; inspect AI cost, queue length, invite sends, free-tool
-  capacity, email failures, and Founding holds before changing a dial.
-- Content: X `@Showcase_app1` is the only approved social channel. Approve real-evidence
-  X rows in `growth/distribution/content-queue.json`, export them, and save Buffer imports
-  as drafts before scheduling. The helpers reject non-X rows while no LinkedIn account/page
-  exists.
-- Partners: generate one five-organization review packet with `npm run growth:partners`.
-  The founder must approve all five drafts before any submission. After approval, submit one
+- Daily: run `npm run growth:status`; inspect authoritative registrations, activation, AI cost,
+  email failures, and Founding holds before changing a dial. In-product feedback usage is
+  capacity telemetry only and never authorizes a public scoring pitch.
+- Content: X `@Showcase_app1` is the only approved social channel. Use the current approved
+  publishing manifest and campaign ledger. Every product link must use a source-preserving
+  tracked app landing-root URL. Do not export, regenerate, or schedule the disabled legacy
+  `growth/distribution/content-queue.json` without a fresh founder review.
+- Partners: use only the current approval-gated portfolio-first packet under `.agents/marketing/`.
+  The founder must approve all drafts before any submission. After approval, submit one
   personalized public form per organization; no scraped addresses or member lists and no
-  agent-sent unreviewed outreach.
+  agent-sent unreviewed outreach. Never send `/proofscore` or an anonymous-audit offer.
 - Reddit/community: manual value-first participation only. Never automate comments or DMs.
 
 ## 6. Emergency controls
@@ -114,7 +117,8 @@ automatic unpublish, and refund operations end to end.
 - AI cost/error spike: `KILL_SWITCH_AI=true`; set invite dial to `0` and pause invites.
 - Checkout incident: `KILL_SWITCH_CHECKOUT=true`; existing subscribers retain access.
 - Publication abuse: `KILL_SWITCH_PUBLISHING=true`; unpublishing remains available.
-- Core-loop P0 or parse success below 90%: pause invites; keep waitlist intake open.
+- Core-loop P0 or parse success below 90%: pause acquisition and invites while preserving
+  support for existing users; do not redirect campaign traffic into a retired funnel.
 - Email complaint/bounce spike: `EMAILS_ENABLED=false`; suppression records remain intact.
 
 Never launch paid ads, Product Hunt, or broad PR until the measured gates in

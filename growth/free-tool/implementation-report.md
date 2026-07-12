@@ -1,5 +1,12 @@
 # Public ProofScore + completion referral — implementation report
 
+> **HISTORICAL IMPLEMENTATION RECORD — NOT CURRENT PRODUCT OR DEPLOYMENT AUTHORITY.**
+> The anonymous public ProofScore tool, reservation flow, and `/proofscore` acquisition funnel
+> described below were subsequently removed under the founder's 2026-07-11 decision. Preserve
+> this report as an audit trail; do not use its deployment checklist, public-route description,
+> copy, or design sources to restore or market the retired flow. Authenticated in-product
+> ProofScore feedback is a separate capability.
+
 **Implemented:** 2026-07-09
 **Public route:** `/proofscore`
 **Design sources:** `growth/free-tool/spec.md`, `.agents/marketing/02-proofscore-lead-magnet.md`, `.agents/marketing/03-referral-program.md`

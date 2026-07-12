@@ -1,5 +1,11 @@
 # Showcase partner outreach — wave 1
 
+> **RETIRED LEGACY GENERATOR OUTPUT — founder decision, 2026-07-11.** Do not submit, copy, or
+> adapt any message or `/proofscore` URL in this file. The current campaign packets under
+> `.agents/marketing/` supersede this review aid, and all future public evaluation traffic uses
+> the tracked canonical app landing page at `https://app.tryshowcase.ink/?utm_...`. The content
+> below is preserved only so the old generated output remains auditable.
+
 Generated from official pages verified 2026-07-09. This packet is a review aid,
 not a bulk-send list. Personalize each note and use only the listed public contact route.
 

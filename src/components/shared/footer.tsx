@@ -22,7 +22,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
-                { href: '/proofscore', label: 'How ProofScore works' },
+                { href: '/#how-it-works', label: 'How Showcase works' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
                 { href: '/signup', label: 'Get started free' },

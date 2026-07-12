@@ -14,8 +14,8 @@ const FAQS = [
     a: 'Never. Our AI only works with what you provide. It rewrites and improves how you present real experience, but it will never fabricate metrics, employers, projects, or certifications. When evidence is missing, we tell you exactly what to add - we do not fill it in.',
   },
   {
-    q: 'What is ProofScore and how is it calculated?',
-    a: "ProofScore is Showcase's 0-100 hiring-readiness audit. It scores your portfolio across 11 categories: first impression clarity, target role alignment, proof strength, project depth, resume quality, case study quality, credibility signals, visual polish, contact readiness, keyword relevance, and hiring risk gaps. Each category shows what is weak and how to fix it. Proof strength and role alignment count double.",
+    q: 'How does the evidence audit work?',
+    a: 'Showcase reviews your portfolio across 11 hiring-readiness categories, including first-impression clarity, target-role alignment, evidence strength, project depth, case-study quality, credibility signals, contact readiness, keyword relevance, and presentation clarity. Each category shows what is weak and how to fix it.',
   },
   {
     q: 'Who can see my portfolio?',
@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: 'What is the difference between Free and Pro?',
-    a: 'Free gives you resume parsing, one AI portfolio generation, the full 11-part ProofScore once per day, draft building and editing, and useful daily AI limits. Pro ($15/month or $150/year) adds live publishing, portfolio regeneration, higher limits, voice interviews, personalized job tools, and standalone HTML export.',
+    a: 'Free gives you resume parsing, one AI portfolio generation, one 11-category evidence audit per day, draft building and editing, and useful daily AI limits. Pro ($15/month or $150/year) adds live publishing, portfolio regeneration, higher limits, voice interviews, personalized job tools, and standalone HTML export.',
   },
   {
     q: 'Will my resume sound AI-generated?',

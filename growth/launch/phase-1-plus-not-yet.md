@@ -1,5 +1,11 @@
 # Phase 1+ Growth Plays — Not Yet
 
+> **RETIRED / HISTORICAL BACKLOG — DO NOT EXECUTE. Founder decision, 2026-07-11.**
+> This file predates direct signup and the removal of the anonymous public ProofScore funnel.
+> It does not authorize reopening a waitlist acquisition path, building a ProofScore Preview,
+> or launching any item below. Current public traffic uses the tracked application landing page
+> → signup, and any future growth phase requires a new evidence-backed founder approval.
+
 **Everything in this file is paused until Gate 1 of `growth/beta/phase-gate.md` is met.**
 
 Do not start any of these. Do not plan timelines for any of these. Read `phase-gate.md` first.

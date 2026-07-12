@@ -79,11 +79,9 @@ for (const path of [
   '/api/email/inbound',
   '/api/beta/feedback',
   '/api/interviews/reports/',
-  '/api/proofscore',
   '/p/',
   '/proof/',
   '/shared/',
-  '/proofscore',
 ]) assert.ok(proxy.includes(path), `lockdown allowance missing: ${path}`)
 assert.match(proxy, /WAITLIST_ALLOWED_PATH_PREFIXES\.some/,
   'closed beta must use prefix matching for published and token-authorized public routes')

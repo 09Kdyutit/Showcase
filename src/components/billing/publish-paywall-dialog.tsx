@@ -100,7 +100,7 @@ export function PublishPaywallDialog({
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
               <p className="text-sm font-semibold text-foreground">What remains available on Free</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Your saved draft, daily ProofScore access, previewing, and editing remain available while your account exists. Publishing the live page is the Pro feature.
+                Your saved draft, daily evidence audit, previewing, and editing remain available while your account exists. Publishing the live page is the Pro feature.
               </p>
             </div>
 

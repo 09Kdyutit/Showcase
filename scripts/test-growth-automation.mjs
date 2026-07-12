@@ -197,6 +197,7 @@ for (const required of [
 
 const claimRoute = readFileSync(resolve('src/app/api/proofscore/claim-parse/route.ts'), 'utf8')
 assert.match(claimRoute, /rpc\('claim_pending_parse'/)
+assert.match(claimRoute, /LEGACY_CLAIM_GRACE_END_MS/)
 assert.doesNotMatch(claimRoute, /from\('resumes'\)[\s\S]{0,80}\.insert\(/, 'route must not split resume insert from token consumption')
 
 const proxy = readFileSync(resolve('src/proxy.ts'), 'utf8')
@@ -206,7 +207,6 @@ const suppressionHelper = readFileSync(resolve('src/lib/email/suppressions.ts'),
 assert.match(suppressionHelper, /\.in\('normalized_email', chunk\)/)
 for (const [path, helper] of [
   ['src/lib/growth/invite-batch.ts', 'findSuppressedEmails'],
-  ['src/app/api/proofscore/reserve/route.ts', 'isEmailSuppressed'],
   ['src/app/api/waitlist/join/route.ts', 'isEmailSuppressed'],
 ]) {
   assert.ok(readFileSync(resolve(path), 'utf8').includes(helper), `${path} must check the suppression registry`)
@@ -220,20 +220,6 @@ for (const path of ['src/lib/rate-limit/postgres.ts', 'src/lib/rate-limit/distri
   assert.match(limiter, /options\?\.failOpen === false/, `${path} must honor the strict caller mode`)
   assert.match(limiter, /allowed:\s*true/, `${path} must preserve the existing default fail-open behavior`)
 }
-
-const stashRoute = readFileSync(resolve('src/app/api/proofscore/stash/route.ts'), 'utf8')
-assert.match(stashRoute, /MAX_BODY_BYTES\s*=\s*128\s*\*\s*1024/)
-assert.match(stashRoute, /request\.body\.getReader\(\)/, 'stash route must enforce its cap while streaming')
-assert.match(stashRoute, /failOpen:\s*false/, 'PII stash limiter must fail closed')
-assert.match(stashRoute, /clientFingerprint\(request\)/, 'stash limiter must not persist raw IP addresses')
-assert.match(stashRoute, /status:\s*413/)
-
-const reservationRoute = readFileSync(resolve('src/app/api/proofscore/reserve/route.ts'), 'utf8')
-assert.match(reservationRoute, /idempotencyKey:\s*`proofscore-reservation-\$\{reservation\.reservation_token\}`/)
-assert.match(reservationRoute, /isDefinitiveProviderRejection/)
-assert.match(reservationRoute, /EMAIL_DELIVERY_PENDING/)
-assert.match(reservationRoute, /EMAIL_DISABLED/)
-assert.match(reservationRoute, /alreadyReserved:\s*reservation\.already_reserved/, 'same reservation must be safely retryable')
 
 const unsubscribeRoute = readFileSync(resolve('src/app/api/email/unsubscribe/route.ts'), 'utf8')
 const unsubscribeGet = unsubscribeRoute.slice(

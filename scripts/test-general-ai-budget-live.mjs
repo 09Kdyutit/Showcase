@@ -347,21 +347,6 @@ function testPreparedCallOrderingSource() {
     client.indexOf('await prepared.release()', quota) > quota
       && client.indexOf('await prepared.release()', quota) < provider)
 
-  const publicRoute = readFileSync(
-    new URL('../src/app/api/proofscore/score/route.ts', import.meta.url),
-    'utf8',
-  )
-  const ipAttempt = publicRoute.indexOf('await enforceAtomicLimit(')
-  const publicReserve = publicRoute.indexOf('await preparePromptCall(')
-  const publicCapacity = publicRoute.indexOf('await claimDailyCapacity(')
-  const publicProvider = publicRoute.indexOf('await preparedPrompt.run()')
-  check('public helper orders IP throttle → dollars → daily/reserved capacity → provider',
-    ipAttempt >= 0
-      && ipAttempt < publicReserve
-      && publicReserve < publicCapacity
-      && publicCapacity < publicProvider)
-  check('public pre-provider exits release in a finally block',
-    publicRoute.includes('finally {') && publicRoute.includes('await preparedPrompt.release()'))
 }
 
 async function cleanup() {

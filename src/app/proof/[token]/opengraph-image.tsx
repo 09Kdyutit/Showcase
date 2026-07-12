@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createServiceClient } from '@/lib/supabase/server'
 
-export const alt = 'ProofScore on Showcase'
+export const alt = 'Evidence score on Showcase'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -11,7 +11,7 @@ const iconBase64 = readFileSync(join(process.cwd(), 'public', 'logo-icon.png')).
 const iconDataUri = `data:image/png;base64,${iconBase64}`
 
 // The share card: "I'm 84/100 job-ready" is inherently screenshot-worthy — each shared
-// ProofScore link that renders this becomes a signup funnel. Exposes only the number + role.
+// Shared evidence-score links expose only the number and target role.
 export default async function ProofOgImage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   let score = 0
@@ -47,7 +47,7 @@ export default async function ProofOgImage({ params }: { params: Promise<{ token
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
           <img src={iconDataUri} width={40} height={40} alt="" />
-          <span style={{ color: '#a1a1aa', fontSize: 26, fontWeight: 600 }}>Showcase · ProofScore</span>
+          <span style={{ color: '#a1a1aa', fontSize: 26, fontWeight: 600 }}>Showcase · Evidence score</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
           <span style={{ color: scoreColor, fontSize: 200, fontWeight: 800, lineHeight: 1 }}>{score}</span>
@@ -56,7 +56,7 @@ export default async function ProofOgImage({ params }: { params: Promise<{ token
         <span style={{ color: '#fafafa', fontSize: 34, fontWeight: 700, marginTop: 24 }}>
           {role ? `Hiring-ready for ${role}` : 'Evidence-based hiring readiness'}
         </span>
-        <span style={{ color: '#71717a', fontSize: 22, marginTop: 40 }}>Get your free ProofScore at showcase</span>
+        <span style={{ color: '#71717a', fontSize: 22, marginTop: 40 }}>Turn your résumé into evidence with Showcase</span>
       </div>
     ),
     { ...size }

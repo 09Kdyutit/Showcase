@@ -155,17 +155,15 @@ export default function OnboardingPage() {
 
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
 
-  // If the user ran the free ProofScore tool before signing up, their resume was already
-  // parsed there and stashed server-side; claim it by token and land them straight on the
-  // review step — no re-upload, no second parse (no AI call at all on this path). Clear the
-  // stash key up front so a failed claim can never loop; failure just falls back to upload.
+  // Gracefully consume any handoff issued before the anonymous tool was retired.
+  // The server rejects every claim after the final legacy token expires tonight.
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('showcase_parse_token') : null
     if (!token) return
     localStorage.removeItem('showcase_parse_token')
     void (async () => {
       setPhase('analyzing')
-      setBusyMsg('Picking up the resume from your ProofScore…')
+      setBusyMsg('Picking up your previous resume analysis…')
       try {
         const res = await fetch('/api/proofscore/claim-parse', {
           method: 'POST',
@@ -179,7 +177,7 @@ export default function OnboardingPage() {
           return
         }
       } catch {
-        // fall through to upload
+        // Fall through to the normal upload flow.
       }
       setPhase('upload')
     })()

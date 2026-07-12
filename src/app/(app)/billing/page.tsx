@@ -16,7 +16,7 @@ import type { Subscription } from '@/types/database'
 const PRO_FEATURES = [
   'Publish your portfolio at /p/your-name with a social preview card',
   'Regenerate portfolios up to 10 times per day',
-  '10 full ProofScore audits per day',
+  '10 full evidence audits per day',
   '15 tailored applications and 40 cover letters per day',
   '25 resume analyses and 20 ATS checks per day',
   '150 written interviews per billing period',

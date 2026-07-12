@@ -33,14 +33,14 @@ export function betaInviteEmail(
   // Outcome-focused — what they walk away with, not features.
   const outcomes: [string, string][] = [
     ['A portfolio draft', 'Your real experience organized into evidence-based case studies you can review and edit. Publishing the live page is a Pro feature.'],
-    ['A ProofScore&trade;', 'An honest 0&ndash;100 audit across 11 dimensions, each with a specific fix. No fluff, no invented wins.'],
+    ['An evidence audit', 'An honest review across 11 dimensions, each with a specific fix. No fluff, no invented wins.'],
     ['A role-match view', 'Compare available role requirements with the evidence in your resume before you apply.'],
   ]
 
   const steps: [string, string][] = [
     ['Create your account', 'Sign up with this email address so we can link you to your invite.'],
     ['Upload your resume', 'That’s the only input. Showcase parses it and builds everything from there.'],
-    ['Review &amp; tell us what’s rough', 'Read your draft, run ProofScore, edit anything that feels off, and then hit reply. You’re here to help us get it right.'],
+    ['Review &amp; tell us what’s rough', 'Read your draft, review the evidence gaps, edit anything that feels off, and then hit reply. You’re here to help us get it right.'],
   ]
 
   const html = `<!DOCTYPE html>
@@ -197,7 +197,7 @@ You're in — your Showcase early access is open. You're one of the first people
 Upload one thing — your resume — and in about ten minutes you'll have:
 
   ✓ A portfolio draft — your real experience organized into evidence-based case studies. Publishing is a Pro feature.
-  ✓ A ProofScore™ — an honest 0–100 audit across 11 dimensions, each with a specific fix.
+  ✓ An evidence audit — an honest review across 11 dimensions, each with a specific fix.
   ✓ A role-match view — compare available role requirements with your actual evidence.
 
 Claim your access: ${signupUrl}
@@ -206,7 +206,7 @@ Claim your access: ${signupUrl}
 YOUR FIRST 10 MINUTES
   1. Create your account — use this email address.
   2. Upload your resume — that's the only input.
-  3. Review and tell us what's rough — read your draft, run ProofScore, edit anything that feels off, then reply.
+  3. Review and tell us what's rough — read your draft, review the evidence gaps, edit anything that feels off, then reply.
 
 THIS INVITE IS ONLY FOR YOUR EMAIL
 Please don't forward this single-use link. After you complete your first portfolio, Showcase gives you three member invites of your own. Each friend gets 5 consumable AI credits, and you get 5 when that friend completes a first portfolio.

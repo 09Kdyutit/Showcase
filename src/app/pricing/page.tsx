@@ -15,7 +15,7 @@ const APP_HOST = configuredAppHost()
 const FREE_FEATURES = [
   'Resume parsing and up to 3 analyses / day',
   'One AI portfolio generation',
-  'Full ProofScore (all 11 categories), 1 audit / day',
+  'One 11-category evidence audit / day',
   'Build, edit, and preview portfolio drafts',
   '5 AI bullet improvements / day',
   'Browse job listings (demo data)',
@@ -66,7 +66,7 @@ export default function PricingPage() {
             <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>pricing.</em>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
-            Free gets you the transformation: a real portfolio draft and your first ProofScore.
+            Free gets you the transformation: a real portfolio draft you can edit and preview.
             Pro takes it from draft to shareable — publish it, tailor it per role, and work
             through the evidence gaps it identifies.
           </p>
@@ -197,8 +197,8 @@ export default function PricingPage() {
           <h2 className="text-xl font-bold text-foreground text-center mb-8">Common questions</h2>
           <div className="space-y-4">
             {[
-              { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data - portfolio content, ProofScore history, and uploaded materials - is preserved.' },
-              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can build a draft and run your first ProofScore before deciding whether publishing and higher limits are worth upgrading for.' },
+              { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data - portfolio content, audit history, and uploaded materials - is preserved.' },
+              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can build, edit, and preview a draft before deciding whether publishing and higher limits are worth upgrading for.' },
               { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.' },
               { q: 'Can I get a refund?', a: 'You can request a refund within 7 days if you have not substantively used Pro features. See the refund policy for the exact conditions.' },
               { q: 'Will Showcase invent experience I do not have?', a: 'Never. Our AI only works with what you provide. It will rewrite and improve how your real experience is presented, but it will not fabricate metrics, employers, projects, or certifications. It will tell you what evidence is missing and suggest where to add proof.' },

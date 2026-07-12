@@ -32,20 +32,20 @@ if (!output) {
 }
 
 const sections = targets.map((target) => {
-  const subject = `Free evidence clinic for ${target.segment.toLowerCase()}`
+  const subject = `Portfolio pilot for ${target.segment.toLowerCase()}`
   const body = `Hi ${target.organization} team,
 
 I'm ${founder}, the founder of Showcase. I built it to help early-career job seekers turn real resumes and projects into evidence-first portfolios, with an honest audit that never invents achievements.
 
 ${target.whyFit} That makes your community a strong fit for a small, no-cost pilot: ${lowercaseFirst(target.offer)}
 
-There is no member-list request and no sales pitch. Every participant opts in directly, the pilot is capped at 25 audits so support stays real, and any feedback shared with your team is aggregate and deidentified.
+There is no member-list request and no sales pitch. Every participant opts in directly, the pilot is capped at 10 participants so support stays real, and any feedback shared with your team is aggregate and deidentified.
 
 Would this be useful for an upcoming cohort or career-programming slot? If not, no follow-up is needed.
 
 Best,
 ${founder}
-${appUrl}/proofscore`
+${appUrl}/`
 
   return `## ${target.organization}
 
@@ -62,7 +62,7 @@ ${body}
 
 - [ ] Re-open the official contact route and confirm the program is still active.
 - [ ] Replace every bracketed placeholder.
-- [ ] Check that the 25-audit daily capacity is available for the proposed date.
+- [ ] Confirm capacity for a 10-person supported pilot before proposing a date.
 - [ ] Submit once; record the date and do not send an automated follow-up.
 `
 }).join('\n---\n\n')

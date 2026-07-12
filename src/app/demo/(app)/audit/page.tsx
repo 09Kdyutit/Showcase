@@ -145,7 +145,7 @@ export default function DemoAuditPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">ProofScore Audit</h1>
+          <h1 className="text-2xl font-bold text-foreground">Evidence Audit</h1>
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />

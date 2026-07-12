@@ -35,7 +35,7 @@ export default function DemoOnboardingPage() {
             <Logo size="lg" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Set up your profile</h1>
-          <p className="text-muted-foreground text-sm">This takes 2 minutes. We use this to personalize your portfolio and ProofScore.</p>
+          <p className="text-muted-foreground text-sm">This takes 2 minutes. We use this to personalize your portfolio and evidence audit.</p>
         </div>
 
         {/* Progress */}

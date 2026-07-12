@@ -5,7 +5,7 @@ import { configuredAppUrl } from '@/lib/app-url'
 
 export const maxDuration = 30
 
-// "Own your data" — a single ZIP with the user's ProofScore report, résumé text, and
+// "Own your data" — a single ZIP with the user's evidence-audit report, résumé text, and
 // portfolio links. Everything is theirs; no third-party content, no cross-user data.
 export async function GET() {
   try {
@@ -33,19 +33,19 @@ export async function GET() {
       profile?.target_role ? `Target role: ${profile.target_role}` : '',
       '',
       'Contents:',
-      '- proofscore-report.md — your latest hiring-readiness audit',
+      '- evidence-audit-report.md — your latest hiring-readiness audit',
       resume?.raw_text ? '- resume.txt — your résumé text' : '',
       published.length ? '- portfolios.md — your published portfolio links' : '',
       '',
       'This packet contains only your own data.',
     ].filter(Boolean).join('\n'))
 
-    // ProofScore report
+    // Evidence-audit report
     if (audit && typeof audit.overall_score === 'number') {
       const cats = Array.isArray(audit.category_scores) ? (audit.category_scores as { name?: string; score?: number; severity?: string }[]) : []
       const recs = Array.isArray(audit.recommendations) ? (audit.recommendations as unknown[]) : []
-      zip.file('proofscore-report.md', [
-        `# ProofScore Report`,
+      zip.file('evidence-audit-report.md', [
+        `# Evidence Audit Report`,
         `**Overall: ${audit.overall_score}/100**  ·  ${new Date(audit.created_at).toISOString().slice(0, 10)}`,
         '',
         '## Category breakdown',
@@ -63,7 +63,7 @@ export async function GET() {
     if (published.length) {
       zip.file('portfolios.md', [
         '# Published portfolios',
-        ...published.map((p) => `- [${p.title}](${appUrl}/p/${p.slug})${p.proof_score != null ? ` — ProofScore ${p.proof_score}` : ''}`),
+        ...published.map((p) => `- [${p.title}](${appUrl}/p/${p.slug})${p.proof_score != null ? ` — evidence score ${p.proof_score}` : ''}`),
       ].join('\n'))
     }
 

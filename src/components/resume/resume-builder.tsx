@@ -297,7 +297,7 @@ export function ResumeBuilder() {
         <Button onClick={() => save()} loading={saving} variant="gradient" className="gap-1.5"><Save className="h-4 w-4" /> Save</Button>
         <Button onClick={() => exportResume('pdf')} loading={exporting === 'pdf'} variant="secondary" className="gap-1.5"><FileText className="h-4 w-4" /> PDF</Button>
         <Button onClick={() => exportResume('docx')} loading={exporting === 'docx'} variant="secondary" className="gap-1.5"><Download className="h-4 w-4" /> DOCX</Button>
-        <Link href="/audit" className="ml-auto"><Button variant="ghost" className="gap-1.5"><BarChart3 className="h-4 w-4" /> Run ProofScore</Button></Link>
+        <Link href="/audit" className="ml-auto"><Button variant="ghost" className="gap-1.5"><BarChart3 className="h-4 w-4" /> Run evidence audit</Button></Link>
       </div>
     </div>
   )

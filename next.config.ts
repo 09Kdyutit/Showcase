@@ -104,6 +104,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   ...(localHarnessDistDir ? { distDir: localHarnessDistDir } : {}),
+  async redirects() {
+    return [
+      {
+        source: '/proofscore/:path*',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

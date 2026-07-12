@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (!parsedResume && !portfolioContent) {
       return NextResponse.json(
-        { error: resumeId ? 'This resume has not been parsed yet. Re-upload it to run ProofScore.' : 'Provide a resume or a portfolio to audit' },
+        { error: resumeId ? 'This resume has not been parsed yet. Re-upload it to run an evidence audit.' : 'Provide a resume or a portfolio to audit' },
         { status: 400 }
       )
     }
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       findings: result.missing_evidence as unknown as Record<string, unknown>,
       recommendations: result.top_priorities as unknown as Record<string, unknown>,
     }).select().single()
-    if (auditError || !audit) throw auditError ?? new Error('Could not save ProofScore')
+    if (auditError || !audit) throw auditError ?? new Error('Could not save evidence audit')
 
     if (portfolioId && audit) {
       const { error: scoreUpdateError } = await service

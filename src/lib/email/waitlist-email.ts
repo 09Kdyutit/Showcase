@@ -23,7 +23,7 @@ export function waitlistConfirmationEmail(name?: string | null, postalAddress?: 
 
   const features: [string, string][] = [
     ['Resume &amp; portfolio builder', 'Upload your resume and get a polished, role-specific portfolio in minutes.'],
-    ['ProofScore&trade; audit',        'An honest 0&ndash;100 score across 11 dimensions &mdash; evidence strength, clarity, alignment, and more.'],
+    ['Evidence audit',                 'An honest review across 11 dimensions &mdash; evidence strength, clarity, alignment, and more.'],
     ['Interview prep',                 'Company-specific questions, AI-scored practice, and a question library with 70+ behavioral prompts.'],
     ['Job matching',                   'Match your profile to real job postings and see exactly where you are strong or weak.'],
     ['Project roadmap',                'AI analyzes your resume and suggests 6 custom projects to fill the gaps recruiters notice.'],
@@ -97,7 +97,7 @@ export function waitlistConfirmationEmail(name?: string | null, postalAddress?: 
 
               <p style="margin:0 0 10px;font-size:11px;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:0.14em;">What is Showcase?</p>
               <p style="margin:0 0 32px;font-size:14px;color:#d4d4d4;line-height:1.75;">
-                Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, scores how strong your evidence is with <strong style="color:#ffffff;">ProofScore&trade;</strong>, and tells you exactly what to improve &mdash; without inventing a single thing.
+                Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, reviews how strong the evidence is, and tells you exactly what to improve &mdash; without inventing a single thing.
               </p>
 
               <p style="margin:0 0 18px;font-size:11px;font-weight:700;color:#f472b6;text-transform:uppercase;letter-spacing:0.14em;">What to expect</p>
@@ -176,11 +176,11 @@ Your spot is saved. We invite in small batches so each new user gets a reliable 
 Visit: ${siteUrl}
 
 WHAT IS SHOWCASE?
-Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, scores how strong your evidence is with ProofScore™, and tells you exactly what to improve - without inventing a single thing.
+Showcase turns your resume into a proof-of-work portfolio. It analyzes your real experience, reviews how strong the evidence is, and tells you exactly what to improve - without inventing a single thing.
 
 WHAT TO EXPECT:
 1. Resume & portfolio builder - Upload your resume and get a polished, role-specific portfolio in minutes.
-2. ProofScore™ audit - An honest 0–100 score across 11 dimensions.
+2. Evidence audit - An honest review across 11 dimensions.
 3. Interview prep - Company-specific questions and AI-scored practice.
 4. Job matching - Match your profile to real job postings.
 5. Project roadmap - AI suggests 6 custom projects to fill your gaps.

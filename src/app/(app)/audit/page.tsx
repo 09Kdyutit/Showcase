@@ -232,7 +232,7 @@ const AUDIT_SCAN_STEPS = [
   { label: 'Evaluating project depth', detail: 'assessing Problem → Process → Outcome framework' },
   { label: 'Checking keyword relevance', detail: 'matching against target role vocabulary' },
   { label: 'Identifying hiring risk gaps', detail: 'looking for vague dates, gaps, unsupported claims' },
-  { label: 'Calculating ProofScore', detail: 'weighting all 11 categories' },
+  { label: 'Calculating evidence score', detail: 'weighting all 11 categories' },
 ]
 
 function AuditLoadingPanel({ step }: { step: number }) {
@@ -365,7 +365,7 @@ export default function AuditPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Audit failed')
       setResult(data.data)
-      toast.success('ProofScore complete!')
+      toast.success('Evidence audit complete!')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Audit failed. Please try again.')
     } finally {
@@ -381,10 +381,10 @@ export default function AuditPage() {
     <PageShell>
     <div className="p-6 max-w-4xl mx-auto space-y-8">
       <PageHeader
-        eyebrow="ProofScore"
+        eyebrow="Evidence Audit"
         title="Know exactly where you"
         titleAccent="stand."
-        description="ProofScore audits the resume you already uploaded against a specific target role — an honest score across 11 hiring-readiness categories. Resume parsing extracts your experience; ProofScore judges how well it lands for the role you pick below."
+        description="The evidence audit reviews the resume you already uploaded against a specific target role across 11 hiring-readiness categories. Resume parsing extracts your experience; the audit checks how well that evidence supports the role you pick below."
       />
 
       {/* Input */}
@@ -396,7 +396,7 @@ export default function AuditPage() {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-400 flex-1">
-                Upload your resume first - ProofScore audits it for a target role.
+                Upload your resume first - the evidence audit reviews it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
                 <Link href="/resume">Go to Resume</Link>
@@ -461,7 +461,7 @@ export default function AuditPage() {
             className="w-full gap-2"
           >
             <BarChart3 className="h-4 w-4" />
-            Run ProofScore Audit
+            Run Evidence Audit
           </Button>
         </div>
       )}
@@ -478,7 +478,7 @@ export default function AuditPage() {
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center gap-2 mb-2 justify-center sm:justify-start">
                 <h2 className="text-xl font-bold text-foreground">
-                  ProofScore: {result.overall_score}/100
+                  Evidence score: {result.overall_score}/100
                 </h2>
                 <RoleFitBadge score={result.overall_score} />
               </div>
@@ -580,7 +580,7 @@ export default function AuditPage() {
 
           {/* Disclaimer */}
           <p className="text-xs text-muted-foreground/50 text-center leading-relaxed">
-            ProofScore is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to
+            The evidence audit is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to
             reflect recruiter decisions. Showcase does not guarantee employment or interview outcomes.
           </p>
         </div>

@@ -187,7 +187,7 @@ export default async function BuilderPage() {
                   {p.proof_score !== null && (
                     <span className={`flex items-center gap-1.5 text-xs font-medium ${scoreColor(p.proof_score)}`}>
                       <BarChart3 className="h-3.5 w-3.5 opacity-60" />
-                      ProofScore {p.proof_score}
+                      Evidence score {p.proof_score}
                     </span>
                   )}
                   {p.status === 'published' && (

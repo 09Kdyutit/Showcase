@@ -30,7 +30,7 @@ const APP_URL = configuredAppUrl()
 const FREE_FEATURES = [
   'Resume text parsing',
   'One AI portfolio generation',
-  'Full ProofScore (all 11 categories)',
+  'Evidence audit across all 11 categories',
   'Build, edit, and preview portfolio drafts',
 ]
 const PRO_FEATURES = [
@@ -121,7 +121,7 @@ function ProofScoreWidget() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-brand-400" />
-          <span className="text-sm font-semibold text-foreground">ProofScore™</span>
+          <span className="text-sm font-semibold text-foreground">Evidence audit</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span
@@ -197,7 +197,7 @@ function HowItWorksFlow() {
     },
     {
       icon: BarChart3,
-      title: 'Run ProofScore',
+      title: 'Review your evidence',
       desc: 'Get an honest 0-100 audit across 11 dimensions - from proof strength to first impression.',
       color: 'text-amber-400 bg-amber-500/10',
     },
@@ -452,7 +452,7 @@ function WaitlistContent() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { label: 'How it works', href: '#how-it-works' },
-              { label: 'ProofScore', href: '#proof-score' },
+              { label: 'Evidence audit', href: '#proof-score' },
               { label: 'Pricing', href: '#pricing' },
               { label: 'FAQ', href: '#faq' },
             ].map((link) => (

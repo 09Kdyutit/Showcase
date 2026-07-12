@@ -85,7 +85,7 @@ export function growthScorecardEmail(scorecard: GrowthScorecard): { subject: str
     ['Organic sessions', String(scorecard.organicSessions)],
     ['Signups', `${scorecard.signups} (${formatRate(scorecard.visitorToSignupRate)} of sessions)`],
     ['Attribution coverage', formatRate(scorecard.attributionCoverageRate)],
-    ['ProofScore views', String(scorecard.proofscoreViews)],
+    ['Evidence-audit views', String(scorecard.proofscoreViews)],
     ['Generated portfolios', String(scorecard.generatedPortfolios)],
     ['Completed portfolios', String(scorecard.completedPortfolios)],
     ['Unique completers', String(scorecard.completedPortfolioUsers)],

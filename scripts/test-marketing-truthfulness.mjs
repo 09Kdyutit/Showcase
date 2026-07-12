@@ -13,7 +13,6 @@ const PUBLIC_DIRS = [
   'src/app/privacy',
   'src/app/terms',
   'src/app/refund',
-  'src/app/proofscore',
   'src/app/for-career-services',
   'src/app/(app)/billing',
   'src/app/(app)/settings',

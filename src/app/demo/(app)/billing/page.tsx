@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const PRO_FEATURES = [
   '10 portfolio generations per day',
-  '10 complete ProofScore audits per day',
+  '10 complete evidence audits per day',
   'Public portfolio at /p/alex-chen',
   'Standalone HTML portfolio export',
   '15 tailored applications per day',
@@ -17,7 +17,7 @@ const PRO_FEATURES = [
 
 const USAGE = [
   { label: 'AI portfolio generations today', used: 3, limit: '10' },
-  { label: 'ProofScore audits today', used: 7, limit: '10' },
+  { label: 'Evidence audits today', used: 7, limit: '10' },
   { label: 'Voice interviews this period', used: 1, limit: '20' },
   { label: 'Written interviews this period', used: 2, limit: '150' },
 ]

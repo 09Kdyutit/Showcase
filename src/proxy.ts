@@ -11,7 +11,7 @@ const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 // browser), so Origin enforcement doesn't apply to it.
 const ORIGIN_CHECK_EXEMPT_PREFIXES = ['/api/stripe/webhook', '/api/email/events']
 
-// Pre-launch admission: public waitlist/proof routes stay available, invited people can use
+// Pre-launch admission: public waitlist and portfolio-proof routes stay available, invited people can use
 // a single-use token to reach signup, and existing/admitted accounts keep product access.
 // LAUNCH_OPEN=true lifts admission entirely; it is still an env flag, never a query switch.
 const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
@@ -36,12 +36,12 @@ const WAITLIST_ALLOWED_API_PREFIXES = [
   '/api/email/events',
   '/api/email/unsubscribe',
   '/api/cron/',
-  '/api/proofscore',
   '/api/referral',
   '/api/beta/feedback',
   '/api/interviews/reports/',
   '/api/health',
   '/api/marketing/track',
+  '/api/proofscore/claim-parse',
 ]
 const INVITE_TOKEN_PATTERN = /^[a-f0-9]{48}$/
 

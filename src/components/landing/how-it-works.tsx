@@ -10,7 +10,7 @@ import { SectionLabel } from '@/components/shared/section-label'
 
 // How it works, rebuilt as scroll-driven storytelling: the steps scroll on the right
 // while a sticky stage on the left morphs through a living miniature of each step —
-// parsing, portfolio assembly, ProofScore, job matching, tailoring. All fictional
+// parsing, portfolio assembly, evidence review, job matching, tailoring. All fictional
 // demonstration data.
 
 type Step = {
@@ -33,7 +33,7 @@ const STEPS: Step[] = [
     detail: 'Each project becomes a problem → role → process → outcome narrative that makes the available evidence easier to scan.',
   },
   {
-    icon: BarChart3, step: '03', title: 'Get your ProofScore',
+    icon: BarChart3, step: '03', title: 'Review your evidence',
     desc: 'An honest audit across 11 categories.',
     detail: 'Evidence strength, first-impression clarity, keyword support and more — each scored, each with a concrete fix.',
   },
@@ -185,7 +185,7 @@ function VizScore() {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-bold text-foreground stat-number">87</span>
-          <span className="text-[9px] max-sm:text-[10px] uppercase tracking-widest" style={{ color: 'oklch(63% 0.02 258)' }}>ProofScore</span>
+          <span className="text-[9px] max-sm:text-[10px] uppercase tracking-widest" style={{ color: 'oklch(63% 0.02 258)' }}>Evidence audit</span>
         </div>
       </div>
       <div className="w-full max-w-xs space-y-2.5">

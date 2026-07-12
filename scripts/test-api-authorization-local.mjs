@@ -650,13 +650,6 @@ async function liveAudit(summary) {
       && response.json?.remaining === 1 && Object.keys(response.json).every((key) => ['valid', 'remaining'].includes(key))
     recordHttpResponse('public referral validation exposes remaining capacity only', response, referralValidationIsSanitized)
 
-    response = await appRequest(appUrl, '/api/proofscore/score')
-    record('public ProofScore GET exposes aggregate capacity only', response.status === 200
-      && response.json?.data?.capacity?.cap === 25 && !containsOwnerSecret(response))
-    response = await appRequest(appUrl, '/api/proofscore/reserve', { method: 'POST', json: { email: `reserve-${suffix}@example.com`, consent: true } })
-    record('reservation cannot bypass still-available daily capacity', response.status === 409 && response.json?.code === 'TODAY_STILL_AVAILABLE')
-    response = await appRequest(appUrl, '/api/proofscore/stash', { method: 'POST', json: { rawText: 'too short', parsed: {} } })
-    record('public parse stash rejects invalid payload before storage', response.status === 400)
     response = await appRequest(appUrl, '/api/waitlist/join', { method: 'POST', json: { email: `honeypot-${suffix}@example.com`, consent: true, website_url_hidden: 'bot' } })
     record('waitlist honeypot succeeds without creating a public-enumerable result', response.status === 200 && response.json?.success === true)
     response = await appRequest(appUrl, '/api/beta/feedback', { method: 'POST', json: {} })

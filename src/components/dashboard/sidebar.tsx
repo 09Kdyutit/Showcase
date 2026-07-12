@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/resume', icon: FileText, label: 'Resume' },
   { href: '/builder', icon: Briefcase, label: 'Portfolio' },
-  { href: '/audit', icon: BarChart3, label: 'ProofScore' },
+  { href: '/audit', icon: BarChart3, label: 'Evidence Audit' },
   { href: '/projects', icon: Lightbulb, label: 'Project Ideas' },
   { href: '/jobs', icon: Search, label: 'Jobs' },
   { href: '/opportunities', icon: Compass, label: 'Opportunities' },

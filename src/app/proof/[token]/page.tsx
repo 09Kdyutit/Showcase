@@ -45,10 +45,10 @@ async function loadShared(token: string): Promise<{ score: number; categories: C
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params
   const shared = await loadShared(token)
-  if (!shared) return { title: 'ProofScore', robots: { index: false } }
+  if (!shared) return { title: 'Evidence audit', robots: { index: false } }
   return {
-    title: `ProofScore: ${shared.score}/100 · Showcase`,
-    description: `An evidence-based hiring-readiness score${shared.role ? ` for ${shared.role}` : ''}. Get yours free on Showcase.`,
+    title: `Evidence score: ${shared.score}/100 · Showcase`,
+    description: `An evidence-based hiring-readiness score${shared.role ? ` for ${shared.role}` : ''}, created with Showcase.`,
     robots: { index: false },
     twitter: { card: 'summary_large_image' },
   }
@@ -67,7 +67,7 @@ export default async function SharedProofScorePage({ params }: Props) {
       <div className="relative w-full max-w-lg">
         <div className="glass-card p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-widest mb-6" style={{ color: 'oklch(63% 0.20 255)' }}>
-            ProofScore{shared.role ? ` · ${shared.role}` : ''}
+            Evidence score{shared.role ? ` · ${shared.role}` : ''}
           </p>
           <div className="flex justify-center mb-2">
             <ProofScoreRing score={shared.score} size="lg" animate showLabel={false} />
@@ -99,13 +99,13 @@ export default async function SharedProofScorePage({ params }: Props) {
         </div>
 
         <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground mb-3">Want to know where you stand?</p>
+          <p className="text-sm text-muted-foreground mb-3">Turn your own résumé into evidence.</p>
           <Link
-            href={`${appUrl}/signup?utm_source=shared_proofscore`}
+            href={appUrl}
             className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm text-white btn-sheen"
             style={{ background: 'oklch(54% 0.230 255)', boxShadow: '0 0 28px oklch(54% 0.230 255 / 0.3)' }}
           >
-            Get your free ProofScore →
+            Visit Showcase →
           </Link>
         </div>
       </div>

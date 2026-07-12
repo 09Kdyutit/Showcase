@@ -17,9 +17,9 @@ const CHANGELOG: Entry[] = [
     items: [
       'Command palette — press ⌘K (Ctrl+K) to jump anywhere instantly.',
       'Portfolio views — see how many people opened your public portfolio, and from where.',
-      'ProofScore trajectory — watch your score climb over time on the dashboard.',
-      'Shareable ProofScore + referral rewards — invite friends, earn bonus AI credits.',
-      'Weekly digest — your ProofScore trend and jobs to follow up on, once a week.',
+      'Evidence-score trajectory — watch your score change over time on the dashboard.',
+      'Shareable evidence score + referral rewards — invite friends, earn bonus AI credits.',
+      'Weekly digest — your evidence-score trend and jobs to follow up on, once a week.',
     ],
   },
 ]

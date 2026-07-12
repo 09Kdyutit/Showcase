@@ -13,7 +13,7 @@ const MINI_NAV = [
   { icon: BarChart3, label: 'Dashboard', active: true },
   { icon: FileText, label: 'Resume' },
   { icon: Briefcase, label: 'Portfolio' },
-  { icon: TrendingUp, label: 'ProofScore' },
+  { icon: TrendingUp, label: 'Evidence Audit' },
   { icon: Search, label: 'Jobs' },
   { icon: MessageSquare, label: 'Interview Lab' },
 ]
@@ -85,7 +85,7 @@ export function ProductShowcase() {
           </FloatingChip>
           <FloatingChip className="-bottom-4 left-1/3" delay={2.8}>
             <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'oklch(72% 0.17 160)' }} />
-            <span className="text-foreground/90">11 ProofScore categories scored</span>
+            <span className="text-foreground/90">11 evidence categories reviewed</span>
           </FloatingChip>
           {/* Frame */}
           <div
@@ -152,7 +152,7 @@ export function ProductShowcase() {
                 <div className="relative">
                   <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'oklch(63% 0.20 255)' }}>Dashboard</p>
                   <p className="text-display text-xl font-semibold text-foreground">Hey, you.</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'oklch(62% 0.02 258)' }}>Illustrative ProofScore: 87, with evidence gaps listed below.</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'oklch(62% 0.02 258)' }}>Illustrative evidence score: 87, with gaps listed below.</p>
                 </div>
 
                 <div className="relative grid grid-cols-3 gap-3">

@@ -19,7 +19,7 @@ const ITEMS: { icon: LucideIcon; title: string; desc: string }[] = [
   {
     icon: CheckCircle2,
     title: 'Honest audit scores',
-    desc: 'ProofScore is designed to expose weaknesses, not inflate your confidence.',
+    desc: 'The evidence audit is designed to expose weaknesses, not inflate your confidence.',
   },
 ]
 

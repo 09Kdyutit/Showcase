@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
-// "Your trajectory" — a self-drawing SVG sparkline of ProofScore over time. No chart
+// "Your trajectory" — a self-drawing SVG sparkline of evidence scores over time. No chart
 // library (keeps the bundle tiny). Turns a one-time diagnostic into a returning habit:
 // people come back to watch the number climb. Only rendered when there are 2+ audits.
 
@@ -65,7 +65,7 @@ export function ProofScoreTrajectory({ points }: { points: TrajectoryPoint[] }) 
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your trajectory</p>
-          <p className="text-xs text-muted-foreground/60 mt-0.5">ProofScore across {points.length} audits</p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">Evidence score across {points.length} audits</p>
         </div>
         <span
           className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full"

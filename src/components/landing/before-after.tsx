@@ -232,7 +232,7 @@ export function BeforeAfter() {
           </div>
         </div>
 
-        {/* ProofScore flag */}
+        {/* Evidence-review flag */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -243,7 +243,7 @@ export function BeforeAfter() {
         >
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: AMBER }} />
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: AMBER }}>ProofScore flag</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: AMBER }}>Evidence gap</p>
             <p className="text-sm leading-snug" style={{ color: 'oklch(74% 0.01 255)' }}>
               Outcome not yet quantified. Add hours saved or adoption rate before sending.
             </p>

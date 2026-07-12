@@ -1,5 +1,12 @@
 # Free Tool Spec: "Bullet Point Prover"
 
+> **RETIRED / HISTORICAL — DO NOT BUILD OR DISTRIBUTE AS WRITTEN. Founder decision,
+> 2026-07-11.** This concept depends on the retired anonymous public ProofScore funnel and
+> contains obsolete `/proofscore` CTAs. It is preserved only as design history. If a separate
+> bullet tool is ever reconsidered, it requires a new founder decision and a fresh spec whose
+> public CTA uses the tracked application landing page—not ProofScore, a waitlist, or a restored
+> anonymous scoring flow.
+
 **Status:** Spec only. **Build decision: founder's.** Companion micro-tool to the main
 ProofScore tool (`spec.md`) — smaller, cheaper, more shareable. If both can't be built,
 the ProofScore tool wins (it's the launch landing experience); this one is the follow-up.

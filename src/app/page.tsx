@@ -96,7 +96,7 @@ export default function LandingPage() {
                   },
                   {
                     icon: 'BarChart3',
-                    title: 'ProofScore tells you exactly what is weak',
+                    title: 'Evidence review shows exactly what is weak',
                     desc: 'No vague feedback. 11 specific categories, concrete fixes, no generic advice.',
                     proof: '11 categories, line-level fixes',
                   },
@@ -165,20 +165,20 @@ export default function LandingPage() {
           </TrackedSection>
         </AnimatedSection>
 
-        {/* ── ProofScore spotlight ── */}
+        {/* ── Evidence review spotlight ── */}
         <section className="py-32 px-6">
           <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <FadeIn from="left">
-              <SectionLabel number="05" className="mb-6">ProofScore</SectionLabel>
+              <SectionLabel number="05" className="mb-6">Evidence review</SectionLabel>
               <h2
                 className="font-bold tracking-tight mb-6 text-balance"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
               >
-                ProofScore does not just score your résumé. It improves it.
+                See what is weak. Then make the evidence stronger.
               </h2>
               <p className="text-lg leading-relaxed mb-8" style={{ color: 'oklch(62% 0.02 255)' }}>
                 Reviewers rarely tell you which evidence was missing from an application.
-                ProofScore audits your materials across 11 categories, shows you what is
+                Showcase reviews your materials across 11 categories, shows you what is
                 weak and what evidence is missing, then rewrites your bullets and tells you the
                 specific line to add so your score actually goes up. It is a scan and a fix in one.
               </p>
@@ -206,7 +206,7 @@ export default function LandingPage() {
                   boxShadow: '0 0 32px oklch(54% 0.230 255 / 0.25)',
                 }}
               >
-                Get your ProofScore
+                Review your evidence
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </TrackedLink>
             </FadeIn>
@@ -325,7 +325,7 @@ export default function LandingPage() {
                     {[
                       'Resume parsing and 3 analyses per day',
                       'One AI portfolio generation',
-                      'Full ProofScore audit (all 11 categories)',
+                      'One evidence audit across all 11 categories',
                       'Build, edit, and preview portfolio drafts',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.008 255)' }}>
@@ -466,7 +466,7 @@ export default function LandingPage() {
               </h2>
               <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: 'oklch(62% 0.016 262)' }}>
                 Build a portfolio that makes your real work easier to understand.
-                Get your ProofScore and see exactly which evidence needs attention.
+                Build your portfolio and see exactly which evidence needs attention.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <TrackedLink

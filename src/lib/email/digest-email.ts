@@ -1,5 +1,5 @@
 // Weekly re-engagement digest. Content is computed from data the user already generated
-// (ProofScore trend, job pipeline, interview readiness) — no AI cost, nothing fabricated.
+// (evidence-score trend, job pipeline, interview readiness) — no AI cost, nothing fabricated.
 // Every send carries a one-click unsubscribe link (CAN-SPAM compliant).
 
 export interface DigestData {
@@ -35,7 +35,7 @@ export function weeklyDigestEmail(d: DigestData): { subject: string; html: strin
     const trend = d.proofScoreDelta && d.proofScoreDelta > 0
       ? ` (up ${d.proofScoreDelta} points)`
       : d.proofScoreDelta && d.proofScoreDelta < 0 ? ` (down ${Math.abs(d.proofScoreDelta)})` : ''
-    lines.push({ label: 'Your ProofScore', value: `${d.proofScore}/100${trend}`, cta: 'See your breakdown →', href: `${d.appUrl}/audit` })
+    lines.push({ label: 'Your evidence score', value: `${d.proofScore}/100${trend}`, cta: 'See your breakdown →', href: `${d.appUrl}/audit` })
   }
   if (d.followUpCount > 0) {
     lines.push({ label: 'Applications to follow up on', value: `${d.followUpCount} waiting`, cta: 'Open your pipeline →', href: `${d.appUrl}/jobs` })
@@ -48,7 +48,7 @@ export function weeklyDigestEmail(d: DigestData): { subject: string; html: strin
   }
 
   const subject = d.proofScoreDelta && d.proofScoreDelta > 0
-    ? `Your ProofScore is up ${d.proofScoreDelta} points`
+    ? `Your evidence score is up ${d.proofScoreDelta} points`
     : d.followUpCount > 0
     ? `${d.followUpCount} application${d.followUpCount === 1 ? '' : 's'} to follow up on`
     : 'Your week on Showcase'

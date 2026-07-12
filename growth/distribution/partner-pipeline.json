@@ -16,7 +16,7 @@
       "officialUrl": "https://www.icstars.org/program/",
       "contactRoute": "https://www.icstars.org/get-engaged/",
       "whyFit": "Its paid internship and long-term support include volunteer career and resume coaching.",
-      "offer": "A volunteer-led evidence clinic plus up to 25 opt-in ProofScore audits.",
+      "offer": "A supported résumé-to-portfolio clinic for up to five opt-in participants, plus a deidentified facilitator debrief.",
       "status": "researched"
     },
     {
@@ -26,7 +26,7 @@
       "officialUrl": "https://www.resilientcoders.org/apply",
       "contactRoute": "https://www.resilientcoders.org/get-involved",
       "whyFit": "Its free stipended engineering fellowship includes portfolio and interview development.",
-      "offer": "A pre-demo-day project-to-proof clinic plus a reusable evidence worksheet.",
+      "offer": "A supported project-to-portfolio pilot for up to five opt-in fellows, plus a reusable evidence worksheet.",
       "status": "researched"
     },
     {
@@ -36,7 +36,7 @@
       "officialUrl": "https://rewritingthecode.org/",
       "contactRoute": "https://rewritingthecode.org/become-a-partner/",
       "whyFit": "Its partnership program already includes workshops and resume reviews for students and early-career members.",
-      "offer": "An internship-and-project evidence workshop plus up to 25 free audits.",
+      "offer": "A supported internship-and-project portfolio pilot for up to five opt-in members.",
       "status": "researched"
     },
     {
@@ -46,7 +46,7 @@
       "officialUrl": "https://www.codeplatoon.org/",
       "contactRoute": "https://www.codeplatoon.org/corporate-partners/",
       "whyFit": "Its coding and DevOps training includes career services, resume reviewers, and guest speakers.",
-      "offer": "A military-to-tech evidence translation workshop and reusable checklist.",
+      "offer": "A supported military-to-tech portfolio pilot for up to five opt-in participants, plus a reusable checklist.",
       "status": "researched"
     },
     {
@@ -56,7 +56,7 @@
       "officialUrl": "https://perscholas.org/about-per-scholas/launch-your-tech-career/",
       "contactRoute": "https://perscholas.org/partner-with-per-scholas/",
       "whyFit": "Its national training programs pair technical learning with career coaching, resume help, and mock interviews.",
-      "offer": "A ProofScore Resume Rally for one 25-learner cohort plus a facilitator debrief.",
+      "offer": "A supported résumé-to-portfolio pilot for up to five opt-in learners, plus a facilitator debrief.",
       "status": "researched"
     },
     {
@@ -66,7 +66,7 @@
       "officialUrl": "https://www.hiretechladies.com/partnerships",
       "contactRoute": "https://www.hiretechladies.com/partner-interest-form",
       "whyFit": "Its member community, events, job board, and newsletter directly reach active tech job seekers.",
-      "offer": "A free live webinar, evidence worksheet, and capped opt-in audits.",
+      "offer": "A live evidence-to-portfolio workshop and supported five-person opt-in pilot.",
       "status": "researched"
     },
     {
@@ -76,7 +76,7 @@
       "officialUrl": "https://techqueria.org/get-involved/",
       "contactRoute": "https://techqueria.org/get-involved/",
       "whyFit": "Its community model includes chapters, speakers, partners, and newsletter distribution.",
-      "offer": "A chapter-hosted proof-first resume clinic and reusable worksheet.",
+      "offer": "A chapter-hosted evidence-to-portfolio clinic and supported five-person pilot.",
       "status": "researched"
     },
     {
@@ -86,7 +86,7 @@
       "officialUrl": "https://www.colorstack.org/",
       "contactRoute": "https://www.colorstack.org/get-involved",
       "whyFit": "It provides career development, coaching, workshops, and campus support to CS students.",
-      "offer": "A pre-career-fair project-to-proof clinic plus up to 25 opt-in audits.",
+      "offer": "A pre-career-fair project-to-portfolio pilot for up to five opt-in students.",
       "status": "researched"
     },
     {
@@ -96,7 +96,7 @@
       "officialUrl": "https://outintech.com/",
       "contactRoute": "https://outintech.com/sponsor/",
       "whyFit": "Out in Tech U and NextGen directly support college-age and early-career members.",
-      "offer": "A NextGen evidence clinic with participant-controlled audits and a resource sheet.",
+      "offer": "A supported NextGen résumé-to-portfolio pilot for up to five opt-in participants, plus a resource sheet.",
       "status": "researched"
     },
     {
@@ -106,7 +106,7 @@
       "officialUrl": "https://www.codepath.org/about",
       "contactRoute": "https://www.codepath.org/contact",
       "whyFit": "It reaches students and alumni across more than 1,000 colleges with career programming.",
-      "offer": "A 30-minute evidence clinic, up to 25 audits, and a deidentified gap summary.",
+      "offer": "A supported five-person résumé-to-portfolio pilot plus deidentified aggregate feedback.",
       "status": "researched"
     },
     {
@@ -116,7 +116,7 @@
       "officialUrl": "https://www.mlh.com/about",
       "contactRoute": "https://www.mlh.com/contact",
       "whyFit": "Its hackathons and fellowships produce real projects students need to translate into hiring evidence.",
-      "offer": "A post-hackathon workshop that turns demos into credible resume bullets.",
+      "offer": "A supported post-hackathon pilot that turns demos into editable, evidence-first portfolios.",
       "status": "researched"
     },
     {
@@ -126,7 +126,7 @@
       "officialUrl": "https://www.launchcode.org/learners",
       "contactRoute": "https://www.launchcode.org/partners",
       "whyFit": "Its free project-based training and placement support people seeking a first tech role.",
-      "offer": "A post-course ProofScore clinic and anonymous cohort gap report.",
+      "offer": "A supported post-course résumé-to-portfolio pilot for up to five opt-in learners, plus aggregate feedback.",
       "status": "researched"
     },
     {
@@ -136,7 +136,7 @@
       "officialUrl": "https://join.pursuit.org/",
       "contactRoute": "https://www.pursuit.org/get-involved",
       "whyFit": "Its long-form technical training and career support serves adults entering software and data careers.",
-      "offer": "A career-readiness lab translating projects and prior work into role evidence.",
+      "offer": "A supported career-readiness pilot turning projects and prior work into editable, evidence-first portfolios.",
       "status": "researched"
     },
     {
@@ -146,7 +146,7 @@
       "officialUrl": "https://www.theknowledgehouse.org/innovation_fellowship/",
       "contactRoute": "https://www.theknowledgehouse.org/training-solutions/",
       "whyFit": "Its free data, cybersecurity, and AI fellowship includes resume and digital-footprint support.",
-      "offer": "A career-day evidence module, staff-ready worksheet, and capped audits.",
+      "offer": "A supported five-person career-day résumé-to-portfolio pilot, plus a staff-ready worksheet.",
       "status": "researched"
     },
     {
@@ -156,7 +156,7 @@
       "officialUrl": "https://adadevelopersacademy.org/",
       "contactRoute": "https://adadevelopersacademy.org/partner/",
       "whyFit": "Its technical projects, internship, and career transition support create strong proof-building moments.",
-      "offer": "A workshop linking prior-career experience and Ada projects to defensible evidence.",
+      "offer": "A supported five-person pilot linking prior-career experience and Ada projects to an editable, evidence-first portfolio.",
       "status": "researched"
     },
     {
@@ -166,7 +166,7 @@
       "officialUrl": "https://www.npower.org/",
       "contactRoute": "https://www.npower.org/get-involved/partner/",
       "whyFit": "Its free tech career pathways include mentoring, guest lectures, and employment support.",
-      "offer": "A guest session converting certifications, labs, and service into proof.",
+      "offer": "A supported guest session and five-person pilot converting certifications, labs, and service into portfolio evidence.",
       "status": "researched"
     },
     {
@@ -176,7 +176,7 @@
       "officialUrl": "https://usa.generation.org/jobsprint/",
       "contactRoute": "https://usa.generation.org/partners/",
       "whyFit": "Its free JobSprint directly serves recent graduates and career changers with resume and LinkedIn coaching.",
-      "offer": "A JobSprint companion lab contrasting ATS optimization with evidence quality.",
+      "offer": "A supported five-person JobSprint companion pilot turning real experience into an editable, evidence-first portfolio.",
       "status": "researched"
     },
     {
@@ -186,7 +186,7 @@
       "officialUrl": "https://meritamerica.org/about/",
       "contactRoute": "https://meritamerica.org/contact/",
       "whyFit": "Its workforce program combines technical coursework with workshops and career coaching.",
-      "offer": "A coach-facing workshop, up to 25 audits, and an anonymous cohort summary.",
+      "offer": "A coach-supported five-person résumé-to-portfolio pilot plus deidentified cohort feedback.",
       "status": "researched"
     },
     {
@@ -196,7 +196,7 @@
       "officialUrl": "https://www.breakthroughtech.org/",
       "contactRoute": "https://www.breakthroughtech.org/contact-us/",
       "whyFit": "It combines real technical projects with early-career pathways across more than 200 universities.",
-      "offer": "An AI portfolio evidence lab and deidentified readiness findings for staff.",
+      "offer": "A supported five-person AI portfolio evidence pilot with deidentified readiness feedback for staff.",
       "status": "researched"
     },
     {
@@ -206,7 +206,7 @@
       "officialUrl": "https://anitab.org/apprenticeship-pathway-program/partner",
       "contactRoute": "https://anitab.org/contact-us",
       "whyFit": "Its apprenticeship programs and conference tracks directly support beginners and early-career talent.",
-      "offer": "An apprentice evidence lab, partner-previewable worksheet, and opt-in audits.",
+      "offer": "A supported five-person apprentice résumé-to-portfolio pilot plus a partner-ready worksheet.",
       "status": "researched"
     }
   ]

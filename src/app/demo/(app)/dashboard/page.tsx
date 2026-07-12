@@ -27,7 +27,7 @@ const PORTFOLIOS = [
 const SETUP_STEPS = [
   { label: 'Resume uploaded', done: true, href: '/demo/resume' },
   { label: 'Portfolio built', done: true, href: '/demo/builder' },
-  { label: 'ProofScore run', done: true, href: '/demo/audit' },
+  { label: 'Evidence audit run', done: true, href: '/demo/audit' },
   { label: 'Portfolio published', done: true, href: '/demo/portfolio' },
 ]
 
@@ -41,13 +41,13 @@ const CATEGORIES = [
 ]
 
 const ACTIVITY = [
-  { label: 'Ran ProofScore audit - score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
+  { label: 'Ran evidence audit - score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
   { label: 'Added Checkout Redesign case study', time: 'Yesterday', icon: Plus },
   { label: 'Published portfolio', time: '2 days ago', icon: Globe },
 ]
 
 const STATS = [
-  { label: 'ProofScore', value: '84', color: 'text-emerald-400' },
+  { label: 'Evidence score', value: '84', color: 'text-emerald-400' },
   { label: 'Portfolios', value: '2', color: 'text-foreground' },
   { label: 'Role Fit', value: '91%', color: 'text-brand-400' },
   { label: 'Profile Complete', value: '87%', color: 'text-violet-400' },
@@ -98,7 +98,7 @@ export default function DemoDashboardPage() {
         {/* ProofScore hero */}
         <Card className="bg-surface-100 border-border lg:col-span-1">
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider self-start">Your ProofScore</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider self-start">Your evidence score</p>
             <ProofScoreRing score={84} size="xl" animate={true} />
             <div className="w-full space-y-2 pt-2">
               <div className="flex justify-between text-xs">
@@ -142,7 +142,7 @@ export default function DemoDashboardPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground mb-1">Strengthen Proof Strength</p>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Only 2 of 8 bullets have metrics. Adding 3 more could push your ProofScore from{' '}
+                  Only 2 of 8 bullets have metrics. Adding 3 more could push your evidence score from{' '}
                   <span className="text-amber-400 font-semibold">84 → 91</span>.
                   Recruiters skip unproven claims - numbers make you real.
                 </p>

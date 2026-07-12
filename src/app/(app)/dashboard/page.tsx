@@ -45,12 +45,12 @@ export default async function DashboardPage() {
   }
 
   const nextAction = !latestResume
-    ? { href: '/resume', label: 'Upload your resume', icon: FileText, desc: 'Start by adding your resume to get a ProofScore.' }
+    ? { href: '/resume', label: 'Upload your resume', icon: FileText, desc: 'Start by adding your resume for an evidence audit.' }
     : !latestPortfolio
     ? { href: '/builder', label: 'Create your portfolio', icon: Plus, desc: 'Build your first portfolio from your resume.' }
     : !latestAudit
-    ? { href: '/audit', label: 'Run your ProofScore', icon: BarChart3, desc: 'See exactly how ready you are.' }
-    : { href: '/builder', label: 'Improve your portfolio', icon: TrendingUp, desc: 'Apply your ProofScore recommendations.' }
+    ? { href: '/audit', label: 'Run your evidence audit', icon: BarChart3, desc: 'See exactly how ready you are.' }
+    : { href: '/builder', label: 'Improve your portfolio', icon: TrendingUp, desc: 'Apply your evidence-audit recommendations.' }
 
   const categories = latestAudit?.category_scores
     ? (Array.isArray(latestAudit.category_scores) ? latestAudit.category_scores : Object.values(latestAudit.category_scores)) as Array<{ name: string; score: number; severity: string }>
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
 
   const setupSteps = [
     { label: 'Upload your resume', done: !!latestResume, href: '/resume', cta: 'Add your résumé — everything starts here.' },
-    { label: 'Run your ProofScore', done: !!latestAudit, href: '/audit', cta: 'See exactly how hiring-ready you are.' },
+    { label: 'Run your evidence audit', done: !!latestAudit, href: '/audit', cta: 'See exactly how hiring-ready you are.' },
     { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder', cta: 'Turn your résumé into a portfolio in one click.' },
     { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder', cta: 'Get a shareable link recruiters can open.' },
   ]
@@ -92,8 +92,8 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-muted-foreground text-sm mt-1.5">
               {proofScore
-                ? `Your ProofScore is ${proofScore} — ${scoreLabel(proofScore).toLowerCase()}.`
-                : 'Build your portfolio and get your ProofScore.'}
+                ? `Your evidence score is ${proofScore} — ${scoreLabel(proofScore).toLowerCase()}.`
+                : 'Build your portfolio and review your evidence.'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ export default async function DashboardPage() {
                   </div>
                   <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/audit">Get ProofScore</Link>
+                    <Link href="/audit">Run evidence audit</Link>
                   </Button>
                 </div>
               )}
@@ -360,7 +360,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-2 glass-card overflow-hidden">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                {latestAudit ? 'ProofScore breakdown' : 'What ProofScore measures'}
+                {latestAudit ? 'Evidence-score breakdown' : 'What the evidence audit measures'}
               </p>
               {latestAudit && (
                 <Button asChild variant="ghost" size="sm" className="text-xs h-7" style={{ color: 'oklch(63% 0.20 255)' }}>
@@ -416,7 +416,7 @@ export default async function DashboardPage() {
                     <Button asChild variant="outline" size="sm" className="w-full gap-1.5">
                       <Link href="/audit">
                         <BarChart3 className="h-3.5 w-3.5" />
-                        Run your ProofScore
+                        Run your evidence audit
                       </Link>
                     </Button>
                   </div>

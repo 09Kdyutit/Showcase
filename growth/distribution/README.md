@@ -1,5 +1,13 @@
 # Distribution operator system
 
+> **LEGACY / DISABLED FOR THE ACTIVE CAMPAIGN — founder decision, 2026-07-11.** Do not export,
+> approve, push, regenerate, or submit the existing social queue or partner pipeline. They retain
+> retired free-ProofScore drafts and `/proofscore` destinations for audit history. The active
+> campaign source of truth is `.agents/marketing/12-weekend-publishing-manifest.md` plus its
+> approval-gated partner packets; future public links use the tracked canonical app landing page
+> at `https://app.tryshowcase.ink/?utm_...`. Re-enabling this system requires replacing the stale
+> drafts and a new founder review—it is not authorized by any prior approval phrase.
+
 This folder turns the 30-day organic plan into a reviewable queue without auto-posting,
 fabricated proof, or unsolicited bulk outreach.
 

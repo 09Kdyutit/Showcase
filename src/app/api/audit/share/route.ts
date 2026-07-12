@@ -27,7 +27,7 @@ export async function POST() {
       .maybeSingle()
 
     if (!audit) {
-      return NextResponse.json({ error: 'Run a ProofScore first, then share it.' }, { status: 404 })
+      return NextResponse.json({ error: 'Run an evidence audit first, then share it.' }, { status: 404 })
     }
 
     const existingIsActive = !!audit.share_token
