@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-10",
+  "updated_at": "2026-07-11",
   "release_target": "controlled production beta",
   "confirmed_launch_decisions": {
     "product_scope": "web application only",
@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
-    "source_fingerprint_sha256": "442d952f6019a489b80b39e1b6fe70cc32c6f54880a8d8b51d4a9174e0b1bbce",
-    "verified_at": "2026-07-10T19:53:58.194Z"
+    "evidence_base_git_head": "130d12a0e7a43fc25919d7c984042b9be13fbd38",
+    "source_fingerprint_sha256": "cc21130d75924786ca685722b8d53587f1bd95981f357a51a917a4cd4ca64902",
+    "verified_at": "2026-07-12T01:19:24.256Z"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -134,7 +134,7 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-10 local verification: npm run test:launch-offline passed growth automation, paced admission, public ProofScore (26/26), Founding, referral pacing, 100 deterministic AI-budget checks, the explicit database-grant matrix, X-only distribution invariants, launch security, authenticated backup roundtrip/tamper/restore-verifier tests, marketing truthfulness, and the once-daily Vercel Hobby cron contract. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized Next.js production build for 111 routes/pages. The canonical no-secret blank-database suite passed 380/380 database, Stripe, route-authorization, parse, and deletion assertions against an isolated production-mode Next server, and git diff --check is clean. Follow-up revision 7b150783085b adds the closed-beta public/private route-boundary regression contract; its candidate and production route probes match. Initial CI run 29119544469 reported only the expected stale pre-recovery source fingerprint, which this evidence update regenerates; it is not represented as successful."
+      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion."
     },
     {
       "id": "GROWTH-MIGRATIONS",
@@ -159,7 +159,7 @@
       "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/production-rollout-evidence.json preserves the initial clean f968af8b5b25 paired promotion and records the no-database/no-control public-route recovery to clean source 7b150783085b6e98a161225b76f82ca12a57ae7a. Staged deployment dpl_WPEeQ9uDAEaFh4D9nRHhoCiRcMYz was promoted without rebuild to canonical showcase-app. At 2026-07-10T19:53:58.194Z, https://app.tryshowcase.ink/api/health reported status ok, production commit 7b150783085b, environment production, and a healthy database. Candidate and live probes matched: public marketing pages returned 200; nonexistent published/token-share routes returned 404 instead of the waitlist; unauthenticated signup/private pages redirected to /waitlist; private APIs returned 403; malformed feedback returned 400; and unsigned Stripe/email plus unauthenticated cron probes failed closed. Initial CI run 29119544469 reported the stale pre-recovery release fingerprint; no successful run is claimed for the deployed source. The Hobby-compatible lifecycle and retention schedules remain once daily."
+      "evidence": "security/production-rollout-evidence.json preserves the initial production recovery and rollback authority. On 2026-07-11, revision 130d12a was built as unaliased production deployment dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec in the canonical showcase-app project; the previous rollback deployment is dpl_3X2VgsCGKtGEEJ6fJWhiuvWsPuTN. Candidate probes returned 200 for root, one permanent redirect from /proofscore and nested legacy paths to root, 404 for retired score/reserve/stash APIs, no retired public copy in root or signup HTML, and green production health with commit 130d12a0e7a4. The exact candidate was then promoted without rebuild. Canonical https://app.tryshowcase.ink repeated the same probes and health result at 2026-07-12T01:19:24.256Z; https://tryshowcase.ink remained unchanged and reachable."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
@@ -174,10 +174,9 @@
       "id": "GROWTH-DISTRIBUTION-APPROVAL",
       "area": "distribution",
       "description": "Founder-approved X content and first partner wave are ready for manual release",
-      "status": "NOT_STARTED",
+      "status": "PASS",
       "release_blocking": false,
-      "evidence": "The queue now contains twenty X-only drafts at exactly four posts/week for five weeks; export and Buffer-Idea helpers reject non-X channels and never publish. growth/distribution/partner-wave-1-review.md contains five personalized founder drafts from twenty official-page hypotheses. Dry runs confirmed that nothing was posted, scheduled, or contacted.",
-      "blocker": "Replace metric/evidence placeholders, approve each X row before saving it as a Buffer draft, and obtain founder approval for all five notes in partner-wave-1-review.md before any public contact-form submission."
+      "evidence": "The founder explicitly approved Partner Wave 1; the reviewed messages were submitted once through official routes and later corrected once to the canonical landing page, with four official-form receipts preserved in the campaign ledger. The current Buffer queue is empty, four clean native X posts remain scheduled, and all active machine-readable social and partner assets are portfolio-first with no /proofscore or waitlist destinations. The retirement regression and distribution validator both pass; historical exact-send records remain clearly marked and are not reusable instructions."
     },
     {
       "id": "P0-RACE",
