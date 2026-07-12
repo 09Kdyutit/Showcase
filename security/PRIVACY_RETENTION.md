@@ -1,11 +1,12 @@
 # Data Flow and Retention
 
-**Code- and production-audited July 10, 2026.** Production has the canonical 48-record
-application ledger through `20260710033047_explicit_data_api_grants.sql`, and clean
-revision `7b150783085b` deploys the daily cron routes in `vercel.json`. Email, checkout,
-AI, Gemini, jobs-provider calls, publishing, and Interview AI remain disabled; their
-provider-dependent guarantees do not become operational until the separate release gates
-and end-to-end tests pass.
+**Code-audited July 11, 2026; production evidence remains dated July 10.** Production has
+the canonical 48-record application ledger through
+`20260710033047_explicit_data_api_grants.sql`. The repository's 49th migration,
+`20260712035035_retire_public_proofscore_infrastructure.sql`, is prepared but is not covered
+by that production evidence until it is separately applied and verified. Provider-dependent
+guarantees remain governed by their separate production controls and end-to-end release
+gates; this document does not infer their current state from the dated rollout evidence.
 
 ## Data inventory
 
@@ -15,10 +16,9 @@ and end-to-end tests pass.
 | Uploaded files | resume files, portfolio images, interview recordings | `/api/account/delete` discovers every Storage bucket and recursively removes objects under the user's prefix before deleting the auth user. A Storage list/remove failure aborts account deletion so the user can retry without receiving a false success. |
 | Billing state | local Stripe customer/subscription IDs and plan status | Local subscription rows are deleted with the account. Stripe remains the payment system of record and may retain customer and transaction records for its legal and operational obligations. Showcase does not store card or bank details. |
 | Waitlist | email, goal, referral and admission state | A waitlist row can remain after account deletion, with `converted_user_id` unlinked. Privacy deletion requests can be sent to `hello@tryshowcase.ink`. |
-| Anonymous ProofScore parse | resume text and parsed JSON behind an unguessable claim token | Claim access expires after at most 48 hours, successful claims delete atomically, and a daily retention job purges expired rows. The stash and claim endpoints also remove expired rows opportunistically. |
-| ProofScore reservation | email and one future audit date | Deleted after the reserved date has passed. The email is used to send the requested reservation link, not enrolled in lifecycle marketing. |
+| Retired anonymous-funnel remnants | legacy pending resume parse rows and public-audit reservation emails | Migration 048 refuses to run before the final grace boundary, while any unexpired parse exists, or while any still-actionable reservation exists. It then drops the empty/expired-only legacy tables and deletes only their exact rate-limit prefixes. Until that migration is production-applied, migration 047's bounded retention behavior remains the live database contract. |
 | Growth and usage facts | attribution, trusted product events, feature usage, aggregate AI cost events | Used for product operation, abuse control, and aggregate measurement. User-owned rows follow their schema foreign-key behavior; aggregate/non-user facts may remain without resume contents. |
-| Rate-limit counters | hashed client fingerprint or user key, feature and window | Eligible for purge after eight days and removed by the daily retention job. Raw IP addresses are not written to these counters. |
+| Rate-limit counters | salted, hashed client fingerprint or user key, feature and window | Eligible for purge after eight days and removed by the daily retention job. Raw IP addresses are not written to these counters; remaining public endpoints fail closed in production unless `ABUSE_IP_HASH_SALT` contains at least 32 characters. |
 | Email delivery ledger | recipient, rendered message, provider ID and delivery state | Completed/suppressed deliveries and exhausted failures are purged after 90 days. Pending/retryable work remains until delivered, suppressed, or exhausted. |
 | Email provider events | signed Resend webhook identifiers and status | Processed and failed event claims are purged after 90 days. |
 | Email suppressions | normalized email and bounce, complaint, or manual suppression reason | Retained so Showcase continues honoring opt-outs, bounces, and complaints. |

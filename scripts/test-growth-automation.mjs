@@ -183,22 +183,12 @@ assert.match(scorecardRoute, /actual_cost_nano_usd/)
 
 const hardeningMigration = readFileSync(resolve('supabase/migrations/20260710033043_email_and_parse_hardening.sql'), 'utf8')
 for (const required of [
-  'create or replace function public.claim_pending_parse',
-  'delete from public.pending_parses p',
-  'insert into public.resumes',
-  'revoke all on function public.claim_pending_parse',
-  'grant execute on function public.claim_pending_parse',
   'create or replace function public.guard_email_provider_status_monotonic',
   'email_deliveries_monotonic_provider_status',
   'create or replace function public.apply_email_recipient_suppression',
   'lower(trim(p.email)) = v_email',
   'lower(trim(d.recipient_email)) = v_email',
 ]) assert.ok(hardeningMigration.toLowerCase().includes(required.toLowerCase()), `hardening migration is missing: ${required}`)
-
-const claimRoute = readFileSync(resolve('src/app/api/proofscore/claim-parse/route.ts'), 'utf8')
-assert.match(claimRoute, /rpc\('claim_pending_parse'/)
-assert.match(claimRoute, /LEGACY_CLAIM_GRACE_END_MS/)
-assert.doesNotMatch(claimRoute, /from\('resumes'\)[\s\S]{0,80}\.insert\(/, 'route must not split resume insert from token consumption')
 
 const proxy = readFileSync(resolve('src/proxy.ts'), 'utf8')
 assert.ok((proxy.match(/['"]\/api\/email\/events['"]/g) ?? []).length >= 2, 'delivery webhook needs both origin and lockdown exemptions')

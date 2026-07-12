@@ -6,7 +6,7 @@ import { Resend } from 'resend'
 import { waitlistConfirmationEmail } from '@/lib/email/waitlist-email'
 import { isEmailSuppressed } from '@/lib/email/suppressions'
 import { generateAdmissionToken, generateWaitlistReferralCode } from '@/lib/growth/admission'
-import { clientFingerprint } from '@/lib/proofscore/capacity'
+import { PublicAbuseGuardError, clientFingerprint } from '@/lib/security/public-abuse'
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email address').toLowerCase(),
@@ -46,10 +46,9 @@ function publicSuccessResponse() {
 
 export async function POST(req: NextRequest) {
   try {
-    const fingerprint = clientFingerprint(req)
-
     let rl
     try {
+      const fingerprint = clientFingerprint(req)
       rl = await getRateLimiter().check(
         `waitlist:${fingerprint}`,
         IP_LIMIT,
@@ -57,7 +56,9 @@ export async function POST(req: NextRequest) {
         { failOpen: false },
       )
     } catch (error) {
-      console.error('[waitlist] strict rate limit unavailable:', error instanceof Error ? error.message : error)
+      if (!(error instanceof PublicAbuseGuardError)) {
+        console.error('[waitlist] strict rate limit unavailable:', error instanceof Error ? error.message : error)
+      }
       return NextResponse.json(
         { error: 'Waitlist signup is temporarily unavailable. Please try again shortly.' },
         { status: 503 },

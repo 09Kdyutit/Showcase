@@ -155,34 +155,6 @@ export default function OnboardingPage() {
 
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
 
-  // Gracefully consume any handoff issued before the anonymous tool was retired.
-  // The server rejects every claim after the final legacy token expires tonight.
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('showcase_parse_token') : null
-    if (!token) return
-    localStorage.removeItem('showcase_parse_token')
-    void (async () => {
-      setPhase('analyzing')
-      setBusyMsg('Picking up your previous resume analysis…')
-      try {
-        const res = await fetch('/api/proofscore/claim-parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        })
-        const { data } = await res.json()
-        if (res.ok && data?.claimed && data.parsed) {
-          applyParsedResume(data.parsed as ParsedResume)
-          setPhase('review')
-          return
-        }
-      } catch {
-        // Fall through to the normal upload flow.
-      }
-      setPhase('upload')
-    })()
-  }, [])
-
   const [targetRole, setTargetRole] = useState('')
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null)
   const [industry, setIndustry] = useState('Technology')

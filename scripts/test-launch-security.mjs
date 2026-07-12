@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const read = (path) => readFileSync(resolve(path), 'utf8')
@@ -38,8 +38,6 @@ assert.match(rlsTest, /publish/i)
 
 const retentionRoute = read('src/app/api/cron/data-retention/route.ts')
 assert.match(retentionRoute, /CRON_SECRET/, 'retention cleanup must require cron authentication')
-assert.match(retentionRoute, /from\('pending_parses'\).*delete/s, 'expired anonymous resume parses must be purged')
-assert.match(retentionRoute, /from\('proofscore_reservations'\).*delete/s, 'expired reservation emails must be purged')
 assert.match(retentionRoute, /from\('rate_limit_counters'\).*delete/s, 'old abuse counters must be purged')
 assert.match(retentionRoute, /from\('email_deliveries'\).*attempts.*3/s, 'exhausted email payloads must be purged')
 assert.match(retentionRoute, /90 \* 86400_000/, 'terminal email records must have a bounded retention window')
@@ -114,8 +112,18 @@ assert.match(releaseGate, /release verification requires a clean Git working tre
 assert.match(releaseGate, /computeHeadFingerprint/, 'normal verification must hash committed blobs')
 const releaseManifest = JSON.parse(read('security/release-gate.json'))
 assert.equal(releaseManifest.schema_version, 1)
-assert.equal(releaseManifest.contracts.growth_migrations.length, 13)
+assert.equal(releaseManifest.contracts.growth_migrations.length, 14)
 assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
+
+const canonicalMigrations = readdirSync(resolve('supabase/migrations'))
+  .filter((file) => file.endsWith('.sql'))
+  .sort((left, right) => left.localeCompare(right))
+assert.equal(canonicalMigrations.length, 49)
+assert.equal(
+  canonicalMigrations.at(-1),
+  '20260712035035_retire_public_proofscore_infrastructure.sql',
+  'the current repository ledger must extend through migration 048',
+)
 
 const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))
 const rolloutEvidence = JSON.parse(read('security/production-rollout-evidence.json'))
@@ -333,9 +341,10 @@ assert.ok(
 )
 for (const id of ['GROWTH-MIGRATIONS', 'GROWTH-PROD-DEPLOY']) {
   const requirement = releaseManifest.requirements.find((row) => row.id === id)
-  assert.equal(requirement?.status, 'PASS', `${id} must reflect the completed production rollout`)
+  assert.equal(requirement?.status, 'BLOCKED', `${id} must fail closed until migration 048 is live-proven`)
   assert.equal(requirement?.release_blocking, true, `${id} remains a mandatory release contract`)
   assert.match(requirement?.evidence ?? '', /production-rollout-evidence\.json/)
+  assert.match(requirement?.blocker ?? '', /048|20260712035035/)
 }
 const deletionRequirement = releaseManifest.requirements.find((row) => row.id === 'P1-19')
 assert.equal(deletionRequirement?.status, 'BLOCKED', 'P1-19 still needs provider-backed deletion proof')
@@ -349,6 +358,8 @@ assert.match(migrationRequirement?.evidence ?? '', /history-only repair/i)
 assert.match(migrationRequirement?.evidence ?? '', /dry-run.*038-047/i)
 assert.match(migrationRequirement?.evidence ?? '', /48-record ledger through 047/i)
 assert.ok(releaseManifest.contracts.required_production_env_names.includes('INBOUND_FORWARD_TO'))
+assert.ok(releaseManifest.contracts.required_production_env_names.includes('ABUSE_IP_HASH_SALT'))
+assert.equal(releaseManifest.contracts.required_production_env_names.includes('PROOFSCORE_IP_HASH_SALT'), false)
 assert.ok(releaseManifest.contracts.optional_production_env_names.includes('ERROR_WEBHOOK_URL'))
 assert.equal(
   releaseManifest.requirements.some((requirement) => requirement.id === 'MOBILE-STORE-READINESS'),
@@ -363,6 +374,8 @@ assert.match(envExample, /^EMAILS_ENABLED=false$/m)
 assert.match(envExample, /^LIFECYCLE_EMAILS_ENABLED=false$/m)
 assert.match(envExample, /^INTERVIEW_KILL_SWITCH=true$/m)
 assert.match(envExample, /^KILL_SWITCH_GEMINI=true$/m)
+assert.match(envExample, /^ABUSE_IP_HASH_SALT=$/m)
+assert.doesNotMatch(envExample, /^PROOFSCORE_IP_HASH_SALT=/m)
 
 const securityWorkflow = read('.github/workflows/security.yml')
 for (const workflowGuard of [
@@ -371,6 +384,7 @@ for (const workflowGuard of [
   'Stripe secret must be test mode',
   'yogwhfrjhcbnvoxitcay',
   'node scripts/release-gate.mjs --contract-only',
+  'ABUSE_IP_HASH_SALT: ci-staging-public-abuse-salt-not-secret-2026',
   'EXPECT_PROD=1 npm run test:headers',
   'concurrency:',
 ]) {
@@ -378,6 +392,8 @@ for (const workflowGuard of [
 }
 
 const stagingPreflight = read('scripts/assert-staging-env.mjs')
+assert.match(stagingPreflight, /ABUSE_IP_HASH_SALT/)
+assert.match(stagingPreflight, /length\s*\?\?\s*0\)\s*<\s*32/)
 assert.match(stagingPreflight, /yogwhfrjhcbnvoxitcay/)
 assert.match(stagingPreflight, /sk_test_/)
 assert.match(stagingPreflight, /this worktree is linked to production/)

@@ -187,6 +187,8 @@ jobs:
           KILL_SWITCH_CHECKOUT: 'true'
           KILL_SWITCH_JOBS_PROVIDER: 'true'
           KILL_SWITCH_PUBLISHING: 'true'
+          # Non-secret, isolated staging-only salt; production must use a private random value.
+          ABUSE_IP_HASH_SALT: ci-staging-public-abuse-salt-not-secret-2026
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: |
           touch .env.local

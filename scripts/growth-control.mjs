@@ -52,16 +52,12 @@ const [
   waitlistResult,
   invitedTodayResult,
   foundingResult,
-  proofscoreUsageResult,
-  proofscoreReservationsResult,
   aiCostResult,
 ] = await Promise.all([
   admin.from('growth_controls').select('invites_paused, daily_invite_limit, updated_at').eq('id', 1).maybeSingle(),
   admin.from('waitlist_signups').select('*', { count: 'exact', head: true }).eq('status', 'waitlisted'),
   admin.from('waitlist_signups').select('*', { count: 'exact', head: true }).gte('invite_sent_at', todayStart),
   admin.rpc('get_founding_member_availability'),
-  admin.from('proofscore_daily_usage').select('general_used').eq('usage_date', today).maybeSingle(),
-  admin.from('proofscore_reservations').select('*', { count: 'exact', head: true }).eq('reserved_for', today),
   readAiCostRows(todayStart),
 ])
 
@@ -70,17 +66,12 @@ for (const [label, result] of [
   ['waitlist_signups', waitlistResult],
   ['invited_today', invitedTodayResult],
   ['founding_availability', foundingResult],
-  ['proofscore_daily_usage', proofscoreUsageResult],
-  ['proofscore_reservations', proofscoreReservationsResult],
   ['general_ai_budget_reservations', aiCostResult],
 ]) {
   if (result.error) fail(`${label} read failed: ${result.error.message}`)
 }
 
 const founding = Array.isArray(foundingResult.data) ? foundingResult.data[0] : foundingResult.data
-const reservedToday = proofscoreReservationsResult.count ?? 0
-const generalUsed = proofscoreUsageResult.data?.general_used ?? 0
-const proofscoreRemaining = Math.max(0, 25 - reservedToday - generalUsed)
 const aiCostNanoUsd = (aiCostResult.data ?? []).reduce((sum, row) => {
   if (row.status === 'released') return sum
   return sum + Number(row.status === 'reserved'
@@ -97,9 +88,6 @@ console.table({
   founding_paused: founding?.reservations_paused ?? 'unknown',
   founding_claimed_or_reserved: founding?.claimed_count ?? 'unknown',
   founding_remaining: founding?.remaining_count ?? 'unknown',
-  proofscore_general_used_today: generalUsed,
-  proofscore_reserved_today: reservedToday,
-  proofscore_walk_in_capacity_remaining: proofscoreRemaining,
   ai_cost_today_usd: Number((aiCostNanoUsd / 1_000_000_000).toFixed(4)),
 })
 

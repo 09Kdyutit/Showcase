@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
-  ProofScoreCapacityError,
+  PublicAbuseGuardError,
   clientFingerprint,
   enforceAtomicLimit,
-} from '@/lib/proofscore/capacity'
+} from '@/lib/security/public-abuse'
 import { createServiceClient } from '@/lib/supabase/server'
 
 const schema = z.string().trim().regex(/^[A-F0-9]{32}$/)
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       : 0
     return NextResponse.json({ valid: remaining > 0, remaining }, { headers: NO_STORE })
   } catch (error) {
-    if (!(error instanceof ProofScoreCapacityError)) {
+    if (!(error instanceof PublicAbuseGuardError)) {
       console.error('[referral/validate]', error instanceof Error ? error.message : 'unknown error')
     }
     return NextResponse.json({ error: 'Invite validation is unavailable' }, { status: 503, headers: NO_STORE })

@@ -49,6 +49,7 @@ const expectedGrowthMigrations = [
   '20260710033045_referral_invite_pacing.sql',
   '20260710033046_referral_abuse_and_credit_hardening.sql',
   '20260710033047_explicit_data_api_grants.sql',
+  '20260712035035_retire_public_proofscore_infrastructure.sql',
 ]
 const expectedCrons = {
   '/api/cron/interview-retention': '0 5 * * *',
@@ -94,7 +95,7 @@ const requiredProductionEnvNames = [
   'EMAILS_ENABLED',
   'LIFECYCLE_EMAILS_ENABLED',
   'GROWTH_SCORECARD_EMAIL',
-  'PROOFSCORE_IP_HASH_SALT',
+  'ABUSE_IP_HASH_SALT',
   'LAUNCH_OPEN',
 ]
 const optionalProductionEnvNames = [
@@ -144,7 +145,7 @@ if (!sameJson(sortedUnique(contracts.required_requirement_ids ?? []), sortedUniq
   failContract('required requirement ID contract does not match the checker')
 }
 if (!sameJson(contracts.growth_migrations, expectedGrowthMigrations)) {
-  failContract('growth migration contract does not match canonical migrations 035-047')
+  failContract('growth migration contract does not match canonical migrations 035-048')
 }
 if (!sameJson(contracts.crons, expectedCrons)) failContract('cron contract does not match the checker')
 if (!sameJson(contracts.required_production_env_names, requiredProductionEnvNames)) {
@@ -156,7 +157,10 @@ if (!sameJson(contracts.optional_production_env_names, optionalProductionEnvName
 
 const migrationDir = join(root, 'supabase', 'migrations')
 const actualGrowthMigrations = readdirSync(migrationDir)
-  .filter((name) => /^202607100330(?:3[5-9]|4[0-7])_/.test(name))
+  .filter((name) => (
+    /^202607100330(?:3[5-9]|4[0-7])_/.test(name)
+      || name === '20260712035035_retire_public_proofscore_infrastructure.sql'
+  ))
   .sort()
 if (!sameJson(actualGrowthMigrations, expectedGrowthMigrations)) {
   failContract(`growth migration files differ: ${actualGrowthMigrations.join(', ')}`)

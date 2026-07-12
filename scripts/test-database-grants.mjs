@@ -97,8 +97,7 @@ for (const table of [
   'ai_cost_events', 'beta_feedback', 'email_deliveries', 'email_provider_events',
   'email_suppressions', 'founding_member_config', 'founding_member_slots',
   'general_ai_budget_reservations', 'growth_attributions', 'growth_controls',
-  'interview_cost_events', 'marketing_events', 'pending_parses',
-  'processed_webhook_events', 'proofscore_daily_usage', 'proofscore_reservations',
+  'interview_cost_events', 'marketing_events', 'processed_webhook_events',
   'rate_limit_counters', 'storage_deletion_queue', 'trusted_events', 'usage_events',
   'waitlist_signups',
 ]) {

@@ -658,13 +658,9 @@ async function liveAudit(summary) {
     record('public analytics fails soft without accepting unreviewed event names', response.status === 200 && response.json?.success === true)
 
     console.log('\nService-only RPC boundaries')
-    const tomorrow = new Date(Date.now() + 86400_000).toISOString().slice(0, 10)
-    const today = new Date().toISOString().slice(0, 10)
     const rpcCases = [
       ['rate_limit_increment', { p_key: `auth-matrix:${suffix}`, p_window_seconds: 60, p_max: 1 }],
       ['claim_webhook_event', { p_event_id: `auth-matrix-rpc:${suffix}`, p_event_type: 'auth.matrix', p_stale_after_seconds: 300 }],
-      ['reserve_proofscore_slot', { p_email: `rpc-reserve-${suffix}@example.com`, p_reserved_for: tomorrow }],
-      ['claim_proofscore_capacity', { p_usage_date: today, p_reservation_token: null }],
       ['claim_referral', { p_new_user: rpcVictim.id, p_code: ownerProfile.referral_code }],
       ['redeem_waitlist_admission', { p_token: admissionToken, p_user_id: admitted.id }],
     ]
@@ -772,7 +768,6 @@ async function liveAudit(summary) {
     // The harness resets the database after the suite. Best-effort deletion keeps this test
     // composable with later app tests even before that reset happens.
     try { await service.from('waitlist_signups').delete().in('email', Object.values(emails)) } catch { /* best effort */ }
-    try { await service.from('proofscore_reservations').delete().like('email', `%${suffix}%`) } catch { /* best effort */ }
     try { await service.from('processed_webhook_events').delete().in('event_id', cleanupEventIds) } catch { /* best effort */ }
     try { await service.from('rate_limit_counters').delete().or(`key.like.%${suffix}%,key.like.auth-matrix:%`) } catch { /* best effort */ }
     for (const user of users.reverse()) {

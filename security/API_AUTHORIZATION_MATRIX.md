@@ -1,7 +1,7 @@
 # API authorization matrix
 
-Reviewed from the current source on 2026-07-10. Scope is **every** `route.ts` below
-`src/app/api`: 82 route modules and 102 exported HTTP handlers. The machine-readable source
+Reviewed from the current source on 2026-07-11. Scope is **every** `route.ts` below
+`src/app/api`: 78 route modules and 97 exported HTTP handlers. The machine-readable source
 of truth is [`security/api-authorization-matrix.json`](./api-authorization-matrix.json).
 `scripts/test-api-authorization-local.mjs --inventory-only` fails if a route or method is
 missing, stale, duplicated, or placed behind an unreviewed trust boundary.
@@ -91,7 +91,6 @@ missing, stale, duplicated, or placed behind an unreviewed trust boundary.
 | `/api/portfolio/save` | POST | session | owner-filter | Update is filtered by portfolio id and user_id. |
 | `/api/portfolio/upload-image` | POST | session | session-user | Private storage path is generated under user.id; no client owner field is accepted. |
 | `/api/projects/saved` | GET/POST/DELETE | session | owner-filter | Create owner, list/cap, and delete are all scoped to user.id. |
-| `/api/proofscore/claim-parse` | POST | session | service-after-owner | Temporary claim-only grace path for tokens issued before public-tool retirement; atomically consumes a live token into a resume owned by the cookie user and returns 410 after the final legacy expiry. |
 | `/api/referral/claim` | POST | session | service-after-owner | Route supplies cookie user id to the atomic claim RPC; user/IP pacing and profile precondition apply. |
 | `/api/referral/validate` | GET | public-capacity | service-capacity | Strict code format, connection throttle, and remaining-count-only response. |
 | `/api/resume/export-pdf` | POST | session | owner-filter | Resume or tailored asset lookup is filtered by id and user_id before rendering. |
@@ -118,9 +117,9 @@ The local suite proves more than source shape:
 - missing, wrong, and correct local cron secrets are exercised for all six cron handlers;
 - Stripe and both Resend webhook routes reject invalid signatures and accept locally signed,
   provider-free ignored events;
-- anonymous and authenticated Data API clients attack six critical service-only RPCs;
-- referral capacity, waitlist email-bound admission, public share redaction, ProofScore
-  capacity, and signed unsubscribe confirmation are exercised without external providers.
+- anonymous and authenticated Data API clients attack critical service-only RPCs;
+- referral capacity, waitlist email-bound admission, public share redaction, and signed
+  unsubscribe confirmation are exercised without external providers.
 
 Run the inventory-only part anywhere:
 

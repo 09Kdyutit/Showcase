@@ -41,7 +41,6 @@ const WAITLIST_ALLOWED_API_PREFIXES = [
   '/api/interviews/reports/',
   '/api/health',
   '/api/marketing/track',
-  '/api/proofscore/claim-parse',
 ]
 const INVITE_TOKEN_PATTERN = /^[a-f0-9]{48}$/
 

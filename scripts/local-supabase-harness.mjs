@@ -243,7 +243,7 @@ export function buildLocalTestEnvironment(status, baseEnv = process.env) {
     INVITE_EXCLUDE: '',
     UNSUBSCRIBE_SIGNING_SECRET: 'local-test-only-unsubscribe-secret',
     CRON_SECRET: 'local-test-only',
-    PROOFSCORE_IP_HASH_SALT: 'local-test-only',
+    ABUSE_IP_HASH_SALT: 'local-test-only-public-abuse-salt-2026',
     RUN_LIVE_TESTS: '1',
     LOCAL_SUPABASE_PORT: '54321',
   })

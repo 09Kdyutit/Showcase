@@ -183,6 +183,7 @@ const overridden = buildLocalTestEnvironment(SAFE_STATUS, {
   INVITE_APP_URL: 'https://real-app.example.com',
   INVITE_EXCLUDE: 'real-user@example.com',
   UNSUBSCRIBE_SIGNING_SECRET: 'real-unsubscribe-secret',
+  ABUSE_IP_HASH_SALT: 'real-inherited-public-abuse-salt-value',
 })
 assert.doesNotThrow(() => assertSafeTestEnvironment(overridden))
 assert.equal(overridden.NEXT_PUBLIC_SUPABASE_URL, SAFE_STATUS.API_URL)
@@ -194,6 +195,8 @@ assert.equal(overridden.KILL_SWITCH_AI, 'true')
 assert.equal(overridden.RUN_LIVE_TESTS, '1')
 assert.equal(overridden.LOCAL_SUPABASE_PORT, '54321')
 assert.equal(overridden.SHOWCASE_LOCAL_HARNESS, 'true')
+assert.equal(overridden.ABUSE_IP_HASH_SALT, 'local-test-only-public-abuse-salt-2026')
+assert.ok(overridden.ABUSE_IP_HASH_SALT.length >= 32)
 for (const disabledProviderVariable of [
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',

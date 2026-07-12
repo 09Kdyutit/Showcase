@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { clientFingerprint, enforceAtomicLimit } from '@/lib/proofscore/capacity'
+import {
+  PublicAbuseGuardError,
+  clientFingerprint,
+  enforceAtomicLimit,
+} from '@/lib/security/public-abuse'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export const maxDuration = 15
@@ -32,9 +36,10 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return respond({ error: 'Invalid code' }, 400)
 
     const service = await createServiceClient()
+    const fingerprint = clientFingerprint(request)
     const [userLimit, connectionLimit] = await Promise.all([
       enforceAtomicLimit(service, `referral-claim-user:${user.id}`, 10, 60 * 60),
-      enforceAtomicLimit(service, `referral-claim-ip:${clientFingerprint(request)}`, 30, 60 * 60),
+      enforceAtomicLimit(service, `referral-claim-ip:${fingerprint}`, 30, 60 * 60),
     ])
     if (!userLimit.allowed || !connectionLimit.allowed) {
       const retryAfter = Math.max(userLimit.retry_after_seconds, connectionLimit.retry_after_seconds)
@@ -85,7 +90,9 @@ export async function POST(request: NextRequest) {
 
     return respond({ data: { claimed: true } })
   } catch (error) {
-    console.error('[referral/claim]', error instanceof Error ? error.message : 'unknown error')
+    if (!(error instanceof PublicAbuseGuardError)) {
+      console.error('[referral/claim]', error instanceof Error ? error.message : 'unknown error')
+    }
     return respond({ error: 'Referral claiming is temporarily unavailable' }, 503)
   }
 }

@@ -62,11 +62,10 @@ global request count, and only then may the provider run. A dollar denial or acc
 outage therefore occurs before product quota can be consumed. If product quota denies, the
 unused dollar reservation is released idempotently.
 
-Public ProofScore keeps its three-per-IP counter first because that counter measures abuse
-attempts, not delivered audits. It then reserves dollars before claiming either a general
-daily audit or a one-use reserved audit. Every pre-provider exit releases the unused dollar
-reservation; release becomes a no-op as soon as a provider attempt starts, so a lost or
-ambiguous provider response can never be used to reopen spend capacity.
+The retired anonymous ProofScore funnel has no provider path and no separate public capacity
+ledger. Remaining public request surfaces use the generic, fail-closed `ABUSE_IP_HASH_SALT`
+fingerprint guard for abuse control, but they cannot spend the OpenAI budget. Provider calls
+continue through authenticated quota and dollar-reservation boundaries.
 
 Free first-portfolio generation uses three server-owned gates: `ai_generated_at` records the
 current portfolio write, a completed `generations` row preserves lifetime history even if
@@ -119,7 +118,7 @@ node scripts/test-portfolio-generation-entitlement-live.mjs
 The deterministic test covers decimal/rate parsing, cached-token settlement math, SQL
 serialization and stale behavior, service-role grants, reserve-before-quota ordering across
 all authenticated OpenAI routes, one-shot/idempotent reservation behavior, retry disabling,
-mock-mode bypass, public daily/reserved capacity ordering, and the approved allocation split.
+mock-mode bypass, retired public-capacity absence, and the approved allocation split.
 The local credentialed tests fire real parallel database transactions: the dollar ledger
 admits exactly five of ten near-cap reservations, while the Free portfolio entitlement
 admits exactly one of ten claims with no referral-credit consumption. Both clean up their

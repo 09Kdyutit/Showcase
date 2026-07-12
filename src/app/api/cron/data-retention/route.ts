@@ -11,21 +11,16 @@ export async function GET(request: NextRequest) {
 
   const service = await createServiceClient()
   const now = new Date()
-  const todayUtc = now.toISOString().slice(0, 10)
   const rateCounterCutoff = new Date(now.getTime() - 8 * 86400_000).toISOString()
   const emailLedgerCutoff = new Date(now.getTime() - 90 * 86400_000).toISOString()
 
   try {
     const [
-      parses,
-      reservations,
       counters,
       completedDeliveries,
       exhaustedDeliveries,
       providerEvents,
     ] = await Promise.all([
-      service.from('pending_parses').delete({ count: 'exact' }).lte('expires_at', now.toISOString()),
-      service.from('proofscore_reservations').delete({ count: 'exact' }).lt('reserved_for', todayUtc),
       service.from('rate_limit_counters').delete({ count: 'exact' }).lt('window_start', rateCounterCutoff),
       service.from('email_deliveries').delete({ count: 'exact' })
         .in('status', ['sent', 'suppressed'])
@@ -40,8 +35,6 @@ export async function GET(request: NextRequest) {
     ])
 
     for (const [name, result] of [
-      ['pending parses', parses],
-      ['ProofScore reservations', reservations],
       ['rate-limit counters', counters],
       ['completed email deliveries', completedDeliveries],
       ['exhausted email deliveries', exhaustedDeliveries],
@@ -53,14 +46,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       deleted: {
-        pendingParses: parses.count ?? 0,
-        proofscoreReservations: reservations.count ?? 0,
         rateLimitCounters: counters.count ?? 0,
         emailDeliveries: (completedDeliveries.count ?? 0) + (exhaustedDeliveries.count ?? 0),
         emailProviderEvents: providerEvents.count ?? 0,
       },
       policy: {
-        pendingParseAvailability: '48 hours; expired rows are purged by this hourly job',
         rateLimitCounters: '8 days',
         terminalEmailLedger: '90 days',
         suppressions: 'retained to honor opt-outs and provider complaints',

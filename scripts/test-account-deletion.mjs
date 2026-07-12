@@ -145,8 +145,8 @@ function auditAppliedMigrations() {
     from supabase_migrations.schema_migrations
   `)
   assert.deepEqual(applied, expected)
-  assert.equal(files.at(-1), '20260710033047_explicit_data_api_grants.sql')
-  record('canonical migration ledger exactly matches all repository files through 047', true, `${files.length} applied`)
+  assert.equal(files.at(-1), '20260712035035_retire_public_proofscore_infrastructure.sql')
+  record('canonical migration ledger exactly matches all repository files through 048', true, `${files.length} applied`)
 }
 
 function auditAuthOwnershipGraph() {

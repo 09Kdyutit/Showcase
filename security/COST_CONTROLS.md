@@ -13,9 +13,9 @@ Per-provider financial damage containment, verified against actual current confi
   **$4/day and $80/month** controls. The canonical migration and local concurrency proof
   pass; production still needs the migration and exact environment values.
 - **Quota fairness:** authenticated OpenAI calls reserve dollars before consuming feature
-  quota/referral credits; public ProofScore reserves dollars before claiming general or
-  reserved daily capacity. Separate short-window user/IP attempt counters run first to bound
-  reservation churn, but those counters are abuse controls rather than paid/product credits.
+  quota/referral credits. The retired anonymous ProofScore funnel has no provider path or
+  public capacity ledger. Remaining public request surfaces use fail-closed, salted hashed-IP
+  abuse counters and cannot spend the OpenAI budget.
 - **Approved total budget:** **$5/day and $100/month.** The separate Interview Lab allocation
   is $1/$20, but its global precheck is not yet atomic. Keep `INTERVIEW_KILL_SWITCH=true`;
   while disabled, the enforceable total is the lower, safe $4/$80 general ceiling.

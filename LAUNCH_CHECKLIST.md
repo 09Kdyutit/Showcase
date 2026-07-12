@@ -5,15 +5,17 @@ For the detailed, continuously updated release-readiness tracking, see
 source of truth. `security/EXECUTION_MANIFEST.md` is a dated historical record.
 This file is the short human-readable version.
 
-**Status as of 2026-07-10:** the authorized paired database/application rollout is
-complete, and its provider and private-product controls remain dark. Production has the
-exact 48-record application ledger through `20260710033047`; clean revision
-`7b150783085b6e98a161225b76f82ca12a57ae7a` is live on `app.tryshowcase.ink`, and
-`/api/health` reports a healthy database. Public marketing, published-portfolio, and
-token-authorized share routes are reachable, while unauthenticated signup and private
-product routes redirect to `/waitlist`. Invites and Founding reservations remain paused
-at 10, while email, AI, Gemini, checkout, jobs-provider calls, publishing, and Interview
-AI remain disabled by explicit production controls.
+**Status as of 2026-07-11:** production still has the exact 48-record application ledger
+through `20260710033047`; the repository now has 49 migrations through
+`20260712035035`, but that final public-funnel retirement migration is prepared, not
+production-applied. The current app-only cleanup deployment is
+`dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB` on `app.tryshowcase.ink`: direct signup is open,
+`/proofscore` permanently redirects to the landing page, and the retired anonymous APIs
+return 404. `/api/health` is HTTP 200 with a healthy database, while its embedded commit
+metadata remains stale at `e29041c`; the deployment/source ledger is authoritative for the
+promoted cleanup source and matches it to `97e9bd7`. Provider, payment, email, and private-product controls remain
+subject to their separate production gates and must not be inferred from the dated rollout
+evidence.
 
 **Production observations, 2026-07-10:** fresh pre-migration backup
 `20260710T180210Z` restore-verified 2,008 rows and all 22 private Storage objects. The
@@ -84,6 +86,16 @@ not approval for a broad public launch.
 - [x] **Reset a clean local Supabase stack through
   `20260710033047_explicit_data_api_grants.sql` and run the no-secret credentialed suite.**
   The canonical 48-record reset and 380/380 credentialed assertions pass.
+- [ ] **Promote migration 048 with its compatible public-funnel retirement build.** Before
+  staging the build, configure a private, random `ABUSE_IP_HASH_SALT` of at least 32
+  characters. The migration must run only after `2026-07-12 03:50:34+00`; it deliberately
+  aborts before that boundary, while any unexpired pending parse remains, or while any
+  actionable reservation remains. Stage and smoke-test the backward-compatible build
+  unaliased against schema 047, promote that exact build to canonical, and probe canonical
+  routes plus authenticated Evidence Audit before applying 048. Then verify 49/latest
+  `20260712035035` and that all three retired RPCs and tables are absent. After the drop,
+  rollback is roll-forward only because the older build queries removed tables. Do not use
+  the retired `PROOFSCORE_IP_HASH_SALT` variable in the replacement build.
 - [x] **Authorize and execute the paired application/database promotion.** The approved
   2026-07-10 window used clean, CI-verified revision `f968af8b5b25`, staged it unaliased,
   restore-verified a fresh backup, repaired only equivalent history `033`–`037`, required

@@ -70,7 +70,7 @@ EMAIL_POSTAL_ADDRESS=             # UNRESOLVED: valid physical sender address re
 EMAILS_ENABLED=false              # Do not enable while EMAIL_POSTAL_ADDRESS is unresolved
 LIFECYCLE_EMAILS_ENABLED=false
 GROWTH_SCORECARD_EMAIL=kumar.dyutit09@gmail.com
-PROOFSCORE_IP_HASH_SALT=
+ABUSE_IP_HASH_SALT=                 # Random 32+ character salt for hashed public-endpoint keys
 LAUNCH_OPEN=false                 # Closed beta; admitted users retain access
                                    # Set to "true" only after the beta exit gate to lift
                                    # waitlist admission for everyone.
@@ -124,11 +124,13 @@ npm run test:local-supabase
 ```
 
 The approved no-cost path uses the pinned, disposable local Supabase stack rather than a
-second cloud project. It applies the complete canonical repository history in filename
+second cloud project. The current repository history contains 49 migrations in filename
 order, from `001_initial_schema.sql` through
-`20260710033047_explicit_data_api_grants.sql`, runs credentialed/adversarial tests without
-provider secrets, and cleans up its synthetic data. A separate cloud staging project may be
-added later, but it is not required for the current closed-beta path.
+`20260712035035_retire_public_proofscore_infrastructure.sql`, and the harness runs
+credentialed/adversarial tests without provider secrets before cleaning up its synthetic
+data. Migration 048 intentionally aborts at or before `2026-07-12 03:50:34+00` and also
+aborts if any unexpired legacy parse or actionable reservation remains. A separate cloud
+staging project may be added later, but it is not required for the current closed-beta path.
 
 Historical backup `20260710T152940Z` remains preserved. Fresh pre-migration backup
 `20260710T180210Z` also passed authenticated database-plus-Storage restore verification:
@@ -137,16 +139,33 @@ ledgers, the Auth signup trigger, nine Storage policies, and all 22 private Stor
 hashes matched in a network-disconnected disposable target. The target was destroyed and
 no plaintext remains.
 
-The authorized 2026-07-10 paired rollout is complete. Production now has the canonical
-48-record application ledger through `20260710033047`, and clean revision
-`7b150783085b6e98a161225b76f82ca12a57ae7a` is live on canonical `showcase-app`.
-Public marketing, published-portfolio, and token-authorized share routes remain reachable;
-unauthenticated signup and private product routes still redirect to `/waitlist`. Invites
-and Founding reservations remain paused, and all provider/cost controls remain fail-closed.
-Exact proof lives in
-`security/production-rollout-evidence.json`.
+The authorized 2026-07-10 paired rollout is complete. Production has the canonical
+48-record application ledger through `20260710033047`; at that maintenance window,
+revision `7b150783085b6e98a161225b76f82ca12a57ae7a` was promoted and verified. Exact
+historical proof lives in `security/production-rollout-evidence.json`.
 
-For future authority-boundary migrations, reuse the completed sequence:
+The later app-only public-funnel cleanup is currently deployed as
+`dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB` on canonical `showcase-app`. Direct signup is open,
+`/proofscore` redirects permanently to the landing page, and the retired anonymous public
+APIs return 404. `/api/health` remains HTTP 200 but its embedded commit metadata still
+reports `e29041c`; use the deployment/source ledger, not that stale metadata field, to
+identify the promoted cleanup source, which matches `97e9bd7`.
+
+Migration 048 is a forward-only retirement change prepared after that historical rollout;
+it is not covered by the 2026-07-10 evidence and must not be described as applied until a
+separate authorized promotion verifies a 49-record production ledger through
+`20260712035035`. Its compatible build requires a private, random `ABUSE_IP_HASH_SALT` of at
+least 32 characters and no longer reads the retired `PROOFSCORE_IP_HASH_SALT` variable.
+
+Migration 048 is an explicit exception to the historical database-first sequence below. Its
+new code is backward-compatible with schema 047, while the previous code still queries the
+tables that 048 removes. Therefore: configure the salt, stage and smoke-test the new build
+unaliased, promote that exact build to canonical, verify canonical routes and authenticated
+Evidence Audit, and only then apply 048 and perform database read-back. After the tables are
+dropped, do not roll back to an older application build; recovery is roll-forward only.
+
+For future authority-boundary migrations other than the documented 048 exception, reuse the
+completed sequence:
 
 1. Configure every required production variable in its fail-closed state. Vercel variable
    changes do not change the already-running deployment.
@@ -158,7 +177,7 @@ For future authority-boundary migrations, reuse the completed sequence:
 4. Require the pinned `supabase db push --dry-run` to show exactly the reviewed pending
    files. Stop if it asks for `--include-all`, shows any unexpected migration, or differs
    from the approved list.
-5. Apply the ten migrations and verify ledgers, row-count invariants, RLS, ACLs, triggers,
+5. Apply only the reviewed pending migrations and verify ledgers, row-count invariants, RLS, ACLs, triggers,
    constraints, indexes, admission, attribution, referral state, and paused controls using
    read-only SQL.
 6. Immediately promote the prepared compatible deployment, then run negative/read-only

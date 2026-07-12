@@ -42,6 +42,9 @@ for (const name of [
 for (const name of ['EMAILS_ENABLED', 'LIFECYCLE_EMAILS_ENABLED', 'LAUNCH_OPEN']) {
   if (env[name] !== 'false') fail(`${name} must be the literal string false in initial staging`)
 }
+if ((env.ABUSE_IP_HASH_SALT?.trim().length ?? 0) < 32) {
+  fail('ABUSE_IP_HASH_SALT must contain at least 32 characters in staging')
+}
 for (const name of [
   'KILL_SWITCH_AI',
   'KILL_SWITCH_GEMINI',

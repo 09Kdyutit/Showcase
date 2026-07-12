@@ -74,8 +74,6 @@
     { "path": "/api/portfolio/save", "methods": ["POST"], "boundary": "session", "authority": "owner-filter", "evidence": "Update is filtered by portfolio id and user_id." },
     { "path": "/api/portfolio/upload-image", "methods": ["POST"], "boundary": "session", "authority": "session-user", "evidence": "Private storage path is generated under user.id; no client owner field is accepted." },
     { "path": "/api/projects/saved", "methods": ["GET", "POST", "DELETE"], "boundary": "session", "authority": "owner-filter", "evidence": "Create owner, list/cap, and delete are all scoped to user.id." },
-
-    { "path": "/api/proofscore/claim-parse", "methods": ["POST"], "boundary": "session", "authority": "service-after-owner", "evidence": "Temporary claim-only grace path for tokens issued before public-tool retirement; atomically consumes a live token into the caller's resume and returns 410 after the final legacy expiry." },
     { "path": "/api/referral/claim", "methods": ["POST"], "boundary": "session", "authority": "service-after-owner", "evidence": "Route supplies cookie user id to the atomic claim RPC; user/IP pacing and profile precondition apply." },
     { "path": "/api/referral/validate", "methods": ["GET"], "boundary": "public-capacity", "authority": "service-capacity", "evidence": "Strict code format, connection throttle, and remaining-count-only response." },
 
