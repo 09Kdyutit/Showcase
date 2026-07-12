@@ -96,7 +96,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <button type="button" onClick={handleMagicLink} className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
+                <button type="button" onClick={handleMagicLink} className="text-xs text-brand-400 hover:text-brand-300 transition-colors max-md:py-2 max-md:-my-2">
                   Send magic link instead
                 </button>
               </div>
@@ -109,7 +109,7 @@ export default function LoginPage() {
                 <button
                   type="button" onClick={() => setShowPw(!showPw)}
                   aria-label={showPw ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors max-md:p-3 max-md:-m-3"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>

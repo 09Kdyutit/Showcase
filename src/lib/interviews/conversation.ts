@@ -8,6 +8,13 @@ export interface RawSegment {
   id: string
   speaker: string
   content: string
+  question_id?: string | null
+}
+
+/** Planned question row shape needed to label candidate-only (text-mode) exchanges. */
+export interface PlannedQuestion {
+  id: string
+  question_text: string
 }
 
 export interface Exchange {
@@ -33,17 +40,33 @@ export function cleanSpoken(text: string): string {
 // Pair each interviewer turn with the candidate answer(s) that follow it. Segments are
 // assumed to be in chronological order. Only exchanges the candidate actually answered are
 // returned (drops the closing "any questions for me?" turn and unanswered prompts).
-export function buildExchanges(segments: RawSegment[]): Exchange[] {
+//
+// Text-mode sessions store NO interviewer segments — just one candidate segment per
+// planned question, each carrying that question's id. So a candidate segment whose
+// question_id differs from the current exchange's starts a NEW exchange (otherwise every
+// typed answer would concatenate into one), and its question text is looked up from the
+// planned `questions` rows instead of falling back to the "Opening" placeholder.
+export function buildExchanges(segments: RawSegment[], questions: PlannedQuestion[] = []): Exchange[] {
+  const questionTextById = new Map(questions.map((q) => [q.id, q.question_text]))
   const pairs: Exchange[] = []
   let cur: Exchange | null = null
+  let curQuestionId: string | null = null
   for (const seg of segments) {
     const content = cleanSpoken(seg.content)
     if (!content) continue
     if (seg.speaker === 'interviewer') {
       if (cur) pairs.push(cur)
       cur = { id: seg.id, question: content, answer: '' }
+      curQuestionId = seg.question_id ?? null
     } else if (seg.speaker === 'candidate') {
-      if (!cur) cur = { id: seg.id, question: '', answer: '' }
+      if (cur && seg.question_id != null && curQuestionId != null && seg.question_id !== curQuestionId) {
+        pairs.push(cur)
+        cur = null
+      }
+      if (!cur) {
+        cur = { id: seg.id, question: questionTextById.get(seg.question_id ?? '') ?? '', answer: '' }
+        curQuestionId = seg.question_id ?? null
+      }
       cur.answer += (cur.answer ? ' ' : '') + content
     }
   }

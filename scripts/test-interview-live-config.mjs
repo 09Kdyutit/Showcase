@@ -60,12 +60,14 @@ process.env.GEMINI_PAID_PROJECT_CONFIRMED = 'true'
 record('GEMINI_PAID_PROJECT_CONFIRMED=true alone (without interview-enabled) still does NOT enable the runtime', isInterviewLabRuntimeEnabled() === false)
 delete process.env.GEMINI_PAID_PROJECT_CONFIRMED
 
-// ── All three master flags true → runtime enabled, but sub-flags still independently gate ─
+// ── All three master flags still require the fail-closed provider switch ───────────────
 process.env.GEMINI_PAID_PROJECT_CONFIRMED = 'true'
 process.env.GEMINI_INTERVIEW_ENABLED = 'true'
 record('Only 2 of 3 master flags true (terms-compatibility still unset) → runtime stays false', isInterviewLabRuntimeEnabled() === false)
 process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED = 'true'
-record('All 3 master flags true → isInterviewLabRuntimeEnabled() is true', isInterviewLabRuntimeEnabled() === true)
+record('All 3 master flags still stay false while KILL_SWITCH_GEMINI is unset', isInterviewLabRuntimeEnabled() === false)
+process.env.KILL_SWITCH_GEMINI = 'false'
+record('Explicit KILL_SWITCH_GEMINI=false plus all attestations enables the runtime', isInterviewLabRuntimeEnabled() === true)
 record('...but isInterviewLiveEnabled() is still false without INTERVIEW_LIVE_ENABLED', isInterviewLiveEnabled() === false)
 process.env.INTERVIEW_LIVE_ENABLED = 'true'
 record('...and becomes true only once INTERVIEW_LIVE_ENABLED is also set', isInterviewLiveEnabled() === true)
@@ -79,6 +81,7 @@ delete process.env.INTERVIEW_KILL_SWITCH
 delete process.env.GEMINI_PAID_PROJECT_CONFIRMED
 delete process.env.GEMINI_INTERVIEW_ENABLED
 delete process.env.GEMINI_TERMS_COMPATIBILITY_CONFIRMED
+delete process.env.KILL_SWITCH_GEMINI
 delete process.env.INTERVIEW_LIVE_ENABLED
 
 // ── Max session minutes has a hard ceiling no env can exceed ────────────────
@@ -91,6 +94,7 @@ const example = readFileSync(new URL('../.env.example', import.meta.url), 'utf8'
 const expectedVars = [
   'GEMINI_ANALYSIS_MODEL', 'GEMINI_LIVE_MODEL', 'GEMINI_PAID_PROJECT_CONFIRMED', 'GEMINI_INTERVIEW_ENABLED',
   'GEMINI_TERMS_COMPATIBILITY_CONFIRMED', 'INTERVIEW_KILL_SWITCH',
+  'KILL_SWITCH_GEMINI',
   'INTERVIEW_LIVE_ENABLED', 'INTERVIEW_ANALYSIS_ENABLED', 'INTERVIEW_RECORDING_ENABLED',
   'INTERVIEW_RAW_AUDIO_RETENTION', 'INTERVIEW_MAX_SESSION_MINUTES', 'INTERVIEW_MAX_CONCURRENT_SESSIONS',
   'INTERVIEW_MAX_RECONNECTS', 'INTERVIEW_MAX_FOLLOW_UPS',

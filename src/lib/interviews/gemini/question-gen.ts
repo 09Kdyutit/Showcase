@@ -7,7 +7,9 @@ import type { SessionType, Difficulty } from '../schemas.ts'
 import type { InterviewPlanQuestion } from '../schemas.ts'
 
 const QUESTION_GEN_MODEL = process.env.GEMINI_QUESTION_GEN_MODEL ?? 'gemini-2.5-flash'
-const QUESTION_GEN_TIMEOUT_MS = 12_000
+// Generous enough for the largest (30-question) Pro request; a timeout still degrades
+// gracefully to the static bank via the route's fallback.
+const QUESTION_GEN_TIMEOUT_MS = 25_000
 
 // ── User context ────────────────────────────────────────────────────────────
 
@@ -52,8 +54,13 @@ const GenQuestionSchema = z.object({
   rationale: z.string().max(200),
 })
 
+// max matches PRO_PLAN_LIMITS.maxPrimaryQuestions (entitlements/plans.ts). It was 10,
+// which made every valid response to a 15/20/25/30-question Pro request fail schema
+// validation and silently fall back to the ~6-template static bank. min stays 1: an
+// under-delivering response is still used, and buildInterviewPlan tops the plan up
+// from the static bank to the requested count.
 const GenOutputSchema = z.object({
-  questions: z.array(GenQuestionSchema).min(1).max(10),
+  questions: z.array(GenQuestionSchema).min(1).max(30),
 })
 
 type GenOutput = z.infer<typeof GenOutputSchema>
@@ -190,7 +197,10 @@ export async function generatePersonalizedQuestions(input: QuestionGenInput): Pr
         systemInstruction: QGEN_SYSTEM,
         responseMimeType: 'application/json',
         responseJsonSchema: GEN_JSON_SCHEMA,
-        maxOutputTokens: 2048,
+        // gemini-2.5-flash counts its internal thinking tokens against this budget;
+        // 2048 truncated the JSON for 10+ detailed written questions (invalid JSON →
+        // schema error → static-bank fallback, silently shorting the session).
+        maxOutputTokens: 8192,
         temperature: 0.85,
         abortSignal: controller.signal,
         httpOptions: { timeout: QUESTION_GEN_TIMEOUT_MS },

@@ -1,5 +1,5 @@
 // Single source of truth for Showcase's public-facing positioning. Every marketing
-// page (/, /pricing, /waitlist, /for-career-services, /proofscore) should pull
+// page (/, /pricing, /waitlist, /for-career-services) should pull
 // headline territory, audience language, and trust copy from here rather than
 // re-deriving it - the point is that a visitor reading any two pages back-to-back
 // never hits a contradiction.
@@ -73,7 +73,7 @@ export const HERO = {
 
 export const FEATURE_BENEFITS = [
   { feature: 'AI portfolio generation', benefit: 'Go from résumé to a shareable portfolio without starting from a blank page.' },
-  { feature: 'ProofScore', benefit: 'Know what weakens your application before a recruiter sees it.' },
+  { feature: 'Evidence Audit', benefit: 'Know what weakens your application before a recruiter sees it.' },
   { feature: 'Evidence Gap Finder', benefit: 'See exactly which claims still need proof.' },
   { feature: 'Truth Ledger', benefit: 'Trust every generated statement because it traces back to your real experience.' },
   { feature: 'Tailor Studio', benefit: 'Create role-specific materials without rewriting your career history from zero.' },

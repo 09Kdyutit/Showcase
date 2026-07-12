@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { apiErrorMessage } from '@/lib/utils'
+import { apiErrorMessage, cn } from '@/lib/utils'
 
 interface DrillRecord {
   id: string
@@ -32,8 +32,14 @@ interface Drill {
   record: DrillRecord | null
 }
 
-interface CheckItem { label: string; passed: boolean }
-interface AttemptResult { passed: boolean; score: number; checks: CheckItem[] }
+interface AttemptResult {
+  passed: boolean
+  score: number
+  label: string
+  dimensions: { clarity: number; action: number; impact: number; structure: number }
+  strengths: string[]
+  improvements: string[]
+}
 
 export default function DrillsPage() {
   const [drills, setDrills] = useState<Drill[]>([])
@@ -47,17 +53,25 @@ export default function DrillsPage() {
     load()
   }, [])
 
-  async function load() {
-    const res = await fetch('/api/interviews/drills')
-    const json = await res.json()
-    if (res.ok) setDrills(json.data ?? [])
-    setLoading(false)
-  }
-
   function openDrill(drill: Drill) {
     setActive(drill)
     setAnswerText('')
     setResult(null)
+  }
+
+  async function load() {
+    const res = await fetch('/api/interviews/drills')
+    const json = await res.json()
+    const list: Drill[] = res.ok ? (json.data ?? []) : []
+    if (res.ok) setDrills(list)
+    setLoading(false)
+    // Deep-link: a "Your Next Moves" recommendation links here as ?open=<drillId> and should
+    // land the user directly in that exact drill, not on the list.
+    const openId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('open') : null
+    if (openId) {
+      const target = list.find((d) => d.id === openId)
+      if (target) openDrill(target)
+    }
   }
 
   async function handleSubmit() {
@@ -147,14 +161,54 @@ export default function DrillsPage() {
                   </>
                 ) : (
                   <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm">Result: {result.score}/100</CardTitle></CardHeader>
-                    <CardContent className="space-y-2">
-                      {result.checks.map((c, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm">
-                          {c.passed ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />}
-                          <span className={c.passed ? 'text-foreground' : 'text-muted-foreground'}>{c.label}</span>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-baseline justify-between">
+                        <CardTitle className="text-sm">AI feedback</CardTitle>
+                        <span className="text-2xl font-bold text-foreground stat-number">
+                          {result.score}<span className="text-sm text-muted-foreground font-normal">/100</span>
+                          <span className={cn('ml-2 text-xs font-semibold',
+                            result.label === 'Excellent' ? 'text-emerald-400' :
+                            result.label === 'Good' ? 'text-brand-300' :
+                            result.label === 'Fair' ? 'text-amber-400' : 'text-red-400')}>{result.label}</span>
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-2">
+                        {([['Clarity', result.dimensions.clarity], ['Action', result.dimensions.action], ['Impact', result.dimensions.impact], ['Structure', result.dimensions.structure]] as const).map(([lbl, v]) => (
+                          <div key={lbl} className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground w-16 shrink-0">{lbl}</span>
+                            <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-surface-300">
+                              <div className="h-full rounded-full bg-brand-500" style={{ width: `${(v / 25) * 100}%` }} />
+                            </div>
+                            <span className="text-xs font-semibold text-muted-foreground w-8 text-right stat-number">{v}/25</span>
+                          </div>
+                        ))}
+                      </div>
+                      {result.strengths.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-emerald-400 mb-1.5">What worked</p>
+                          <ul className="space-y-1.5">
+                            {result.strengths.map((s, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-foreground/90">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />{s}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      ))}
+                      )}
+                      {result.improvements.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-amber-400 mb-1.5">Fix next time</p>
+                          <ul className="space-y-1.5">
+                            {result.improvements.map((s, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-foreground/90">
+                                <XCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />{s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -168,7 +222,7 @@ export default function DrillsPage() {
                 ) : (
                   <>
                     <Button variant="ghost" onClick={() => setActive(null)}>Cancel</Button>
-                    <Button onClick={handleSubmit} disabled={submitting}>{submitting ? 'Checking…' : 'Submit'}</Button>
+                    <Button onClick={handleSubmit} disabled={submitting}>{submitting ? 'Grading…' : 'Get AI feedback'}</Button>
                   </>
                 )}
               </DialogFooter>

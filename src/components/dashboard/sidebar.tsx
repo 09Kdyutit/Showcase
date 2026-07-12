@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { motion, LayoutGroup } from 'framer-motion'
 import {
   LayoutDashboard, FileText, Briefcase, BarChart3, Settings, CreditCard,
   LogOut, Zap, Menu, X, Search, MessageSquare, ChevronUp, Compass, Lightbulb,
@@ -19,7 +20,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/resume', icon: FileText, label: 'Resume' },
   { href: '/builder', icon: Briefcase, label: 'Portfolio' },
-  { href: '/audit', icon: BarChart3, label: 'ProofScore' },
+  { href: '/audit', icon: BarChart3, label: 'Evidence Audit' },
   { href: '/projects', icon: Lightbulb, label: 'Project Ideas' },
   { href: '/jobs', icon: Search, label: 'Jobs' },
   { href: '/opportunities', icon: Compass, label: 'Opportunities' },
@@ -57,7 +58,10 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
     .join('')
     .toUpperCase()
 
-  const sidebarContent = (
+  // Rendered twice (desktop aside + mobile drawer) — LayoutGroup namespaces the shared
+  // pill layoutId so the two mounted copies never fight over the same layout animation.
+  const sidebarContent = (groupId: string) => (
+    <LayoutGroup id={groupId}>
     <div className="flex flex-col h-full relative overflow-hidden">
       {/* Ambient top glow */}
       <div
@@ -66,7 +70,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
       />
 
       {/* Logo */}
-      <div className="relative px-4 pt-5 pb-4">
+      <div className="sidebar-logo-row relative px-4 pt-5 pb-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
           <Logo />
           {isPro && (
@@ -85,7 +89,8 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         />
       </div>
 
-      {/* Main nav */}
+      {/* Main nav — the active pill is a shared motion layout element, so it physically
+          glides between items on navigation instead of blinking from one to the next. */}
       <nav className="flex-1 px-2.5 py-4 space-y-0.5 overflow-y-auto thin-scrollbar">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
@@ -95,15 +100,32 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
               href={href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group overflow-hidden',
+                'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 group',
                 active
-                  ? 'nav-active'
+                  ? 'text-brand-200'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               )}
             >
+              {active && (
+                <motion.span
+                  layoutId="sidebar-active-pill"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: 'color-mix(in oklch, var(--color-brand-500) 13%, transparent)',
+                    border: '1px solid color-mix(in oklch, var(--color-brand-500) 26%, transparent)',
+                    boxShadow: 'inset 0 1px 0 oklch(100% 0 0 / 0.06), 0 0 18px color-mix(in oklch, var(--color-brand-500) 14%, transparent)',
+                  }}
+                >
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[60%] rounded-r-[2px]"
+                    style={{ background: 'linear-gradient(180deg, oklch(62% 0.20 255), oklch(46% 0.21 255))' }}
+                  />
+                </motion.span>
+              )}
               <Icon
                 className={cn(
-                  'h-4 w-4 shrink-0 relative z-10 transition-colors',
+                  'h-4 w-4 shrink-0 relative z-10 transition-colors icon-pop',
                   active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80'
                 )}
               />
@@ -169,13 +191,25 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
                 href={href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 group overflow-hidden',
+                  'relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 group',
                   active
-                    ? 'nav-active'
+                    ? 'text-brand-200'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 )}
               >
-                <Icon className={cn('h-4 w-4 shrink-0 relative z-10', active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
+                {active && (
+                  <motion.span
+                    layoutId="sidebar-active-pill"
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: 'color-mix(in oklch, var(--color-brand-500) 13%, transparent)',
+                      border: '1px solid color-mix(in oklch, var(--color-brand-500) 26%, transparent)',
+                      boxShadow: 'inset 0 1px 0 oklch(100% 0 0 / 0.06), 0 0 18px color-mix(in oklch, var(--color-brand-500) 14%, transparent)',
+                    }}
+                  />
+                )}
+                <Icon className={cn('h-4 w-4 shrink-0 relative z-10 icon-pop', active ? 'text-brand-300' : 'text-muted-foreground/60 group-hover:text-foreground/80')} />
                 <span className="relative z-10">{label}</span>
               </Link>
             )
@@ -250,6 +284,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         )}
       </div>
     </div>
+    </LayoutGroup>
   )
 
   return (
@@ -262,7 +297,7 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
           borderRight: '1px solid var(--color-border)',
         }}
       >
-        {sidebarContent}
+        {sidebarContent('desktop')}
       </aside>
 
       {/* Mobile header */}
@@ -270,12 +305,12 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 backdrop-blur-xl border-b"
         style={{ background: 'color-mix(in oklch, var(--color-background) 92%, transparent)', borderColor: 'var(--color-border)' }}
       >
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 py-3 -my-3">
           <Logo size="sm" />
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="p-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
           {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
@@ -286,14 +321,14 @@ export function Sidebar({ profile, subscription }: SidebarProps) {
         <div className="lg:hidden fixed inset-0 z-40 flex">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div
-            className="relative w-64 h-full overflow-y-auto"
+            className="relative w-64 h-full overflow-y-auto [&_.sidebar-logo-row]:hidden"
             style={{
               background: 'linear-gradient(180deg, var(--color-surface-50) 0%, var(--color-surface-0) 100%)',
               borderRight: '1px solid var(--color-border)',
             }}
           >
             <div className="pt-14">
-              {sidebarContent}
+              {sidebarContent('mobile')}
             </div>
           </div>
         </div>

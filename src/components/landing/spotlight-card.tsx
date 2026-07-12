@@ -19,11 +19,14 @@ export function SpotlightCard({
   index,
   title,
   desc,
+  proof,
 }: {
   icon: SpotlightIcon
   index: string
   title: string
   desc: string
+  /** A concrete one-line receipt rendered as a chip — grounds the card in something real. */
+  proof?: string
 }) {
   const Icon = ICONS[icon] ?? Target
   const ref = useRef<HTMLDivElement>(null)
@@ -50,17 +53,31 @@ export function SpotlightCard({
           <Icon className="h-5 w-5" style={{ color: 'oklch(73% 0.140 255)' }} />
         </div>
         <span
-          className="spotlight-index font-mono text-sm font-bold tabular-nums"
-          style={{ color: 'oklch(60% 0.022 258)' }}
+          className="spotlight-index text-display text-3xl font-semibold tabular-nums"
+          style={{ color: 'oklch(63% 0.20 255 / 0.35)', fontStyle: 'italic' }}
         >
           {index}
         </span>
       </div>
 
       <h3 className="text-lg font-semibold text-foreground mb-2.5 tracking-tight">{title}</h3>
-      <p className="text-sm leading-relaxed flex-1" style={{ color: 'oklch(54% 0.008 255)' }}>
+      <p className="text-sm leading-relaxed flex-1" style={{ color: 'oklch(64% 0.018 258)' }}>
         {desc}
       </p>
+
+      {proof && (
+        <div
+          className="mt-5 inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full w-fit"
+          style={{
+            background: 'color-mix(in oklch, var(--color-brand-500) 10%, transparent)',
+            border: '1px solid color-mix(in oklch, var(--color-brand-500) 24%, transparent)',
+            color: 'oklch(74% 0.14 255)',
+          }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'oklch(72% 0.17 160)', boxShadow: '0 0 6px oklch(72% 0.17 160)' }} />
+          {proof}
+        </div>
+      )}
 
       {/* Reveal arrow */}
       <div className="spotlight-arrow mt-6 flex items-center gap-1.5 text-xs font-medium" style={{ color: 'oklch(73% 0.140 255)' }}>

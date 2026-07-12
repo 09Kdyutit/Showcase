@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Sparkles, RefreshCw, ChevronDown, ChevronUp, Copy, Check,
-  FolderGit2, Clock, ArrowLeft, Zap, Lock, Bookmark, BookmarkCheck, CalendarClock, Loader2,
+  Clock, Zap, Lock, Bookmark, BookmarkCheck, CalendarClock, Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/use-user'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
+import { Tilt3D } from '@/components/ui/tilt-3d'
 
 type Difficulty = 'Beginner' | 'Intermediate' | 'Master'
 
@@ -74,7 +76,8 @@ function ProjectCard({ project, index, saved, onToggleSave, savingBusy }: {
   }
 
   return (
-    <div className="glass-card rounded-2xl overflow-hidden card-3d">
+    <Tilt3D max={4}>
+    <div className="glass-card rounded-2xl overflow-hidden h-full">
       <div className="p-5 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
@@ -193,6 +196,7 @@ function ProjectCard({ project, index, saved, onToggleSave, savingBusy }: {
         </div>
       )}
     </div>
+    </Tilt3D>
   )
 }
 
@@ -306,31 +310,23 @@ export default function ProjectSuggestionsPage() {
   const noResumes = !loadingResumes && resumes.length === 0 && !useTextInput
 
   return (
+    <PageShell>
     <div className="max-w-4xl mx-auto p-4 lg:p-8 min-h-screen space-y-6">
       {/* Header */}
-      <div>
-        <Link href="/audit" className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground mb-4 transition-colors">
-          <ArrowLeft className="h-3 w-3" />
-          ProofScore
-        </Link>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <FolderGit2 className="h-5 w-5 text-brand-400" />
-              <h1 className="text-xl font-bold">Project Roadmap</h1>
-            </div>
-            <p className="text-sm text-muted-foreground/60">
-              AI analyzes your resume and suggests projects that will genuinely make it stand out.
-            </p>
-          </div>
-          {suggestions.length > 0 && (
+      <PageHeader
+        eyebrow="Project Ideas"
+        title="Build what makes you"
+        titleAccent="stand out."
+        description="AI analyzes your resume and suggests projects that will genuinely make it stand out — with step-by-step build timelines."
+        actions={
+          suggestions.length > 0 ? (
             <Button onClick={analyze} disabled={loading} variant="outline" size="sm" className="gap-1.5 shrink-0">
               <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
               Regenerate
             </Button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Saved projects — persist across refreshes, always visible when you have any */}
       {savedItems.length > 0 && (
@@ -508,5 +504,6 @@ export default function ProjectSuggestionsPage() {
         </div>
       )}
     </div>
+    </PageShell>
   )
 }

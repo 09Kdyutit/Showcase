@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { GoogleGenAI } from '@google/genai'
 import { COMPANIES } from '@/lib/interviews/companies'
+import { isAIEnabled, isGeminiEnabled } from '@/lib/feature-flags'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 export interface GeneratedCompanyData {
   name: string
@@ -74,7 +79,9 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true') {
+    if (!isAIEnabled() || !isGeminiEnabled()
+      || !process.env.GEMINI_API_KEY
+      || process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true') {
       return NextResponse.json({ data: genericPrep(companyName) })
     }
 

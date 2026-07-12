@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildInterviewPlan, primaryQuestionCount } from '@/lib/interviews/plan'
 import { isInterviewLiveEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
-import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES } from '@/lib/interviews/schemas'
+import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES, type InterviewPlanQuestion } from '@/lib/interviews/schemas'
 import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
 import { generatePersonalizedQuestions } from '@/lib/interviews/gemini/question-gen'
 import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@/lib/interviews/gemini/question-gen'
 import { recordCostEvent, costFromTokens, RATES } from '@/lib/interviews/budget'
 import { z } from 'zod'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 const createSchema = z.object({
   sessionType: z.enum(SESSION_TYPES),
@@ -17,6 +21,10 @@ const createSchema = z.object({
   durationMinutes: z.union([
     z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25), z.literal(30),
   ]).default(15),
+  // Written interviews are question-count driven (5-30 in steps of 5), not timed.
+  questionCount: z.union([
+    z.literal(5), z.literal(10), z.literal(15), z.literal(20), z.literal(25), z.literal(30),
+  ]).optional(),
   targetRole: z.string().min(1).max(200),
   targetCompany: z.string().max(200).nullable().optional(),
   savedJobId: z.string().uuid().optional(),
@@ -179,12 +187,15 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Generate questions - AI first, static bank fallback ───────────────────
+    // Written interviews use the user's chosen question count (clamped to the tier ceiling);
+    // voice stays duration-derived. The override drives both AI generation and the plan.
+    const questionCountOverride = input.deliveryMode === 'text' ? input.questionCount : undefined
     const questionCount = Math.min(
-      primaryQuestionCount(input.durationMinutes),
+      questionCountOverride ?? primaryQuestionCount(input.durationMinutes),
       limits.maxPrimaryQuestions,
     )
 
-    let aiGeneratedQuestions = undefined
+    let aiGeneratedQuestions: InterviewPlanQuestion[] | undefined = undefined
     let questionGenCost: { model: string; costUsd: number } | null = null
     if (isInterviewAnalysisEnabled()) {
       // isInterviewAnalysisEnabled() doubles as the gate for any Gemini API call here  -
@@ -227,8 +238,23 @@ export async function POST(request: NextRequest) {
       deliveryMode: input.deliveryMode as 'voice' | 'text',
       evidence: { resumeExperience, portfolioProjects },
       aiGeneratedQuestions,
+      questionCountOverride,
       planLimits: { maxPrimaryQuestions: limits.maxPrimaryQuestions, maxAdaptiveFollowUps: limits.maxAdaptiveFollowUps, maxSessionMinutes: limits.maxSessionMinutes },
     })
+
+    // Never let a short-delivered session pass silently: the plan builder tops up from
+    // the static bank, so a shortfall here means the combined AI+bank pool was exhausted
+    // (or the tier ceiling clamped the request). The requested count is persisted in
+    // session_plan.requestedQuestionCount and the creation UI surfaces the gap to the user.
+    if (plan.questions.length < questionCount) {
+      console.warn('[interviews/sessions] plan shortfall: delivered fewer questions than requested', {
+        requested: questionCount,
+        delivered: plan.questions.length,
+        sessionType: input.sessionType,
+        deliveryMode: input.deliveryMode,
+        aiQuestionCount: aiGeneratedQuestions?.length ?? 0,
+      })
+    }
 
     const { data: session, error: sessionError } = await supabase
       .from('interview_sessions')

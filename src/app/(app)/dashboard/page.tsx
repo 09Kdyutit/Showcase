@@ -5,6 +5,8 @@ import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, 
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Tilt3D } from '@/components/ui/tilt-3d'
+import { CountUp } from '@/components/ui/count-up'
+import { ProofScoreTrajectory } from '@/components/dashboard/proofscore-trajectory'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
@@ -19,14 +21,20 @@ export default async function DashboardPage() {
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
-    supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+    supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(12),
     supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
   ])
 
   const profile = profileRes.data as Profile | null
   const subscription = subRes.data as Subscription | null
   const portfolios = (portfoliosRes.data ?? []) as Pick<Portfolio, 'id' | 'title' | 'slug' | 'status' | 'proof_score' | 'updated_at' | 'target_role'>[]
-  const latestAudit = (auditsRes.data?.[0] ?? null) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'> | null
+  const auditHistory = (auditsRes.data ?? []) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'>[]
+  const latestAudit = (auditHistory[0] ?? null) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'> | null
+  // Oldest→newest, real numeric scores only, for the trajectory sparkline.
+  const trajectory = auditHistory
+    .filter((a) => typeof a.overall_score === 'number')
+    .map((a) => ({ score: a.overall_score as number, date: a.created_at }))
+    .reverse()
   const latestResume = (resumesRes.data?.[0] ?? null) as Pick<Resume, 'id' | 'title' | 'created_at'> | null
   const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
   const latestPortfolio = portfolios[0] ?? null
@@ -37,25 +45,27 @@ export default async function DashboardPage() {
   }
 
   const nextAction = !latestResume
-    ? { href: '/resume', label: 'Upload your resume', icon: FileText, desc: 'Start by adding your resume to get a ProofScore.' }
+    ? { href: '/resume', label: 'Upload your resume', icon: FileText, desc: 'Start by adding your resume for an evidence audit.' }
     : !latestPortfolio
     ? { href: '/builder', label: 'Create your portfolio', icon: Plus, desc: 'Build your first portfolio from your resume.' }
     : !latestAudit
-    ? { href: '/audit', label: 'Run your ProofScore', icon: BarChart3, desc: 'See exactly how ready you are.' }
-    : { href: '/builder', label: 'Improve your portfolio', icon: TrendingUp, desc: 'Apply your ProofScore recommendations.' }
+    ? { href: '/audit', label: 'Run your evidence audit', icon: BarChart3, desc: 'See exactly how ready you are.' }
+    : { href: '/builder', label: 'Improve your portfolio', icon: TrendingUp, desc: 'Apply your evidence-audit recommendations.' }
 
   const categories = latestAudit?.category_scores
     ? (Array.isArray(latestAudit.category_scores) ? latestAudit.category_scores : Object.values(latestAudit.category_scores)) as Array<{ name: string; score: number; severity: string }>
     : []
 
   const setupSteps = [
-    { label: 'Upload your resume', done: !!latestResume, href: '/resume' },
-    { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder' },
-    { label: 'Run your ProofScore', done: !!latestAudit, href: '/audit' },
-    { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder' },
+    { label: 'Upload your resume', done: !!latestResume, href: '/resume', cta: 'Add your résumé — everything starts here.' },
+    { label: 'Run your evidence audit', done: !!latestAudit, href: '/audit', cta: 'See exactly how hiring-ready you are.' },
+    { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder', cta: 'Turn your résumé into a portfolio in one click.' },
+    { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder', cta: 'Get a shareable link recruiters can open.' },
   ]
   const setupDone = setupSteps.filter((s) => s.done).length
-  const isNewUser = setupDone < 3
+  // Persist the checklist as the north star until EVERY step is done, not just the first few.
+  const isNewUser = setupDone < setupSteps.length
+  const nextStep = setupSteps.find((s) => !s.done)
 
   return (
     <div className="relative min-h-full">
@@ -82,8 +92,8 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-muted-foreground text-sm mt-1.5">
               {proofScore
-                ? `Your ProofScore is ${proofScore} — ${scoreLabel(proofScore).toLowerCase()}.`
-                : 'Build your portfolio and get your ProofScore.'}
+                ? `Your evidence score is ${proofScore} — ${scoreLabel(proofScore).toLowerCase()}.`
+                : 'Build your portfolio and review your evidence.'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -111,6 +121,23 @@ export default async function DashboardPage() {
             style={{ borderColor: 'color-mix(in oklch, var(--color-brand-500) 18%, transparent)' }}
           >
             <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
+            {/* The one thing to do next — the speedrun's north star */}
+            {nextStep && (
+              <Link
+                href={nextStep.href}
+                className="relative flex items-center gap-4 p-4 mb-5 rounded-xl group transition-all"
+                style={{ background: 'color-mix(in oklch, var(--color-brand-500) 12%, transparent)', border: '1px solid color-mix(in oklch, var(--color-brand-500) 28%, transparent)' }}
+              >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'color-mix(in oklch, var(--color-brand-500) 20%, transparent)' }}>
+                  <ArrowRight className="h-4 w-4 text-brand-300 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'oklch(63% 0.20 255)' }}>Do this next</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{nextStep.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{nextStep.cta}</p>
+                </div>
+              </Link>
+            )}
             <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-sm font-semibold text-foreground">Getting started</p>
@@ -174,14 +201,14 @@ export default async function DashboardPage() {
           {/* ProofScore */}
           <Tilt3D className="col-span-2 lg:col-span-1">
             <div
-              className="glass-card p-6 flex flex-col items-center gap-2 relative overflow-hidden h-full"
+              className="glass-card holo-border p-6 flex flex-col items-center gap-2 relative overflow-hidden h-full"
               style={{
                 background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 35%, var(--color-surface-100)))',
               }}
             >
               <div className="pointer-events-none absolute inset-0 opacity-15 dot-grid" />
               {proofScore !== null ? (
-                <div className="tilt-layer">
+                <div className="tilt-layer breathe-glow">
                   <ProofScoreRing score={proofScore} size="md" animate />
                 </div>
               ) : (
@@ -197,7 +224,7 @@ export default async function DashboardPage() {
                   </div>
                   <p className="text-xs text-muted-foreground text-center">Run your first audit</p>
                   <Button asChild variant="outline" size="sm">
-                    <Link href="/audit">Get ProofScore</Link>
+                    <Link href="/audit">Run evidence audit</Link>
                   </Button>
                 </div>
               )}
@@ -211,7 +238,7 @@ export default async function DashboardPage() {
                 <p className="text-xs text-muted-foreground/60 font-medium uppercase tracking-widest">Portfolios</p>
                 <Briefcase className="h-3.5 w-3.5 text-muted-foreground/25" />
               </div>
-              <p className="text-4xl font-bold stat-number text-foreground tilt-layer-sm">{portfolios.length}</p>
+              <p className="text-4xl font-bold stat-number text-foreground tilt-layer-sm"><CountUp value={portfolios.length} /></p>
               <p className="text-xs text-muted-foreground mt-1.5">
                 <span style={{ color: 'var(--color-verified)' }}>{portfolios.filter(p => p.status === 'published').length}</span> published
               </p>
@@ -280,6 +307,13 @@ export default async function DashboardPage() {
           </Tilt3D>
         </div>
 
+        {/* ── ProofScore trajectory (only with 2+ audits) ── */}
+        {trajectory.length >= 2 && (
+          <div className="entrance entrance-delay-3">
+            <ProofScoreTrajectory points={trajectory} />
+          </div>
+        )}
+
         {/* ── Main content row ── */}
         <div className="entrance entrance-delay-4 grid lg:grid-cols-3 gap-6">
           {/* Next action — cursor-lit hero card */}
@@ -326,7 +360,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-2 glass-card overflow-hidden">
             <div className="px-6 pt-6 pb-4 flex items-center justify-between">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                {latestAudit ? 'ProofScore breakdown' : 'What ProofScore measures'}
+                {latestAudit ? 'Evidence-score breakdown' : 'What the evidence audit measures'}
               </p>
               {latestAudit && (
                 <Button asChild variant="ghost" size="sm" className="text-xs h-7" style={{ color: 'oklch(63% 0.20 255)' }}>
@@ -382,7 +416,7 @@ export default async function DashboardPage() {
                     <Button asChild variant="outline" size="sm" className="w-full gap-1.5">
                       <Link href="/audit">
                         <BarChart3 className="h-3.5 w-3.5" />
-                        Run your ProofScore
+                        Run your evidence audit
                       </Link>
                     </Button>
                   </div>

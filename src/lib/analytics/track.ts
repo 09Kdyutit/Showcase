@@ -9,6 +9,8 @@ export type BetaEvent =
   | 'resume_parsed'
   | 'portfolio_generation_started'
   | 'portfolio_generated'
+  | 'portfolio_preview_viewed'
+  | 'portfolio_completed'
   | 'proofscore_started'
   | 'proofscore_completed'
   | 'proofscore_viewed'
@@ -20,12 +22,16 @@ export type BetaEvent =
   | 'feedback_submitted'
   | 'signup_started'
   | 'signup_completed'
+  | 'checkout_initiated'
   | 'checkout_completed'
+  | 'meaningful_return'
+  | 'referral_invite_shared'
 
 export type TrackMeta = Record<string, string | number | boolean | null | undefined>
 
 /**
- * Server-side event tracking. Writes to usage_events via service client.
+ * Server-side operational event tracking. Writes to usage_events via service client.
+ * Growth gates must use trusted_events or source-of-truth product tables instead.
  * Always fails silently - never blocks the calling API route.
  *
  * Only call from server-side API routes, never from client components.

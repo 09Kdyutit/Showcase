@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "verifiedOn": "2026-07-09",
+  "rules": {
+    "noScrapedEmails": true,
+    "onePersonalizedContactOnly": true,
+    "noMemberListRequests": true,
+    "participantOptInRequired": true,
+    "shareOnlyDeidentifiedAggregates": true
+  },
+  "targets": [
+    {
+      "wave": 1,
+      "organization": "i.c.stars",
+      "segment": "Nontraditional and underserved tech entrants",
+      "officialUrl": "https://www.icstars.org/program/",
+      "contactRoute": "https://www.icstars.org/get-engaged/",
+      "whyFit": "Its paid internship and long-term support include volunteer career and resume coaching.",
+      "offer": "A supported résumé-to-portfolio clinic for up to five opt-in participants, plus a deidentified facilitator debrief.",
+      "status": "researched"
+    },
+    {
+      "wave": 1,
+      "organization": "Resilient Coders",
+      "segment": "Bootcamp fellows and early-career engineers of color",
+      "officialUrl": "https://www.resilientcoders.org/apply",
+      "contactRoute": "https://www.resilientcoders.org/get-involved",
+      "whyFit": "Its free stipended engineering fellowship includes portfolio and interview development.",
+      "offer": "A supported project-to-portfolio pilot for up to five opt-in fellows, plus a reusable evidence worksheet.",
+      "status": "researched"
+    },
+    {
+      "wave": 1,
+      "organization": "Rewriting the Code",
+      "segment": "University and early-career women in tech",
+      "officialUrl": "https://rewritingthecode.org/",
+      "contactRoute": "https://rewritingthecode.org/become-a-partner/",
+      "whyFit": "Its partnership program already includes workshops and resume reviews for students and early-career members.",
+      "offer": "A supported internship-and-project portfolio pilot for up to five opt-in members.",
+      "status": "researched"
+    },
+    {
+      "wave": 1,
+      "organization": "Code Platoon",
+      "segment": "Veterans, service members, and military spouses entering tech",
+      "officialUrl": "https://www.codeplatoon.org/",
+      "contactRoute": "https://www.codeplatoon.org/corporate-partners/",
+      "whyFit": "Its coding and DevOps training includes career services, resume reviewers, and guest speakers.",
+      "offer": "A supported military-to-tech portfolio pilot for up to five opt-in participants, plus a reusable checklist.",
+      "status": "researched"
+    },
+    {
+      "wave": 1,
+      "organization": "Per Scholas",
+      "segment": "Career switchers in tuition-free tech training",
+      "officialUrl": "https://perscholas.org/about-per-scholas/launch-your-tech-career/",
+      "contactRoute": "https://perscholas.org/partner-with-per-scholas/",
+      "whyFit": "Its national training programs pair technical learning with career coaching, resume help, and mock interviews.",
+      "offer": "A supported résumé-to-portfolio pilot for up to five opt-in learners, plus a facilitator debrief.",
+      "status": "researched"
+    },
+    {
+      "wave": 2,
+      "organization": "Tech Ladies",
+      "segment": "Women in tech and active job seekers",
+      "officialUrl": "https://www.hiretechladies.com/partnerships",
+      "contactRoute": "https://www.hiretechladies.com/partner-interest-form",
+      "whyFit": "Its member community, events, job board, and newsletter directly reach active tech job seekers.",
+      "offer": "A live evidence-to-portfolio workshop and supported five-person opt-in pilot.",
+      "status": "researched"
+    },
+    {
+      "wave": 2,
+      "organization": "Techqueria",
+      "segment": "Latiné tech professionals and early-career members",
+      "officialUrl": "https://techqueria.org/get-involved/",
+      "contactRoute": "https://techqueria.org/get-involved/",
+      "whyFit": "Its community model includes chapters, speakers, partners, and newsletter distribution.",
+      "offer": "A chapter-hosted evidence-to-portfolio clinic and supported five-person pilot.",
+      "status": "researched"
+    },
+    {
+      "wave": 2,
+      "organization": "ColorStack",
+      "segment": "Black and Latinx computer science students",
+      "officialUrl": "https://www.colorstack.org/",
+      "contactRoute": "https://www.colorstack.org/get-involved",
+      "whyFit": "It provides career development, coaching, workshops, and campus support to CS students.",
+      "offer": "A pre-career-fair project-to-portfolio pilot for up to five opt-in students.",
+      "status": "researched"
+    },
+    {
+      "wave": 2,
+      "organization": "Out in Tech",
+      "segment": "LGBTQ+ students and early-career technologists",
+      "officialUrl": "https://outintech.com/",
+      "contactRoute": "https://outintech.com/sponsor/",
+      "whyFit": "Out in Tech U and NextGen directly support college-age and early-career members.",
+      "offer": "A supported NextGen résumé-to-portfolio pilot for up to five opt-in participants, plus a resource sheet.",
+      "status": "researched"
+    },
+    {
+      "wave": 2,
+      "organization": "CodePath",
+      "segment": "College computer science students and new graduates",
+      "officialUrl": "https://www.codepath.org/about",
+      "contactRoute": "https://www.codepath.org/contact",
+      "whyFit": "It reaches students and alumni across more than 1,000 colleges with career programming.",
+      "offer": "A supported five-person résumé-to-portfolio pilot plus deidentified aggregate feedback.",
+      "status": "researched"
+    },
+    {
+      "wave": 3,
+      "organization": "Major League Hacking",
+      "segment": "Student developers and hackathon participants",
+      "officialUrl": "https://www.mlh.com/about",
+      "contactRoute": "https://www.mlh.com/contact",
+      "whyFit": "Its hackathons and fellowships produce real projects students need to translate into hiring evidence.",
+      "offer": "A supported post-hackathon pilot that turns demos into editable, evidence-first portfolios.",
+      "status": "researched"
+    },
+    {
+      "wave": 3,
+      "organization": "LaunchCode",
+      "segment": "Career switchers and entry-level tech talent",
+      "officialUrl": "https://www.launchcode.org/learners",
+      "contactRoute": "https://www.launchcode.org/partners",
+      "whyFit": "Its free project-based training and placement support people seeking a first tech role.",
+      "offer": "A supported post-course résumé-to-portfolio pilot for up to five opt-in learners, plus aggregate feedback.",
+      "status": "researched"
+    },
+    {
+      "wave": 3,
+      "organization": "Pursuit",
+      "segment": "Underrepresented adult career changers",
+      "officialUrl": "https://join.pursuit.org/",
+      "contactRoute": "https://www.pursuit.org/get-involved",
+      "whyFit": "Its long-form technical training and career support serves adults entering software and data careers.",
+      "offer": "A supported career-readiness pilot turning projects and prior work into editable, evidence-first portfolios.",
+      "status": "researched"
+    },
+    {
+      "wave": 3,
+      "organization": "The Knowledge House",
+      "segment": "Adult job seekers and tech beginners",
+      "officialUrl": "https://www.theknowledgehouse.org/innovation_fellowship/",
+      "contactRoute": "https://www.theknowledgehouse.org/training-solutions/",
+      "whyFit": "Its free data, cybersecurity, and AI fellowship includes resume and digital-footprint support.",
+      "offer": "A supported five-person career-day résumé-to-portfolio pilot, plus a staff-ready worksheet.",
+      "status": "researched"
+    },
+    {
+      "wave": 3,
+      "organization": "Ada Developers Academy",
+      "segment": "Career switchers in tuition-free developer training",
+      "officialUrl": "https://adadevelopersacademy.org/",
+      "contactRoute": "https://adadevelopersacademy.org/partner/",
+      "whyFit": "Its technical projects, internship, and career transition support create strong proof-building moments.",
+      "offer": "A supported five-person pilot linking prior-career experience and Ada projects to an editable, evidence-first portfolio.",
+      "status": "researched"
+    },
+    {
+      "wave": 4,
+      "organization": "NPower",
+      "segment": "Young adults, veterans, and military spouses",
+      "officialUrl": "https://www.npower.org/",
+      "contactRoute": "https://www.npower.org/get-involved/partner/",
+      "whyFit": "Its free tech career pathways include mentoring, guest lectures, and employment support.",
+      "offer": "A supported guest session and five-person pilot converting certifications, labs, and service into portfolio evidence.",
+      "status": "researched"
+    },
+    {
+      "wave": 4,
+      "organization": "Generation United States",
+      "segment": "Recent graduates and career changers",
+      "officialUrl": "https://usa.generation.org/jobsprint/",
+      "contactRoute": "https://usa.generation.org/partners/",
+      "whyFit": "Its free JobSprint directly serves recent graduates and career changers with resume and LinkedIn coaching.",
+      "offer": "A supported five-person JobSprint companion pilot turning real experience into an editable, evidence-first portfolio.",
+      "status": "researched"
+    },
+    {
+      "wave": 4,
+      "organization": "Merit America",
+      "segment": "Working adults changing into tech and skilled careers",
+      "officialUrl": "https://meritamerica.org/about/",
+      "contactRoute": "https://meritamerica.org/contact/",
+      "whyFit": "Its workforce program combines technical coursework with workshops and career coaching.",
+      "offer": "A coach-supported five-person résumé-to-portfolio pilot plus deidentified cohort feedback.",
+      "status": "researched"
+    },
+    {
+      "wave": 4,
+      "organization": "Break Through Tech",
+      "segment": "College students entering AI and technology careers",
+      "officialUrl": "https://www.breakthroughtech.org/",
+      "contactRoute": "https://www.breakthroughtech.org/contact-us/",
+      "whyFit": "It combines real technical projects with early-career pathways across more than 200 universities.",
+      "offer": "A supported five-person AI portfolio evidence pilot with deidentified readiness feedback for staff.",
+      "status": "researched"
+    },
+    {
+      "wave": 4,
+      "organization": "AnitaB.org",
+      "segment": "Students, apprentices, and early-career technologists",
+      "officialUrl": "https://anitab.org/apprenticeship-pathway-program/partner",
+      "contactRoute": "https://anitab.org/contact-us",
+      "whyFit": "Its apprenticeship programs and conference tracks directly support beginners and early-career talent.",
+      "offer": "A supported five-person apprentice résumé-to-portfolio pilot plus a partner-ready worksheet.",
+      "status": "researched"
+    }
+  ]
+}

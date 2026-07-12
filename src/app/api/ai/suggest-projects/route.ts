@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { projectSuggestionsPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 // Personalized portfolio-project ideas from the candidate's résumé. Runs on the same
 // reliable OpenAI infra as every other AI feature (structured output, no fragile manual
@@ -31,19 +37,21 @@ export async function POST(request: NextRequest) {
     }
 
     const isPro = await isProUser(user.id)
-    const rl = await checkRateLimit(user.id, 'project_suggested', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json({ error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter }, { status: 429 })
-    }
-
     // Free users only ever generate the 3 Beginner projects — Intermediate/Master are Pro,
     // so we never spend tokens producing content a free user can't unlock.
-    const { data } = await runPrompt(projectSuggestionsPrompt, { resumeText: content, beginnerOnly: !isPro })
+    const prompt = await runPromptWithQuota(
+      projectSuggestionsPrompt,
+      { resumeText: content, beginnerOnly: !isPro },
+      { userId: user.id, eventName: 'project_suggested', isPro },
+    )
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data, meta } = prompt
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'project_suggested',
-      metadata: { resume_id: resumeId ?? null, count: data.suggestions.length, is_pro: isPro },
+    trackAsync(user.id, 'project_suggested', {
+      resume_id: resumeId ?? null,
+      count: data.suggestions.length,
+      is_pro: isPro,
     })
 
     return NextResponse.json({ data: { suggestions: data.suggestions.slice(0, 9), tier: isPro ? 'pro' : 'free' } })

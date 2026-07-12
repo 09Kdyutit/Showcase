@@ -22,7 +22,7 @@ export interface InterviewPlanLimits {
 export const FREE_PLAN_LIMITS: InterviewPlanLimits = {
   sessionsPerPeriod: 5,            // text interviews / month
   audioSessionsPerPeriod: 0,       // voice is the upgrade reason — none on free
-  maxPrimaryQuestions: 8,
+  maxPrimaryQuestions: 10,         // free written interviews: choose 5 or 10 questions
   maxAdaptiveFollowUps: 2,
   maxSessionMinutes: 25,
   retriesPerPeriod: 'per_session_one',
@@ -37,7 +37,7 @@ export const PRO_PLAN_LIMITS: InterviewPlanLimits = {
   // pathological worst case is still covered by the live-voice spend-budget gate.
   sessionsPerPeriod: 150,
   audioSessionsPerPeriod: 20,
-  maxPrimaryQuestions: 15,
+  maxPrimaryQuestions: 30,         // Pro written interviews: up to 30 questions
   maxAdaptiveFollowUps: 5,
   maxSessionMinutes: 45,
   retriesPerPeriod: 100,

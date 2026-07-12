@@ -14,8 +14,8 @@ const FAQS = [
     a: 'Never. Our AI only works with what you provide. It rewrites and improves how you present real experience, but it will never fabricate metrics, employers, projects, or certifications. When evidence is missing, we tell you exactly what to add - we do not fill it in.',
   },
   {
-    q: 'What is ProofScore and how is it calculated?',
-    a: "ProofScore is Showcase's 0-100 hiring-readiness audit. It scores your portfolio across 11 categories: first impression clarity, target role alignment, proof strength, project depth, resume quality, case study quality, credibility signals, visual polish, contact readiness, keyword relevance, and hiring risk gaps. Each category shows what is weak and how to fix it. Proof strength and role alignment count double.",
+    q: 'How does the evidence audit work?',
+    a: 'Showcase reviews your portfolio across 11 hiring-readiness categories, including first-impression clarity, target-role alignment, evidence strength, project depth, case-study quality, credibility signals, contact readiness, keyword relevance, and presentation clarity. Each category shows what is weak and how to fix it.',
   },
   {
     q: 'Who can see my portfolio?',
@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: 'What is the difference between Free and Pro?',
-    a: 'Free gives you resume parsing, a basic ProofScore preview, an unpublished draft portfolio, job browsing with demo data, and one ATS check. Pro ($15/month) unlocks everything: full AI portfolio generation, all 11 ProofScore categories, personalized job matching, Tailor Studio, the Truth Ledger, interview evidence briefs, ATS export validation, and the full application pipeline.',
+    a: 'Free gives you resume parsing, one AI portfolio generation, one 11-category evidence audit per day, draft building and editing, and useful daily AI limits. Pro ($15/month or $150/year) adds live publishing, portfolio regeneration, higher limits, voice interviews, personalized job tools, and standalone HTML export.',
   },
   {
     q: 'Will my resume sound AI-generated?',
@@ -43,11 +43,11 @@ const FAQS = [
   },
   {
     q: 'How does Showcase handle my resume data?',
-    a: 'Your resume is processed by OpenAI\'s API to generate and improve your portfolio and application content. It is never shared, sold, used to train AI models, or given to third parties. You own your data and can delete it at any time from settings.',
+    a: 'Your resume is sent to the service providers listed in our Privacy Policy only when needed to parse, generate, or improve your content. Showcase does not sell it, and API data is not used to train OpenAI models. You own your data and can delete your account and stored materials from settings.',
   },
   {
     q: 'Can I cancel my subscription anytime?',
-    a: 'Yes. Cancel from billing settings anytime - no questions asked. You keep Pro access until the end of your current billing period. We offer a 7-day money-back guarantee if you have not used Pro features.',
+    a: 'Yes. Cancel from billing settings anytime. You keep Pro access until the end of your current billing period. Refund requests made within 7 days are eligible only before substantive use of Pro features; see the refund policy for exact conditions.',
   },
 ]
 

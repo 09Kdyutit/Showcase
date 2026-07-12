@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-07-10T19:53:58.194Z",
+  "status": "COMPLETED_DARK",
+  "scope": "showcase_web_application_closed_beta",
+  "project_ref": "yogwhfrjhcbnvoxitcay",
+  "authorization": {
+    "coordinated_maintenance_window": true,
+    "unaliased_production_deployment": true,
+    "migration_history_repair_033_037": true,
+    "migrations_038_047": true,
+    "compatible_build_promotion": true
+  },
+  "source": {
+    "branch": "feat/ai-hardening-and-ui-redesign",
+    "deployed_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
+    "clean_worktree": true,
+    "ci_run_id": 29119544469,
+    "ci_status": "failed_stale_release_fingerprint",
+    "ci_failure_scope": "release contract fingerprint still referenced the pre-recovery source; no runtime failure was reported",
+    "vercel_hobby_crons": "once_daily"
+  },
+  "backup": {
+    "backup_id": "20260710T180210Z",
+    "status": "RESTORE_VERIFIED",
+    "single_exported_database_snapshot": true,
+    "plaintext_retained": false,
+    "disposable_restore_destroyed": true,
+    "database": {
+      "encrypted_archive_bytes": 313866,
+      "encrypted_archive_sha256": "88f9994b687dd65e1737c9de2609d49abaea941cbb9a37179d90dd506db92184",
+      "object_count": 67,
+      "table_count": 66,
+      "sequence_count": 1,
+      "total_table_rows": 2008,
+      "inventory_exact": true,
+      "normalized_public_catalog_exact": true
+    },
+    "storage": {
+      "encrypted_archive_bytes": 7169574,
+      "encrypted_archive_sha256": "02c91c3c687c44598e6469ec2b0721c5aa2d02e0c6444e810d949a278740c175",
+      "bucket_count": 3,
+      "object_count": 22,
+      "total_bytes": 7265691,
+      "database_inventory_exact": true,
+      "file_sizes_exact": true,
+      "file_sha256_exact": true
+    }
+  },
+  "database_rollout": {
+    "pre_rollout": {
+      "application_migrations": 33,
+      "latest_application_migration": "20260703190040",
+      "auth_migrations": 77,
+      "storage_migrations": 61,
+      "waiting_locks": 0,
+      "long_transactions": 0,
+      "backup_inventory_exact_immediately_before_write": true
+    },
+    "history_repaired": [
+      "20260710033033",
+      "20260710033034",
+      "20260710033035",
+      "20260710033036",
+      "20260710033037"
+    ],
+    "dry_run_and_applied": [
+      "20260710033038_growth_admission.sql",
+      "20260710033039_growth_automation.sql",
+      "20260710033040_proofscore_public_capacity.sql",
+      "20260710033041_launch_security_and_webhooks.sql",
+      "20260710033042_founding_member_slots.sql",
+      "20260710033043_email_and_parse_hardening.sql",
+      "20260710033044_atomic_subscription_state.sql",
+      "20260710033045_referral_invite_pacing.sql",
+      "20260710033046_referral_abuse_and_credit_hardening.sql",
+      "20260710033047_explicit_data_api_grants.sql"
+    ],
+    "post_rollout": {
+      "canonical_ledger_exact": true,
+      "application_migrations": 48,
+      "latest_application_migration": "20260710033047",
+      "auth_migrations": 77,
+      "storage_migrations": 61,
+      "preexisting_object_row_counts_unchanged": true,
+      "new_tables_present": 13,
+      "public_tables_without_rls": 0,
+      "invalid_indexes": 0,
+      "unvalidated_constraints": 0,
+      "disabled_public_triggers": 0,
+      "acl_violations": 0,
+      "admission_attribution_referral_webhook_invariants": true,
+      "auth_signup_trigger_count": 1,
+      "storage_policy_count": 9
+    }
+  },
+  "controls": {
+    "launch_open": false,
+    "invites_paused": true,
+    "daily_invite_limit": 10,
+    "founding_reservations_paused": true,
+    "founding_slot_limit": 10,
+    "founding_reservation_ttl_minutes": 120,
+    "verified_dark_environment_values": 26,
+    "email_enabled": false,
+    "lifecycle_email_enabled": false,
+    "ai_kill_switch": true,
+    "gemini_kill_switch": true,
+    "checkout_kill_switch": true,
+    "jobs_provider_kill_switch": true,
+    "publishing_kill_switch": true,
+    "interview_kill_switch": true
+  },
+  "deployment": {
+    "vercel_project": "showcase-app",
+    "staged_deployment_id": "dpl_WPEeQ9uDAEaFh4D9nRHhoCiRcMYz",
+    "staged_url": "https://showcase-49f4x8rnr-09kdyutits-projects.vercel.app",
+    "production_url": "https://app.tryshowcase.ink",
+    "promoted_without_rebuild": true,
+    "ready": true,
+    "health_checked_at": "2026-07-10T19:53:58.194Z",
+    "health_status": "ok",
+    "health_commit": "7b150783085b",
+    "health_environment": "production",
+    "database_healthy": true,
+    "public_root_status": 200,
+    "unauthenticated_private_route_redirect": "/waitlist"
+  },
+  "public_route_recovery": {
+    "previous_deployed_git_head": "f968af8b5b25167364f841b82b685af2cc39e236",
+    "deployed_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
+    "database_mutated": false,
+    "controls_changed": false,
+    "candidate_and_production_results_match": true,
+    "public_page_statuses": {
+      "root": 200,
+      "pricing": 200,
+      "career_services": 200,
+      "beta_feedback": 200
+    },
+    "nonexistent_public_route_statuses": {
+      "published_portfolio": 404,
+      "shared_proofscore": 404,
+      "shared_interview_report": 404,
+      "shared_interview_report_api": 404
+    },
+    "closed_beta_redirects": {
+      "signup": {
+        "status": 307,
+        "location": "/waitlist"
+      },
+      "dashboard": {
+        "status": 307,
+        "location": "/waitlist"
+      },
+      "demo_dashboard": {
+        "status": 307,
+        "location": "/waitlist"
+      }
+    },
+    "private_api_statuses": {
+      "interview_sessions": 403,
+      "audit_share": 403
+    },
+    "malformed_same_origin_beta_feedback_status": 400
+  },
+  "negative_smoke_tests": {
+    "verified_git_head": "7b150783085b6e98a161225b76f82ca12a57ae7a",
+    "stripe_missing_signature_status": 400,
+    "resend_delivery_missing_signature_status": 401,
+    "resend_inbound_missing_signature_status": 401,
+    "invite_cron_missing_authorization_status": 401,
+    "lifecycle_cron_missing_authorization_status": 401,
+    "retention_cron_missing_authorization_status": 401,
+    "mutating_credentialed_suites_excluded": true,
+    "growth_status_excluded": true,
+    "founding_availability_excluded": true
+  },
+  "remaining_release_blockers": {
+    "required_environment_variables": [
+      "EMAIL_POSTAL_ADDRESS",
+      "RESEND_DELIVERY_WEBHOOK_SECRET",
+      "STRIPE_PRICE_ID_FOUNDING_ANNUAL"
+    ],
+    "rotate_resend_api_key": true,
+    "rotate_production_database_password": true,
+    "provider_backed_end_to_end_tests": true,
+    "account_deletion_with_active_subscription": true,
+    "founder_distribution_approval": true
+  },
+  "historical_inputs": [
+    "security/production-backup-evidence.json",
+    "security/production-migration-preflight.json"
+  ]
+}

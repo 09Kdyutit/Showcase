@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { proofScoreExplanationPrompt } from '@/lib/ai/prompts/registry'
 import type { ParsedResumeOutput, PortfolioContentOutput } from '@/lib/ai/schemas'
 import { computeProofScore } from '@/lib/proofscore/engine'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 const schema = z.object({
   portfolioId: z.string().uuid().optional(),
@@ -20,6 +26,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const service = await createServiceClient()
 
     const body = await request.json()
     const parsed = schema.safeParse(body)
@@ -29,18 +36,6 @@ export async function POST(request: NextRequest) {
 
     const { portfolioId, resumeId, targetRole, industry } = parsed.data
     const isPro = await isProUser(user.id)
-
-    const rl = await checkRateLimit(user.id, 'audit_completed', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        {
-          error: rl.reason,
-          code: rl.reason.includes('Pro') ? 'PRO_REQUIRED' : 'RATE_LIMITED',
-          retryAfter: rl.retryAfter,
-        },
-        { status: isPro ? 429 : 403 }
-      )
-    }
 
     let portfolioContent: PortfolioContentOutput | null = null
     if (portfolioId) {
@@ -68,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (!parsedResume && !portfolioContent) {
       return NextResponse.json(
-        { error: resumeId ? 'This resume has not been parsed yet. Re-upload it to run ProofScore.' : 'Provide a resume or a portfolio to audit' },
+        { error: resumeId ? 'This resume has not been parsed yet. Re-upload it to run an evidence audit.' : 'Provide a resume or a portfolio to audit' },
         { status: 400 }
       )
     }
@@ -79,13 +74,20 @@ export async function POST(request: NextRequest) {
     // from structured facts, not AI judgment. AI is only used afterward to explain them.
     const deterministic = computeProofScore(parsedResume, portfolioContent, targetRole, industry, isPro)
 
-    const { data: explanation, meta } = await runPrompt(proofScoreExplanationPrompt, {
+    const prompt = await runPromptWithQuota(proofScoreExplanationPrompt, {
       resumeText,
       portfolioContent: portfolioContent as unknown as Record<string, unknown> | null,
       targetRole,
       industry,
       categories: deterministic.categories,
+    }, {
+      userId: user.id,
+      eventName: 'audit_completed',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: explanation, meta } = prompt
+    await recordPromptCost({ userId: user.id, meta })
 
     const explanationByKey = new Map(explanation.categories.map((c) => [c.key, c]))
     const rankedKeys = deterministic.categories
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
       top_priorities: explanation.top_priorities,
     }
 
-    const { data: audit } = await supabase.from('audits').insert({
+    const { data: audit, error: auditError } = await service.from('audits').insert({
       user_id: user.id,
       portfolio_id: portfolioId ?? null,
       resume_id: resumeId ?? null,
@@ -131,16 +133,18 @@ export async function POST(request: NextRequest) {
       findings: result.missing_evidence as unknown as Record<string, unknown>,
       recommendations: result.top_priorities as unknown as Record<string, unknown>,
     }).select().single()
+    if (auditError || !audit) throw auditError ?? new Error('Could not save evidence audit')
 
     if (portfolioId && audit) {
-      await supabase
+      const { error: scoreUpdateError } = await service
         .from('portfolios')
         .update({ proof_score: result.overall_score })
         .eq('id', portfolioId)
         .eq('user_id', user.id)
+      if (scoreUpdateError) throw scoreUpdateError
     }
 
-    await supabase.from('generations').insert({
+    const { error: generationError } = await service.from('generations').insert({
       user_id: user.id,
       type: 'audit_explanation',
       output: explanation as unknown as Record<string, unknown>,
@@ -150,17 +154,27 @@ export async function POST(request: NextRequest) {
       provider: meta.provider,
       status: 'completed',
     })
+    if (generationError) throw generationError
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'audit_completed',
-      metadata: { overall_score: result.overall_score, audit_id: audit?.id, is_pro: isPro },
+    trackAsync(user.id, 'audit_completed', {
+      overall_score: result.overall_score,
+      audit_id: audit.id,
+      is_pro: isPro,
     })
     trackAsync(user.id, 'proofscore_completed', {
       overall_score: result.overall_score,
-      audit_id: audit?.id ?? null,
+      audit_id: audit.id,
       is_pro: isPro,
     })
+    await recordTrustedEventSafe({
+      idempotencyKey: `proofscore-viewed:${user.id}:${audit.id}`,
+      eventName: 'proofscore_viewed',
+      userId: user.id,
+      entityType: 'audit',
+      entityId: audit.id,
+      source: 'authenticated_proofscore_route',
+      metadata: { overall_score: result.overall_score, is_pro: isPro },
+    }, service)
 
     return NextResponse.json({ data: result, auditId: audit?.id })
   } catch (err) {

@@ -17,7 +17,7 @@ Run it yourself as a fresh user (incognito, new email).
 
 ```
 Waitlist → Invite accepted → Signup → Resume upload → Parse →
-Generate portfolio → Edit → ProofScore → Publish → View public page
+Generate portfolio → Edit → Evidence Audit → Publish → View public page
 ```
 
 ---
@@ -76,9 +76,9 @@ Generate portfolio → Edit → ProofScore → Publish → View public page
 - [ ] Expected: changes persist on page refresh
 - [ ] Check `portfolio_edit_saved` event in `usage_events`
 
-### 8. ProofScore
+### 8. Evidence Audit
 
-- [ ] Run the ProofScore / audit
+- [ ] Run the Evidence Audit
 - [ ] Expected: score appears, recommendations visible
 - [ ] Check `proofscore_completed` event in `usage_events`
 
@@ -114,7 +114,7 @@ Do NOT send a new wave until all of these pass:
 
 ## Nice-to-have (fix before wave 2)
 
-- [ ] ProofScore gives specific, actionable recommendations
+- [ ] Evidence Audit gives specific, actionable recommendations
 - [ ] Editing interface is intuitive without instructions
 - [ ] Mobile portfolio page looks good
 - [ ] Social share card for `/p/[slug]` has correct OG image

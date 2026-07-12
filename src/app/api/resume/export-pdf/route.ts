@@ -6,6 +6,10 @@ import type { ParsedResume, TailoredContent } from '@/types/database'
 import { slugify, getUnconfirmedFabricationRisks } from '@/lib/jobs/truth-ledger'
 import { buildResumePdfDoc } from '@/lib/resume/pdf-doc'
 
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
+
 // POST /api/resume/export-pdf
 // Body: { resume_id?: string, tailored_asset_id?: string }
 // Returns: PDF file download.

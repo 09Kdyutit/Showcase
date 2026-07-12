@@ -27,7 +27,7 @@ function useCountUp(target: number, duration = 1500, start = true) {
 }
 
 const BENEFITS = [
-  'Free ProofScore preview, see where you stand',
+  'Build and preview your portfolio free',
   'AI-powered resume parsing in seconds',
   'Draft portfolio with no design required',
   'No credit card needed to start',
@@ -35,7 +35,7 @@ const BENEFITS = [
 
 const STEPS = [
   { step: '01', icon: FileText, title: 'Upload your resume', desc: 'PDF or DOCX, we parse everything instantly', color: 'oklch(63% 0.200 255)' },
-  { step: '02', icon: BarChart3, title: 'Get your ProofScore', desc: '11 categories scored, gaps identified', color: 'oklch(62% 0.20 295)' },
+  { step: '02', icon: BarChart3, title: 'Review your evidence', desc: 'See what is strong and what needs work', color: 'oklch(62% 0.20 295)' },
   { step: '03', icon: Globe, title: 'Publish your portfolio', desc: 'A link that proves your work, not just lists it', color: 'oklch(72% 0.16 162)' },
 ]
 
@@ -147,7 +147,7 @@ function ProofScoreCard({ score }: { score: number }) {
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs mb-1" style={{ color: 'oklch(66% 0.012 255)' }}>ProofScore</p>
+          <p className="text-xs mb-1" style={{ color: 'oklch(66% 0.012 255)' }}>Evidence score</p>
           <p className="text-5xl font-bold tabular-nums text-foreground tracking-tight">{score}</p>
           <p className="text-xs font-semibold mt-1" style={{ color: 'oklch(72% 0.16 162)' }}>Strong</p>
         </div>

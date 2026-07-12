@@ -37,7 +37,7 @@ Watch for:
 - Where do they click something that doesn't do what they expected?
 - What do they say out loud (unprompted)?
 - What do they skip or skim?
-- Do they notice the ProofScore section?
+- Do they notice the Evidence Audit section?
 - Do they make edits to the generated portfolio?
 - Do they hit publish? If not — why do they stop?
 

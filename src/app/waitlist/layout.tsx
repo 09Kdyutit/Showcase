@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Join the Private Beta',
   description:
-    'Your résumé lists claims. Showcase turns them into evidence. Upload your résumé, get a portfolio draft and ProofScore, and see exactly what to fix - without inventing a thing. Join the private beta.',
+    'Your résumé lists claims. Showcase turns them into evidence. Upload your résumé, get a portfolio draft, and see exactly what to fix - without inventing a thing. Join the private beta.',
   alternates: { canonical: '/waitlist' },
   openGraph: {
     title: 'Showcase - Join the Private Beta',

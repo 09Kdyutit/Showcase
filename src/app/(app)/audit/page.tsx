@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   BarChart3, AlertCircle, CheckCircle2, ArrowRight, Info, Copy, Check,
-  Search, Lightbulb, TrendingUp, Zap, Target, FileText,
+  Search, Lightbulb, TrendingUp, Zap, Target, FileText, Share2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { createClient } from '@/lib/supabase/client'
 import { cn, scoreColor } from '@/lib/utils'
+import { PageShell, PageHeader } from '@/components/shared/page-header'
 import type { AuditResult, AuditCategory, Resume } from '@/types/database'
 
 function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
@@ -231,7 +232,7 @@ const AUDIT_SCAN_STEPS = [
   { label: 'Evaluating project depth', detail: 'assessing Problem → Process → Outcome framework' },
   { label: 'Checking keyword relevance', detail: 'matching against target role vocabulary' },
   { label: 'Identifying hiring risk gaps', detail: 'looking for vague dates, gaps, unsupported claims' },
-  { label: 'Calculating ProofScore', detail: 'weighting all 11 categories' },
+  { label: 'Calculating evidence score', detail: 'weighting all 11 categories' },
 ]
 
 function AuditLoadingPanel({ step }: { step: number }) {
@@ -329,6 +330,18 @@ export default function AuditPage() {
 
   const selectedResume = resumes.find((r) => r.id === selectedResumeId) ?? null
 
+  async function shareScore() {
+    try {
+      const res = await fetch('/api/audit/share', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) { toast.error(json.error ?? 'Could not create share link'); return }
+      await navigator.clipboard.writeText(json.data.url).catch(() => {})
+      toast.success('Share link copied to clipboard')
+    } catch {
+      toast.error('Could not create share link')
+    }
+  }
+
   async function runAudit() {
     if (!selectedResumeId) { toast.error('Select a resume to audit'); return }
     if (!targetRole.trim()) { toast.error('Enter your target role'); return }
@@ -352,7 +365,7 @@ export default function AuditPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Audit failed')
       setResult(data.data)
-      toast.success('ProofScore complete!')
+      toast.success('Evidence audit complete!')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Audit failed. Please try again.')
     } finally {
@@ -365,26 +378,25 @@ export default function AuditPage() {
   const sortedCategories = result?.categories.slice().sort((a, b) => (a.score ?? 100) - (b.score ?? 100)) ?? []
 
   return (
+    <PageShell>
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-1">ProofScore Audit</h1>
-        <p className="text-muted-foreground text-sm">
-          ProofScore audits the resume you already uploaded against a specific target role - an honest score
-          across 11 hiring-readiness categories. (Resume parsing extracts your experience; ProofScore judges
-          how well it lands for the role you pick below.)
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Evidence Audit"
+        title="Know exactly where you"
+        titleAccent="stand."
+        description="The evidence audit reviews the resume you already uploaded against a specific target role across 11 hiring-readiness categories. Resume parsing extracts your experience; the audit checks how well that evidence supports the role you pick below."
+      />
 
       {/* Input */}
       {!result && (
-        <div className="glass-card p-6 space-y-5">
+        <div className="entrance entrance-delay-2 glass-card p-6 space-y-5">
           {loadingResumes ? (
             <Skeleton className="h-16 w-full" />
           ) : resumes.length === 0 ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-400 flex-1">
-                Upload your resume first - ProofScore audits it for a target role.
+                Upload your resume first - the evidence audit reviews it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
                 <Link href="/resume">Go to Resume</Link>
@@ -449,7 +461,7 @@ export default function AuditPage() {
             className="w-full gap-2"
           >
             <BarChart3 className="h-4 w-4" />
-            Run ProofScore Audit
+            Run Evidence Audit
           </Button>
         </div>
       )}
@@ -466,7 +478,7 @@ export default function AuditPage() {
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center gap-2 mb-2 justify-center sm:justify-start">
                 <h2 className="text-xl font-bold text-foreground">
-                  ProofScore: {result.overall_score}/100
+                  Evidence score: {result.overall_score}/100
                 </h2>
                 <RoleFitBadge score={result.overall_score} />
               </div>
@@ -481,9 +493,15 @@ export default function AuditPage() {
                 </div>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={() => setResult(null)} className="shrink-0">
-              Re-audit
-            </Button>
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button variant="gradient" size="sm" onClick={shareScore} className="gap-1.5">
+                <Share2 className="h-3.5 w-3.5" />
+                Share score
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setResult(null)}>
+                Re-audit
+              </Button>
+            </div>
           </div>
 
           {/* Next 3 Fixes - prominent callout */}
@@ -562,11 +580,12 @@ export default function AuditPage() {
 
           {/* Disclaimer */}
           <p className="text-xs text-muted-foreground/50 text-center leading-relaxed">
-            ProofScore is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to
+            The evidence audit is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to
             reflect recruiter decisions. Showcase does not guarantee employment or interview outcomes.
           </p>
         </div>
       )}
     </div>
+    </PageShell>
   )
 }

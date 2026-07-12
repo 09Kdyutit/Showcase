@@ -15,6 +15,7 @@ async function main() {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? ''
   const monthlyPriceId = process.env.STRIPE_PRICE_ID_PRO_MONTHLY ?? ''
   const annualPriceId = process.env.STRIPE_PRICE_ID_PRO_ANNUAL ?? ''
+  const foundingPriceId = process.env.STRIPE_PRICE_ID_FOUNDING_ANNUAL ?? ''
 
   const secretMode = secretKey.startsWith('sk_live_') ? 'live' : secretKey.startsWith('sk_test_') ? 'test' : 'unknown'
   const publishableMode = publishableKey.startsWith('pk_live_') ? 'live' : publishableKey.startsWith('pk_test_') ? 'test' : 'unknown'
@@ -34,16 +35,42 @@ async function main() {
 
   try {
     const monthly = await stripe.prices.retrieve(monthlyPriceId)
-    record('Monthly Price ID exists and is active', monthly.active === true, `${monthly.id}, active=${monthly.active}, $${monthly.unit_amount / 100}`)
+    record(
+      'Monthly Price is active USD $15 recurring monthly',
+      monthly.active === true && monthly.currency === 'usd' && monthly.unit_amount === 1500
+        && monthly.recurring?.interval === 'month' && monthly.recurring.interval_count === 1,
+      `${monthly.id}, active=${monthly.active}, ${monthly.currency} ${monthly.unit_amount}, ${monthly.recurring?.interval}`,
+    )
   } catch (e) {
-    record('Monthly Price ID exists and is active', false, e.message)
+    record('Monthly Price is active USD $15 recurring monthly', false, e.message)
   }
 
   try {
     const annual = await stripe.prices.retrieve(annualPriceId)
-    record('Annual Price ID exists and is active', annual.active === true, `${annual.id}, active=${annual.active}, $${annual.unit_amount / 100}`)
+    record(
+      'Annual Price is active USD $150 recurring yearly',
+      annual.active === true && annual.currency === 'usd' && annual.unit_amount === 15000
+        && annual.recurring?.interval === 'year' && annual.recurring.interval_count === 1,
+      `${annual.id}, active=${annual.active}, ${annual.currency} ${annual.unit_amount}, ${annual.recurring?.interval}`,
+    )
   } catch (e) {
-    record('Annual Price ID exists and is active', false, e.message)
+    record('Annual Price is active USD $150 recurring yearly', false, e.message)
+  }
+
+  if (foundingPriceId) {
+    try {
+      const founding = await stripe.prices.retrieve(foundingPriceId)
+      record(
+        'Founding Price is active USD $99 recurring yearly',
+        founding.active === true && founding.currency === 'usd' && founding.unit_amount === 9900
+          && founding.recurring?.interval === 'year' && founding.recurring.interval_count === 1,
+        `${founding.id}, active=${founding.active}, ${founding.currency} ${founding.unit_amount}, ${founding.recurring?.interval}`,
+      )
+    } catch (e) {
+      record('Founding Price is active USD $99 recurring yearly', false, e.message)
+    }
+  } else {
+    record('Founding Price omitted, so the Founding offer remains disabled', true)
   }
 
   // Confirm the key actually authenticates (real API call, read-only)

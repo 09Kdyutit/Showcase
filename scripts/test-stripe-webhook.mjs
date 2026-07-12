@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-// Real adversarial tests against the live webhook route using properly-signed (but
-// synthetic) Stripe events — generateTestHeaderString produces a real HMAC signature
-// against the real STRIPE_WEBHOOK_SECRET, so this exercises actual signature
-// verification, not a mock. Tests duplicate delivery, replay, out-of-order events,
-// and invalid signatures.
+// Adversarial production-route + database test. Synthetic unknown events exercise real
+// Stripe HMAC verification and retry claims without asking Stripe for fake objects. Mutable
+// subscription ordering is exercised directly through the same atomic RPC used by the
+// webhook, including concurrent/reversed snapshots and replacement subscriptions.
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
@@ -13,43 +12,39 @@ const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
-let PASS = 0, FAIL = 0
-function record(label, ok, detail) {
-  console.log(`  ${ok ? '✅' : '❌'} ${label}${detail ? ' — ' + detail : ''}`)
-  if (ok) PASS++; else FAIL++
+if (!WEBHOOK_SECRET || !URL || !ANON_KEY || !SERVICE_KEY || !process.env.STRIPE_SECRET_KEY) {
+  console.error('Stripe, Supabase, and webhook environment variables are required.')
+  process.exit(1)
 }
 
-function fakeSubscriptionEvent({ id, type, userId, customerId, subscriptionId, status, createdAt }) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+let PASS = 0
+let FAIL = 0
+function record(label, ok, detail) {
+  console.log(`  ${ok ? '✅' : '❌'} ${label}${detail ? ` — ${detail}` : ''}`)
+  if (ok) PASS++
+  else FAIL++
+}
+
+function fakeUnknownEvent(id, createdAt = Date.now()) {
   const payload = JSON.stringify({
     id,
     object: 'event',
-    type,
+    type: 'showcase.test_unknown',
     created: Math.floor(createdAt / 1000),
-    data: {
-      object: {
-        id: subscriptionId,
-        object: 'subscription',
-        customer: customerId,
-        status,
-        cancel_at_period_end: false,
-        metadata: { user_id: userId },
-        items: { data: [{ price: { id: 'price_fake_test' }, current_period_end: Math.floor((createdAt + 30 * 86400000) / 1000) }] },
-      },
-    },
+    data: { object: { id: `obj_${id}`, object: 'showcase_test' } },
   })
   const header = stripe.webhooks.generateTestHeaderString({ payload, secret: WEBHOOK_SECRET })
   return { payload, header }
 }
 
 async function post(payload, signatureHeader) {
-  const res = await fetch(`${APP_URL}/api/stripe/webhook`, {
+  const response = await fetch(`${APP_URL}/api/stripe/webhook`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'stripe-signature': signatureHeader },
     body: payload,
   })
-  return { status: res.status, body: await res.json().catch(() => null) }
+  return { status: response.status, body: await response.json().catch(() => null) }
 }
 
 async function main() {
@@ -58,61 +53,111 @@ async function main() {
   const suffix = Date.now()
   const email = `webhook-test-${suffix}@example.com`
   const { data: signup, error } = await anon.auth.signUp({ email, password: 'TestPassword123!' })
-  if (error) throw new Error('signup failed: ' + error.message)
+  if (error || !signup.user) throw new Error(`signup failed: ${error?.message ?? 'missing user'}`)
   const userId = signup.user.id
   const customerId = `cus_fake_${suffix}`
   const subscriptionId = `sub_fake_${suffix}`
+  const t0 = Date.now()
 
-  console.log('Test user:', userId)
+  try {
+    console.log('Test user:', userId)
 
-  // ── Invalid signature ──
-  {
-    const { payload } = fakeSubscriptionEvent({ id: `evt_${suffix}_bad`, type: 'customer.subscription.updated', userId, customerId, subscriptionId, status: 'active', createdAt: Date.now() })
-    const res = await fetch(`${APP_URL}/api/stripe/webhook`, {
+    // Invalid signature and exact-event replay still run through the public route.
+    const bad = fakeUnknownEvent(`evt_${suffix}_bad`)
+    const badResponse = await fetch(`${APP_URL}/api/stripe/webhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'stripe-signature': 't=1,v1=forged_signature_not_real' },
-      body: payload,
+      body: bad.payload,
     })
-    record('Invalid signature is rejected (400)', res.status === 400, `got ${res.status}`)
-  }
+    record('Invalid signature is rejected', badResponse.status === 400, `got ${badResponse.status}`)
 
-  // ── Real signed event applies correctly ──
-  const t0 = Date.now()
-  const evt1 = fakeSubscriptionEvent({ id: `evt_${suffix}_1`, type: 'customer.subscription.updated', userId, customerId, subscriptionId, status: 'active', createdAt: t0 })
-  {
-    const { status, body } = await post(evt1.payload, evt1.header)
-    record('First delivery of a real signed event is accepted', status === 200 && !body?.duplicate, `got ${status} ${JSON.stringify(body)}`)
-  }
-  {
-    const { data } = await service.from('subscriptions').select('status, last_webhook_event_at').eq('user_id', userId).single()
-    record('Subscription status applied correctly', data?.status === 'active', `got ${data?.status}`)
-  }
+    const first = fakeUnknownEvent(`evt_${suffix}_first`)
+    const firstResponse = await post(first.payload, first.header)
+    record('First signed event is processed', firstResponse.status === 200 && !firstResponse.body?.duplicate, JSON.stringify(firstResponse.body))
+    const duplicateResponse = await post(first.payload, first.header)
+    record('Exact duplicate is short-circuited', duplicateResponse.status === 200 && duplicateResponse.body?.duplicate === true, JSON.stringify(duplicateResponse.body))
 
-  // ── Exact duplicate delivery (same event id) ──
-  {
-    const { status, body } = await post(evt1.payload, evt1.header)
-    record('Duplicate delivery of the same event id is recognized and short-circuited', status === 200 && body?.duplicate === true, `got ${status} ${JSON.stringify(body)}`)
-  }
+    const retryEventId = `evt_${suffix}_retry`
+    await service.from('processed_webhook_events').upsert({
+      event_id: retryEventId,
+      event_type: 'showcase.test_unknown',
+      status: 'failed',
+      attempt_count: 1,
+      processed_at: null,
+      last_error: 'synthetic previous failure',
+      updated_at: new Date(t0 - 60_000).toISOString(),
+    })
+    const retry = fakeUnknownEvent(retryEventId)
+    const retryResponse = await post(retry.payload, retry.header)
+    const { data: retryRow } = await service
+      .from('processed_webhook_events')
+      .select('status, attempt_count')
+      .eq('event_id', retryEventId)
+      .single()
+    record('Failed event is reclaimable', retryResponse.status === 200 && retryRow?.status === 'processed' && retryRow?.attempt_count === 2, JSON.stringify(retryRow))
 
-  // ── Newer event applies, then an older (out-of-order) event must NOT regress state ──
-  const t1 = t0 + 60_000 // 1 minute later
-  const evt2 = fakeSubscriptionEvent({ id: `evt_${suffix}_2`, type: 'customer.subscription.updated', userId, customerId, subscriptionId, status: 'past_due', createdAt: t1 })
-  await post(evt2.payload, evt2.header)
-  {
-    const { data } = await service.from('subscriptions').select('status').eq('user_id', userId).single()
-    record('Newer event (t1, past_due) applied correctly', data?.status === 'past_due', `got ${data?.status}`)
-  }
+    const apply = (input) => service.rpc('apply_subscription_snapshot', {
+      p_user_id: userId,
+      p_stripe_customer_id: customerId,
+      p_stripe_subscription_id: input.subscriptionId ?? subscriptionId,
+      p_subscription_created_at: new Date(input.subscriptionCreatedAt ?? t0 - 5_000).toISOString(),
+      p_status: input.status,
+      p_price_id: 'price_fake_test',
+      p_current_period_end: new Date(t0 + 30 * 86400_000).toISOString(),
+      p_cancel_at_period_end: false,
+      p_event_created_at: new Date(input.eventCreatedAt).toISOString(),
+      p_event_id: input.eventId,
+    })
 
-  // Now deliver an OLDER event (t0-equivalent but different event id, simulating a late/replayed-from-retry-queue delivery)
-  const evt3Old = fakeSubscriptionEvent({ id: `evt_${suffix}_3_old`, type: 'customer.subscription.updated', userId, customerId, subscriptionId, status: 'active', createdAt: t0 - 10_000 })
-  await post(evt3Old.payload, evt3Old.header)
-  {
-    const { data } = await service.from('subscriptions').select('status').eq('user_id', userId).single()
-    record('Out-of-order older event does NOT regress newer status (still past_due)', data?.status === 'past_due', `got ${data?.status}`)
+    const firstSnapshot = await apply({ status: 'active', eventCreatedAt: t0, eventId: `evt_${suffix}_state_1` })
+    record('Initial subscription snapshot applies', !firstSnapshot.error && firstSnapshot.data === true, firstSnapshot.error?.message)
+
+    // Race two snapshots deliberately. The newer timestamp must win independent of commit order.
+    const [newer, older] = await Promise.all([
+      apply({ status: 'past_due', eventCreatedAt: t0 + 60_000, eventId: `evt_${suffix}_state_2` }),
+      apply({ status: 'active', eventCreatedAt: t0 - 10_000, eventId: `evt_${suffix}_state_old` }),
+    ])
+    record('Concurrent snapshots complete without RPC errors', !newer.error && !older.error, newer.error?.message || older.error?.message)
+    let { data: row } = await service
+      .from('subscriptions')
+      .select('status, stripe_subscription_id')
+      .eq('user_id', userId)
+      .single()
+    record('Newer snapshot wins the race', row?.status === 'past_due', `got ${row?.status}`)
+
+    // Same-second active must not outrank a terminal snapshot of the same subscription.
+    await apply({ status: 'canceled', eventCreatedAt: t0 + 120_000, eventId: `evt_${suffix}_terminal` })
+    await apply({ status: 'active', eventCreatedAt: t0 + 120_000, eventId: `evt_${suffix}_late_active_zz` })
+    ;({ data: row } = await service.from('subscriptions').select('status, stripe_subscription_id').eq('user_id', userId).single())
+    record('Same-second terminal state cannot regress to active', row?.status === 'canceled', `got ${row?.status}`)
+
+    // A newer replacement subscription must survive a delayed deletion of the old one.
+    const replacementId = `sub_replacement_${suffix}`
+    await apply({
+      subscriptionId: replacementId,
+      subscriptionCreatedAt: t0 + 180_000,
+      status: 'active',
+      eventCreatedAt: t0 + 180_000,
+      eventId: `evt_${suffix}_replacement`,
+    })
+    await apply({
+      subscriptionId,
+      subscriptionCreatedAt: t0 - 5_000,
+      status: 'canceled',
+      eventCreatedAt: t0 + 240_000,
+      eventId: `evt_${suffix}_old_deleted_late`,
+    })
+    ;({ data: row } = await service.from('subscriptions').select('status, stripe_subscription_id').eq('user_id', userId).single())
+    record('Late deletion of old subscription cannot replace the newer one', row?.status === 'active' && row?.stripe_subscription_id === replacementId, JSON.stringify(row))
+  } finally {
+    await service.auth.admin.deleteUser(userId).catch(() => {})
   }
 
   console.log(`\n  Stripe webhook test: ${PASS} passed, ${FAIL} failed\n`)
   process.exit(FAIL > 0 ? 1 : 0)
 }
 
-main().catch(e => { console.error('SCRIPT ERROR:', e.message, e.stack); process.exit(1) })
+main().catch((error) => {
+  console.error('SCRIPT ERROR:', error.message, error.stack)
+  process.exit(1)
+})

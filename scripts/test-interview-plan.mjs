@@ -83,5 +83,63 @@ for (const sessionType of SESSION_TYPES) {
 const uniqueQuestionSets = new Set(allFirstQuestions.values())
 record('All 10 session types produce distinct question sets (no silent reuse across types)', uniqueQuestionSets.size === SESSION_TYPES.length, `${uniqueQuestionSets.size} distinct sets for ${SESSION_TYPES.length} types`)
 
+// ── Bug (c) regression: the plan must deliver the REQUESTED question count ─────
+// A founder-reported written session asked for 10 questions and silently got 6: AI
+// generation failed, and the static-bank fallback's slice() could cap but never top
+// up. The plan builder must now (a) deliver exactly the requested count whenever the
+// combined AI + bank pool covers it, and (b) record requestedQuestionCount on the
+// plan whenever it cannot, so callers surface the shortfall instead of hiding it.
+const PRO_LIMITS = { maxPrimaryQuestions: 30, maxAdaptiveFollowUps: 5, maxSessionMinutes: 30 }
+const FREE_LIMITS = { maxPrimaryQuestions: 10, maxAdaptiveFollowUps: 2, maxSessionMinutes: 25 }
+const mkAiQuestions = (n) => Array.from({ length: n }, (_, i) => ({
+  templateId: `ai-gen-test-${i}`, orderIndex: i,
+  questionText: `Walk me through a specific technical decision number ${i + 1} you made and the tradeoffs you weighed.`,
+  competency: `test_competency_${i}`, difficulty: 'challenging',
+  selectionReason: 'Deterministic test AI question', sourceReferences: [],
+}))
+const writtenInput = {
+  sessionType: 'case_problem_solving', targetRole: 'Product Manager', targetCompany: 'Acme Corp',
+  difficulty: 'challenging', durationMinutes: 10, evidence: {}, deliveryMode: 'text', planLimits: PRO_LIMITS,
+}
+
+const fullAiPlan = buildInterviewPlan({ ...writtenInput, questionCountOverride: 10, aiGeneratedQuestions: mkAiQuestions(10) })
+record('Requesting 10 with 10 AI questions yields exactly 10', fullAiPlan.questions.length === 10, `got ${fullAiPlan.questions.length}`)
+
+const partialAiPlan = buildInterviewPlan({ ...writtenInput, questionCountOverride: 10, aiGeneratedQuestions: mkAiQuestions(6) })
+record('AI under-delivery (6 of 10) is topped up from the bank to exactly 10', partialAiPlan.questions.length === 10, `got ${partialAiPlan.questions.length}`)
+record('Top-up keeps the AI questions first, then fills with bank templates',
+  partialAiPlan.questions.slice(0, 6).every((q) => q.templateId?.startsWith('ai-gen-test-')) &&
+  partialAiPlan.questions.slice(6).every((q) => q.templateId?.startsWith('cp-')))
+
+const bankOnlyPlan = buildInterviewPlan({ ...writtenInput, questionCountOverride: 10 })
+record('AI failure with a 10-question request drains the whole 6-template bank, not fewer', bankOnlyPlan.questions.length === 6, `got ${bankOnlyPlan.questions.length}`)
+record('Impossible request records requestedQuestionCount so the shortfall is user-visible', bankOnlyPlan.requestedQuestionCount === 10, `got ${bankOnlyPlan.requestedQuestionCount}`)
+
+const bankFivePlan = buildInterviewPlan({ ...writtenInput, questionCountOverride: 5 })
+record('A 5-question bank-only request yields exactly 5', bankFivePlan.questions.length === 5, `got ${bankFivePlan.questions.length}`)
+
+for (const count of [5, 10, 15, 20, 25, 30]) {
+  const plan = buildInterviewPlan({ ...writtenInput, questionCountOverride: count, aiGeneratedQuestions: mkAiQuestions(count) })
+  record(`Pro request for ${count} AI-backed questions yields exactly ${count}`, plan.questions.length === count, `got ${plan.questions.length}`)
+}
+
+const clampedPlan = buildInterviewPlan({ ...writtenInput, planLimits: FREE_LIMITS, questionCountOverride: 30, aiGeneratedQuestions: mkAiQuestions(30) })
+record('Free tier ceiling clamps a 30-question request to 10 and records the original ask',
+  clampedPlan.questions.length === 10 && clampedPlan.requestedQuestionCount === 30,
+  `got ${clampedPlan.questions.length} questions, requested ${clampedPlan.requestedQuestionCount}`)
+
+// Dedupe: an AI question that mirrors a bank template must not be asked twice.
+const dupAi = [{
+  templateId: 'ai-gen-test-dup', orderIndex: 0,
+  questionText: "Walk me through how you'd break down an ambiguous, open-ended problem into something actionable.", // identical to cp-002
+  competency: 'structured_reasoning', difficulty: 'standard',
+  selectionReason: 'Deterministic test AI question', sourceReferences: [],
+}]
+const dedupePlan = buildInterviewPlan({ ...writtenInput, questionCountOverride: 10, aiGeneratedQuestions: dupAi })
+record('Bank top-up skips a bank template whose text duplicates an AI question',
+  new Set(dedupePlan.questions.map((q) => q.questionText.toLowerCase())).size === dedupePlan.questions.length &&
+  dedupePlan.questions.length === 6,
+  `got ${dedupePlan.questions.length} questions`)
+
 console.log(`\n  Interview plan builder test: ${PASS} passed, ${FAIL} failed\n`)
 process.exit(FAIL > 0 ? 1 : 0)

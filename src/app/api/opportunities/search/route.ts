@@ -733,7 +733,7 @@ async function fetchOdFeeds(): Promise<Opportunity[]> {
   const results = await Promise.allSettled(
     urls.map(async url => {
       const res = await cachedFetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ShowcaseBot/1.0; +https://showcase.app)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ShowcaseBot/1.0; +https://tryshowcase.ink)' },
       })
       if (!res.ok) return []
       const xml = await res.text()

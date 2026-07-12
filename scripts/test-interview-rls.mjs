@@ -8,6 +8,11 @@ import { createClient } from '@supabase/supabase-js'
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!URL || !ANON_KEY || !SERVICE_KEY) {
+  console.error('NEXT_PUBLIC_SUPABASE_URL, publishable key, and service-role key are required.')
+  process.exitCode = 1
+}
 
 let PASS = 0, FAIL = 0
 function record(label, ok, detail) {
@@ -24,10 +29,16 @@ async function signUp(email) {
 
 async function main() {
   const suffix = Date.now()
-  const a = await signUp(`interview-rls-a-${suffix}@example.com`)
-  const b = await signUp(`interview-rls-b-${suffix}@example.com`)
-  console.log('User A:', a.userId)
-  console.log('User B:', b.userId)
+  const service = createClient(URL, SERVICE_KEY, { auth: { persistSession: false } })
+  const cleanupUserIds = []
+
+  try {
+    const a = await signUp(`interview-rls-a-${suffix}@example.com`)
+    cleanupUserIds.push(a.userId)
+    const b = await signUp(`interview-rls-b-${suffix}@example.com`)
+    cleanupUserIds.push(b.userId)
+    console.log('User A:', a.userId)
+    console.log('User B:', b.userId)
 
   // ── User A creates real Interview Lab data ──────────────────────────────
   await a.client.from('interview_profiles').insert({ user_id: a.userId })
@@ -181,6 +192,23 @@ async function main() {
     const { error } = await anon.rpc('reserve_interview_usage', { p_user_id: a.userId, p_period_start: '2026-01-01', p_period_end: '2026-01-31', p_cost_microunits: 1, p_budget_microunits: 1000 })
     record('Anonymous client cannot call reserve_interview_usage() either', !!error, error?.message)
   }
+  {
+    // This newer RPC previously inherited PostgreSQL's default PUBLIC EXECUTE even though
+    // its reservation table was service-only. Migration 047 must close that separate ACL.
+    const { error } = await a.client.rpc('interview_commit_usage', {
+      p_reservation_id: '00000000-0000-0000-0000-000000000000',
+      p_user_id: a.userId,
+    })
+    record('Authenticated client cannot call interview_commit_usage() directly', !!error, error?.message)
+  }
+  {
+    const anon = createClient(URL, ANON_KEY)
+    const { error } = await anon.rpc('interview_commit_usage', {
+      p_reservation_id: '00000000-0000-0000-0000-000000000000',
+      p_user_id: a.userId,
+    })
+    record('Anonymous client cannot call interview_commit_usage() either', !!error, error?.message)
+  }
 
   console.log('\n── Anonymous client: zero access to any interview table ──')
   {
@@ -194,8 +222,21 @@ async function main() {
     record('Anonymous client cannot list any story bank entries', (data?.length ?? 0) === 0)
   }
 
+  } finally {
+    for (const userId of cleanupUserIds) {
+      await service.auth.admin.deleteUser(userId).catch(() => {})
+    }
+  }
+
   console.log(`\n  Interview RLS adversarial test: ${PASS} passed, ${FAIL} failed\n`)
-  process.exit(FAIL > 0 ? 1 : 0)
+  return FAIL > 0 ? 1 : 0
 }
 
-main().catch((e) => { console.error('SCRIPT ERROR:', e.message); process.exit(1) })
+if (URL && ANON_KEY && SERVICE_KEY) {
+  main()
+    .then((code) => { process.exitCode = code })
+    .catch((e) => {
+      console.error('SCRIPT ERROR:', e.message)
+      process.exitCode = 1
+    })
+}

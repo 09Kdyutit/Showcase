@@ -22,13 +22,13 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
-                { href: '/proofscore', label: 'How ProofScore works' },
+                { href: '/#how-it-works', label: 'How Showcase works' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
                 { href: '/signup', label: 'Get started free' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">
+                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
                     {l.label}
                   </Link>
                 </li>
@@ -44,7 +44,7 @@ export function Footer() {
                 { href: '/refund', label: 'Refund Policy' },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200">
+                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
                     {l.label}
                   </Link>
                 </li>

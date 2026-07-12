@@ -14,7 +14,7 @@ You joined the Showcase beta list a while back. Your invite is ready.
 
 Showcase takes your resume, projects, and work history and turns them into a proof-of-work portfolio — the kind that shows what you can actually do, not just what you claim.
 
-After generating your portfolio, run ProofScore. It audits 11 dimensions — from first impression clarity to evidence strength — and shows you exactly what is missing and what to fix before you apply.
+After generating your portfolio, run an Evidence Audit. It reviews 11 dimensions — from first impression clarity to evidence strength — and shows you exactly what is missing and what to fix before you apply.
 
 ---
 
@@ -24,7 +24,7 @@ After generating your portfolio, run ProofScore. It audits 11 dimensions — fro
 2. Create your account
 3. Upload your resume or paste the text
 4. Generate your portfolio
-5. Run ProofScore on it
+5. Run an Evidence Audit on it
 6. Read the Evidence Gap Finder — it will tell you what is weakest
 
 Takes about 10 minutes for a first pass.

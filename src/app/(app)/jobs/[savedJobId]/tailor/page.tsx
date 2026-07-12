@@ -487,6 +487,26 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   const [generating, setGenerating] = useState(false)
   const [coverLetter, setCoverLetter] = useState(false)
   const [recruiterNote, setRecruiterNote] = useState(false)
+  const [markedApplied, setMarkedApplied] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const isApplied = markedApplied || ['applied', 'interview', 'offer'].includes(savedJob?.status ?? '')
+
+  // Connective tissue: mark the job applied from Tailor Studio (with the tailored kit already
+  // attached), so it moves into the pipeline and the weekly digest's follow-up nudge tracks it.
+  async function markApplied() {
+    if (!savedJobId || isApplied) return
+    setApplying(true)
+    try {
+      const res = await fetch('/api/jobs/save', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: savedJobId, status: 'applied' }),
+      })
+      if (res.ok) { setMarkedApplied(true); toast.success('Marked as applied — we\'ll nudge you to follow up.') }
+      else toast.error('Could not update status.')
+    } catch { toast.error('Could not update status.') }
+    finally { setApplying(false) }
+  }
   const [activeSection, setActiveSection] = useState<'summary' | 'experience' | 'truth' | 'interview'>('summary')
 
   const loadData = useCallback(async () => {
@@ -760,6 +780,18 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               Export DOCX
             </Button>
           )}
+          {savedJob && (
+            isApplied ? (
+              <Badge variant="success" className="gap-1 text-xs h-8 px-3">
+                <Check className="h-3.5 w-3.5" /> Applied
+              </Badge>
+            ) : (
+              <Button onClick={markApplied} variant="secondary" size="sm" disabled={applying} className="gap-1.5">
+                {applying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Mark as applied
+              </Button>
+            )
+          )}
           <Button
             onClick={handleGenerate}
             variant="gradient"
@@ -792,7 +824,10 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
             <div className="w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center mx-auto mb-5">
               <Zap className="h-7 w-7 text-brand-400" />
             </div>
-            <h2 className="text-xl font-bold mb-3">Tailor for {job?.title ?? 'this role'}</h2>
+            <h2 className="text-display text-2xl sm:text-3xl font-semibold mb-3 text-balance">
+              Tailored for{' '}
+              <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>{job?.title ?? 'this role'}</em>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
               Showcase will rewrite your resume to foreground the experience most relevant to this role - using only your existing evidence, never fabricating facts.
             </p>

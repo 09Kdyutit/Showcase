@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Sparkles, Loader2, Save, Download, FileText, BarChart3, X, Wand2 } from 'lucide-react'
+import { Plus, Trash2, Loader2, Save, Download, FileText, BarChart3, X, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -21,6 +21,40 @@ const BLANK: ParsedResume = {
   name: '', email: '', phone: '', location: '', summary: '', skills: [],
   experience: [], education: [], projects: [], certifications: [],
   links: {}, weak_bullets: [], missing_proof: [], possible_case_studies: [],
+}
+
+// A stored parsed_json can be partial or shaped slightly differently than the editor
+// expects (an experience entry without a bullets array, a missing education list, etc.).
+// A shallow { ...BLANK, ...parsed } does NOT default the *nested* arrays, so a single
+// missing field used to crash the whole page (e.bullets.map on undefined). Normalize
+// every array and every nested entry so the builder always has editable, iterable data.
+function normalizeResume(raw: unknown): ParsedResume {
+  const p = (raw ?? {}) as Partial<ParsedResume>
+  const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '')
+  return {
+    ...BLANK,
+    ...p,
+    name: str(p.name), email: str(p.email), phone: str(p.phone),
+    location: str(p.location), summary: str(p.summary),
+    skills: arr<string>(p.skills),
+    experience: arr<Partial<Exp>>(p.experience).map((e) => ({
+      company: str(e?.company), role: str(e?.role), period: str(e?.period),
+      bullets: arr<string>(e?.bullets), metrics: arr<string>(e?.metrics),
+    })),
+    education: arr<Partial<Edu>>(p.education).map((ed) => ({
+      institution: str(ed?.institution), degree: str(ed?.degree), year: str(ed?.year),
+    })),
+    projects: arr<Partial<Proj>>(p.projects).map((pr) => ({
+      title: str(pr?.title), description: str(pr?.description),
+      technologies: arr<string>(pr?.technologies), links: arr<string>(pr?.links),
+      has_outcome: pr?.has_outcome,
+    })),
+    certifications: arr<string>(p.certifications),
+    links: (p.links ?? {}) as ParsedResume['links'],
+    weak_bullets: arr(p.weak_bullets), missing_proof: arr(p.missing_proof),
+    possible_case_studies: arr(p.possible_case_studies),
+  }
 }
 
 function buildRawText(r: ParsedResume): string {
@@ -73,7 +107,7 @@ export function ResumeBuilder() {
     supabase.from('resumes').select('id, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle()
       .then(({ data }) => {
         if (data?.id) setResumeId(data.id)
-        if (data?.parsed_json) setResume({ ...BLANK, ...(data.parsed_json as unknown as ParsedResume) })
+        if (data?.parsed_json) setResume(normalizeResume(data.parsed_json))
         setLoading(false)
       })
   }, [])
@@ -263,7 +297,7 @@ export function ResumeBuilder() {
         <Button onClick={() => save()} loading={saving} variant="gradient" className="gap-1.5"><Save className="h-4 w-4" /> Save</Button>
         <Button onClick={() => exportResume('pdf')} loading={exporting === 'pdf'} variant="secondary" className="gap-1.5"><FileText className="h-4 w-4" /> PDF</Button>
         <Button onClick={() => exportResume('docx')} loading={exporting === 'docx'} variant="secondary" className="gap-1.5"><Download className="h-4 w-4" /> DOCX</Button>
-        <Link href="/audit" className="ml-auto"><Button variant="ghost" className="gap-1.5"><BarChart3 className="h-4 w-4" /> Run ProofScore</Button></Link>
+        <Link href="/audit" className="ml-auto"><Button variant="ghost" className="gap-1.5"><BarChart3 className="h-4 w-4" /> Run evidence audit</Button></Link>
       </div>
     </div>
   )

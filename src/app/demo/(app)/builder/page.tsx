@@ -70,8 +70,8 @@ export default function DemoBuilderPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="border-b border-border/60 px-6 py-3 flex items-center justify-between gap-4 bg-surface-50/50">
-        <div className="flex items-center gap-3">
+      <div className="border-b border-border/60 px-6 py-3 flex items-center justify-between gap-4 bg-surface-50/50 max-sm:flex-wrap max-sm:gap-2 max-sm:px-4">
+        <div className="flex items-center gap-3 max-sm:w-full">
           <h1 className="text-base font-semibold text-foreground">Senior Product Designer</h1>
           <Badge variant="pro">Pro</Badge>
           <Badge variant="success">Published</Badge>
@@ -102,7 +102,7 @@ export default function DemoBuilderPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
+                    'px-5 py-3.5 text-sm max-sm:px-2.5 max-sm:text-[13px] font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
                     activeTab === tab.id
                       ? 'border-brand-500 text-brand-400'
                       : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -122,7 +122,7 @@ export default function DemoBuilderPage() {
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hero Section</p>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 max-lg:p-2 max-lg:-m-2">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -154,7 +154,7 @@ export default function DemoBuilderPage() {
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">About</p>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 max-lg:p-2 max-lg:-m-2">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -188,7 +188,7 @@ export default function DemoBuilderPage() {
                       <p className="text-xs text-muted-foreground mb-2">{proj.role} · {proj.year}</p>
                       <p className="text-xs text-emerald-400 font-medium">{proj.outcome}</p>
                     </div>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0">
+                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0 max-lg:p-2 max-lg:-m-2">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -224,7 +224,7 @@ export default function DemoBuilderPage() {
                       <p className="font-semibold text-sm text-foreground">{exp.company}</p>
                       <p className="text-xs text-muted-foreground">{exp.role} · {exp.period}</p>
                     </div>
-                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0">
+                    <button className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 shrink-0 max-lg:p-2 max-lg:-m-2">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
                   </div>
@@ -245,7 +245,7 @@ export default function DemoBuilderPage() {
                   </p>
                   <div className="flex items-center gap-3 p-3 bg-surface-300/60 rounded-xl">
                     <Globe className="h-4 w-4 text-brand-400 shrink-0" />
-                    <span className="text-sm text-brand-400 font-medium">showcase.app/p/alex-chen</span>
+                    <span className="text-sm text-brand-400 font-medium">app.tryshowcase.ink/p/alex-chen</span>
                     <Link href="/demo/portfolio" className="ml-auto text-muted-foreground hover:text-foreground transition-colors">
                       <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
@@ -253,6 +253,46 @@ export default function DemoBuilderPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Quality checklist (mobile only - mirrors the lg sidebar) */}
+          <div className="lg:hidden p-5 border-t border-border/60">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Quality Checklist</p>
+              <span className="text-xs font-bold text-brand-400">{checklistScore}%</span>
+            </div>
+            <div className="space-y-2.5 mb-4">
+              {CHECKLIST.map((item) => (
+                <div key={item.label} className="flex items-center gap-2.5">
+                  {item.done ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  ) : (
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className={cn(
+                    'text-xs',
+                    item.done ? 'text-foreground/80' : 'text-amber-400 font-medium',
+                  )}>
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="h-1.5 bg-surface-300 rounded-full overflow-hidden mb-1.5">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500 transition-all duration-700"
+                  style={{ width: `${checklistScore}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Almost there - add contact links to reach 100%</p>
+            </div>
+            <Button asChild variant="outline" size="sm" className="w-full mt-4 gap-1.5 text-xs">
+              <Link href="/demo/portfolio">
+                <Eye className="h-3 w-3" />
+                View full preview
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -336,13 +376,13 @@ export default function DemoBuilderPage() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-border/60 px-6 py-3 flex items-center justify-between gap-4 bg-surface-50/50">
+      <div className="border-t border-border/60 px-6 py-3 flex items-center justify-between gap-4 bg-surface-50/50 max-sm:flex-wrap max-sm:px-4 max-sm:gap-2">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span className="text-xs text-muted-foreground">
             Published at{' '}
             <Link href="/demo/portfolio" className="text-brand-400 hover:text-brand-300 font-medium">
-              showcase.app/p/alex-chen
+              app.tryshowcase.ink/p/alex-chen
             </Link>
           </span>
         </div>

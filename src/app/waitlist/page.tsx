@@ -20,24 +20,26 @@ import {
 import { cn } from '@/lib/utils'
 import { trackMarketingEvent, useTrackOnView } from '@/lib/marketing/track-client'
 import { Logo } from '@/components/shared/logo'
+import { configuredAppHost, configuredAppUrl } from '@/lib/app-url'
+
+const APP_HOST = configuredAppHost()
+const APP_URL = configuredAppUrl()
 
 // ── Pricing data ──────────────────────────────────────────────────────────────
 
 const FREE_FEATURES = [
   'Resume text parsing',
-  'Basic ProofScore preview (3 categories)',
-  'Draft portfolio (unpublished)',
-  '1 portfolio',
+  'One AI portfolio generation',
+  'Evidence audit across all 11 categories',
+  'Build, edit, and preview portfolio drafts',
 ]
 const PRO_FEATURES = [
   'Everything in Free',
-  'Full AI portfolio generation from resume',
-  'Complete ProofScore audit - all 11 categories',
-  'Public portfolio at showcase.app/p/your-name',
+  'Portfolio regeneration and higher AI limits',
+  `Public Pro portfolio at ${APP_HOST}/p/your-name`,
   'Tailor Studio - role-specific resume in one click',
   'Truth Ledger - every change traced to your real experience',
-  'Unlimited portfolios',
-  'Priority AI processing',
+  'Voice interviews and standalone HTML export',
 ]
 
 // ── UTM helpers ───────────────────────────────────────────────────────────────
@@ -91,7 +93,7 @@ const FAQ = [
   },
   {
     q: 'Is joining the waitlist free?',
-    a: 'Yes, joining the waitlist costs nothing. Pricing details for the actual product will be shared when access opens.',
+    a: 'Yes. Joining costs nothing, and the product has a real Free plan. Pro is $15/month or $150/year when you want to publish live and raise the AI limits.',
   },
   {
     q: 'Will Showcase write fake experience?',
@@ -119,7 +121,7 @@ function ProofScoreWidget() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-brand-400" />
-          <span className="text-sm font-semibold text-foreground">ProofScore™</span>
+          <span className="text-sm font-semibold text-foreground">Evidence audit</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span
@@ -195,7 +197,7 @@ function HowItWorksFlow() {
     },
     {
       icon: BarChart3,
-      title: 'Run ProofScore',
+      title: 'Review your evidence',
       desc: 'Get an honest 0-100 audit across 11 dimensions - from proof strength to first impression.',
       color: 'text-amber-400 bg-amber-500/10',
     },
@@ -272,7 +274,7 @@ function SuccessState({
 }) {
   const [copied, setCopied] = useState(false)
   const shareUrl = referralCode
-    ? `${typeof window !== 'undefined' ? window.location.origin : 'https://showcase.app'}/waitlist?ref=${referralCode}`
+    ? `${APP_URL}/waitlist?ref=${referralCode}`
     : null
 
   function copyLink() {
@@ -305,7 +307,7 @@ function SuccessState({
           "You're on the list. Nothing else required from you.",
           'We work on making Showcase the best it can be.',
           "When we're ready, we'll email you with access details.",
-          'Pricing and details will be shared at that point.',
+          'When your turn arrives, we will email a private signup link with the current access details.',
         ].map((step, i) => (
           <div key={i} className="flex items-start gap-3">
             <div className="w-5 h-5 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -450,7 +452,7 @@ function WaitlistContent() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { label: 'How it works', href: '#how-it-works' },
-              { label: 'ProofScore', href: '#proof-score' },
+              { label: 'Evidence audit', href: '#proof-score' },
               { label: 'Pricing', href: '#pricing' },
               { label: 'FAQ', href: '#faq' },
             ].map((link) => (
@@ -488,7 +490,7 @@ function WaitlistContent() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-400 mb-8">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                Waitlist - limited spots
+                Waitlist · invites released in daily batches
               </div>
 
               <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black tracking-tight leading-[1.02] text-balance mb-6">
@@ -886,7 +888,7 @@ function WaitlistContent() {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-bold text-brand-400 uppercase tracking-widest">Showcase Pro</p>
                 <span className="text-xs font-bold text-brand-300 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                  {isAnnual ? 'Best value' : 'Most popular'}
+                  {isAnnual ? 'Best value' : 'Monthly'}
                 </span>
               </div>
               {isAnnual ? (
@@ -1042,7 +1044,7 @@ function WaitlistContent() {
               <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
               <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
               <Link href="/refund" className="hover:text-foreground transition-colors">Refund</Link>
-              <a href="mailto:hello@showcase.app" className="hover:text-foreground transition-colors">Contact</a>
+              <a href="mailto:hello@tryshowcase.ink" className="hover:text-foreground transition-colors">Contact</a>
             </div>
           </div>
         </div>

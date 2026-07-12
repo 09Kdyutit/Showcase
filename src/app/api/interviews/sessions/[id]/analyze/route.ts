@@ -100,7 +100,12 @@ export async function POST(
       // exchanges, and one detailed coaching block each overflows the model's output budget
       // and fails the whole analysis. The dimension scores still reflect the FULL transcript;
       // only per-answer coaching is bounded. 16 covers the vast majority of sessions.
-      const exchanges = buildExchanges(transcript).slice(0, 16)
+      // Built from the raw rows (not `transcript`) because text-mode grouping needs each
+      // segment's question_id, which the analysis TranscriptSegment shape doesn't carry.
+      const exchanges = buildExchanges(
+        (transcriptRows ?? []).map((s) => ({ id: s.id, speaker: s.speaker, content: s.content, question_id: s.question_id })),
+        (questions ?? []).map((q) => ({ id: q.id as string, question_text: q.question_text as string }))
+      ).slice(0, 16)
       const assessable = exchanges.length > 0
         ? exchanges.map((e, i) => ({ id: e.id, questionText: e.question || 'Opening', orderIndex: i }))
         : (questions ?? []).map((q) => ({

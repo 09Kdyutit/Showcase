@@ -13,41 +13,57 @@ would have rejected — **email confirmation and magic-link sign-in were broken*
 end to end. Fixed both call sites to point at `/callback`. Verified the signup
 flow still completes correctly after the fix.
 
-## Current email provider: Supabase's built-in SMTP
+## Current provider boundaries
 
-No custom SMTP/transactional-email provider (Resend, SendGrid, Postmark, etc.)
-is configured anywhere in this codebase — confirmed via a full source search.
-All auth emails (signup confirmation, magic link, password reset) are sent
-through Supabase Auth's default built-in email service.
+Auth emails (signup confirmation, magic link, password reset) are sent through
+Supabase Auth. The production custom-SMTP configuration still needs to be verified.
 
-**This has a real, low limit:** Supabase's built-in email is explicitly
-documented as suitable for development/testing only, with a low per-hour
-sending cap (a few emails per hour on the Free tier) and no deliverability
-guarantees (no custom domain, more likely to land in spam). It is not
-appropriate for real production signup volume.
+The application now has local Resend paths for waitlist, invite, Evidence Audit, lifecycle,
+scorecard, inbound reply, delivery-event, unsubscribe, and suppression handling. Those
+paths are not considered production-ready until their configuration and signed provider
+events pass the release smoke tests.
+
+## Confirmed routing and blocking state
+
+- Legal/business name: Showcase
+- Public founder: Kumar Dyutit
+- Support/privacy address: `hello@tryshowcase.ink`
+- Verified inbound replies forward to: `hello@tryshowcase.ink`
+- Weekly scorecard recipient: `kumar.dyutit09@gmail.com`
+- `EMAIL_POSTAL_ADDRESS`: unresolved
+- Required state while unresolved: `EMAILS_ENABLED=false` and
+  `LIFECYCLE_EMAILS_ENABLED=false`
+
+A valid physical postal address is required before commercial/lifecycle delivery is
+enabled. Do not substitute a placeholder or a private address that the owner has not
+explicitly approved for public email footers.
 
 ## What's needed before launch
 
-1. **Configure a custom SMTP provider** in Supabase Dashboard → Authentication
+1. **Resolve and configure `EMAIL_POSTAL_ADDRESS`** with a valid physical sender address.
+   Keep all commercial/lifecycle delivery disabled until this is complete.
+2. **Configure a custom SMTP provider** in Supabase Dashboard → Authentication
    → Email Templates / SMTP Settings, pointing at a real transactional email
    service (Resend, Postmark, SendGrid, AWS SES, etc.) with a verified sending
    domain (SPF/DKIM/DMARC configured — without these, a meaningful fraction of
    confirmation emails will land in spam, especially with major providers like
    Gmail).
-2. **Update the Redirect URLs allowlist** in Supabase Dashboard → Authentication
+3. **Configure and verify Resend** for the app-level routes, using separate inbound and
+   delivery-event signing secrets. Test unsubscribe, bounce, complaint, and suppression
+   before changing either email enablement flag.
+4. **Update the Redirect URLs allowlist** in Supabase Dashboard → Authentication
    → URL Configuration to include the real production domain's `/callback`
    path (not just `localhost`).
-3. **Customize the email templates** (Supabase Dashboard → Authentication →
+5. **Customize the email templates** (Supabase Dashboard → Authentication →
    Email Templates) — the default templates are generic and don't carry the
    Showcase brand; this is a trust/conversion issue more than a security one,
    but worth doing before a real launch.
-4. **Verify the from-address** matches the configured sending domain — a
+6. **Verify the from-address** matches the configured sending domain — a
    mismatched from-address is one of the most common reasons confirmation
    emails get marked as spam.
 
-## What does NOT need custom SMTP
+## Billing email boundary
 
 Stripe handles its own receipt/invoice emails independently — no app-level
-email integration is needed for billing. The only email surface this app
-controls is the three Supabase Auth flows above (signup confirmation, magic
-link, password reset).
+email integration is needed for billing. This does not cover Showcase's auth,
+waitlist, invite, Evidence Audit, lifecycle, scorecard, or inbound-reply surfaces.

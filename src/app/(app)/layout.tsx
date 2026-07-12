@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/dashboard/sidebar'
+import { AppFX } from '@/components/ui/app-fx'
+import { CommandPalette } from '@/components/dashboard/command-palette'
+import { WhatsNew } from '@/components/dashboard/whats-new'
+import { GrowthAttributionClaim } from '@/components/analytics/growth-attribution-claim'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -15,6 +19,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <AppFX />
+      <CommandPalette />
+      <WhatsNew />
+      <GrowthAttributionClaim userId={user.id} />
       <Sidebar profile={profileRes.data} subscription={subRes.data} />
       <main className="flex-1 overflow-y-auto thin-scrollbar pt-14 lg:pt-0">
         {children}

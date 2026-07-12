@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Free gets you a real portfolio draft and your first ProofScore. Pro takes it from draft to shareable - publish it, tailor it per role, and fix every evidence gap. $15/month or $150/year.',
+    'Free gets you a real portfolio draft, editing, and preview. Pro adds publishing, role-specific tailoring, and guided work on evidence gaps. $15/month or $150/year.',
   alternates: { canonical: '/pricing' },
   openGraph: {
     title: 'Showcase Pricing - $15/month, no trial that auto-charges',

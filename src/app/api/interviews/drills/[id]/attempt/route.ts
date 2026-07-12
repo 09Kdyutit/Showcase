@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDrillDefinition } from '@/lib/interviews/drills'
+import { runPromptWithQuota } from '@/lib/ai/client'
+import { interviewAnswerScorePrompt } from '@/lib/ai/prompts/registry'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 const attemptSchema = z.object({
   answerText: z.string().min(1).max(5000),
 })
 
 /**
- * Records a drill attempt. The score is computed entirely server-side from the
- * deterministic check() function - the client can submit any text, but it can never
- * submit a score directly, so there is no path for a browser to fabricate a "best
- * score" (mirrors the scoring.ts discipline used for real interview evaluations:
- * the server computes the number, the client only ever supplies raw input).
+ * Records a drill attempt, graded by AI against the drill's own objective (passed as
+ * rubricFocus). The score is still computed entirely server-side — the client submits
+ * only raw text and can never inject a score — but the judgment is now the same OpenAI
+ * grader used for written practice, not a deterministic checklist.
  */
 export async function POST(
   request: NextRequest,
@@ -33,7 +39,30 @@ export async function POST(
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
 
-    const result = definition.check(parsed.data.answerText)
+    const isPro = await isProUser(user.id)
+    // AI grades the drill answer against the drill's own objective + instructions.
+    const prompt = await runPromptWithQuota(interviewAnswerScorePrompt, {
+      question: definition.prompt,
+      answer: parsed.data.answerText,
+      rubricFocus: `${definition.label} — ${definition.objective}\n${definition.instructions}`,
+    }, {
+      userId: user.id,
+      eventName: 'question_scored',
+      isPro,
+    })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: ai } = prompt
+    const total = ai.clarity + ai.action + ai.impact + ai.structure
+    const label =
+      total >= 90 ? 'Excellent' : total >= 75 ? 'Good' : total >= 55 ? 'Fair' : 'Needs Work'
+    const result = {
+      score: total,
+      label,
+      passed: total >= 75,
+      dimensions: { clarity: ai.clarity, action: ai.action, impact: ai.impact, structure: ai.structure },
+      strengths: ai.strengths,
+      improvements: ai.improvements,
+    }
 
     const { data: existing } = await supabase
       .from('interview_drills')

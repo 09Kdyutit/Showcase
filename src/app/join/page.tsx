@@ -170,7 +170,7 @@ const FEATURES = [
   'Interview Prep',
   'Job Matching',
   'Project Roadmap',
-  'ProofScore',
+  'Evidence audit',
 ]
 
 // ── Page ──────────────────────────────────────────────────────────────────────

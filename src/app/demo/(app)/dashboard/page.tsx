@@ -27,7 +27,7 @@ const PORTFOLIOS = [
 const SETUP_STEPS = [
   { label: 'Resume uploaded', done: true, href: '/demo/resume' },
   { label: 'Portfolio built', done: true, href: '/demo/builder' },
-  { label: 'ProofScore run', done: true, href: '/demo/audit' },
+  { label: 'Evidence audit run', done: true, href: '/demo/audit' },
   { label: 'Portfolio published', done: true, href: '/demo/portfolio' },
 ]
 
@@ -41,13 +41,13 @@ const CATEGORIES = [
 ]
 
 const ACTIVITY = [
-  { label: 'Ran ProofScore audit - score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
+  { label: 'Ran evidence audit - score improved from 71 → 84', time: '2 hours ago', icon: BarChart3 },
   { label: 'Added Checkout Redesign case study', time: 'Yesterday', icon: Plus },
   { label: 'Published portfolio', time: '2 days ago', icon: Globe },
 ]
 
 const STATS = [
-  { label: 'ProofScore', value: '84', color: 'text-emerald-400' },
+  { label: 'Evidence score', value: '84', color: 'text-emerald-400' },
   { label: 'Portfolios', value: '2', color: 'text-foreground' },
   { label: 'Role Fit', value: '91%', color: 'text-brand-400' },
   { label: 'Profile Complete', value: '87%', color: 'text-violet-400' },
@@ -98,7 +98,7 @@ export default function DemoDashboardPage() {
         {/* ProofScore hero */}
         <Card className="bg-surface-100 border-border lg:col-span-1">
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider self-start">Your ProofScore</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider self-start">Your evidence score</p>
             <ProofScoreRing score={84} size="xl" animate={true} />
             <div className="w-full space-y-2 pt-2">
               <div className="flex justify-between text-xs">
@@ -142,7 +142,7 @@ export default function DemoDashboardPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground mb-1">Strengthen Proof Strength</p>
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  Only 2 of 8 bullets have metrics. Adding 3 more could push your ProofScore from{' '}
+                  Only 2 of 8 bullets have metrics. Adding 3 more could push your evidence score from{' '}
                   <span className="text-amber-400 font-semibold">84 → 91</span>.
                   Recruiters skip unproven claims - numbers make you real.
                 </p>
@@ -160,7 +160,7 @@ export default function DemoDashboardPage() {
               <p className="text-xs font-medium text-muted-foreground mb-3">Score breakdown</p>
               {CATEGORIES.map((cat) => (
                 <div key={cat.name} className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground w-36 shrink-0 truncate">{cat.name}</span>
+                  <span className="text-xs text-muted-foreground w-36 max-[400px]:w-28 shrink-0 truncate">{cat.name}</span>
                   <div className="flex-1 h-1.5 bg-surface-300 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${cat.score >= 80 ? 'bg-emerald-500' : cat.score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
@@ -186,14 +186,14 @@ export default function DemoDashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Setup complete</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 max-lg:space-y-0">
             {SETUP_STEPS.map((step) => (
-              <Link key={step.label} href={step.href} className="flex items-center gap-3 group">
+              <Link key={step.label} href={step.href} className="flex items-center gap-3 group max-lg:py-1.5 max-lg:first:-mt-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span className="text-sm text-foreground/80 group-hover:text-foreground transition-colors truncate">{step.label}</span>
               </Link>
             ))}
-            <div className="pt-2 border-t border-border/60">
+            <div className="pt-2 border-t border-border/60 max-lg:mt-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">All steps complete</span>
                 <span className="text-emerald-400 font-semibold">4 / 4</span>

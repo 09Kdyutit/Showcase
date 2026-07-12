@@ -8,7 +8,11 @@ import type { RateLimiter, RateLimitCheckResult } from './types'
 const buckets = new Map<string, { count: number; windowStart: number }>()
 
 export class MemoryRateLimiter implements RateLimiter {
-  async check(key: string, max: number, windowSeconds: number): Promise<RateLimitCheckResult> {
+  async check(
+    key: string,
+    max: number,
+    windowSeconds: number,
+  ): Promise<RateLimitCheckResult> {
     const now = Date.now()
     const existing = buckets.get(key)
     const windowMs = windowSeconds * 1000

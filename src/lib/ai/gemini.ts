@@ -5,6 +5,7 @@ import type { ReviewMode, ReviewRequest, ReviewerOutput } from './review-types.t
 import { ReviewerOutputSchema } from './review-types.ts'
 import { buildReviewerPrompt } from './prompts/reviewer.ts'
 import { toGeminiJsonSchema } from './gemini-schema-utils.ts'
+import { isAIEnabled, isGeminiEnabled } from '../feature-flags.ts'
 
 // ── Configuration - every knob the mission's Phase 8/10/11 requires, all defaulting closed ──
 
@@ -31,7 +32,9 @@ export function getMaxRevisionPasses(): number {
 /** Phase 10's privacy/legal gate. Real (non-synthetic) data may never reach Gemini unless an
  *  operator has explicitly flipped this AND a real key is configured. Both default false/unset. */
 export function isGeminiPrivateDataAllowed(): boolean {
-  return process.env.GEMINI_PRIVATE_DATA_ENABLED === 'true' && !!process.env.GEMINI_API_KEY
+  return isAIEnabled() && isGeminiEnabled()
+    && process.env.GEMINI_PRIVATE_DATA_ENABLED === 'true'
+    && !!process.env.GEMINI_API_KEY
 }
 
 /** True only when there is something to do - mode isn't off, a key is configured, and (for
@@ -202,6 +205,9 @@ export interface GeminiReviewResult {
 }
 
 export async function callGeminiReviewer(request: ReviewRequest): Promise<GeminiReviewResult> {
+  if (!isAIEnabled() || !isGeminiEnabled()) {
+    throw new GeminiNotConfiguredError('Gemini spend is kill-switched')
+  }
   if (request.dataClassification !== 'synthetic') {
     throw new GeminiSafetyRejectionError(
       `dataClassification must be "synthetic" - got ${JSON.stringify(request.dataClassification)}. Real user/private data may never reach Gemini through this function.`

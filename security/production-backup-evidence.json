@@ -1,0 +1,112 @@
+{
+  "schema_version": 2,
+  "project_ref": "yogwhfrjhcbnvoxitcay",
+  "recorded_at": "2026-07-10T16:37:34.143Z",
+  "database_captured_at": "2026-07-10T15:33:39.113Z",
+  "storage_captured_at": "2026-07-10T15:30:16.829Z",
+  "backup_id": "20260710T152940Z",
+  "backup_type": "logical_database_and_storage",
+  "storage": {
+    "status": "RESTORE_VERIFIED",
+    "bucket_count": 3,
+    "all_buckets_private": true,
+    "object_count": 22,
+    "total_bytes": 7265691,
+    "encrypted_archive_bytes": 7167392,
+    "encrypted_archive_sha256": "a047cfac32ab3a8abc1ca8122d525d5e54d7df487c1dba0d7f7cec326db44256",
+    "plaintext_archive_sha256": "04a5f8143145087cacf829783cb3ee42db281aa32031745e38a65c688585c0fe",
+    "database_inventory_exact": true,
+    "file_sizes_exact": true,
+    "file_sha256_exact": true,
+    "restore_verified": true,
+    "plaintext_retained": false
+  },
+  "database": {
+    "status": "RESTORE_VERIFIED",
+    "encrypted_archive_bytes": 295043,
+    "encrypted_archive_sha256": "2d886873b7a31318e07ebe667b0cc075e4d260c5820a5b9a78ed375adb836775",
+    "plaintext_archive_sha256": "5bf64629e710a6feb98952365faf1b66a7645a85d46595ffdbc9cf7673917cd8",
+    "component_count": 10,
+    "single_exported_snapshot": true,
+    "object_count": 67,
+    "table_count": 66,
+    "sequence_count": 1,
+    "total_table_rows": 1911,
+    "inventory_exact": true,
+    "normalized_public_catalog_exact": true,
+    "disabled_public_trigger_count": 0,
+    "public_catalog_counts": {
+      "relations": 37,
+      "columns": 427,
+      "constraints": 151,
+      "indexes": 133,
+      "functions": 12,
+      "triggers": 16,
+      "policies": 77,
+      "table_grants": 830,
+      "routine_grants": 48,
+      "usage_grants": 0
+    },
+    "migration_counts": {
+      "application": 33,
+      "latest_application_version": "20260703190040",
+      "auth": 77,
+      "storage": 61
+    },
+    "extension_count": 5,
+    "managed_app_objects": {
+      "auth_storage_triggers": 1,
+      "storage_policies": 9,
+      "catalog_exact": true,
+      "restore_verified": true
+    },
+    "restore_verified": true,
+    "plaintext_retained": false
+  },
+  "encryption": {
+    "cipher": "AES-256-GCM",
+    "authenticated": true,
+    "kdf": "PBKDF2-HMAC-SHA256",
+    "iterations": 600000,
+    "keychain_service": "Showcase production backup",
+    "keychain_account": "20260710T152940Z"
+  },
+  "restore_drill": {
+    "target": "disposable migration-isolated local Supabase stack",
+    "non_database_services_stopped": true,
+    "external_database_access_rejected": true,
+    "application_migrations_exact": true,
+    "auth_migrations_exact": true,
+    "storage_migrations_id_name_hash_exact": true,
+    "extensions_exact": true,
+    "physical_column_ordinals_ignored": true,
+    "physical_column_ordinal_change_count": 9,
+    "historical_dropped_column_gap_count": 3,
+    "physical_column_ordinal_reason": "pg_dump logically restores live columns and does not preserve attnum gaps from dropped columns",
+    "storage_migration_execution_timestamps_ignored": true,
+    "storage_migration_timestamp_reason": "execution timestamps are target-local metadata; migration id, name, and hash matched exactly",
+    "disposable_target_only_tables_removed": [
+      "storage.iceberg_namespaces",
+      "storage.iceberg_tables"
+    ],
+    "disposable_target_destroyed": true
+  },
+  "limitations": {
+    "physical_backup": false,
+    "point_in_time_recovery": false,
+    "dashboard_provider_configuration_included": false,
+    "automated_backup_available_on_current_plan": false
+  },
+  "production_storage_inventory": {
+    "read_only_checked_at": "2026-07-10T06:12:00Z",
+    "all_buckets_private": true,
+    "invalid_user_prefix_objects": 0,
+    "orphaned_user_prefix_objects": 11,
+    "orphaned_user_prefix_bytes": 781697,
+    "orphaned_by_bucket": {
+      "resumes": 6,
+      "interview-recordings": 5,
+      "portfolio-images": 0
+    }
+  }
+}

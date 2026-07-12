@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
+import { getRateLimiter } from '@/lib/rate-limit'
+
+// Public, unauthenticated endpoint — IP rate-limited so a bot can't spam feedback rows.
+const IP_LIMIT = 10
+const IP_WINDOW_SECONDS = 60 * 60 // 1 hour
 
 const schema = z.object({
   email: z.string().email().optional(),
@@ -23,6 +28,12 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    const rl = await getRateLimiter().check(`beta-feedback:${ip}`, IP_LIMIT, IP_WINDOW_SECONDS)
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Too many submissions. Please try again later.' }, { status: 429 })
+    }
+
     const body = await req.json()
     const parsed = schema.safeParse(body)
 

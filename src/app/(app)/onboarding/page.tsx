@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowRight, CheckCircle2, ChevronDown, Mail, Phone, MapPin, Sparkles,
@@ -18,6 +18,15 @@ import { generateSlug } from '@/lib/utils'
 import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
 import type { ParsedResume } from '@/types/database'
+
+// LinkedIn "in" glyph — lucide's Linkedin export isn't available in this version.
+function LinkedInMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
+    </svg>
+  )
+}
 
 const INDUSTRIES = [
   'Technology', 'Product', 'Design', 'Engineering', 'Marketing', 'Data / Analytics',
@@ -71,6 +80,79 @@ export default function OnboardingPage() {
   const [editOpen, setEditOpen] = useState(false)
   const generatingRef = useRef(false)
 
+  // Claim a pending completion referral. Keep it retryable on transient failure; on
+  // success refresh the JWT so proxy sees the admission metadata written by the DB RPC.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('invite')) {
+      // Admission paths are mutually exclusive. Prefer the email-bound waitlist token and
+      // never spend a member's referral slot on the same account.
+      localStorage.removeItem('showcase_ref')
+      return
+    }
+    const fromUrl = params.get('ref')?.trim().toUpperCase()
+    const ref = fromUrl || localStorage.getItem('showcase_ref')
+    if (!ref) return
+    if (!/^[A-F0-9]{32}$/.test(ref)) {
+      localStorage.removeItem('showcase_ref')
+      router.replace('/waitlist')
+      return
+    }
+    void (async () => {
+      try {
+        const response = await fetch('/api/referral/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: ref }),
+        })
+        const result = await response.json().catch(() => ({})) as { data?: { claimed?: boolean } }
+        if (response.ok && result.data?.claimed === true) {
+          localStorage.removeItem('showcase_ref')
+          await createClient().auth.refreshSession()
+          router.replace('/onboarding')
+          router.refresh()
+          return
+        }
+        if (response.ok || response.status === 400 || response.status === 403 || response.status === 409) {
+          localStorage.removeItem('showcase_ref')
+          toast.error('This referral invite is no longer available. Join the waitlist for access.')
+          router.replace('/waitlist')
+        }
+      } catch {
+        // Keep the code in local storage for a later retry.
+      }
+    })()
+  }, [router])
+
+  // OAuth and email-confirmation callbacks cannot redeem admission until a real auth session
+  // exists. Carry the single-use token through the callback, redeem it here, then immediately
+  // remove it from both the URL and local storage. Transient failures keep the token retryable.
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('invite')?.trim().toLowerCase()
+    const token = fromUrl || localStorage.getItem('showcase_invite')
+    if (!token || !/^[a-f0-9]{48}$/.test(token)) return
+
+    void fetch('/api/waitlist/admission', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    }).then(async (response) => {
+      if (response.ok) {
+        localStorage.removeItem('showcase_invite')
+        await createClient().auth.refreshSession()
+        router.replace('/onboarding')
+        router.refresh()
+        return
+      }
+      if (response.status === 400 || response.status === 403) {
+        localStorage.removeItem('showcase_invite')
+        toast.error('This invite is expired, already used, or belongs to another email address.')
+      }
+    }).catch(() => {
+      // Keep the token for a later retry; admission must never be lost to a network blip.
+    })
+  }, [router])
+
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
 
   const [targetRole, setTargetRole] = useState('')
@@ -87,6 +169,17 @@ export default function OnboardingPage() {
     setBusyMsg(msgs[0])
     const iv = setInterval(() => { i = (i + 1) % msgs.length; setBusyMsg(msgs[i]) }, 2200)
     return () => clearInterval(iv)
+  }
+
+  function applyParsedResume(result: ParsedResume) {
+    setParsed(result)
+    const inferredRole = result.experience?.[0]?.role ?? ''
+    setTargetRole(inferredRole)
+    setIndustry(guessIndustry(inferredRole))
+    setExperienceLevel(mapSeniority(result.seniority_level))
+    if (result.links?.linkedin) setLinkedin(result.links.linkedin)
+    if (result.links?.github) setGithub(result.links.github)
+    if (result.links?.website ?? result.links?.portfolio) setWebsite((result.links.website || result.links.portfolio) ?? '')
   }
 
   async function handleResumeText(text: string) {
@@ -112,17 +205,7 @@ export default function OnboardingPage() {
       const { data, error } = await res.json()
       if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that resume')
 
-      const result = data as ParsedResume
-      setParsed(result)
-
-      const inferredRole = result.experience?.[0]?.role ?? ''
-      setTargetRole(inferredRole)
-      setIndustry(guessIndustry(inferredRole))
-      setExperienceLevel(mapSeniority(result.seniority_level))
-      if (result.links?.linkedin) setLinkedin(result.links.linkedin)
-      if (result.links?.github) setGithub(result.links.github)
-      if (result.links?.website ?? result.links?.portfolio) setWebsite((result.links.website || result.links.portfolio) ?? '')
-
+      applyParsedResume(data as ParsedResume)
       setPhase('review')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not analyze that resume. You can try again or skip for now.')
@@ -217,14 +300,21 @@ export default function OnboardingPage() {
   // ── Busy screens (analyzing / generating) ──────────────────────────────
   if (phase === 'analyzing' || phase === 'generating') {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center mb-6 animate-pulse">
-          <Sparkles className="h-6 w-6 text-white" />
+      <div className="relative min-h-screen bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 aurora-mesh opacity-40" />
+        <div className="pointer-events-none absolute inset-0 dot-grid opacity-[0.07]" />
+        <div className="relative flex flex-col items-center text-center">
+          <div className="relative mb-7">
+            <span className="orbit-ring" aria-hidden="true" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center breathe-glow">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <p className="text-display text-xl font-semibold text-foreground mb-1.5">{busyMsg}</p>
+          <p className="text-sm text-muted-foreground/70">
+            {phase === 'analyzing' ? 'Reading your résumé and structuring the evidence…' : "Building your full portfolio. This takes 30–60 seconds — don't close this tab."}
+          </p>
         </div>
-        <p className="text-foreground font-medium mb-1">{busyMsg}</p>
-        <p className="text-xs text-muted-foreground/60">
-          {phase === 'analyzing' ? "This takes a few seconds." : "This takes 30-60 seconds. Don't close this tab."}
-        </p>
       </div>
     )
   }
@@ -232,14 +322,23 @@ export default function OnboardingPage() {
   // ── Upload screen ───────────────────────────────────────────────────────
   if (phase === 'upload') {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-xl">
+      <div className="relative min-h-screen bg-background flex flex-col items-center justify-center p-6 overflow-hidden">
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: 'radial-gradient(oklch(97% 0.004 255 / 0.03) 1px, transparent 1px)', backgroundSize: '46px 46px', maskImage: 'radial-gradient(ellipse 70% 50% at 50% 0%, black, transparent 75%)', WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 0%, black, transparent 75%)' }}
+        />
+        <div className="w-full max-w-xl relative">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Logo size="lg" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Upload your resume</h1>
-            <p className="text-muted-foreground text-sm">We extract everything - role, skills, experience, projects, links - and use it to build your portfolio. No forms to fill out.</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'oklch(63% 0.20 255)' }}>Step 1 of 2 · Your résumé</p>
+            <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
+              Start with what you{' '}
+              <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>already have.</em>
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Drop in your résumé — we extract the role, skills, experience, projects and links, and turn them into structured evidence. No forms to fill out.</p>
           </div>
 
           <div className="glass-card p-8 space-y-4">
@@ -263,6 +362,23 @@ export default function OnboardingPage() {
             )}
           </div>
 
+          {/* Import from LinkedIn — no résumé file needed, just export the profile you already have */}
+          <details className="group mt-4 rounded-xl overflow-hidden" style={{ background: 'var(--color-surface-50)', border: '1px solid var(--color-border)' }}>
+            <summary className="flex items-center gap-2.5 px-4 py-3 cursor-pointer list-none select-none">
+              <LinkedInMark className="h-4 w-4 shrink-0" />
+              <span className="text-sm font-medium text-foreground flex-1">No résumé handy? Import from LinkedIn</span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground/60 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-4 pb-4 pt-1 text-sm text-muted-foreground space-y-2.5">
+              <p className="text-xs">Export your profile as a PDF, then drop it into the upload box above — we parse it just like a résumé.</p>
+              <ol className="space-y-1.5 text-xs">
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">1.</span> Open your <span className="text-foreground font-medium">LinkedIn profile</span>, click the <span className="text-foreground font-medium">More</span> button under your headline.</li>
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">2.</span> Choose <span className="text-foreground font-medium">Save to PDF</span> — LinkedIn downloads your full profile.</li>
+                <li className="flex gap-2"><span className="font-bold text-brand-300 shrink-0">3.</span> Drop that PDF into the box above. Done.</li>
+              </ol>
+            </div>
+          </details>
+
           <button onClick={skipResume} className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors">
             Skip - I&apos;ll set this up manually
           </button>
@@ -276,15 +392,19 @@ export default function OnboardingPage() {
   const needsConfirmation = [...(parsed?.missing_proof ?? []), ...(parsed?.weak_bullets ?? [])]
 
   return (
-    <div className="min-h-screen bg-background p-6 py-12">
-      <div className="w-full max-w-2xl mx-auto">
+    <div className="relative min-h-screen bg-background p-6 py-12 overflow-hidden">
+      <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
+      <div className="w-full max-w-2xl mx-auto relative">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-4">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Resume parsed
+            Résumé parsed · Step 2 of 2
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Here&apos;s what we found</h1>
-          <p className="text-muted-foreground text-sm">Quick review - nothing here is published yet. One click builds your full portfolio from this.</p>
+          <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
+            Here&apos;s your experience,{' '}
+            <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>structured.</em>
+          </h1>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Nothing here is published yet. Review it, then one click builds your full portfolio from this evidence.</p>
         </div>
 
         <div className="glass-card p-6 space-y-6">

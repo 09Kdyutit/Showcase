@@ -148,7 +148,7 @@ export default function DemoResumePage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
+                  'px-5 py-3.5 text-sm max-sm:px-2 max-sm:text-[13px] font-medium whitespace-nowrap transition-colors border-b-2 -mb-px',
                   activeTab === tab.id
                     ? 'border-brand-500 text-brand-400'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -309,7 +309,7 @@ export default function DemoResumePage() {
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
               <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <p className="text-sm text-amber-400/90">
-                3 bullets flagged for missing metrics. Fixing these could push your ProofScore from 84 → 91.
+                3 bullets flagged for missing metrics. Fixing these could push your evidence score from 84 → 91.
               </p>
             </div>
             {WEAK_BULLETS.map((bullet, i) => (

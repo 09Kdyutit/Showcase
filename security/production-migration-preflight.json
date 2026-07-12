@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "project_ref": "yogwhfrjhcbnvoxitcay",
+  "recorded_at": "2026-07-10T12:37:39-04:00",
+  "evidence_base_git_head": "6bb08c0185ea20ad1b422da6b05339f9aa2aa2ae",
+  "status": "READY_FOR_PAIRED_DEPLOYMENT_APPROVAL",
+  "production_mutated": false,
+  "production": {
+    "connection": {
+      "endpoint": "Supabase IPv4 session pooler",
+      "port": 5432,
+      "tls": "TLSv1.3 verify-full with Supabase Root 2021 CA"
+    },
+    "application_migration_count": 33,
+    "latest_application_migration": "20260703190040",
+    "auth_migration_count": 77,
+    "storage_migration_count": 61,
+    "pre_repair_dry_run_first": "20260710033033",
+    "pre_repair_dry_run_last": "20260710033047",
+    "pre_repair_dry_run_count": 15,
+    "unexpected_earlier_migrations": 0,
+    "public_tables_without_rls": 0,
+    "invalid_marketing_session_rows": 0,
+    "completed_referrals_missing_credit": 0,
+    "auth_users_without_profiles": 0,
+    "matching_waitlist_users_without_profiles": 0
+  },
+  "history_repair": {
+    "versions": [
+      "20260710033033",
+      "20260710033034",
+      "20260710033035",
+      "20260710033036",
+      "20260710033037"
+    ],
+    "canonical_sql_reapplied_to_restored_clone": true,
+    "row_inventory_unchanged": true,
+    "public_catalog_unchanged": true,
+    "production_repair_performed": false
+  },
+  "restored_data_rehearsal": {
+    "backup_id": "20260710T152940Z",
+    "baseline_inventory_exact": true,
+    "baseline_normalized_public_catalog_exact": true,
+    "baseline_platform_manifest_exact": true,
+    "migrations_applied": [
+      "20260710033038",
+      "20260710033039",
+      "20260710033040",
+      "20260710033041",
+      "20260710033042",
+      "20260710033043",
+      "20260710033044",
+      "20260710033045",
+      "20260710033046",
+      "20260710033047"
+    ],
+    "preexisting_row_counts_unchanged": true,
+    "application_migration_count": 48,
+    "latest_application_migration": "20260710033047",
+    "auth_migration_count_unchanged": true,
+    "storage_migration_count_unchanged": true,
+    "invite_control_dark": true,
+    "founding_control_dark": true,
+    "profile_admission_gaps": 0,
+    "missing_growth_attributions": 0,
+    "invalid_referral_codes": 0,
+    "duplicate_referral_codes": 0,
+    "invalid_referral_balances": 0,
+    "invalid_webhook_ledger_rows": 0,
+    "tables_without_rls": 0,
+    "acl_violations": 0,
+    "function_acl_violations": 0,
+    "invalid_indexes": 0,
+    "unvalidated_constraints": 0,
+    "disabled_public_triggers": 0,
+    "authenticated_profile_insert_passed": true,
+    "managed_app_catalog_exact": true,
+    "managed_auth_trigger_count": 1,
+    "managed_storage_policy_count": 9,
+    "disposable_target_destroyed": true,
+    "plaintext_rehearsal_files_removed": 39
+  },
+  "preflight_fixes": {
+    "pgcrypto_schema": "extensions",
+    "unqualified_gen_random_bytes_failed_with_public_search_path": true,
+    "pending_migrations_schema_qualified": true,
+    "regression_test_added": true,
+    "managed_auth_trigger_captured_and_restored": true,
+    "managed_storage_policy_count": 9,
+    "managed_storage_policies_captured_and_restored": true
+  },
+  "blocking_rollout_requirement": {
+    "reason": "Migration 041 and 047 authority boundaries are incompatible with the currently deployed pre-growth application build.",
+    "required_sequence": [
+      "Configure every required production environment value fail-closed",
+      "Create a dark compatible showcase-app deployment with --prod --skip-domain without promoting it",
+      "Enter an explicitly approved coordinated maintenance window",
+      "Repair only migration history 033-037",
+      "Require a dry run showing exactly 038-047",
+      "Apply 038-047 and verify only with read-only catalog and aggregate checks",
+      "Immediately promote the prepared compatible deployment",
+      "Run negative and read-only production smoke tests"
+    ],
+    "excluded_immediate_production_checks": [
+      "mutating credentialed test suites",
+      "npm run growth:status",
+      "GET /api/stripe/founding-availability"
+    ],
+    "maintenance_window_authorized": false,
+    "deployment_authorized_for_this_sequence": false
+  }
+}

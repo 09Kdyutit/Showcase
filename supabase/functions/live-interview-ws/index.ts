@@ -25,6 +25,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+// This legacy proxy is not part of the current direct-ephemeral-token path. It defaults
+// closed so a previously planned voice session cannot bypass the web app's kill switches.
+const INTERVIEW_LIVE_PROXY_ENABLED = Deno.env.get('INTERVIEW_LIVE_PROXY_ENABLED') === 'true'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
@@ -72,6 +75,9 @@ Deno.serve(async (req) => {
     console.error('[live-ws] GEMINI_API_KEY secret not set')
     return new Response('GEMINI_API_KEY secret not set', { status: 503 })
   }
+  if (!INTERVIEW_LIVE_PROXY_ENABLED) {
+    return new Response('Live interview proxy is disabled', { status: 503 })
+  }
 
   // Validate user JWT before upgrading — must happen before WebSocket upgrade
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -94,6 +100,9 @@ Deno.serve(async (req) => {
   }
   if (session.delivery_mode !== 'voice') {
     return new Response('Session is not in voice mode', { status: 409 })
+  }
+  if (session.status !== 'planned' && session.status !== 'in_progress') {
+    return new Response('Session is not active', { status: 409 })
   }
 
   console.log(`[live-ws] upgrading for session=${sessionId} user=${user.id}`)

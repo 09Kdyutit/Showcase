@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { resumeParsePrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
 import { hashString } from '@/lib/utils'
 import { sanitizeParsedResume } from '@/lib/ai/sanitize-resume'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 const schema = z.object({
   resumeText: z.string().min(50, 'Resume text is too short').max(15000, 'Resume text is too long'),
@@ -43,17 +48,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const rl = await checkRateLimit(user.id, 'resume_analyzed', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter },
-        { status: 429 }
-      )
-    }
-
     const inputHash = hashString(resumeText)
 
-    const { data: rawResult, meta } = await runPrompt(resumeParsePrompt, { resumeText })
+    const prompt = await runPromptWithQuota(resumeParsePrompt, { resumeText }, {
+      userId: user.id,
+      eventName: 'resume_analyzed',
+      isPro,
+    })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: rawResult, meta } = prompt
+    await recordPromptCost({ userId: user.id, meta })
     const result = sanitizeParsedResume(rawResult, resumeText)
 
     if (resumeId) {
@@ -76,10 +80,9 @@ export async function POST(request: NextRequest) {
       status: 'completed',
     })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'resume_analyzed',
-      metadata: { resume_id: resumeId, word_count: resumeText.split(' ').length },
+    trackAsync(user.id, 'resume_analyzed', {
+      resume_id: resumeId ?? null,
+      word_count: resumeText.split(' ').length,
     })
     trackAsync(user.id, 'resume_parsed', {
       resume_id: resumeId ?? null,

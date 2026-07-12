@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-harness/
 /out/
 
 # production
@@ -32,6 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -54,3 +56,7 @@ next-env.d.ts
 
 # locally installed agent skills (design tooling, not app code)
 .github/skills/
+
+# Installed agent skills (tooling, not app code). Keep the shared product context tracked.
+.agents/*
+!.agents/product-marketing.md

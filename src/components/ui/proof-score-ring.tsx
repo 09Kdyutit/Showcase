@@ -127,7 +127,7 @@ export function ProofScoreRing({ score, size = 'md', animate = true, showLabel =
           </span>
           {showLabel && (
             <span className={cn('text-muted-foreground font-medium', config.labelSize)}>
-              ProofScore
+              Evidence
             </span>
           )}
         </div>

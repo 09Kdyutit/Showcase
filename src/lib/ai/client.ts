@@ -4,6 +4,19 @@ import { zodTextFormat } from 'openai/helpers/zod'
 import type { z } from 'zod'
 import { openai, MODELS, modelSupportsTemperature, isReasoningModel, type ModelTier } from './openai'
 import type { PromptSpec } from './prompts/types'
+import {
+  GeneralAiBudgetUnavailableError,
+  releaseGeneralAiBudget,
+  reserveGeneralAiBudget,
+  settleGeneralAiBudget,
+  type GeneralAiBudgetReservation,
+} from '@/lib/growth/ai-budget'
+import {
+  checkAiReservationAttemptLimit,
+  checkRateLimit,
+  type EventName,
+  type RateLimitResult,
+} from '@/lib/ai/rate-limit'
 
 const IS_MOCK_MODE = !process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'development'
 
@@ -91,14 +104,33 @@ function toUserError(err: unknown): Error {
   return new Error('AI service encountered an error. Please try again.', { cause: err instanceof Error ? err : undefined })
 }
 
+// Most provider 4xx responses are definitive rejections and can release their reservation.
+// Network failures, retry-class 408/409/429 responses, 5xx responses, and local parse
+// failures are treated as ambiguous: the provider may already have completed/billed the
+// request, so those reservations stay at their maximum and become stale estimates.
+function isDefinitiveProviderFailure(err: unknown): boolean {
+  return err instanceof OpenAI.APIError
+    && typeof err.status === 'number'
+    && err.status >= 400
+    && err.status < 500
+    && ![408, 409, 429].includes(err.status)
+}
+
+function legacyBudgetFeature(raw: string): string {
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  return `legacy_${normalized || 'ai'}`.slice(0, 100)
+}
+
 // ── Core: Responses API with structured outputs ───────────────────────────────
 //
 // Uses openai.responses.parse() + zodTextFormat() for type-safe, validated JSON.
-// store: false → OpenAI never stores the conversation for training.
-// Resume text and portfolio content are in the prompt but never separately logged.
+// store: false prevents creation of a retrievable provider Response object. Provider-side
+// safety retention and training rules remain governed by the OpenAI account and current
+// API policy; Showcase does not log prompt bodies in this client.
 
 export interface StructuredCallUsage {
   inputTokens: number
+  cachedInputTokens: number
   outputTokens: number
 }
 
@@ -110,12 +142,17 @@ async function callStructuredWithUsage<T>(
     tier?: ModelTier
     maxOutputTokens?: number
     temperature?: number
+    textFormat?: ReturnType<typeof zodTextFormat>
+    budgetReservation?: GeneralAiBudgetReservation
   } = {}
 ): Promise<{ data: T; usage: StructuredCallUsage }> {
   if (IS_MOCK_MODE) {
     console.warn('[AI] Mock mode - set OPENAI_API_KEY in .env.local for real responses')
     const raw = getMockResponse(messages)
-    return { data: schema.parse(JSON.parse(raw)) as T, usage: { inputTokens: 0, outputTokens: 0 } }
+    return {
+      data: schema.parse(JSON.parse(raw)) as T,
+      usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 },
+    }
   }
 
   const model = MODELS[options.tier ?? 'main']
@@ -123,22 +160,50 @@ async function callStructuredWithUsage<T>(
     role: m.role as 'user' | 'assistant' | 'system',
     content: m.content,
   }))
+  const textFormat = options.textFormat ?? zodTextFormat(schema, schemaName)
 
   let response: Awaited<ReturnType<typeof openai.responses.parse>>
   try {
     response = await openai.responses.parse({
       model,
       input,
-      text: { format: zodTextFormat(schema, schemaName) },
+      text: { format: textFormat },
       max_output_tokens: options.maxOutputTokens ?? 4096,
       ...(modelSupportsTemperature(model) ? { temperature: options.temperature ?? 0.3 } : {}),
       // Reasoning models stay smart but answer fast at 'low' effort — avoids the multi-second
       // "thinking" delay that made post-session grading feel sluggish.
       ...(isReasoningModel(model) ? { reasoning: { effort: 'low' as const } } : {}),
       store: false,
-    })
+    }, options.budgetReservation ? { maxRetries: 0 } : undefined)
   } catch (err) {
+    if (options.budgetReservation && isDefinitiveProviderFailure(err)) {
+      try {
+        await releaseGeneralAiBudget(options.budgetReservation)
+      } catch (releaseError) {
+        console.error('[AI budget] provider call and reservation release both failed', {
+          reservationId: options.budgetReservation.id,
+          providerError: err instanceof Error ? err.name : 'unknown',
+        })
+        throw releaseError
+      }
+    }
     throw toUserError(err)
+  }
+
+  if (options.budgetReservation && !response.usage) {
+    // The provider may have charged for this response, so keep the maximum reservation.
+    // A later reservation pass converts it to a permanent stale-estimate settlement.
+    throw new GeneralAiBudgetUnavailableError(new Error('Provider usage was missing'))
+  }
+
+  const usage: StructuredCallUsage = {
+    inputTokens: response.usage?.input_tokens ?? 0,
+    cachedInputTokens: response.usage?.input_tokens_details?.cached_tokens ?? 0,
+    outputTokens: response.usage?.output_tokens ?? 0,
+  }
+
+  if (options.budgetReservation) {
+    await settleGeneralAiBudget(options.budgetReservation, usage)
   }
 
   if (response.output_parsed === null) {
@@ -147,10 +212,7 @@ async function callStructuredWithUsage<T>(
 
   return {
     data: response.output_parsed as T,
-    usage: {
-      inputTokens: response.usage?.input_tokens ?? 0,
-      outputTokens: response.usage?.output_tokens ?? 0,
-    },
+    usage,
   }
 }
 
@@ -164,18 +226,34 @@ export async function callStructured<T>(
     temperature?: number
   } = {}
 ): Promise<T> {
-  const { data } = await callStructuredWithUsage(messages, schema, schemaName, options)
+  const tier = options.tier ?? 'main'
+  const model = MODELS[tier]
+  const maxOutputTokens = options.maxOutputTokens ?? 4096
+  const textFormat = zodTextFormat(schema, schemaName)
+  const budgetReservation = IS_MOCK_MODE ? undefined : await reserveGeneralAiBudget({
+    feature: legacyBudgetFeature(schemaName),
+    model,
+    messages,
+    structuredFormat: textFormat,
+    maxOutputTokens,
+  })
+  const { data } = await callStructuredWithUsage(messages, schema, schemaName, {
+    ...options,
+    tier,
+    maxOutputTokens,
+    textFormat,
+    budgetReservation,
+  })
   return data
 }
 
 // ── Registry-driven calls ─────────────────────────────────────────────────────
 //
-// The only call path route files should use going forward. Takes a PromptSpec from
-// src/lib/ai/prompts/registry.ts so model tier, temperature, token budget, schema, and
-// version all come from one place instead of being re-typed at every call site. Returns
-// operational metadata alongside the parsed output so callers can persist prompt_id/
-// prompt_version/provider/model on the generations row (Phase 13 versioning) without
-// hand-typing those strings either.
+// Takes a PromptSpec from src/lib/ai/prompts/registry.ts so model tier, temperature, token
+// budget, schema, and version all come from one place. Quota-bearing API routes must use
+// runPromptWithQuota(); internal flows without a product quota may use runPrompt(). Both
+// return operational metadata so callers can persist prompt_id/prompt_version/provider/
+// model without hand-typing those strings.
 
 export interface RunPromptResult<T> {
   data: T
@@ -189,32 +267,140 @@ export interface RunPromptResult<T> {
   }
 }
 
-export async function runPrompt<TInput, TOutput>(
+/**
+ * A dollar reservation that has been created but has not contacted the provider yet.
+ *
+ * `run()` is deliberately one-shot. Reusing one reservation for two provider calls would
+ * make the second call invisible to the global spend ceiling. `release()` is idempotent
+ * and becomes a no-op after `run()` starts, because a contacted provider may have billed
+ * the request even when its response is lost.
+ */
+export interface PreparedPromptCall<T> {
+  run(): Promise<RunPromptResult<T>>
+  release(): Promise<void>
+}
+
+export async function preparePromptCall<TInput, TOutput>(
   spec: PromptSpec<TInput, TOutput>,
   input: TInput
-): Promise<RunPromptResult<TOutput>> {
-  const { data, usage } = await callStructuredWithUsage(
-    spec.buildMessages(input),
-    spec.outputSchema,
-    spec.schemaName,
-    { tier: spec.modelTier, maxOutputTokens: spec.maxOutputTokens, temperature: spec.temperature }
-  )
+): Promise<PreparedPromptCall<TOutput>> {
+  const messages = spec.buildMessages(input)
+  const model = MODELS[spec.modelTier]
+  const textFormat = zodTextFormat(spec.outputSchema, spec.schemaName)
+  const budgetReservation = IS_MOCK_MODE ? undefined : await reserveGeneralAiBudget({
+    feature: spec.id,
+    model,
+    messages,
+    structuredFormat: textFormat,
+    maxOutputTokens: spec.maxOutputTokens,
+  })
+  let state: 'ready' | 'releasing' | 'started' | 'released' = 'ready'
+  let releaseInFlight: Promise<void> | null = null
+
   return {
-    data,
-    meta: {
-      promptId: spec.id,
-      promptVersion: spec.version,
-      provider: 'openai',
-      model: MODELS[spec.modelTier],
-      schemaName: spec.schemaName,
-      usage,
+    async run() {
+      if (state !== 'ready') {
+        throw new GeneralAiBudgetUnavailableError(
+          new Error(`Prepared prompt cannot run from state: ${state}`)
+        )
+      }
+      // Mark this before awaiting anything in the provider path. From this point onward a
+      // caller must not release the reservation merely because its own request is aborted.
+      state = 'started'
+      const { data, usage } = await callStructuredWithUsage(
+        messages,
+        spec.outputSchema,
+        spec.schemaName,
+        {
+          tier: spec.modelTier,
+          maxOutputTokens: spec.maxOutputTokens,
+          temperature: spec.temperature,
+          textFormat,
+          budgetReservation,
+        }
+      )
+      return {
+        data,
+        meta: {
+          promptId: spec.id,
+          promptVersion: spec.version,
+          provider: 'openai',
+          model,
+          schemaName: spec.schemaName,
+          usage,
+        },
+      }
+    },
+    async release() {
+      if (state === 'released' || state === 'started') return
+      if (state === 'releasing' && releaseInFlight) {
+        await releaseInFlight
+        return
+      }
+      if (!budgetReservation) {
+        state = 'released'
+        return
+      }
+      if (!releaseInFlight) {
+        state = 'releasing'
+        releaseInFlight = releaseGeneralAiBudget(budgetReservation)
+          .then(() => { state = 'released' })
+          .catch((error) => {
+            state = 'ready'
+            releaseInFlight = null
+            throw error
+          })
+      }
+      await releaseInFlight
     },
   }
 }
 
-// ── Backward-compat: routes that have not yet adopted callStructured ──────────
+export type RunPromptWithQuotaResult<T> =
+  | ({ allowed: true } & RunPromptResult<T>)
+  | { allowed: false; rateLimit: Extract<RateLimitResult, { allowed: false }> }
+
+/**
+ * Reserve dollars before consuming user quota/referral credit. A budget denial therefore
+ * cannot burn a user allowance. If quota denies after reservation, release the unused
+ * dollar reservation before returning; no provider call has occurred at that point.
+ */
+export async function runPromptWithQuota<TInput, TOutput>(
+  spec: PromptSpec<TInput, TOutput>,
+  input: TInput,
+  quota: { userId: string; eventName: EventName; isPro: boolean }
+): Promise<RunPromptWithQuotaResult<TOutput>> {
+  // This is an abuse-attempt throttle, not a product allowance. It bounds concurrent
+  // reservation churn without consuming the user's feature quota or referral credits.
+  const attemptLimit = await checkAiReservationAttemptLimit(quota.userId, quota.isPro)
+  if (!attemptLimit.allowed) return { allowed: false, rateLimit: attemptLimit }
+
+  const prepared = await preparePromptCall(spec, input)
+  let rateLimit: RateLimitResult
+  try {
+    rateLimit = await checkRateLimit(quota.userId, quota.eventName, quota.isPro)
+  } catch (error) {
+    await prepared.release()
+    throw error
+  }
+  if (!rateLimit.allowed) {
+    await prepared.release()
+    return { allowed: false, rateLimit }
+  }
+  return { allowed: true, ...await prepared.run() }
+}
+
+export async function runPrompt<TInput, TOutput>(
+  spec: PromptSpec<TInput, TOutput>,
+  input: TInput
+): Promise<RunPromptResult<TOutput>> {
+  return (await preparePromptCall(spec, input)).run()
+}
+
+// ── Backward-compat helpers ──────────────────────────────────────────────────
 //
-// Falls back to JSON-object mode + manual parse. Keeps old call sites working.
+// Falls back to JSON-object mode + manual parse. These remain budget-guarded even though
+// current route files use runPrompt, so a future legacy call cannot bypass the USD cap.
 
 export async function callAI(
   messages: AIMessage[],
@@ -243,6 +429,16 @@ export async function callAI(
     content: m.content,
   }))
 
+  const budgetReservation = await reserveGeneralAiBudget({
+    feature: legacyBudgetFeature(`chat_${options.responseFormat ?? 'text'}`),
+    model,
+    messages,
+    structuredFormat: options.responseFormat === 'json'
+      ? { type: 'json_object' }
+      : { type: 'text' },
+    maxOutputTokens: maxTokens,
+  })
+
   let response
   try {
     response = await openai.chat.completions.create({
@@ -252,10 +448,30 @@ export async function callAI(
       max_tokens: maxTokens,
       temperature,
       store: false,
-    })
+    }, { maxRetries: 0 })
   } catch (err) {
+    if (isDefinitiveProviderFailure(err)) {
+      try {
+        await releaseGeneralAiBudget(budgetReservation)
+      } catch (releaseError) {
+        console.error('[AI budget] legacy provider call and reservation release both failed', {
+          reservationId: budgetReservation.id,
+          providerError: err instanceof Error ? err.name : 'unknown',
+        })
+        throw releaseError
+      }
+    }
     throw toUserError(err)
   }
+
+  if (!response.usage) {
+    throw new GeneralAiBudgetUnavailableError(new Error('Provider usage was missing'))
+  }
+  await settleGeneralAiBudget(budgetReservation, {
+    inputTokens: response.usage.prompt_tokens,
+    cachedInputTokens: response.usage.prompt_tokens_details?.cached_tokens ?? 0,
+    outputTokens: response.usage.completion_tokens,
+  })
 
   return response.choices?.[0]?.message?.content ?? ''
 }

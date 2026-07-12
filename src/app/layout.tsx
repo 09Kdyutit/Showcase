@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Fraunces, Fredoka } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
+import { configuredAppUrl } from '@/lib/app-url'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   // actual preview URL instead of claiming to be the production domain.
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL
-      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://showcase-app-three.vercel.app')
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : configuredAppUrl())
   ),
   title: {
     default: 'Showcase - Your résumé lists claims. Showcase turns them into evidence.',
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   },
   description:
     'Built for students, new grads, and early-career professionals. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve - without inventing a thing.',
-  keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'ProofScore', 'professional portfolio', 'early career job search'],
+  keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'evidence-based portfolio', 'professional portfolio', 'early career job search'],
   authors: [{ name: 'Showcase' }],
   alternates: { canonical: '/' },
   openGraph: {

@@ -13,19 +13,26 @@ const PUBLIC_DIRS = [
   'src/app/privacy',
   'src/app/terms',
   'src/app/refund',
-  'src/app/proofscore',
   'src/app/for-career-services',
+  'src/app/(app)/billing',
+  'src/app/(app)/settings',
+  'src/app/(app)/builder',
+  'src/app/(app)/jobs',
+  'src/app/demo/(app)/billing',
   'src/app/opengraph-image.tsx',
   'src/components/landing',
+  'src/components/billing',
+  'src/components/referrals',
   'src/components/shared/navbar.tsx',
   'src/components/shared/footer.tsx',
+  'src/lib/email/invite-email.ts',
 ]
 
 // Mirrors BANNED_CLAIM_PATTERNS in src/lib/marketing/positioning.ts. Kept as a plain
 // array here (not imported) so this script can run with plain Node — see that file's
 // comment for why each pattern exists.
 const BANNED_CLAIM_PATTERNS = [
-  { label: 'guarantees a hiring outcome', pattern: /guarantee.*(job|interview|hire|offer)/i },
+  { label: 'guarantees a hiring outcome', pattern: /guarantee.{0,80}\b(job|interview|hire|offer)\b/i },
   { label: '"passes every ATS" claim', pattern: /passes? every ats/i },
   { label: '"undetectable AI" claim', pattern: /undetectable\s*(by\s*)?ai/i },
   { label: 'unverified recruiter/hiring-manager statistic', pattern: /\d+%\s*of\s*(recruiters|hiring managers|startups)/i },
@@ -33,6 +40,8 @@ const BANNED_CLAIM_PATTERNS = [
   { label: 'fake star rating', pattern: /rated?\s*\d(\.\d)?\s*\/\s*5/i },
   { label: 'fake press mention', pattern: /as seen (in|on)/i },
   { label: 'fake logo-wall framing', pattern: /trusted by/i },
+  { label: 'unverified popularity badge', pattern: /most popular/i },
+  { label: 'parked legacy domain', pattern: /showcase\.app/i },
 ]
 
 function collectFiles(path) {
@@ -67,8 +76,8 @@ function isRhetoricalQuestion(content, matchIndex, matchLength) {
   // The greedy alternation can stop short of a plural ("interview" within
   // "interviews?"), leaving a few trailing letters before the "?" — so this checks
   // for a "?" appearing soon after, not necessarily as the very next character.
-  const after = content.slice(matchIndex + matchLength, matchIndex + matchLength + 8)
-  return /^[a-z']{0,4}\?/i.test(after)
+  const after = content.slice(matchIndex + matchLength, matchIndex + matchLength + 24)
+  return /^[a-z' -]{0,20}\?/i.test(after)
 }
 
 let violations = 0

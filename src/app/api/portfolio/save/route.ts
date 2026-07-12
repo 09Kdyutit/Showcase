@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { trackAsync } from '@/lib/analytics/track'
 import { z } from 'zod'
+import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
 
 const schema = z.object({
   portfolioId: z.string().uuid(),
@@ -31,17 +32,31 @@ export async function POST(request: NextRequest) {
     if (content !== undefined) updates.content = content
     if (theme !== undefined) updates.theme = theme
 
-    const { error } = await supabase
+    const { data: saved, error } = await supabase
       .from('portfolios')
       .update(updates)
       .eq('id', portfolioId)
       .eq('user_id', user.id)
+      .select('id')
+      .maybeSingle()
 
     if (error) throw error
+    if (!saved) {
+      return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 })
+    }
 
     trackAsync(user.id, 'portfolio_edit_saved', {
       portfolio_id: portfolioId,
       has_content_update: content !== undefined,
+    })
+    await recordTrustedEventSafe({
+      idempotencyKey: `meaningful-return:${user.id}:${new Date().toISOString().slice(0, 10)}:portfolio-edit:${portfolioId}`,
+      eventName: 'meaningful_return',
+      userId: user.id,
+      entityType: 'portfolio',
+      entityId: portfolioId,
+      source: 'portfolio_save_route',
+      metadata: { activity: 'portfolio_edit_saved' },
     })
 
     return NextResponse.json({ saved: true, at: updates.updated_at })

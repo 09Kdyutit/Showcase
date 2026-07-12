@@ -50,10 +50,15 @@ export async function getOrCreateStripeCustomer(
   if (sub?.stripe_customer_id) {
     // Verify the customer still exists in the current Stripe mode (test vs live IDs differ)
     try {
-      await stripe.customers.retrieve(sub.stripe_customer_id)
-      return sub.stripe_customer_id
-    } catch {
-      // Customer doesn't exist in this mode (e.g. test-mode ID used with live key) — fall through to create
+      const existing = await stripe.customers.retrieve(sub.stripe_customer_id)
+      if (!('deleted' in existing) || existing.deleted !== true) return sub.stripe_customer_id
+      // Deleted customers cannot be reused; create a replacement below.
+    } catch (error) {
+      // Only a genuinely missing object (including a test/live-mode mismatch) authorizes
+      // replacement. A provider/network outage must not silently create duplicate customers.
+      if (!(error instanceof Stripe.errors.StripeInvalidRequestError) || error.code !== 'resource_missing') {
+        throw error
+      }
     }
   }
 
@@ -61,15 +66,20 @@ export async function getOrCreateStripeCustomer(
     email,
     name: name ?? undefined,
     metadata: { supabase_user_id: userId },
+  }, {
+    // Concurrent checkout clicks and ambiguous network retries converge on one customer.
+    // Including the prior id lets a legitimately deleted customer get one new replacement.
+    idempotencyKey: `showcase-customer:${userId}:${sub?.stripe_customer_id ?? 'initial'}`,
   })
 
-  await supabase
+  const { error: upsertError } = await supabase
     .from('subscriptions')
     .upsert({
       user_id: userId,
       stripe_customer_id: customer.id,
       status: 'none',
-    })
+    }, { onConflict: 'user_id' })
+  if (upsertError) throw new Error(`Could not store Stripe customer: ${upsertError.message}`)
 
   return customer.id
 }

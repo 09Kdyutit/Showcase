@@ -17,6 +17,17 @@ export type Database = {
           github_url: string | null
           website_url: string | null
           onboarding_completed: boolean
+          email_digest_enabled: boolean
+          lifecycle_email_enabled: boolean
+          referral_code: string | null
+          referred_by: string | null
+          referral_count: number
+          bonus_credits: number
+          referral_credited_at: string | null
+          referral_claimed_at: string | null
+          referral_invite_limit: number
+          referral_invites_used: number
+          unsubscribe_token: string | null
           created_at: string
           updated_at: string
         }
@@ -63,6 +74,8 @@ export type Database = {
           current_period_end: string | null
           cancel_at_period_end: boolean
           last_webhook_event_at: string | null
+          last_webhook_event_id: string | null
+          stripe_subscription_created_at: string | null
           created_at: string
           updated_at: string
         }
@@ -76,6 +89,8 @@ export type Database = {
           current_period_end?: string | null
           cancel_at_period_end?: boolean
           last_webhook_event_at?: string | null
+          last_webhook_event_id?: string | null
+          stripe_subscription_created_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -87,6 +102,8 @@ export type Database = {
           current_period_end?: string | null
           cancel_at_period_end?: boolean
           last_webhook_event_at?: string | null
+          last_webhook_event_id?: string | null
+          stripe_subscription_created_at?: string | null
           updated_at?: string
         }
       }

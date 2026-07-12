@@ -14,12 +14,16 @@ export const MARKETING_EVENTS = [
   'billing_period_selected',
   'waitlist_submitted',
   'signup_started',
+  // Public portfolio view (anonymous visitor on /p/[slug]). Slug + referrer host are
+  // public, non-sensitive identifiers, so they fit this table's no-private-data rule.
+  'portfolio_view',
 ] as const
 // checkout_started/checkout_completed and the rest of the post-signup funnel
 // (resume_uploaded, portfolio_generated, proofscore_viewed, portfolio_published,
 // signup_completed) already have a real user_id by the time they fire and are
-// tracked server-side via src/lib/analytics/track.ts's BetaEvent union instead  - 
-// this file only covers the anonymous, pre-account part of the journey.
+// tracked server-side instead. Portfolio preview/completion facts additionally go through
+// the authenticated growth endpoint and trusted_events; this file only covers anonymous,
+// pre-account observations and must never be used as a launch-gate source.
 
 export type MarketingEvent = (typeof MARKETING_EVENTS)[number]
 
@@ -35,4 +39,6 @@ export const ALLOWED_METADATA_KEYS = new Set([
   'experiment_variant',
   'cta_label',
   'already_joined',
+  'slug',    // public portfolio slug (portfolio_view)
+  'ref',     // referrer host only, e.g. "linkedin.com" — never a full URL
 ])

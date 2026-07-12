@@ -1,69 +1,143 @@
 # Launch Checklist
 
-For the detailed, continuously-updated release-readiness tracking, see
-`security/EXECUTION_MANIFEST.md` and run `npm run release:gate` — that's the
-source of truth. This file is the short human-readable version.
+For the detailed, continuously updated release-readiness tracking, see
+`security/release-gate.json` and run `npm run release:gate` — those are the
+source of truth. `security/EXECUTION_MANIFEST.md` is a dated historical record.
+This file is the short human-readable version.
 
-**Status as of 2026-06-19:** Stripe product/price creation, webhook signature
-verification, RLS, rate limiting, and security headers are done and verified
-(see manifest). What's left is genuinely unavoidable human action.
+**Status as of 2026-07-12:** production has the exact 49-record application ledger through
+`20260712035035`. Exact source `e883f59137b5` is canonical on deployment
+`dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e`: direct signup is open, every `/proofscore` path
+permanently redirects to the landing page, all four retired APIs return 404, and health
+identifies the exact commit with database, Stripe, and OpenAI checks green. Migration 048
+removed the retired tables/RPCs and counters while preserving authenticated Evidence Audit
+history. Provider, payment, email, and private-product controls remain subject to their
+separate production gates.
+
+**Production observations, 2026-07-10:** fresh pre-migration backup
+`20260710T180210Z` restore-verified 2,008 rows and all 22 private Storage objects. The
+history-only repair was limited to `033`–`037`, the pinned dry-run showed exactly
+`038`–`047`, all 67 pre-existing object row counts remained unchanged, and negative
+Stripe/Resend/cron probes failed closed. Machine-readable proof is in
+`security/production-rollout-evidence.json`. This is a healthy closed-beta deployment,
+not approval for a broad public launch.
+
+## Confirmed launch parameters
+
+- **Scope:** web application only. Native iOS/Android apps and mobile-store distribution
+  are not part of this release.
+- **Identity:** Showcase; public founder Kumar Dyutit; support/privacy and inbound replies
+  at `hello@tryshowcase.ink`; weekly scorecard to `kumar.dyutit09@gmail.com`.
+- **Market:** English-speaking worldwide, with US-focused marketing and no US-only gate.
+- **Pacing:** closed beta, starting at exactly 10 waitlist invites per day.
+- **Cost ceiling:** AI operating budget of **$5/day and $100/month**. Convert this dollar
+  ceiling into the finite request limit only after verifying the configured model rates.
+- **Founding offer:** 10 spots at $99/year, enabled only after Stripe test-mode
+  verification passes.
+- **Distribution:** X `@Showcase_app1` through Buffer drafts; no LinkedIn channel.
+  The first five partner drafts require founder approval before any submission.
+- **Email blocker:** `EMAIL_POSTAL_ADDRESS` is unresolved. Keep
+  `EMAILS_ENABLED=false` and `LIFECYCLE_EMAILS_ENABLED=false` until a valid physical
+  postal address and the full delivery/suppression checks are complete.
 
 ## Critical (must do before launch)
 
-- [x] **Rotate every credential ever pasted into a chat/terminal session**
+- [ ] **Rotate every credential ever pasted into a chat/terminal session**
   (Stripe keys, Supabase service-role key, DB password) in the Stripe and
-  Supabase dashboards. Confirmed done by the account owner (P0-05 PASS).
+  Supabase dashboards. The owner confirmed the earlier keys were rotated, but the Resend
+  API key was later exposed in a private diagnostic log and must still be revoked and
+  replaced locally and in `showcase-app` before email or launch is enabled. The production
+  database password also appeared in a private CLI dry-run log during this maintenance
+  window; rotate it now that the migration is complete, then update Keychain and every
+  operational `DATABASE_URL` without printing the replacement.
 
-- [ ] **Upgrade the Supabase project off the Free tier.** Confirmed directly
-  against the project this session: Free tier has **zero automated backups and
-  zero point-in-time recovery**. See `security/BACKUP_RESTORE.md` for the full
-  finding and what tier to pick. Do not launch with real customer/payment data
-  on a database with no backup coverage.
+- [x] **Create and restore-verify a production database-plus-Storage backup.**
+  Historical backup `20260710T152940Z` remains preserved, and fresh pre-migration backup
+  `20260710T180210Z` contains one exported logical database snapshot plus all 22 private
+  Storage objects. Its authenticated encrypted archives, 2,008-row inventory, normalized
+  catalog, migration ledgers, file hashes, signup trigger on `auth.users`, and all nine
+  application policies on `storage.objects` passed a network-disconnected disposable
+  restore. The target and volumes were destroyed and no plaintext remains. Supabase Free
+  still has no automated physical backup or PITR.
 
-- [x] **Set all env vars in your deployment environment**, including
-  `LAUNCH_OPEN=true` and `OPENAI_API_KEY` (not `AI_API_KEY` — the app uses
-  OpenAI, not Anthropic). Set in the `showcase-app` Vercel project.
+- [ ] **Complete the remaining production configuration.** Twenty-six fail-closed values
+  were written and read back before the promoted build. The only required names still
+  absent are `EMAIL_POSTAL_ADDRESS`, `RESEND_DELIVERY_WEBHOOK_SECRET`, and
+  `STRIPE_PRICE_ID_FOUNDING_ANNUAL`. Keep `LAUNCH_OPEN=false`; do not enable email,
+  checkout, or Founding until those real provider values and their end-to-end tests exist.
 
-- [x] **Deploy to a real launch target — `showcase-app`
-  (`https://showcase-app-three.vercel.app`), not the legacy project.**
+- [x] **Use the real launch target — `showcase-app`
+  (`https://app.tryshowcase.ink`), not the legacy project.**
   `casefile-ten.vercel.app` (Vercel project `showcase`) is a legacy backup
   deployment — do not deploy to it, point auth/webhooks at it, or use it for
   beta traffic. `showcase-app` is the single production project going
   forward; the local repo's `.vercel/project.json` is linked to it.
 
-- [x] **Register the production Stripe webhook** against
-  `https://showcase-app-three.vercel.app/api/stripe/webhook`. Endpoint
+- [ ] **Update the production Stripe webhook** against
+  `https://app.tryshowcase.ink/api/stripe/webhook`. Endpoint
   `we_1TkEgnRrWPEIfq2Mh8VT0W2r` is enabled with all 6 required events
-  (checkout.session.completed, customer.subscription.{created,updated,deleted},
-  invoice.paid, invoice.payment_failed). Its signing secret is set as
-  `STRIPE_WEBHOOK_SECRET` in the `showcase-app` Vercel project.
+  `checkout.session.completed`, `checkout.session.expired`,
+  `customer.subscription.{created,updated,deleted}`, and `invoice.payment_failed`.
+  Re-verify the signing secret after the new deployment.
 
-- [x] **Apply all Supabase migrations to the production project.** All 15
-  local migration files' content is live (verified by table/column
-  existence, not just the CLI ledger — some were applied via direct
-  migration tooling under timestamp-based version IDs that don't match the
-  local numeric filenames; this is a cosmetic ledger mismatch, not a missing
-  migration). RLS is enabled on every table.
+- [x] **Reset a clean local Supabase stack through
+  `20260712035035_retire_public_proofscore_infrastructure.sql` and run the no-secret
+  credentialed suite.** The canonical 49-record reset passed locally and in GitHub CI,
+  including 178 API-authorization and 20 account-deletion assertions.
+- [x] **Promote migration 048 with its compatible public-funnel retirement build.** The
+  server clock and active-data guard cleared after `2026-07-12 03:50:34+00`; all four
+  pending parses were expired, reservations were zero, and the disposable 49-migration
+  stack plus CI passed. Exact source `e883f59137b5` was staged, probed, and promoted before
+  the production dry-run showed only 048. Production read-back then proved 49/latest
+  `20260712035035`, all three retired RPCs and tables absent, retired counters at zero, and
+  authenticated audits/history preserved. The obsolete `PROOFSCORE_IP_HASH_SALT` variable
+  was removed and canonical deployment `dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e` was rebuilt with
+  `ABUSE_IP_HASH_SALT`. Rollback is now roll-forward only. Exact evidence is in
+  `security/public-proofscore-retirement-evidence.json`.
+- [x] **Authorize and execute the paired application/database promotion.** The approved
+  2026-07-10 window used clean, CI-verified revision `f968af8b5b25`, staged it unaliased,
+  restore-verified a fresh backup, repaired only equivalent history `033`–`037`, required
+  the pinned dry-run to show exactly `038`–`047`, and applied that batch. Read-only checks
+  confirmed 48/latest `047`, unchanged row counts for all pre-existing objects, paused
+  controls, and every RLS/ACL/index/constraint/trigger/data invariant. The staged build was
+  then promoted without rebuild and passed only negative/read-only production probes.
+  Follow-up revision `7b150783085b` was promoted without a database or control change to
+  restore the intended public-route boundary while keeping signup and private routes gated.
+  Preserve this sequence for future paired migrations; never run mutating credentialed
+  suites against production.
+
+- [ ] **Configure Resend webhooks and cron delivery.** Inbound mail uses
+  `/api/email/inbound`; delivered/bounced/complained events use `/api/email/events`.
+  Dry-run lifecycle and scorecard routes before setting `EMAILS_ENABLED=true`.
 
 ## Verification (must test before announcing)
 
 - [ ] Sign up with a real email → verify email → complete onboarding
 - [ ] Paste a resume → run AI analysis → verify results make sense
-- [ ] Run a ProofScore audit → verify 11 categories appear
+- [ ] Run an Evidence Audit → verify 11 categories appear
 - [ ] Use Stripe test card `4242 4242 4242 4242` → complete checkout → verify Pro status
-- [ ] Generate a portfolio with AI (requires Pro)
+- [ ] Generate the first portfolio on Free; verify regeneration requires Pro
 - [ ] Publish portfolio → visit `/p/your-slug` → verify it loads publicly
 - [ ] Open billing portal → cancel subscription → verify downgrade at period end
-- [ ] Try to publish as a free user → verify 403 error
+- [ ] Try to publish as a free user → verify the honest preview paywall and 403 authority boundary
+- [ ] Complete a Founding checkout in Stripe test mode → verify a real slot activates and the 11th concurrent reservation is refused
+- [ ] Expire/cancel a Founding checkout → verify its temporary hold releases but an active slot never regresses
+- [ ] Send to Resend's safe `bounced@resend.dev` and `complained@resend.dev` test
+  addresses → verify signed webhook suppression across lifecycle, waitlist, invite, and
+  Evidence Audit emails
 - [ ] Delete a test account → confirm it can no longer log in
 - [ ] Run a real Stripe **live-mode** transaction once (small/refundable) before
   announcing — everything to date has only been verified against test-mode keys
 
 ## Before announcing to users
 
-- [ ] Read privacy policy — update company name and contact email
-- [ ] Read terms of service — update company name and contact email  
-- [ ] Confirm you have a refund email address
+- [ ] Verify privacy policy displays `Showcase` and `hello@tryshowcase.ink`
+- [ ] Verify terms of service displays `Showcase` and `hello@tryshowcase.ink`
+- [ ] Verify the public founder name is `Kumar Dyutit` wherever a founder name appears
+- [ ] Resolve `EMAIL_POSTAL_ADDRESS`; outgoing commercial/lifecycle email stays disabled
+  until this is done
+- [ ] Verify inbound replies reach `hello@tryshowcase.ink` and weekly scorecards reach
+  `kumar.dyutit09@gmail.com`
 - [ ] Confirm Supabase Auth redirect URL is set correctly for production domain
 - [ ] Test auth callback: `/callback` must work for magic links
 
@@ -72,16 +146,15 @@ verification, RLS, rate limiting, and security headers are done and verified
 - Rate limiting: Postgres-backed, atomic, proven under real concurrent load (`test:abuse`)
 - RLS: cross-user isolation proven via real adversarial two-account tests (`test:rls`)
 - API ownership checks: all 21 routes audited, zero gaps (`test:authorization`)
-- Webhook signature verification + idempotency + out-of-order protection (`test:stripe`)
+- Webhook signature verification, retry claims, and atomic out-of-order protection are implemented locally (`test:stripe`); production verification is still required
 - CSRF/Origin enforcement on all state-changing API routes (`test:csrf`)
 - Security headers, including CSP without `unsafe-eval` (`test:headers`)
 - Account deletion, cascading correctly across all tables + storage (`test:deletion`)
-- Pro gating: already on every AI route and publish endpoint
+- Pro publishing authority and higher-limit gating are enforced server-side; the first portfolio generation and one full daily Evidence Audit remain Free by design
 - Secret scanning: gitleaks clean (`test:secrets`)
 
-## Still genuinely open (not yet done, not blocking on external access)
+## Still genuinely open (requires production/external verification)
 
-- No CI workflow yet — run `npm run verify && npm run release:gate` manually before each deploy
-- No error monitoring (Sentry or equivalent) wired up
-- No health-check/kill-switch endpoints
-- No accessibility or cross-device visual QA pass
+- Connect the existing GitHub Actions release workflow to the production repository and add its test secrets.
+- Set `ERROR_WEBHOOK_URL` (or connect a dedicated error-monitoring sink) and an uptime monitor to `/api/health`.
+- Run the existing accessibility suite plus real cross-device visual QA against the deployed build.

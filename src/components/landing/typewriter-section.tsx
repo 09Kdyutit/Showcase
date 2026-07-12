@@ -6,8 +6,8 @@ const PHRASES = [
   'honest about your work.',
   'evidence, not adjectives.',
   'built from what you actually did.',
-  'the proof recruiters trust.',
-  'your work, made undeniable.',
+  'proof a reviewer can inspect.',
+  'your work, made specific.',
 ]
 
 export function TypewriterSection() {
@@ -78,14 +78,15 @@ export function TypewriterSection() {
         </div>
 
         {/* Typed line */}
+        {/* min-h-[1.1em] matches the previous inline minHeight at md+; max-md reserves two
+            lines on phones so longer phrases wrapping doesn't make the page height jump. */}
         <h2
-          className="font-semibold tracking-tight text-balance"
+          className="font-semibold tracking-tight text-balance min-h-[1.1em] max-md:min-h-[2.3em]"
           style={{
             fontSize: 'clamp(2rem, 6.5vw, 4.5rem)',
             letterSpacing: '-0.035em',
             lineHeight: 1.05,
             color: 'oklch(99% 0.005 255)',
-            minHeight: '1.1em',
           }}
         >
           {/* Static text for screen readers; the animated text is decorative */}

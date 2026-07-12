@@ -23,7 +23,7 @@ portfolio (~86% quality in live verification) without paying.
 
 **Risk:** Marginal AI spend per free signup (bounded to one call by a server-side count;
 per-user rate limits still apply). Slightly weaker upgrade pressure at the builder,
-compensated by Pro-gated publishing, regeneration, full ProofScore, Tailor Studio,
+compensated by Pro-gated publishing, regeneration, authenticated Evidence Audit, Tailor Studio,
 For-You feed, and Interview Lab depth.
 
 **Evidence:** Live fresh-signup flow verified in a real browser (screenshots in session

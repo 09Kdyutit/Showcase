@@ -5,7 +5,7 @@ import type { MarketingEvent, MarketingEventMetadata } from './events'
 
 const SESSION_KEY = 'showcase_session_id'
 
-function getSessionId(): string {
+export function getMarketingSessionId(): string {
   if (typeof window === 'undefined') return 'server'
   try {
     let id = window.localStorage.getItem(SESSION_KEY)
@@ -35,7 +35,7 @@ export function trackMarketingEvent(event: MarketingEvent, metadata: MarketingEv
   try {
     const body = JSON.stringify({
       event_name: event,
-      session_id: getSessionId(),
+      session_id: getMarketingSessionId(),
       path: window.location.pathname,
       metadata,
       ...readUtm(),

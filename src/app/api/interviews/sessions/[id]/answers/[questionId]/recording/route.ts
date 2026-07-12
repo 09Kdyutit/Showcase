@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isProUser } from '@/lib/ai/rate-limit'
 import { commitSessionUsage } from '@/lib/interviews/entitlements'
-import { isInterviewRecordingEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
+import {
+  isInterviewRecordingEnabled,
+  isInterviewAnalysisEnabled,
+  isRawAudioRetentionAllowedPlatformWide,
+} from '@/lib/interviews/config'
 import { validateAudioUpload, buildAudioStoragePath, CANONICAL_MIME_FOR_EXTENSION } from '@/lib/interviews/audio-validation'
 import { transcribeAudio } from '@/lib/interviews/gemini/transcription'
 import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExceededError } from '@/lib/interviews/budget'
@@ -11,10 +15,9 @@ import { assertWithinBudget, recordCostEvent, costFromTokens, RATES, BudgetExcee
  * Recorded Mode answer upload + transcription. Ownership/session-state/question-
  * existence are all checked BEFORE the feature gate, same ordering as live-token, so
  * that gate-flip-later changes nothing about authorization. The recording is
- * uploaded and persisted FIRST, independent of transcription succeeding - a
- * transcription failure (provider timeout, etc.) never loses the candidate's actual
- * recording, it just means the question isn't marked answered yet and the client
- * should offer a retry or a fall back to typing. No transcript is ever fabricated:
+ * uploaded to private storage before transcription. It remains there only when both the
+ * platform ceiling and the user's raw-audio preference allow retention; otherwise it is
+ * deleted immediately after transcription (or on failure). No transcript is fabricated:
  * if Gemini fails, this route fails closed and says so.
  */
 export async function POST(
@@ -26,6 +29,7 @@ export async function POST(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const service = await createServiceClient()
 
     // Ownership, session state, and question existence are all checked BEFORE the
     // feature gate - same ordering as live-token's "every check the mission requires
@@ -61,6 +65,14 @@ export async function POST(
       }, { status: 403 })
     }
 
+    const { data: interviewProfile } = await supabase
+      .from('interview_profiles')
+      .select('raw_audio_retention_enabled')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const retainRawAudio = isRawAudioRetentionAllowedPlatformWide()
+      && interviewProfile?.raw_audio_retention_enabled === true
+
     const formData = await request.formData()
     const file = formData.get('file')
     if (!(file instanceof Blob)) return NextResponse.json({ error: 'No file provided.' }, { status: 400 })
@@ -94,7 +106,23 @@ export async function POST(
       .single()
     if (answerError) throw answerError
 
+    const discardRawAudio = async (deleteAnswer = false) => {
+      await service.storage.from('interview-recordings').remove([storagePath])
+      if (deleteAnswer) {
+        await service.from('interview_answers').delete().eq('id', answer.id).eq('user_id', user.id)
+      } else {
+        await service.from('interview_answers').update({ audio_storage_path: null }).eq('id', answer.id).eq('user_id', user.id)
+      }
+    }
+
     if (!isInterviewAnalysisEnabled()) {
+      if (!retainRawAudio) {
+        await discardRawAudio(true)
+        return NextResponse.json({
+          error: 'Transcription is temporarily unavailable. Raw audio retention is off, so the recording was not stored. Please use Text Mode.',
+          code: 'ANALYSIS_NOT_ENABLED',
+        }, { status: 503 })
+      }
       return NextResponse.json({
         data: answer,
         message: 'Recording saved. Transcription will run once AI analysis is enabled for this account.',
@@ -121,17 +149,18 @@ export async function POST(
         estimated: false,
       })
     } catch (err) {
+      if (!retainRawAudio) await discardRawAudio(true)
       if (err instanceof BudgetExceededError) {
         console.error('[interviews/sessions/[id]/answers/[questionId]/recording] budget exceeded', err.message)
         return NextResponse.json({
-          data: answer,
+          data: retainRawAudio ? answer : null,
           error: 'Your recording was saved, but transcription is temporarily unavailable (AI budget limit reached). Try again later, or switch to Text Mode.',
           code: 'BUDGET_EXCEEDED',
         }, { status: 503 })
       }
       console.error('[interviews/sessions/[id]/answers/[questionId]/recording] transcription failed', err instanceof Error ? err.message : err)
       return NextResponse.json({
-        data: answer,
+        data: retainRawAudio ? answer : null,
         error: 'Your recording was saved, but transcription failed. Try recording again, or switch to Text Mode for this question.',
         code: 'TRANSCRIPTION_FAILED',
       }, { status: 502 })
@@ -157,10 +186,15 @@ export async function POST(
       .single()
     if (updateError) throw updateError
 
+    if (!retainRawAudio) {
+      await discardRawAudio(false)
+      updatedAnswer.audio_storage_path = null
+    }
+
     await supabase.from('interview_questions').update({ answered_at: new Date().toISOString() }).eq('id', questionId)
 
     if (attemptNumber === 1) {
-      await commitSessionUsage(await createServiceClient(), id, user.id)
+      await commitSessionUsage(service, id, user.id)
     }
 
     const { data: nextQuestion } = await supabase

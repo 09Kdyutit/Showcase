@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-07-12T04:05:35Z",
+  "status": "COMPLETED",
+  "scope": "retire_public_free_proofscore_while_preserving_authenticated_evidence_audit",
+  "authorization": {
+    "founder_requested_complete_public_removal": true,
+    "production_maintenance_and_promotion_authorized": true,
+    "fabricated_users_or_metrics": false
+  },
+  "source": {
+    "branch": "feat/ai-hardening-and-ui-redesign",
+    "git_head": "e883f59137b5ca9532341ef7e1d2e14267a67874",
+    "commit_message": "chore: retire public ProofScore infrastructure",
+    "clean_worktree_at_deploy": true,
+    "ci_run_id": 29178574841,
+    "ci_status": "success",
+    "ci_completed_at": "2026-07-12T03:56:04Z",
+    "static_checks": "success",
+    "disposable_supabase": {
+      "application_migrations": 49,
+      "latest_application_migration": "20260712035035",
+      "api_authorization_assertions": 178,
+      "account_deletion_assertions": 20,
+      "status": "success"
+    }
+  },
+  "grace_guard": {
+    "server_checked_at": "2026-07-12T03:51:24Z",
+    "required_strictly_after": "2026-07-12T03:50:34Z",
+    "strictly_after_boundary": true,
+    "pending_parses_total": 4,
+    "pending_parses_active": 0,
+    "latest_pending_parse_expiry": "2026-07-12T03:50:33.560003Z",
+    "reservations_total": 0,
+    "reservations_actionable": 0,
+    "active_postgres_waitlist_referral_windows": 0
+  },
+  "database": {
+    "project_ref": "yogwhfrjhcbnvoxitcay",
+    "dry_run_exact": [
+      "20260712035035_retire_public_proofscore_infrastructure.sql"
+    ],
+    "migration_applied": "20260712035035",
+    "application_migrations": 49,
+    "readback_at": "2026-07-12T03:58:43.138Z",
+    "retired_schema_paths_present": [],
+    "retired_tables_absent": [
+      "pending_parses",
+      "proofscore_reservations",
+      "proofscore_daily_usage"
+    ],
+    "retired_rpcs_absent": [
+      "claim_pending_parse(uuid,uuid,jsonb)",
+      "reserve_proofscore_slot(text,date)",
+      "claim_proofscore_capacity(date,uuid)"
+    ],
+    "retired_rate_limit_counters": 0,
+    "preserved_authenticated_audits": 3,
+    "preserved_proofscore_named_usage_events": 6,
+    "preserved_profiles": 5,
+    "preserved_auth_users": 5
+  },
+  "environment": {
+    "replacement_variable": "ABUSE_IP_HASH_SALT",
+    "replacement_variable_sensitive": true,
+    "retired_variable": "PROOFSCORE_IP_HASH_SALT",
+    "retired_variable_present_after_cleanup": false,
+    "serving_runtime_built_after_retired_variable_removal": true
+  },
+  "deployment": {
+    "vercel_project": "showcase-app",
+    "production_deployment_id": "dpl_DJoF17MraMmAVhaepXvXpBT8eQ8e",
+    "production_deployment_url": "https://showcase-pteebfq19-09kdyutits-projects.vercel.app",
+    "production_url": "https://app.tryshowcase.ink",
+    "promoted_exact_commit": "e883f59137b5ca9532341ef7e1d2e14267a67874",
+    "health_commit": "e883f59137b5",
+    "health_status": "ok",
+    "database_healthy": true,
+    "stripe_configured": true,
+    "openai_configured": true,
+    "canonical_aliases_verified_on_exact_commit": [
+      "app.tryshowcase.ink",
+      "showcase-app-three.vercel.app",
+      "showcase-app-09kdyutits-projects.vercel.app",
+      "showcase-app-09kdyutit-09kdyutits-projects.vercel.app"
+    ]
+  },
+  "public_route_verification": {
+    "root_status": 200,
+    "signup_status": 200,
+    "root_redirects": 0,
+    "root_retired_copy_hits": 0,
+    "proofscore_status": 308,
+    "proofscore_nested_status": 308,
+    "proofscore_location": "/",
+    "score_api_status": 404,
+    "reserve_api_status": 404,
+    "stash_api_status": 404,
+    "claim_parse_api_status": 404,
+    "waitlist_site_status": 200,
+    "waitlist_site_changed": false,
+    "authenticated_audit_route": "login-protected at /audit",
+    "authenticated_audit_data_preserved": true
+  },
+  "deployment_cleanup": {
+    "historical_tool_serving_deployments_removed_before_final_rollout": 187,
+    "additional_obsolete_deployments_removed_after_final_rollout": [
+      "dpl_GqU2PfRw3xiEQaXKtghyJGYbc8o3",
+      "dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec",
+      "dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB",
+      "dpl_EHzd973wrFNqy2baXRCKin6aTtMs",
+      "showcase-6kp3uytpt-09kdyutits-projects.vercel.app"
+    ],
+    "additional_obsolete_deployments_removed": 5,
+    "total_removed_during_retirement_session": 192,
+    "remaining_ready_deployments": 3,
+    "remaining_ready_inventory": [
+      {
+        "url": "showcase-pteebfq19-09kdyutits-projects.vercel.app",
+        "root_status": 200,
+        "proofscore_status": 308,
+        "claim_parse_status": 404,
+        "retired_root_copy_hits": 0
+      },
+      {
+        "url": "showcase-c0hbvmio6-09kdyutits-projects.vercel.app",
+        "root_status": 404,
+        "proofscore_status": 404,
+        "claim_parse_status": 404
+      },
+      {
+        "url": "showcase-q8qx8ejef-09kdyutits-projects.vercel.app",
+        "root_status": 404,
+        "proofscore_status": 404,
+        "claim_parse_status": 404
+      }
+    ]
+  },
+  "rollback": {
+    "mode": "roll_forward_only",
+    "reason": "migration 048 removed tables queried by older application builds"
+  },
+  "external_surfaces_outside_edit_authority": {
+    "stale_operator_controlled_copy_may_remain": true,
+    "old_links_redirect_to_landing_page": true,
+    "duplicate_correction_requests_forbidden": true
+  }
+}

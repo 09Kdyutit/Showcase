@@ -260,12 +260,12 @@ export default function DemoPortfolioPage() {
               <div
                 key={p.label}
                 className={cn(
-                  'text-center px-6 py-2',
+                  'text-center px-6 py-2 max-sm:px-2 max-sm:min-w-0',
                   i < 3 && 'border-r border-border',
                 )}
               >
                 <p
-                  className="text-[clamp(2rem,4vw,3rem)] font-black tracking-tight mb-2 leading-none"
+                  className="text-[clamp(2rem,4vw,3rem)] max-sm:text-[clamp(1.5rem,7.5vw,2rem)] font-black tracking-tight mb-2 leading-none"
                   style={{
                     background: 'linear-gradient(135deg, #818cf8, #a78bfa)',
                     WebkitBackgroundClip: 'text',
@@ -379,15 +379,15 @@ export default function DemoPortfolioPage() {
 
                 <div className="grid sm:grid-cols-3 gap-6">
                   <div>
-                    <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Problem</p>
+                    <p className="text-[9px] max-sm:text-[11px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Problem</p>
                     <p className="text-sm text-foreground/55 leading-relaxed">{proj.problem}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Process</p>
+                    <p className="text-[9px] max-sm:text-[11px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mb-3">Process</p>
                     <p className="text-sm text-foreground/55 leading-relaxed">{proj.process}</p>
                   </div>
                   <div className="rounded-xl bg-emerald-500/[0.06] border border-emerald-500/[0.18] p-5">
-                    <p className="text-[9px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
+                    <p className="text-[9px] max-sm:text-[11px] font-black text-emerald-400/60 uppercase tracking-[0.2em] mb-3">Outcome</p>
                     <p className="text-sm text-foreground/90 leading-relaxed font-medium">{proj.outcome}</p>
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export default function DemoPortfolioPage() {
       <footer className="py-8 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <a
-            href="https://showcase.app"
+            href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.tryshowcase.ink'}
             className="flex items-center gap-2 group"
           >
             <div className="w-5 h-5 rounded-md bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center transition-transform group-hover:scale-105">

@@ -1,0 +1,126 @@
+# Showcase launch operator runbook
+
+This is the order of operations for a paced, zero-paid-ad launch. Code can prepare the
+system; the founder must still apply migrations, configure providers, run paid-provider
+smoke tests, approve content, and decide when to open each real capacity dial.
+
+The approved scope is the Showcase web application only. The closed beta serves
+English-speaking users worldwide with US-focused marketing; do not add a US-only gate or
+native/mobile-store work to this runbook.
+
+## 1. Ship dark
+
+1. Keep `LAUNCH_OPEN=false`, email delivery disabled, waitlist invites paused, and Founding
+   reservations paused.
+2. Run `npm run test:local-supabase` against the disposable local stack. Confirm the
+   restore-verified production backup is still current (or take a fresh one).
+3. Configure every production variable documented in `.env.example` in its fail-closed
+   state. Variable changes do not affect an existing Vercel deployment.
+4. Obtain explicit approval for a coordinated maintenance window and a paired production
+   deployment. Prepare the compatible revision on canonical `showcase-app` without changing
+   the live alias: `vercel deploy --prod --skip-domain`.
+5. During the approved window, repair only the already-equivalent
+   `20260710033033`–`20260710033037` history rows and require a dry-run showing exactly
+   `20260710033038`–`20260710033047`. Apply that batch, verify it with read-only catalog and
+   aggregate checks, then immediately promote the prepared deployment. Never use a blind
+   production `supabase db push`; applying migrations `041`/`047` while the old application
+   remains live breaks its authority-field writes.
+6. Verify `/api/health` plus missing/invalid-auth failures for Stripe, Resend, and cron
+   routes before enabling any provider. Do not use the mutating credentialed suites,
+   `npm run growth:status`, or Founding availability as immediate read-only smoke tests.
+
+## 2. Configure provider boundaries
+
+- Stripe: create monthly `$15`, annual `$150`, and Founding `$99` recurring prices. Register
+  `checkout.session.completed`, `checkout.session.expired`,
+  `customer.subscription.created`, `.updated`, `.deleted`, and `invoice.payment_failed`.
+- Resend: point inbound mail at `/api/email/inbound`; point delivery, bounce, and complaint
+  events at `/api/email/events`. Use separate signing secrets. The confirmed support,
+  privacy, and inbound reply address is `hello@tryshowcase.ink`; the weekly scorecard goes
+  to `kumar.dyutit09@gmail.com`. `EMAIL_POSTAL_ADDRESS` is unresolved, so keep
+  `EMAILS_ENABLED=false` and `LIFECYCLE_EMAILS_ENABLED=false` until a valid physical
+  postal address is configured and every delivery/suppression smoke test passes.
+- Vercel: set `CRON_SECRET`. Closed beta runs lifecycle and retention at most once daily so
+  it fits the current Hobby limit; upgrade to a commercially suitable plan before increasing
+  either schedule above once per day.
+- OpenAI: re-check the dated prices in `OPENAI_COST_RATES_JSON`, set a finite
+  `AI_GLOBAL_DAILY_LIMIT` consistent with the approved **$5/day and $100/month** operating
+  budget, configure the atomic general allocation at **$4/day and $80/month**, and keep
+  `KILL_SWITCH_GEMINI=true` plus `INTERVIEW_KILL_SWITCH=true` until every Google path in the
+  remaining **$1/day and $20/month** allocation is atomic and concurrency-tested. Keep the
+  legacy Supabase Edge proxy's `INTERVIEW_LIVE_PROXY_ENABLED` secret unset/false as a second
+  boundary. A request count is not a dollar budget; keep it as a separate abuse boundary
+  and use provider budget controls as the second boundary.
+
+The production `live-interview-ws` URL still answered as a deployed WebSocket function on
+2026-07-09. Before launch, either remove its `GEMINI_API_KEY` secret or deploy this hardened
+revision and leave `INTERVIEW_LIVE_PROXY_ENABLED` unset/false. A Vercel switch cannot disable
+an independently deployed Supabase Edge Function.
+
+## 3. Run the release gates
+
+```bash
+npm run test:launch-offline
+npm run verify
+npm run release:gate
+```
+
+The no-secret local database/browser proof is:
+
+```bash
+npm run test:local-supabase
+```
+
+Run provider tests that need credentials locally with Showcase test-mode Stripe keys. If a
+separate cloud staging project is added later, `staging:preflight` remains available and
+refuses production links, project-ref/URL mismatches, live Stripe mode, or unpaused launch
+switches.
+
+Do not run the automated Stripe checkout test against live keys. After test mode passes, perform one
+small refundable live-mode transaction and verify webhook, entitlement, cancellation,
+automatic unpublish, and refund operations end to end.
+
+## 4. Enable in this order
+
+1. Set `EMAILS_ENABLED=true` only after `EMAIL_POSTAL_ADDRESS` is resolved, dry-running
+   lifecycle and scorecard routes, and sending one message to the founder.
+2. Set `LIFECYCLE_EMAILS_ENABLED=true` after unsubscribe, bounce, and complaint suppression
+   are verified in production.
+3. Unpause the **10-spot Founding offer at $99/year** only after Stripe test-mode
+   verification passes and the price and webhook events are live. The count must come from
+   `/api/stripe/founding-availability`.
+4. Keep invites paused until the full onboarding path passes. Start with exactly 10/day, never
+   above the support and AI-cost ceiling shown by `npm run growth:status`.
+5. Treat `LAUNCH_OPEN` as a production access control, not a marketing funnel. When direct
+   signup is authorized and healthy, public traffic goes from the tracked app landing page to
+   signup. Do not use the waitlist or `/proofscore` as a fallback acquisition route, and do not
+   recreate an anonymous public ProofScore or reservation flow.
+
+## 5. Operate the first 30 days
+
+- Monday: read the weekly scorecard; update the phase gates using trusted events.
+- Daily: run `npm run growth:status`; inspect authoritative registrations, activation, AI cost,
+  email failures, and Founding holds before changing a dial. In-product feedback usage is
+  capacity telemetry only and never authorizes a public scoring pitch.
+- Content: X `@Showcase_app1` is the only approved social channel. Use the current approved
+  publishing manifest and campaign ledger. Every product link must use a source-preserving
+  tracked app landing-root URL. Do not export, regenerate, or schedule the disabled legacy
+  `growth/distribution/content-queue.json` without a fresh founder review.
+- Partners: use only the current approval-gated portfolio-first packet under `.agents/marketing/`.
+  The founder must approve all drafts before any submission. After approval, submit one
+  personalized public form per organization; no scraped addresses or member lists and no
+  agent-sent unreviewed outreach. Never send `/proofscore` or an anonymous-audit offer.
+- Reddit/community: manual value-first participation only. Never automate comments or DMs.
+
+## 6. Emergency controls
+
+- AI cost/error spike: `KILL_SWITCH_AI=true`; set invite dial to `0` and pause invites.
+- Checkout incident: `KILL_SWITCH_CHECKOUT=true`; existing subscribers retain access.
+- Publication abuse: `KILL_SWITCH_PUBLISHING=true`; unpublishing remains available.
+- Core-loop P0 or parse success below 90%: pause acquisition and invites while preserving
+  support for existing users; do not redirect campaign traffic into a retired funnel.
+- Email complaint/bounce spike: `EMAILS_ENABLED=false`; suppression records remain intact.
+
+Never launch paid ads, Product Hunt, or broad PR until the measured gates in
+`growth/beta/phase-gate.md` are met. Traffic is not the goal; completed, retained, paid
+portfolios at a controlled cost are.

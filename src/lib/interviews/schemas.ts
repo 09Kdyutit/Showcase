@@ -61,13 +61,22 @@ export const InterviewPlanSchema = z.object({
   sessionType: z.enum(SESSION_TYPES),
   targetRole: z.string().min(1).max(200),
   targetCompany: z.string().max(200).nullable(),
-  competencies: z.array(z.string()).min(1).max(12),
-  questions: z.array(InterviewPlanQuestionSchema).min(1).max(20),
+  // Pro written interviews allow up to 30 primary questions (entitlements/plans.ts
+  // maxPrimaryQuestions), each potentially probing a distinct competency - both caps
+  // must accommodate that or a legitimately large plan fails its own final parse.
+  competencies: z.array(z.string()).min(1).max(30),
+  questions: z.array(InterviewPlanQuestionSchema).min(1).max(30),
   maxFollowUps: z.number().int().min(0).max(5),
   rubricId: z.string(),
   rubricVersion: z.string(),
   forbiddenTopics: z.array(z.string()),
   maxDurationSeconds: z.number().int().min(60).max(3600),
+  // The primary-question count the user actually asked for, BEFORE tier clamping or
+  // pool exhaustion. When questions.length < requestedQuestionCount the session was
+  // short-delivered and callers must surface that honestly instead of hiding it
+  // (bug: a 10-question request silently produced a 6-question session). Optional so
+  // plans stored before this field existed still parse.
+  requestedQuestionCount: z.number().int().min(1).max(50).optional(),
 })
 export type InterviewPlan = z.infer<typeof InterviewPlanSchema>
 

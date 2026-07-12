@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 export const metadata: Metadata = {
   title: 'For Career Services Teams',
   description:
-    'Showcase helps your students turn résumés and projects into evidence-backed portfolios - with an honest ProofScore audit instead of generic AI text. No fabricated experience, no inflated claims.',
+    'Showcase helps your students turn résumés and projects into evidence-backed portfolios, with a concrete evidence audit instead of generic AI text. No fabricated experience, no inflated claims.',
   alternates: { canonical: '/for-career-services' },
   openGraph: {
     title: 'Showcase for Career Services Teams',
@@ -37,9 +37,9 @@ export default function CareerServicesPage() {
         <div className="grid sm:grid-cols-2 gap-4 mb-16">
           {[
             'Students upload a résumé and get a structured portfolio draft, not a blank page to start from.',
-            'ProofScore flags specific, concrete gaps (e.g. "3 of 8 bullets have no measurable outcome") your advisors can act on directly.',
+            'The evidence audit flags specific, concrete gaps (e.g. "3 of 8 bullets have no measurable outcome") your advisors can act on directly.',
             'Nothing is fabricated - Showcase will not invent an internship, metric, or skill a student does not have.',
-            'Students control what gets published. A draft stays private until the student chooses to share it.',
+            'Drafts stay private. Live sharing is available only when publishing is enabled on a Pro account.',
           ].map((s) => (
             <div key={s} className="glass-card p-5 text-sm text-muted-foreground leading-relaxed">{s}</div>
           ))}
@@ -53,7 +53,7 @@ export default function CareerServicesPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Showcase is not designed to fabricate credentials, inflate achievements, or
                 mass-produce generic applications. If a student has no measurable outcome for a
-                project, ProofScore says so - it does not invent one. That is the same behavior
+                project, Showcase says so - it does not invent one. That is the same behavior
                 whether a student finds Showcase on their own or through your program.
               </p>
             </div>
@@ -68,7 +68,7 @@ export default function CareerServicesPage() {
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
-            Not a replacement for advisor judgment - ProofScore flags gaps, it does not coach.
+            Not a replacement for advisor judgment - the evidence audit flags gaps, it does not coach.
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />

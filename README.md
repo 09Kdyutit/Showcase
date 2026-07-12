@@ -1,12 +1,12 @@
 # Showcase
 
-AI portfolio builder and career-readiness analyzer. Turns resumes, projects, and work history into professional proof-of-work portfolios with a ProofScore that shows exactly where you stand.
+AI portfolio builder and career-readiness analyzer. Turns resumes, projects, and work history into professional proof-of-work portfolios with an Evidence Audit that shows exactly where you stand.
 
 ## What it does
 
 - Parses resumes with AI to extract skills, experience, weak bullets, and missing proof
 - Generates structured case study portfolios targeting specific roles
-- Runs ProofScore audits across 11 categories with specific, actionable fixes
+- Runs Evidence Audits across 11 categories with specific, actionable fixes
 - Publishes professional public portfolios at `/p/your-name`
 - Stripe-gated Pro tier ($15/month) for AI generation, full audits, and public publishing
 
@@ -107,8 +107,10 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Before going live
 
-See [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md). Critical: rotate the Supabase database password before production.
+See [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md). The production database password was
+rotated and the full logical database-plus-Storage backup was restore-verified on
+2026-07-10; migration reconciliation and the remaining launch gates are still required.
 
 ## Legal
 
-Showcase does not guarantee employment, interviews, salary, or hiring outcomes. The ProofScore is an AI-powered analysis tool, not a prediction of recruiter decisions.
+Showcase does not guarantee employment, interviews, salary, or hiring outcomes. The Evidence Audit is an AI-powered analysis tool, not a prediction of recruiter decisions.

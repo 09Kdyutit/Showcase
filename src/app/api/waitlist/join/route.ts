@@ -4,8 +4,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getRateLimiter } from '@/lib/rate-limit'
 import { Resend } from 'resend'
 import { waitlistConfirmationEmail } from '@/lib/email/waitlist-email'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { isEmailSuppressed } from '@/lib/email/suppressions'
+import { generateAdmissionToken, generateWaitlistReferralCode } from '@/lib/growth/admission'
+import { PublicAbuseGuardError, clientFingerprint } from '@/lib/security/public-abuse'
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email address').toLowerCase(),
@@ -33,30 +34,36 @@ const schema = z.object({
 // receive the request.
 const IP_LIMIT = 5
 const IP_WINDOW_SECONDS = 60 * 60 // 1 hour
+const CONSENT_VERSION = 'waitlist-v1'
+const PUBLIC_SUCCESS_MESSAGE = 'Thanks. If this address is on our list, its spot is saved.'
 
-function generateToken(length = 24): string {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  let result = ''
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
-}
-
-function generateReferralCode(email: string): string {
-  const base = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase()
-  const rand = Math.random().toString(36).slice(2, 5).toUpperCase()
-  return `${base}${rand}`
+function publicSuccessResponse() {
+  // Keep this response identical for new and existing addresses. Referral codes and
+  // membership state are sent only through email/account-owned surfaces, never disclosed
+  // to an unauthenticated caller that merely knows an address.
+  return NextResponse.json({ success: true, message: PUBLIC_SUCCESS_MESSAGE })
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-      req.headers.get('x-real-ip') ??
-      'unknown'
-
-    const rl = await getRateLimiter().check(`waitlist:${ip}`, IP_LIMIT, IP_WINDOW_SECONDS)
+    let rl
+    try {
+      const fingerprint = clientFingerprint(req)
+      rl = await getRateLimiter().check(
+        `waitlist:${fingerprint}`,
+        IP_LIMIT,
+        IP_WINDOW_SECONDS,
+        { failOpen: false },
+      )
+    } catch (error) {
+      if (!(error instanceof PublicAbuseGuardError)) {
+        console.error('[waitlist] strict rate limit unavailable:', error instanceof Error ? error.message : error)
+      }
+      return NextResponse.json(
+        { error: 'Waitlist signup is temporarily unavailable. Please try again shortly.' },
+        { status: 503 },
+      )
+    }
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
@@ -78,45 +85,39 @@ export async function POST(req: NextRequest) {
 
     // Honeypot check - silently succeed without inserting
     if (data.website_url_hidden) {
-      return NextResponse.json({ success: true, message: "You're on the list!" })
+      return publicSuccessResponse()
     }
 
     const supabase = await createServiceClient()
 
     // Check if already exists
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('waitlist_signups')
-      .select('id, referral_code, status')
+      .select('id')
       .eq('email', data.email)
-      .single()
+      .maybeSingle()
+    if (existingError) throw existingError
 
     if (existing) {
-      // Update any newly provided optional fields
-      const updatePayload: Record<string, unknown> = {}
-      if (data.full_name && !existing) updatePayload.full_name = data.full_name
-      if (data.target_role) updatePayload.target_role = data.target_role
-      if (data.experience_level) updatePayload.experience_level = data.experience_level
-      if (data.user_type) updatePayload.user_type = data.user_type
-      if (data.biggest_challenge) updatePayload.biggest_challenge = data.biggest_challenge
-      if (data.beta_goal) updatePayload.beta_goal = data.beta_goal
-
-      if (Object.keys(updatePayload).length > 0) {
-        await supabase
-          .from('waitlist_signups')
-          .update(updatePayload)
-          .eq('id', existing.id)
-      }
-
-      return NextResponse.json({
-        success: true,
-        already_joined: true,
-        referral_code: existing.referral_code,
-        message: "You're already on the list! We'll email you when your invite is ready.",
-      })
+      // Email ownership has not been proven. Never mutate the existing person's answers or
+      // consent based on this public request, and never reveal that the row exists.
+      return publicSuccessResponse()
     }
 
-    const referralCode = generateReferralCode(data.email)
-    const inviteToken = generateToken(32)
+    // Provider complaints and bounces are server-owned. Joining may still preserve the
+    // person's place, but must never cause another message to a suppressed address.
+    const emailSuppressed = await isEmailSuppressed(supabase, data.email)
+    const referralCode = generateWaitlistReferralCode()
+    const inviteToken = generateAdmissionToken()
+    let referredBySignupId: string | null = null
+    if (data.referral_code) {
+      const { data: referrerSignup } = await supabase
+        .from('waitlist_signups')
+        .select('id')
+        .eq('referral_code', data.referral_code.trim().toUpperCase())
+        .maybeSingle()
+      referredBySignupId = referrerSignup?.id ?? null
+    }
 
     const { error: insertError } = await supabase.from('waitlist_signups').insert({
       email: data.email,
@@ -133,19 +134,27 @@ export async function POST(req: NextRequest) {
       utm_medium: data.utm_medium ?? null,
       utm_campaign: data.utm_campaign ?? null,
       utm_content: data.utm_content ?? null,
-      referral_code: data.referral_code ? undefined : referralCode,
+      referral_code: referralCode,
+      referred_by_signup_id: referredBySignupId,
       invite_token: inviteToken,
+      consent_granted_at: new Date().toISOString(),
+      consent_version: CONSENT_VERSION,
       status: 'waitlisted',
     })
 
     if (insertError) {
       // Handle race-condition duplicate
       if (insertError.code === '23505') {
-        return NextResponse.json({
-          success: true,
-          already_joined: true,
-          message: "You're already on the list! We'll email you when your invite is ready.",
-        })
+        const { data: racedExisting } = await supabase
+          .from('waitlist_signups')
+          .select('id')
+          .eq('email', data.email)
+          .maybeSingle()
+        if (!racedExisting) {
+          console.error('Waitlist unique collision:', insertError.message)
+          return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
+        }
+        return publicSuccessResponse()
       }
       const isTableMissing = insertError.code === 'PGRST205' || insertError.message?.includes('waitlist_signups')
       console.error('Waitlist insert error:', insertError.code, insertError.message)
@@ -164,26 +173,26 @@ export async function POST(req: NextRequest) {
     // Send confirmation email. Must be awaited - Vercel can freeze the serverless
     // function the instant a response is returned, so an un-awaited send can get cut
     // off before the request to Resend ever completes.
-    const { subject, html, text } = waitlistConfirmationEmail(data.full_name)
-    try {
-      await resend.emails.send({
-        from: 'Showcase <hello@tryshowcase.ink>',
-        to: data.email,
-        subject,
-        html,
-        text,
-        tags: [{ name: 'type', value: 'waitlist_confirmation' }],
-      })
-    } catch (err) {
-      console.error('Resend error:', err)
+    if (!emailSuppressed && process.env.EMAILS_ENABLED === 'true') {
+      const { subject, html, text } = waitlistConfirmationEmail(data.full_name, process.env.EMAIL_POSTAL_ADDRESS)
+      try {
+        const resendKey = process.env.RESEND_API_KEY
+        if (!resendKey) throw new Error('RESEND_API_KEY is not configured')
+        const response = await new Resend(resendKey).emails.send({
+          from: 'Showcase <hello@tryshowcase.ink>',
+          to: data.email,
+          subject,
+          html,
+          text,
+          tags: [{ name: 'type', value: 'waitlist_confirmation' }],
+        })
+        if (response.error) throw new Error(response.error.message)
+      } catch (err) {
+        console.error('Resend error:', err)
+      }
     }
 
-    return NextResponse.json({
-      success: true,
-      already_joined: false,
-      referral_code: referralCode,
-      message: "You're on the Showcase waitlist!",
-    })
+    return publicSuccessResponse()
   } catch (err) {
     console.error('Waitlist join error:', err)
     return NextResponse.json(

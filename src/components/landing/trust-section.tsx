@@ -8,8 +8,8 @@ const EM = 'oklch(72% 0.16 162)' // emerald accent
 const ITEMS: { icon: LucideIcon; title: string; desc: string }[] = [
   {
     icon: Lock,
-    title: 'Your data stays private',
-    desc: 'Resume content is never shared, indexed, or sold. Processed securely for your session only.',
+    title: 'Private by default',
+    desc: 'Resume content is stored for your account and processed by the service providers needed to run Showcase. It is not sold or publicly indexed.',
   },
   {
     icon: Eye,
@@ -19,7 +19,7 @@ const ITEMS: { icon: LucideIcon; title: string; desc: string }[] = [
   {
     icon: CheckCircle2,
     title: 'Honest audit scores',
-    desc: 'ProofScore is designed to expose weaknesses, not inflate your confidence.',
+    desc: 'The evidence audit is designed to expose weaknesses, not inflate your confidence.',
   },
 ]
 

@@ -6,22 +6,20 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const PRO_FEATURES = [
-  'Full AI portfolio generation from resume',
-  'Complete ProofScore (all 11 categories)',
+  '10 portfolio generations per day',
+  '10 complete evidence audits per day',
   'Public portfolio at /p/alex-chen',
-  'PDF & recruiter summary export',
-  'Role-specific portfolio versions',
-  'Unlimited portfolio projects',
-  'Resume bullet improvement',
-  'Priority AI processing',
-  'Email support',
+  'Standalone HTML portfolio export',
+  '15 tailored applications per day',
+  '40 cover letters per day',
+  '20 voice interviews per billing period',
 ]
 
 const USAGE = [
-  { label: 'AI portfolio generations', used: 3, limit: 'unlimited' },
-  { label: 'ProofScore audits', used: 7, limit: 'unlimited' },
-  { label: 'Portfolios published', used: 1, limit: 'unlimited' },
-  { label: 'Resume uploads', used: 2, limit: 'unlimited' },
+  { label: 'AI portfolio generations today', used: 3, limit: '10' },
+  { label: 'Evidence audits today', used: 7, limit: '10' },
+  { label: 'Voice interviews this period', used: 1, limit: '20' },
+  { label: 'Written interviews this period', used: 2, limit: '150' },
 ]
 
 export default function DemoBillingPage() {
@@ -51,7 +49,7 @@ export default function DemoBillingPage() {
                 <Badge variant="success">Active</Badge>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right max-sm:text-left">
               <p className="text-3xl font-bold text-foreground">$15</p>
               <p className="text-xs text-muted-foreground">per month</p>
             </div>
@@ -128,12 +126,12 @@ export default function DemoBillingPage() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               You can cancel anytime. You keep Pro access until{' '}
               <span className="text-foreground font-medium">July 17, 2026</span>.
-              We offer a 7-day money-back guarantee.
+              Refund requests within 7 days are subject to our substantive-use policy.
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium">
+          <button className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium max-sm:py-2.5 max-sm:-my-2.5">
             Contact support
           </button>
           <span className="text-muted-foreground/30 text-xs">·</span>
@@ -147,11 +145,11 @@ export default function DemoBillingPage() {
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground/50">
         <div className="flex items-center gap-1.5">
           <Shield className="h-3 w-3" />
-          7-day money-back guarantee
+          7-day conditional refund policy
         </div>
-        <span>·</span>
-        <span>No questions asked</span>
-        <span>·</span>
+        <span className="max-sm:hidden">·</span>
+        <span>Before substantive Pro use</span>
+        <span className="max-sm:hidden">·</span>
         <div className="flex items-center gap-1.5">
           <CreditCard className="h-3 w-3" />
           Stripe-secured

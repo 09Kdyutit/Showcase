@@ -351,6 +351,6 @@ if (failures.length > 0) {
   console.log()
   process.exit(1)
 } else {
-  console.log('\n  ✅ All checks passed. Ready to ship.\n')
+  console.log('\n  ✅ Static checks passed. Run `npm run release:gate`; shipping still requires every live gate to pass.\n')
   process.exit(0)
 }

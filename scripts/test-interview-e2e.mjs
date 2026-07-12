@@ -41,8 +41,11 @@ async function main() {
   // ── 1. Hub ───────────────────────────────────────────────────────────────
   await page.goto(`${APP_URL}/interviews`, { waitUntil: 'networkidle' })
   record('Hub page loads with no console errors', consoleErrors.length === 0, consoleErrors.join('; '))
+  // A brand-new user (this fresh signup) lands on the new-user hub, whose h1 is the
+  // personalized "Practice until it's effortless, <name>." headline; returning users get
+  // the sr-only "Interview Lab" h1. Accept either so the test tracks the real UI.
   const hubHeading = await page.textContent('h1')
-  record('Hub shows the Interview Lab heading', hubHeading?.includes('Interview Lab'), hubHeading)
+  record('Hub shows the Interview Lab heading', /Interview Lab|Practice until it/i.test(hubHeading ?? ''), hubHeading)
   const startButton = await page.getByRole('link', { name: /start your baseline interview/i }).first()
   record('Hub has a Start Interview action', await startButton.isVisible().catch(() => false))
 

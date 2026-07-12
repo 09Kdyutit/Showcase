@@ -18,7 +18,18 @@ const TONES: { id: Tone; label: string }[] = [
   { id: 'direct', label: 'Direct' },
 ]
 
+// Output type — a cover letter, or one of the short outreach messages. All grounded in the
+// same résumé + job; only the target format changes.
+type OutputType = 'cover_letter' | 'recruiter_dm' | 'networking' | 'referral_ask'
+const OUTPUT_TYPES: { id: OutputType; label: string }[] = [
+  { id: 'cover_letter', label: 'Cover letter' },
+  { id: 'recruiter_dm', label: 'Recruiter DM' },
+  { id: 'networking', label: 'Networking note' },
+  { id: 'referral_ask', label: 'Referral ask' },
+]
+
 export function CoverLetterGenerator() {
+  const [outputType, setOutputType] = useState<OutputType>('cover_letter')
   const [source, setSource] = useState<'paste' | 'saved'>('paste')
   const [savedJobs, setSavedJobs] = useState<SavedJobOpt[]>([])
   const [savedJobId, setSavedJobId] = useState<string>('')
@@ -28,8 +39,10 @@ export function CoverLetterGenerator() {
   const [tone, setTone] = useState<Tone>('professional')
   const [loading, setLoading] = useState(false)
   const [letter, setLetter] = useState<string | null>(null)
+  const [subject, setSubject] = useState<string | null>(null)
   const [highlights, setHighlights] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
+  const isLetter = outputType === 'cover_letter'
 
   useEffect(() => {
     const supabase = createClient()
@@ -51,27 +64,38 @@ export function CoverLetterGenerator() {
 
     setLoading(true)
     setLetter(null)
+    setSubject(null)
     try {
       const selected = savedJobs.find((j) => j.id === savedJobId)
-      const res = await fetch('/api/ai/cover-letter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: role.trim() || selected?.title || 'the role',
-          company: company.trim() || selected?.company || '',
-          jobDescription: source === 'paste' ? jobDescription.trim() : '',
-          savedJobId: source === 'saved' ? savedJobId : undefined,
-          tone,
-        }),
-      })
+      const common = {
+        role: role.trim() || selected?.title || 'the role',
+        company: company.trim() || selected?.company || '',
+        jobDescription: source === 'paste' ? jobDescription.trim() : '',
+        savedJobId: source === 'saved' ? savedJobId : undefined,
+      }
+      const res = isLetter
+        ? await fetch('/api/ai/cover-letter', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...common, tone }),
+          })
+        : await fetch('/api/ai/outreach', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...common, outreachType: outputType }),
+          })
       const json = await res.json()
       if (!res.ok) {
-        toast.error(apiErrorMessage(json.error, 'Could not generate the cover letter.'))
+        toast.error(apiErrorMessage(json.error, 'Could not generate. Please try again.'))
         return
       }
-      setLetter(json.data.coverLetter)
-      setHighlights(json.data.fitHighlights ?? [])
-      toast.success('Cover letter ready')
+      if (isLetter) {
+        setLetter(json.data.coverLetter)
+        setHighlights(json.data.fitHighlights ?? [])
+      } else {
+        setLetter(json.data.message)
+        setSubject(json.data.subject ?? null)
+        setHighlights([])
+      }
+      toast.success('Ready')
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
@@ -81,7 +105,7 @@ export function CoverLetterGenerator() {
 
   async function copyLetter() {
     if (!letter) return
-    await navigator.clipboard.writeText(letter)
+    await navigator.clipboard.writeText(subject ? `${subject}\n\n${letter}` : letter)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
     toast.success('Copied to clipboard')
@@ -91,6 +115,19 @@ export function CoverLetterGenerator() {
     <div className="grid lg:grid-cols-2 gap-6">
       {/* Inputs */}
       <div className="space-y-5">
+        {/* What to generate */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {OUTPUT_TYPES.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => { setOutputType(o.id); setLetter(null); setSubject(null) }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${outputType === o.id ? 'border-brand-500/50 bg-brand-500/10 text-brand-300' : 'border-border text-muted-foreground hover:text-foreground'}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-1 bg-surface-200 rounded-lg p-0.5 w-fit">
           {([['paste', 'Paste a job', ClipboardPaste], ['saved', 'Saved job', Briefcase]] as const).map(([id, label, Icon]) => (
             <button
@@ -140,23 +177,25 @@ export function CoverLetterGenerator() {
           </>
         )}
 
-        <div className="space-y-1.5">
-          <Label className="text-xs">Tone</Label>
-          <div className="flex gap-1.5">
-            {TONES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTone(t.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${tone === t.id ? 'border-brand-400/50 bg-brand-500/10 text-brand-300' : 'border-border text-muted-foreground hover:text-foreground'}`}
-              >
-                {t.label}
-              </button>
-            ))}
+        {isLetter && (
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tone</Label>
+            <div className="flex gap-1.5">
+              {TONES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTone(t.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${tone === t.id ? 'border-brand-400/50 bg-brand-500/10 text-brand-300' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <Button onClick={generate} loading={loading} variant="gradient" className="w-full gap-2">
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing…</> : <><Sparkles className="h-4 w-4" /> Generate cover letter</>}
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing…</> : <><Sparkles className="h-4 w-4" /> {isLetter ? 'Generate cover letter' : 'Write message'}</>}
         </Button>
         <p className="text-xs text-muted-foreground/60 text-center">Grounded strictly in your real resume — no invented experience.</p>
       </div>
@@ -166,22 +205,30 @@ export function CoverLetterGenerator() {
         {!letter && !loading && (
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 text-muted-foreground">
             <Mail className="h-8 w-8 opacity-40" />
-            <p className="text-sm">Your personalized cover letter appears here.</p>
+            <p className="text-sm">{isLetter ? 'Your personalized cover letter appears here.' : 'Your outreach message appears here.'}</p>
           </div>
         )}
         {loading && (
           <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Writing your letter…
+            <Loader2 className="h-4 w-4 animate-spin" /> Writing…
           </div>
         )}
         {letter && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Your cover letter</p>
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                {isLetter ? 'Your cover letter' : OUTPUT_TYPES.find((o) => o.id === outputType)?.label}
+              </p>
               <Button size="sm" variant="ghost" onClick={copyLetter} className="gap-1.5 h-7 text-xs">
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />} {copied ? 'Copied' : 'Copy'}
               </Button>
             </div>
+            {subject && (
+              <div className="rounded-lg bg-surface-200 border border-border px-3 py-2">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">Subject / opening line</p>
+                <p className="text-sm font-medium text-foreground">{subject}</p>
+              </div>
+            )}
             <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{letter}</p>
             {highlights.length > 0 && (
               <div className="border-t border-border/60 pt-3 space-y-1.5">

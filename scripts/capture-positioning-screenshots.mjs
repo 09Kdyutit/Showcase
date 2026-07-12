@@ -6,7 +6,7 @@ import { mkdirSync } from 'node:fs'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 const OUT_DIR = '/tmp/showcase-video-framework-screenshots'
-const PAGES = ['/', '/pricing', '/waitlist', '/proofscore', '/for-career-services']
+const PAGES = ['/', '/pricing', '/waitlist', '/for-career-services']
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
   mobile: { width: 390, height: 844 },

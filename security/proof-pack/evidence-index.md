@@ -28,7 +28,7 @@
 ## Source-of-truth files cited (no log, read directly)
 - `src/app/api/interviews/sessions/[id]/live-token/route.ts` — Live token ownership/voice/Pro/kill-switch gates
 - `src/lib/ai/rate-limit.ts` — `isProUser()` DB lookup, global + per-user atomic quota
-- `supabase/migrations/011_rate_limit_counters.sql` — atomic `rate_limit_increment` RPC
+- `supabase/migrations/20260620003903_rate_limit_counters.sql` — atomic `rate_limit_increment` RPC
 - `src/lib/rate-limit/postgres.ts` — RPC wrapper (fail-open documented)
 - `src/app/api/stripe/webhook/route.ts` — signature verify before DB write
 - `src/app/api/stripe/create-checkout-session/route.ts` — env-driven priceId

@@ -6,7 +6,10 @@ const LIMITS = {
   free: {
     resume_analyzed: { max: 3, windowHours: 24 },
     audit_completed: { max: 1, windowHours: 24 },
-    portfolio_generated: { max: 0, windowHours: 24 },
+    // Free gets one first-generation attempt per window. The route's server-owned
+    // ai_generated_at check remains the lifetime success gate; this atomic counter is the
+    // in-flight mutex that stops parallel first-generation requests reaching the provider.
+    portfolio_generated: { max: 1, windowHours: 24 },
     bullet_improved: { max: 5, windowHours: 24 },
     role_matched: { max: 2, windowHours: 24 },
     job_imported: { max: 3, windowHours: 24 },
@@ -17,6 +20,7 @@ const LIMITS = {
     ats_checked: { max: 1, windowHours: 24 },
     voice_profiled: { max: 1, windowHours: 168 }, // once per week
     resume_pdf_vision: { max: 2, windowHours: 24 },
+    question_scored: { max: 20, windowHours: 24 }, // written/drill practice grading — cheap, frequent
   },
   pro: {
     resume_analyzed: { max: 25, windowHours: 24 },
@@ -32,14 +36,68 @@ const LIMITS = {
     ats_checked: { max: 20, windowHours: 24 },
     voice_profiled: { max: 5, windowHours: 24 },
     resume_pdf_vision: { max: 10, windowHours: 24 },
+    question_scored: { max: 150, windowHours: 24 },
   },
 } as const
 
-type EventName = keyof typeof LIMITS.free
+export type EventName = keyof typeof LIMITS.free
 
 export type RateLimitResult =
   | { allowed: true }
-  | { allowed: false; reason: string; retryAfter?: string }
+  | { allowed: false; reason: string; retryAfter?: string; status?: 403 | 429 | 503 }
+
+/**
+ * A short-window attempt throttle, separate from product quota and referral credits.
+ * It intentionally runs before dollar reservation so one account cannot keep the global
+ * budget temporarily full with a flood of parallel reserve-then-deny requests.
+ */
+export async function checkAiReservationAttemptLimit(
+  userId: string,
+  isPro: boolean,
+): Promise<RateLimitResult> {
+  if (!isAIEnabled()) {
+    return { allowed: false, reason: KILL_SWITCH_MESSAGE, status: 503 }
+  }
+
+  try {
+    const supabase = await createServiceClient()
+    const { data, error } = await supabase
+      .rpc('rate_limit_increment', {
+        p_key: `ai:reservation-attempt:${userId}`,
+        p_window_seconds: 60,
+        p_max: isPro ? 30 : 10,
+      })
+      .single() as {
+        data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null
+        error: { message: string } | null
+      }
+
+    if (error || !data) {
+      console.error('[rate-limit/ai] reservation attempt throttle unavailable:', error?.message ?? 'no result')
+      return {
+        allowed: false,
+        reason: 'AI capacity could not be verified. Please try again shortly.',
+        status: 503,
+      }
+    }
+    if (!data.allowed) {
+      return {
+        allowed: false,
+        reason: 'Too many AI requests were started at once. Please wait a moment and try again.',
+        retryAfter: new Date(Date.now() + data.retry_after_seconds * 1000).toISOString(),
+        status: 429,
+      }
+    }
+    return { allowed: true }
+  } catch (error) {
+    console.error('[rate-limit/ai] reservation attempt throttle failed:', error instanceof Error ? error.message : 'unknown error')
+    return {
+      allowed: false,
+      reason: 'AI capacity could not be verified. Please try again shortly.',
+      status: 503,
+    }
+  }
+}
 
 export async function checkRateLimit(
   userId: string,
@@ -50,73 +108,81 @@ export async function checkRateLimit(
   // through this function, making it the single choke point to halt AI spend
   // during an incident without a code deploy.
   if (!isAIEnabled()) {
-    return { allowed: false, reason: KILL_SWITCH_MESSAGE }
+    return { allowed: false, reason: KILL_SWITCH_MESSAGE, status: 503 }
   }
 
   const tier = isPro ? 'pro' : 'free'
   const limit = LIMITS[tier][eventName]
 
-  if (limit.max === 0) {
-    return {
-      allowed: false,
-      reason: isPro
-        ? `You have reached the limit for ${eventName}. Contact support.`
-        : 'This feature requires a Pro subscription. Upgrade to unlock it.',
-    }
-  }
-
   try {
     const supabase = await createServiceClient()
-
-    // Global daily ceiling, independent of per-user limits - bounds aggregate spend if
-    // an attacker spreads calls across many accounts (each individually within its own
-    // per-user limit). Default is generous (won't bind under normal usage) but finite;
-    // override with AI_GLOBAL_DAILY_LIMIT for an incident. Checked before the per-user
-    // counter so a tripped global ceiling fails every request the same way, not just new
-    // users, and never advances the per-user counter for a call that wasn't going to run.
-    const globalMax = Number(process.env.AI_GLOBAL_DAILY_LIMIT) || 2000
-    const { data: globalData, error: globalError } = await supabase
-      .rpc('rate_limit_increment', { p_key: 'ai:global:daily', p_window_seconds: 86400, p_max: globalMax })
-      .single() as { data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null, error: { message: string } | null }
-    if (!globalError && globalData && !globalData.allowed) {
-      console.error(`[rate-limit/ai] GLOBAL daily AI ceiling reached: ${globalData.current_count}/${globalMax}`)
-      return {
-        allowed: false,
-        reason: 'AI features are temporarily at capacity platform-wide. Please try again later.',
-      }
-    }
-
-    // Atomic increment-and-check via rate_limit_increment() (migration 011) - a single
-    // INSERT ... ON CONFLICT DO UPDATE statement, so concurrent requests serialize on the
-    // row instead of racing a separate SELECT-count-then-INSERT (which a real adversarial
-    // test proved lets 10 parallel requests all pass a limit of 3 - every request reads
-    // the same pre-insert count before any of them has recorded their own usage). The
-    // counter key is scoped per user+event, independent of usage_events, which remains a
-    // pure analytics/audit log and is no longer load-bearing for quota enforcement.
-    const key = `ai:${eventName}:${userId}`
+    // The database consumes user quota, one optional referral credit, and global capacity
+    // in one transaction. Over-limit spam never advances the global counter; a global
+    // denial restores the user's counter/credit; concurrent bonus uses serialize on the
+    // profile row. This makes "+5 credits" five calls total, not +5 to every feature forever.
+    const configuredGlobalMax = Number(process.env.AI_GLOBAL_DAILY_LIMIT)
+    const globalMax = Number.isFinite(configuredGlobalMax) && configuredGlobalMax > 0
+      ? Math.min(Math.floor(configuredGlobalMax), 1_000_000)
+      : 2000
     const windowSeconds = limit.windowHours * 60 * 60
     const { data, error } = await supabase
-      .rpc('rate_limit_increment', { p_key: key, p_window_seconds: windowSeconds, p_max: limit.max })
-      .single() as { data: { allowed: boolean; current_count: number; retry_after_seconds: number } | null, error: { message: string } | null }
+      .rpc('consume_ai_request_quota', {
+        p_user_id: userId,
+        p_event_name: eventName,
+        p_window_seconds: windowSeconds,
+        p_base_max: limit.max,
+        p_global_max: globalMax,
+        // Referral credits add usage to ordinary Free AI tools, but they must never turn
+        // the one-time first-portfolio entitlement into regeneration/additional portfolios.
+        p_allow_bonus: !isPro && eventName !== 'portfolio_generated',
+      })
+      .single() as {
+        data: {
+          allowed: boolean
+          current_count: number
+          retry_after_seconds: number
+          denial_reason: 'user_limit' | 'global_limit' | null
+          bonus_remaining: number
+        } | null
+        error: { message: string } | null
+      }
 
     if (error || !data) {
-      // Fail open on infrastructure error, same documented tradeoff as the Postgres
-      // rate limiter for non-AI routes - an outage here must never take down the feature.
-      return { allowed: true }
+      console.error('[rate-limit/ai] quota transaction unavailable:', error?.message ?? 'no result')
+      return {
+        allowed: false,
+        reason: 'AI capacity could not be verified. Please try again shortly.',
+        status: 503,
+      }
     }
 
     if (!data.allowed) {
       const retryAt = new Date(Date.now() + data.retry_after_seconds * 1000)
+      if (data.denial_reason === 'global_limit') {
+        console.error(`[rate-limit/ai] global daily AI ceiling reached (${globalMax})`)
+        return {
+          allowed: false,
+          reason: 'AI features are temporarily at capacity platform-wide. Please try again later.',
+          retryAfter: retryAt.toISOString(),
+          status: 503,
+        }
+      }
       return {
         allowed: false,
         reason: `You have reached your ${tier} limit of ${limit.max} ${eventName.replace(/_/g, ' ')} per ${limit.windowHours} hours. ${isPro ? 'Try again later.' : 'Upgrade to Pro for higher limits.'}`,
         retryAfter: retryAt.toISOString(),
+        status: 429,
       }
     }
 
     return { allowed: true }
-  } catch {
-    return { allowed: true }
+  } catch (error) {
+    console.error('[rate-limit/ai] quota check failed:', error instanceof Error ? error.message : 'unknown error')
+    return {
+      allowed: false,
+      reason: 'AI capacity could not be verified. Please try again shortly.',
+      status: 503,
+    }
   }
 }
 
@@ -142,6 +208,6 @@ export async function isProUser(userId: string): Promise<boolean> {
 export function rateLimitResponse(result: Extract<RateLimitResult, { allowed: false }>) {
   return NextResponse.json(
     { error: result.reason, code: 'RATE_LIMITED', retryAfter: result.retryAfter },
-    { status: 429 }
+    { status: result.status ?? 429 }
   )
 }

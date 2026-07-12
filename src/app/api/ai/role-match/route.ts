@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runPrompt } from '@/lib/ai/client'
+import { runPromptWithQuota } from '@/lib/ai/client'
 import { roleMatchPrompt } from '@/lib/ai/prompts/registry'
-import { checkRateLimit, isProUser } from '@/lib/ai/rate-limit'
+import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { z } from 'zod'
 import type { ParsedResume } from '@/types/database'
+import { trackAsync } from '@/lib/analytics/track'
+import { recordPromptCost } from '@/lib/growth/prompt-cost'
+
+// Heavy AI/render route — raise the serverless timeout above the platform default so
+// slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
+export const maxDuration = 60
 
 const schema = z.object({
   parsedResume: z.record(z.string(), z.unknown()),
@@ -27,25 +33,20 @@ export async function POST(request: NextRequest) {
     const { parsedResume, targetRole, industry } = parsed.data
     const isPro = await isProUser(user.id)
 
-    const rl = await checkRateLimit(user.id, 'role_matched', isPro)
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: rl.reason, code: 'RATE_LIMITED', retryAfter: rl.retryAfter },
-        { status: 429 }
-      )
-    }
-
-    const { data: result, meta } = await runPrompt(roleMatchPrompt, {
+    const prompt = await runPromptWithQuota(roleMatchPrompt, {
       parsedResume: parsedResume as unknown as ParsedResume,
       targetRole,
       industry,
+    }, {
+      userId: user.id,
+      eventName: 'role_matched',
+      isPro,
     })
+    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    const { data: result, meta } = prompt
+    await recordPromptCost({ userId: user.id, meta })
 
-    await supabase.from('usage_events').insert({
-      user_id: user.id,
-      event_name: 'role_matched',
-      metadata: { target_role: targetRole, industry },
-    })
+    trackAsync(user.id, 'role_matched', { target_role: targetRole, industry })
 
     await supabase.from('generations').insert({
       user_id: user.id,

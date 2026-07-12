@@ -11,7 +11,7 @@ Any credential that was ever pasted into a chat session, a terminal command visi
 | Credential | Where it's used | Rotation steps | Requires redeploy |
 |---|---|---|---|
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only (`server-only` guarded) | Supabase Dashboard → Project Settings → API → reset service-role key | Yes — update `.env.local` + Vercel Production/Preview |
-| Supabase database password | Not directly used by current runtime code (no direct Postgres connection in app code; confirm before assuming) | Supabase Dashboard → Project Settings → Database → reset password | Only if `DATABASE_URL` is actually read somewhere — verify first |
+| Supabase database password | Migration/operational tooling through server-only `DATABASE_URL`; current web runtime uses Supabase client libraries instead of a direct Postgres connection | Supabase Dashboard → Project Settings → Database → reset password, then replace every encrypted `DATABASE_URL` with a percent-encoded session-pooler URL without printing it | No immediate runtime deploy while app code does not read it; the next reviewed deployment will inherit the updated environment |
 | `OPENAI_API_KEY` | Server-only (`src/lib/ai/openai.ts`, `src/lib/ai/client.ts`) | OpenAI Dashboard → API keys → revoke + create new | Yes |
 | `GEMINI_API_KEY` (if retained) | Server-only (`src/lib/ai/gemini.ts`), only active if `AI_REVIEW_MODE` is enabled — confirmed disabled for real user data per prior session's explicit policy | Google AI Studio / Cloud Console → revoke + create new | Yes, if in use |
 | `STRIPE_SECRET_KEY` | Server-only (`src/lib/stripe/client.ts`) | Stripe Dashboard → Developers → API keys → roll key | Yes |

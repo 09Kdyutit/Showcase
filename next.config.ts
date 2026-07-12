@@ -9,6 +9,54 @@ import type { NextConfig } from 'next'
 // branch — so production never ships 'unsafe-eval'. Centralizing it here makes that
 // guarantee explicit and testable, and documents the single source of truth.
 const isDev = process.env.NODE_ENV === 'development'
+function isExactLoopbackUrl(value: string | undefined, protocols: string[]): boolean {
+  if (!value) return false
+  try {
+    const parsed = new URL(value)
+    return protocols.includes(parsed.protocol)
+      && parsed.hostname === '127.0.0.1'
+      && Boolean(parsed.port)
+  } catch {
+    return false
+  }
+}
+
+// The credentialed harness builds and starts a production-mode Next server to avoid
+// dev-server route-manifest churn and on-demand compilation pressure. Its cache opt-in
+// requires the exact flag plus a fully local environment, and is disabled on Vercel even
+// if somebody accidentally copies the flag there. Ordinary development and production
+// builds therefore continue using Next's default `.next` directory.
+const isLocalHarness = process.env.SHOWCASE_LOCAL_HARNESS === 'true'
+  && process.env.NEXT_PUBLIC_APP_URL === 'http://127.0.0.1:3100'
+  && isExactLoopbackUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, ['http:'])
+  && isExactLoopbackUrl(process.env.DATABASE_URL, ['postgres:', 'postgresql:'])
+  && process.env.SUPABASE_PROJECT_REF === 'local'
+  && process.env.VERCEL !== '1'
+  && !process.env.VERCEL_ENV
+  && !process.env.VERCEL_URL
+const localHarnessDistDir = isLocalHarness
+  ? '.next-harness'
+  : undefined
+
+// Browser-based local integration tests talk directly to Supabase CLI. Permit only the
+// exact IPv4 loopback origin supplied by that disposable stack, and never add it to a
+// production CSP. Invalid, hostname-based, IPv6, and remote URLs all fail closed.
+function localSupabaseConnectSource(): string {
+  if (process.env.NODE_ENV === 'production' && !isLocalHarness) return ''
+  const configured = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!configured) return ''
+  try {
+    const parsed = new URL(configured)
+    if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || !parsed.port) {
+      return ''
+    }
+    return ` ${parsed.origin}`
+  } catch {
+    return ''
+  }
+}
+
+const localSupabaseConnect = localSupabaseConnectSource()
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
@@ -30,16 +78,21 @@ const securityHeaders = [
       // React's dev mode (Fast Refresh, dev-time stack traces) does call eval() and
       // React's own docs say it never does in production, so this is dev-only.
       `script-src 'self' 'unsafe-inline' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
-      "style-src 'self' 'unsafe-inline'",
+      // fonts.googleapis.com: published portfolio pages (/p/[slug]) and several portfolio
+      // themes load their display fonts from Google Fonts via <link rel="stylesheet">.
+      // Without this, CSP blocks the stylesheet and portfolios silently fall back to
+      // system fonts on the exact pages users share with recruiters.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
+      // fonts.gstatic.com: the actual font files referenced by the Google Fonts stylesheet above.
+      "font-src 'self' data: https://fonts.gstatic.com",
       // api.openai.com/Anthropic intentionally absent: every AI call for those
       // providers happens server-side in API routes. generativelanguage.googleapis.com
       // is a deliberate exception: Gemini Live voice connects directly from the
       // browser over a WebSocket, authenticated with a short-lived ephemeral token
       // minted server-side (see src/lib/interviews/gemini/live.ts) — the real
       // GEMINI_API_KEY and the interviewer's system instruction never reach the browser.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com${localSupabaseConnect}`,
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'self'",
       "object-src 'none'",
@@ -50,6 +103,16 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  ...(localHarnessDistDir ? { distDir: localHarnessDistDir } : {}),
+  async redirects() {
+    return [
+      {
+        source: '/proofscore/:path*',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
