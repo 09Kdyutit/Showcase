@@ -60,6 +60,20 @@ export async function POST(request: NextRequest) {
     await recordPromptCost({ userId: user.id, meta })
     const result = sanitizeParsedResume(rawResult, resumeText)
 
+    // A structurally hollow parse (no name, no skills, no experience) means the input
+    // wasn't resume content the model could read — image-only PDF text, decoration,
+    // gibberish. Storing it would strand the user with an empty resume row and a dead-end
+    // builder, so refuse honestly and steer them to paste real text instead.
+    if (!(result.name ?? '').trim() && result.skills.length === 0 && result.experience.length === 0) {
+      return NextResponse.json(
+        {
+          error: "We couldn't find readable resume content in that text. Open your resume, select all (Cmd/Ctrl+A), copy, and paste it here instead.",
+          code: 'EMPTY_PARSE',
+        },
+        { status: 422 }
+      )
+    }
+
     if (resumeId) {
       await supabase
         .from('resumes')

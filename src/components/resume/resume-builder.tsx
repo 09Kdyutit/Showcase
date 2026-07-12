@@ -159,7 +159,14 @@ export function ResumeBuilder() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { toast.error('Please sign in again.'); return null }
-      const payload = { parsed_json: resume as unknown as Record<string, unknown>, raw_text: buildRawText(resume), updated_at: new Date().toISOString() }
+      // An effectively-empty document must never become a resumes row — it strands the user
+      // with a hollow "My Resume" that the rest of the app treats as real content.
+      const rawText = buildRawText(resume)
+      if (rawText.trim().length < 40) {
+        toast.error('Nothing to save yet — add your name and at least one section first.')
+        return null
+      }
+      const payload = { parsed_json: resume as unknown as Record<string, unknown>, raw_text: rawText, updated_at: new Date().toISOString() }
       if (resumeId) {
         const { error } = await supabase.from('resumes').update(payload).eq('id', resumeId)
         if (error) { toast.error('Could not save.'); return null }
