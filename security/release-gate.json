@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "0ba6076556f159bc71e8b276788b4e8f1907a230",
-    "source_fingerprint_sha256": "d4dbf091e152cec6cd2802fef4c7bb520c4bcee3fa0c5fe3996736b0aab9e2bf",
-    "verified_at": "2026-07-12T01:29:22Z"
+    "evidence_base_git_head": "97e9bd796ce56fa03b0ac9544a89d6d5415799d4",
+    "source_fingerprint_sha256": "9af4f2ce3a147f43fd1c07500e86f7d5552a2d5d8b15b630daa53965bde512aa",
+    "verified_at": "2026-07-12T02:46:47Z"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -134,7 +134,7 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion. Follow-up source cleanup removed the retired stash test from the disposable local-Supabase harness and removed the three retired public APIs from the authorization matrices; the harness-safety and retirement regressions pass."
+      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion. Follow-up source cleanup removed the retired stash test from the disposable local-Supabase harness and removed the three retired public APIs from the authorization matrices; the harness-safety and retirement regressions pass. On 2026-07-12 at 02:46Z, revision 97e9bd7 was re-verified after purging the obsolete public ProofScore marketing packet: the complete launch-offline suite passed, npm run verify again passed 60 static checks, TypeScript, lint with zero errors, and the optimized 108-page/route build, and git diff --check remained clean."
     },
     {
       "id": "GROWTH-MIGRATIONS",
@@ -159,7 +159,7 @@
       "description": "The reviewed growth build and its cron routes are deployed to the canonical production app",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "security/production-rollout-evidence.json preserves the initial production recovery and rollback authority. On 2026-07-11, revision 130d12a was built as unaliased production deployment dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec in the canonical showcase-app project; the previous rollback deployment is dpl_3X2VgsCGKtGEEJ6fJWhiuvWsPuTN. Candidate probes returned 200 for root, one permanent redirect from /proofscore and nested legacy paths to root, 404 for retired score/reserve/stash APIs, no retired public copy in root or signup HTML, and green production health with commit 130d12a0e7a4. The exact candidate was then promoted without rebuild. Canonical https://app.tryshowcase.ink repeated the same probes and health result at 2026-07-12T01:19:24.256Z; https://tryshowcase.ink remained unchanged and reachable."
+      "evidence": "security/production-rollout-evidence.json preserves the initial production recovery and rollback authority. On 2026-07-11, revision 130d12a was built as unaliased production deployment dpl_8jhLseBMt8ZHQMWwDhfPbzAUTeec in the canonical showcase-app project; the previous rollback deployment is dpl_3X2VgsCGKtGEEJ6fJWhiuvWsPuTN. Candidate probes returned 200 for root, one permanent redirect from /proofscore and nested legacy paths to root, 404 for retired score/reserve/stash APIs, no retired public copy in root or signup HTML, and green production health with commit 130d12a0e7a4. The exact candidate was then promoted without rebuild. Canonical https://app.tryshowcase.ink repeated the same probes and health result at 2026-07-12T01:19:24.256Z; https://tryshowcase.ink remained unchanged and reachable. The later public-copy cleanup is production deployment dpl_EQEH66PuFx8PfgAHsejTZgGTcUDB; Vercel inspection at 2026-07-12T02:46Z showed READY status in the canonical showcase-app project with app.tryshowcase.ink attached, and the canonical health endpoint remained HTTP 200 with database, Stripe, and OpenAI checks green."
     },
     {
       "id": "GROWTH-PROVIDER-E2E",
