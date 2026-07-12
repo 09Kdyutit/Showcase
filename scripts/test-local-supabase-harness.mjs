@@ -30,7 +30,7 @@ const LOCAL_HARNESS_CONFIG_ENV = {
   SUPABASE_PROJECT_REF: 'local',
 }
 
-for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:pending-parse', 'test:deletion']) {
+for (const script of ['test:rls', 'test:referral-credit', 'test:interview-rls', 'test:deletion']) {
   assert.match(
     packageJson.scripts?.[script] ?? '',
     /--env-file-if-exists=\.env\.local/,

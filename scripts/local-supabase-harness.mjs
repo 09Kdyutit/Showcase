@@ -604,7 +604,6 @@ async function main() {
       try {
         app = await startHarnessApp(env, secrets)
         if (!options.has('--account-deletion-only') && !options.has('--authorization-only')) {
-          runNpmScript('test:pending-parse', env, secrets)
         }
         if (!options.has('--account-deletion-only') && !options.has('--pending-parse-only')) {
           runNpmScript('test:authorization-local', env, secrets)

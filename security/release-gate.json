@@ -34,9 +34,9 @@
     }
   },
   "verification": {
-    "evidence_base_git_head": "130d12a0e7a43fc25919d7c984042b9be13fbd38",
-    "source_fingerprint_sha256": "cc21130d75924786ca685722b8d53587f1bd95981f357a51a917a4cd4ca64902",
-    "verified_at": "2026-07-12T01:19:24.256Z"
+    "evidence_base_git_head": "0ba6076556f159bc71e8b276788b4e8f1907a230",
+    "source_fingerprint_sha256": "d4dbf091e152cec6cd2802fef4c7bb520c4bcee3fa0c5fe3996736b0aab9e2bf",
+    "verified_at": "2026-07-12T01:29:22Z"
   },
   "contracts": {
     "required_requirement_ids": [
@@ -134,7 +134,7 @@
       "description": "Paced acquisition, activation, referral, monetization, retention, and measurement code passes the offline release suite",
       "status": "PASS",
       "release_blocking": true,
-      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion."
+      "evidence": "2026-07-11 verification for revision 130d12a retired the anonymous public score funnel while preserving authenticated audit data and the Evidence Audit engine. npm run verify passed 60 repository checks, TypeScript, lint with zero errors, and the optimized 108-page/route production build. npm run test:launch-offline passed growth automation, admission, the new proofscore-retirement regression, Founding, referral pacing, 100 deterministic AI-budget checks, distribution, database grants, launch security, backup verification, and marketing truthfulness. The retirement regression proves /proofscore redirects to the canonical landing page, anonymous score/reserve/stash code is absent, active distribution assets cannot restore the retired route, and the authenticated audit engine remains. Axe reported zero issues across all nine public pages; git diff --check passed. Unaliased production and canonical-domain probes matched before and after promotion. Follow-up source cleanup removed the retired stash test from the disposable local-Supabase harness and removed the three retired public APIs from the authorization matrices; the harness-safety and retirement regressions pass."
     },
     {
       "id": "GROWTH-MIGRATIONS",

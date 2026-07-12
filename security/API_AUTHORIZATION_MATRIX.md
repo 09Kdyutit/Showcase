@@ -91,10 +91,7 @@ missing, stale, duplicated, or placed behind an unreviewed trust boundary.
 | `/api/portfolio/save` | POST | session | owner-filter | Update is filtered by portfolio id and user_id. |
 | `/api/portfolio/upload-image` | POST | session | session-user | Private storage path is generated under user.id; no client owner field is accepted. |
 | `/api/projects/saved` | GET/POST/DELETE | session | owner-filter | Create owner, list/cap, and delete are all scoped to user.id. |
-| `/api/proofscore/claim-parse` | POST | session | service-after-owner | One-use bearer token is atomically consumed into a resume owned by the cookie user. |
-| `/api/proofscore/reserve` | POST | public-capacity | service-capacity | Bounded schema, honeypot, connection throttle, daily-cap check, suppression, and atomic reservation RPC. |
-| `/api/proofscore/score` | GET/POST | public-capacity | service-capacity | GET exposes aggregate capacity; POST has bounded input, IP throttle, dollar reservation, and atomic daily/reservation capacity. |
-| `/api/proofscore/stash` | POST | public-capacity | service-capacity | Bounded body, strict IP throttle, expiring opaque token, and service-only storage. |
+| `/api/proofscore/claim-parse` | POST | session | service-after-owner | Temporary claim-only grace path for tokens issued before public-tool retirement; atomically consumes a live token into a resume owned by the cookie user and returns 410 after the final legacy expiry. |
 | `/api/referral/claim` | POST | session | service-after-owner | Route supplies cookie user id to the atomic claim RPC; user/IP pacing and profile precondition apply. |
 | `/api/referral/validate` | GET | public-capacity | service-capacity | Strict code format, connection throttle, and remaining-count-only response. |
 | `/api/resume/export-pdf` | POST | session | owner-filter | Resume or tailored asset lookup is filtered by id and user_id before rendering. |

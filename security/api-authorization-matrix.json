@@ -75,10 +75,7 @@
     { "path": "/api/portfolio/upload-image", "methods": ["POST"], "boundary": "session", "authority": "session-user", "evidence": "Private storage path is generated under user.id; no client owner field is accepted." },
     { "path": "/api/projects/saved", "methods": ["GET", "POST", "DELETE"], "boundary": "session", "authority": "owner-filter", "evidence": "Create owner, list/cap, and delete are all scoped to user.id." },
 
-    { "path": "/api/proofscore/claim-parse", "methods": ["POST"], "boundary": "session", "authority": "service-after-owner", "evidence": "One-use bearer token is atomically consumed into a resume owned by the cookie user." },
-    { "path": "/api/proofscore/reserve", "methods": ["POST"], "boundary": "public-capacity", "authority": "service-capacity", "evidence": "Bounded schema, honeypot, connection throttle, daily-cap check, suppression, and atomic reservation RPC." },
-    { "path": "/api/proofscore/score", "methods": ["GET", "POST"], "boundary": "public-capacity", "authority": "service-capacity", "evidence": "GET exposes aggregate capacity; POST has bounded input, IP throttle, dollar reservation, and atomic daily/reservation capacity." },
-    { "path": "/api/proofscore/stash", "methods": ["POST"], "boundary": "public-capacity", "authority": "service-capacity", "evidence": "Bounded body, strict IP throttle, expiring opaque token, and service-only storage." },
+    { "path": "/api/proofscore/claim-parse", "methods": ["POST"], "boundary": "session", "authority": "service-after-owner", "evidence": "Temporary claim-only grace path for tokens issued before public-tool retirement; atomically consumes a live token into the caller's resume and returns 410 after the final legacy expiry." },
     { "path": "/api/referral/claim", "methods": ["POST"], "boundary": "session", "authority": "service-after-owner", "evidence": "Route supplies cookie user id to the atomic claim RPC; user/IP pacing and profile precondition apply." },
     { "path": "/api/referral/validate", "methods": ["GET"], "boundary": "public-capacity", "authority": "service-capacity", "evidence": "Strict code format, connection throttle, and remaining-count-only response." },
 
