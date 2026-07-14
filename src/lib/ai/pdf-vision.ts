@@ -1,12 +1,24 @@
 import 'server-only'
+import { randomUUID } from 'node:crypto'
 import { GoogleGenAI } from '@google/genai'
 import { isAIEnabled, isGeminiEnabled } from '../feature-flags.ts'
+import { recordAiCostEvent } from '../growth/ai-cost.ts'
+
+// gemini-2.5-flash list pricing (USD per million tokens) at the time this was written.
+// Rates travel with each ledger row via pricingVersion, so a price change never
+// silently corrupts historical spend data - update the version string when updating rates.
+const GEMINI_FLASH_RATES = {
+  inputPerMillion: 0.3,
+  cachedInputPerMillion: 0.075,
+  outputPerMillion: 2.5,
+  pricingVersion: 'gemini-2.5-flash@2026-07',
+}
 
 // Vision-based PDF text extraction via Gemini.
 // Used as a fallback when the standard pdf-parse text layer is empty (scanned/outlined-font PDFs)
 // or garbled (multi-column designer layouts where the text stream order is wrong).
 // Requires GEMINI_API_KEY and GEMINI_PRIVATE_DATA_ENABLED=true - if either is absent, returns ''.
-export async function extractPdfViaVision(buffer: Buffer): Promise<string> {
+export async function extractPdfViaVision(buffer: Buffer, userId?: string): Promise<string> {
   // Resume files contain private personal data. A key by itself is never consent to
   // transmit that data to another provider; production must opt in explicitly after the
   // privacy/provider review has been completed.
@@ -46,6 +58,28 @@ export async function extractPdfViaVision(buffer: Buffer): Promise<string> {
       },
     ],
   })
+
+  // Every other provider call in the app lands in the ai_cost_events ledger; this one
+  // previously didn't, leaving Google spend invisible to the budget dashboard. Recording
+  // is best-effort - a ledger hiccup must never fail an extraction the user is waiting on.
+  try {
+    const usage = response.usageMetadata
+    await recordAiCostEvent({
+      idempotencyKey: `resume_pdf_vision:${randomUUID()}`,
+      feature: 'resume_pdf_vision',
+      provider: 'google',
+      model: 'gemini-2.5-flash',
+      inputTokens: usage?.promptTokenCount ?? 0,
+      cachedInputTokens: usage?.cachedContentTokenCount ?? 0,
+      outputTokens: usage?.candidatesTokenCount ?? 0,
+      rates: GEMINI_FLASH_RATES,
+      userId: userId ?? null,
+      estimated: !usage,
+    })
+  } catch (costErr) {
+    console.error('[pdf-vision] cost recording failed:',
+      costErr instanceof Error ? costErr.message : costErr)
+  }
 
   const text = response.text?.trim() ?? ''
   if (!text || text === 'NO_TEXT_FOUND') return ''

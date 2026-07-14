@@ -7,6 +7,11 @@ import { isGeminiEnabled } from '@/lib/feature-flags'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB - stays under typical serverless body limits
 
+// Worst case is a slow multi-page PDF parse (15s budget) followed by a vision rescue
+// (15s budget). The platform default can be shorter than that sum, which would kill the
+// function mid-extraction with an opaque 504 the app never sees.
+export const maxDuration = 60
+
 // pdfjs-dist expects the browser DOMMatrix global. In local Node it arrives via an
 // optional native canvas package; on Vercel's runtime that package is absent, so without
 // this the pdf-parse import throws "DOMMatrix is not defined" and every PDF upload dies
@@ -62,10 +67,13 @@ function installDomMatrixPolyfill(): void {
 }
 
 export async function POST(request: NextRequest) {
+  // Hoisted so the outer catch can attribute unexpected failures to a user in telemetry.
+  let userId: string | null = null
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    userId = user.id
 
     const formData = await request.formData()
     const file = formData.get('file')
@@ -173,7 +181,7 @@ export async function POST(request: NextRequest) {
             trackAsync(user.id, 'resume_extract_failed', { stage: 'vision_gate', reason: gates })
           }
           const visionText = quota.allowed
-            ? await withTimeout(extractPdfViaVision(buffer))
+            ? await withTimeout(extractPdfViaVision(buffer, user.id))
             : ''
           if (visionText.length >= 50) {
             text = visionText
@@ -192,9 +200,23 @@ export async function POST(request: NextRequest) {
         }
       }
     } else if (isDocx) {
-      const mammoth = await import('mammoth')
-      const result = await withTimeout(mammoth.extractRawText({ buffer }))
-      text = result.value
+      try {
+        const mammoth = await import('mammoth')
+        const result = await withTimeout(mammoth.extractRawText({ buffer }))
+        text = result.value
+      } catch (docxErr) {
+        // Previously propagated to the generic 500 with no event — a silent failure class.
+        const reason = docxErr instanceof Error ? docxErr.message : String(docxErr)
+        console.error('[resume/extract-text] docx parse failed:', reason)
+        trackAsync(user.id, 'resume_extract_failed', { stage: 'docx_parse', reason: reason.slice(0, 140) })
+        return NextResponse.json(
+          {
+            error: 'extraction_failed',
+            message: 'Could not read this DOCX file (it may be corrupted or password-protected). Try re-saving it or pasting the text manually instead.',
+          },
+          { status: 422 }
+        )
+      }
     } else if (isTxt) {
       text = buffer.toString('utf-8')
     } else {
@@ -218,7 +240,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { text, extraction_method: usedVisionFallback ? 'vision' : 'text' } })
   } catch (err) {
-    console.error('[resume/extract-text]', err instanceof Error ? err.message : 'unknown error')
+    const reason = err instanceof Error ? err.message : 'unknown error'
+    console.error('[resume/extract-text]', reason)
+    if (userId) {
+      trackAsync(userId, 'resume_extract_failed', { stage: 'unhandled', reason: reason.slice(0, 140) })
+    }
     return NextResponse.json(
       { error: 'Could not read this file. Try pasting the text manually instead.' },
       { status: 500 }
