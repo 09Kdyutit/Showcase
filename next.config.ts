@@ -132,6 +132,12 @@ const nextConfig: NextConfig = {
   // pdf-parse pulls in pdfjs-dist, which loads a worker chunk at runtime — Next's bundler
   // can't resolve that chunk path. Opting it out of bundling lets it use native Node require.
   serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
+  // pdfjs loads its worker via a computed dynamic import that file tracing can't follow,
+  // so Vercel pruned pdf.worker.mjs and every production PDF extraction failed with
+  // "Setting up fake worker failed" (2026-07-14 incident, from resume_extract_failed events).
+  outputFileTracingIncludes: {
+    '/api/resume/extract-text': ['./node_modules/pdfjs-dist/legacy/build/pdf.worker*.mjs'],
+  },
 }
 
 export default nextConfig
