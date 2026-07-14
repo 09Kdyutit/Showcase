@@ -7,6 +7,60 @@ import { isGeminiEnabled } from '@/lib/feature-flags'
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024 // 4MB - stays under typical serverless body limits
 
+// pdfjs-dist expects the browser DOMMatrix global. In local Node it arrives via an
+// optional native canvas package; on Vercel's runtime that package is absent, so without
+// this the pdf-parse import throws "DOMMatrix is not defined" and every PDF upload dies
+// (2026-07-14 production incident). Text extraction never rasterizes a page, so a correct
+// 2D-affine subset is all pdfjs touches. No-op wherever a real DOMMatrix exists.
+function installDomMatrixPolyfill(): void {
+  const g = globalThis as { DOMMatrix?: unknown }
+  if (typeof g.DOMMatrix !== 'undefined') return
+  class DOMMatrixPolyfill {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0
+    constructor(init?: number[] | DOMMatrixPolyfill) {
+      if (Array.isArray(init) && init.length >= 6) {
+        ;[this.a, this.b, this.c, this.d, this.e, this.f] = init
+      } else if (init && typeof init === 'object') {
+        const m = init as DOMMatrixPolyfill
+        this.a = m.a; this.b = m.b; this.c = m.c; this.d = m.d; this.e = m.e; this.f = m.f
+      }
+    }
+    get is2D() { return true }
+    get isIdentity() { return this.a === 1 && this.b === 0 && this.c === 0 && this.d === 1 && this.e === 0 && this.f === 0 }
+    private _mul(o: DOMMatrixPolyfill): DOMMatrixPolyfill {
+      return new DOMMatrixPolyfill([
+        o.a * this.a + o.b * this.c, o.a * this.b + o.b * this.d,
+        o.c * this.a + o.d * this.c, o.c * this.b + o.d * this.d,
+        o.e * this.a + o.f * this.c + this.e, o.e * this.b + o.f * this.d + this.f,
+      ])
+    }
+    multiply(o: DOMMatrixPolyfill) { return this._mul(o) }
+    multiplySelf(o: DOMMatrixPolyfill) { const r = this._mul(o); Object.assign(this, r); return this }
+    preMultiplySelf(o: DOMMatrixPolyfill) { const r = o._mul(this); Object.assign(this, r); return this }
+    translate(tx = 0, ty = 0) { return this._mul(new DOMMatrixPolyfill([1, 0, 0, 1, tx, ty])) }
+    translateSelf(tx = 0, ty = 0) { return this.multiplySelf(new DOMMatrixPolyfill([1, 0, 0, 1, tx, ty])) }
+    scale(sx = 1, sy?: number) { return this._mul(new DOMMatrixPolyfill([sx, 0, 0, sy ?? sx, 0, 0])) }
+    scaleSelf(sx = 1, sy?: number) { return this.multiplySelf(new DOMMatrixPolyfill([sx, 0, 0, sy ?? sx, 0, 0])) }
+    rotate(deg = 0) { const r = (deg * Math.PI) / 180; return this._mul(new DOMMatrixPolyfill([Math.cos(r), Math.sin(r), -Math.sin(r), Math.cos(r), 0, 0])) }
+    invertSelf() {
+      const det = this.a * this.d - this.b * this.c
+      if (det === 0) { this.a = this.b = this.c = this.d = this.e = this.f = NaN; return this }
+      const { a, b, c, d, e, f } = this
+      this.a = d / det; this.b = -b / det; this.c = -c / det; this.d = a / det
+      this.e = (c * f - d * e) / det; this.f = (b * e - a * f) / det
+      return this
+    }
+    inverse() { return new DOMMatrixPolyfill([this.a, this.b, this.c, this.d, this.e, this.f]).invertSelf() }
+    transformPoint(p: { x?: number; y?: number } = {}) {
+      const x = p.x ?? 0, y = p.y ?? 0
+      return { x: this.a * x + this.c * y + this.e, y: this.b * x + this.d * y + this.f, z: 0, w: 1 }
+    }
+    toFloat32Array() { return new Float32Array([this.a, this.b, 0, 0, this.c, this.d, 0, 0, 0, 0, 1, 0, this.e, this.f, 0, 1]) }
+    toFloat64Array() { return new Float64Array(this.toFloat32Array()) }
+  }
+  g.DOMMatrix = DOMMatrixPolyfill
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -61,6 +115,14 @@ export async function POST(request: NextRequest) {
 
     if (isPdf) {
       try {
+        // pdfjs-dist (inside pdf-parse) references the browser DOMMatrix API at module
+        // load. Local Node gets it from an optional native canvas package that never
+        // installs on Vercel's serverless runtime, so production imports crashed with
+        // "DOMMatrix is not defined" and every PDF upload silently died (2026-07-14
+        // incident, confirmed in runtime logs). Text extraction never renders a page,
+        // so a minimal affine-matrix polyfill is sufficient; it is a no-op anywhere a
+        // real DOMMatrix exists.
+        installDomMatrixPolyfill()
         const { PDFParse } = await import('pdf-parse')
         const parser = new PDFParse({ data: buffer })
         try {
@@ -71,9 +133,13 @@ export async function POST(request: NextRequest) {
           await parser.destroy()
         }
       } catch (parseErr) {
-        // pdf-parse threw outright (corrupted structure, unsupported encoding, etc.)  - 
+        // pdf-parse threw outright (corrupted structure, unsupported encoding, etc.)  -
         // don't give up yet, fall through to the vision fallback below.
-        console.error('[resume/extract-text] pdf-parse threw, will try vision fallback:', parseErr instanceof Error ? parseErr.message : parseErr)
+        const reason = parseErr instanceof Error ? parseErr.message : String(parseErr)
+        console.error('[resume/extract-text] pdf-parse threw, will try vision fallback:', reason)
+        // Loud telemetry: extraction failures were invisible for days because this path
+        // only console.error'd. Every failure now leaves a queryable event.
+        trackAsync(user.id, 'resume_extract_failed', { stage: 'pdf_parse', reason: reason.slice(0, 140) })
         text = ''
       }
 
@@ -95,6 +161,17 @@ export async function POST(request: NextRequest) {
           const quota = privateVisionEnabled
             ? await checkRateLimit(user.id, 'resume_pdf_vision', isPro)
             : { allowed: false as const }
+          if (!quota.allowed) {
+            // Which gate blocked the rescue — booleans only, never env values.
+            const gates = privateVisionEnabled
+              ? 'quota_denied'
+              : [
+                  !isGeminiEnabled() && 'gemini_kill_switch',
+                  process.env.GEMINI_PRIVATE_DATA_ENABLED !== 'true' && 'private_data_flag_off',
+                  !process.env.GEMINI_API_KEY && 'no_api_key',
+                ].filter(Boolean).join(',')
+            trackAsync(user.id, 'resume_extract_failed', { stage: 'vision_gate', reason: gates })
+          }
           const visionText = quota.allowed
             ? await withTimeout(extractPdfViaVision(buffer))
             : ''
@@ -105,9 +182,13 @@ export async function POST(request: NextRequest) {
               triggered_by: cleanedText.length < 300 ? 'thin_text' : 'garbled_text',
               text_before: cleanedText.length,
             })
+          } else if (quota.allowed) {
+            trackAsync(user.id, 'resume_extract_failed', { stage: 'vision_empty', reason: `vision returned ${visionText.length} chars` })
           }
         } catch (visionErr) {
-          console.error('[resume/extract-text] vision fallback failed:', visionErr instanceof Error ? visionErr.message : visionErr)
+          const reason = visionErr instanceof Error ? visionErr.message : String(visionErr)
+          console.error('[resume/extract-text] vision fallback failed:', reason)
+          trackAsync(user.id, 'resume_extract_failed', { stage: 'vision_error', reason: reason.slice(0, 140) })
         }
       }
     } else if (isDocx) {
@@ -123,6 +204,7 @@ export async function POST(request: NextRequest) {
     text = text.replace(/\n{3,}/g, '\n\n').trim()
 
     if (text.length < 50) {
+      trackAsync(user.id, 'resume_extract_failed', { stage: 'too_short', reason: `final text ${text.length} chars`, used_vision: usedVisionFallback })
       return NextResponse.json(
         {
           error: 'extraction_too_short',
