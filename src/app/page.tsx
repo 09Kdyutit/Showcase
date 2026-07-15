@@ -18,7 +18,7 @@ import { HeroSection } from '@/components/landing/hero-section'
 import { ConnectedJourney } from '@/components/landing/connected-journey'
 import { FeatureBento } from '@/components/landing/feature-bento'
 import { TrustSection } from '@/components/landing/trust-section'
-import { TestimonialWall } from '@/components/landing/testimonial-wall'
+import { VoicesSection } from '@/components/landing/voices-section'
 
 // One narrative, told once: hero (what this is) → journey (what happens to your
 // résumé, in order) → features (everything included) → trust → pricing → FAQ → CTA.
@@ -69,9 +69,9 @@ export default function LandingPage() {
           <TrustSection />
         </AnimatedSection>
 
-        {/* ── Social proof (placeholder quotes — see testimonial-wall.tsx) ── */}
+        {/* ── Social proof (placeholder quotes — see ui/stagger-testimonials.tsx) ── */}
         <AnimatedSection>
-          <TestimonialWall />
+          <VoicesSection />
         </AnimatedSection>
 
         {/* ── Pricing ── */}
