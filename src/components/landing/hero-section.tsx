@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { HERO } from '@/lib/marketing/positioning'
 import { TrackedLink } from './tracked-link'
-import { HeroBeams } from './hero-beams'
 
 const TRUST = [
   'No credit card required',
@@ -141,8 +140,6 @@ export function HeroSection() {
         <span className="grid-beam" style={{ left: 'calc(50% + 144px)', animationDelay: '4.1s' }} />
         <span className="grid-beam hidden sm:block" style={{ left: 'calc(50% + 360px)', animationDelay: '5.6s' }} />
       </div>
-      {/* Curved light beams sweeping the hero (21st.dev / Aceternity Background Beams) */}
-      <HeroBeams idPrefix="hero" className="opacity-80" />
       <div className="absolute inset-0 pointer-events-none hero-grid" style={{ opacity: 0.4 }} />
 
       <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-28 text-center" style={{ zIndex: 2 }}>
@@ -151,24 +148,9 @@ export function HeroSection() {
           <span className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: '#fff', letterSpacing: '-0.03em' }}>Showcase</span>
         </div>
 
-        <div className="mb-6 flex justify-center" style={{ animation: 'fadeIn 0.8s ease 0.08s both' }}>
-          <span
-            className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em]"
-            style={{
-              color: '#bfdbfe',
-              background: 'rgba(59,130,246,0.12)',
-              border: '1px solid rgba(147,197,253,0.28)',
-              backdropFilter: 'blur(8px)',
-              boxShadow: '0 0 26px rgba(59,130,246,0.22), inset 0 1px 0 rgba(255,255,255,0.08)',
-            }}
-          >
-            <span className="relative flex h-2 w-2" aria-hidden>
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full" style={{ background: '#60a5fa', opacity: 0.6 }} />
-              <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: '#93c5fd' }} />
-            </span>
-            Portfolio builder + job-search workspace
-          </span>
-        </div>
+        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#bfdbfe', animation: 'fadeIn 0.8s ease 0.08s both' }}>
+          Portfolio builder + job-search workspace
+        </p>
         <h1
           className="mx-auto mb-7 max-w-5xl text-balance text-aurora"
           style={{
@@ -221,23 +203,6 @@ export function HeroSection() {
 
         <div style={{ animation: 'fadeIn 0.9s ease 0.55s both' }}>
           <CareerWorkspacePreview />
-        </div>
-
-        {/* Scroll cue: a light running down a hairline, pointing at the journey */}
-        <div
-          aria-hidden
-          className="mt-14 hidden flex-col items-center gap-2.5 sm:flex"
-          style={{ animation: 'fadeIn 0.9s ease 0.8s both' }}
-        >
-          <span className="text-[10px] font-semibold uppercase tracking-[0.28em]" style={{ color: 'rgba(191,219,254,0.55)' }}>
-            Scroll
-          </span>
-          <span className="relative block h-10 w-px overflow-hidden" style={{ background: 'rgba(147,197,253,0.18)' }}>
-            <span
-              className="scroll-line absolute left-0 top-0 h-full w-full"
-              style={{ background: 'linear-gradient(to bottom, transparent, #93c5fd, transparent)' }}
-            />
-          </span>
         </div>
       </div>
     </section>

@@ -10,16 +10,21 @@ import { SectionLabel } from '@/components/shared/section-label'
 // at the bottom of the section — it is what keeps this page truthful today.
 // Wording here deliberately avoids BANNED_CLAIM_PATTERNS (no "trusted by",
 // no ratings, no digit-based user/recruiter statistics).
+//
+// Design: the 21st.dev "3D testimonials" pattern — a perspective-tilted plane
+// of three columns scrolling vertically at different speeds (middle reversed),
+// masked top/bottom, pause on hover. Styles live in globals.css (.tsw-*).
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Testimonial = {
   quote: string
   name: string
   role: string
-  tone: string // avatar/accent color
+  tone: string // accent color for the card glow + avatar
 }
 
-const HIRING_SIDE: Testimonial[] = [
+// Columns mix hiring-side and candidate voices so no column reads one-note.
+const COL_A: Testimonial[] = [
   {
     quote:
       'I screen a few hundred junior applications a week. A portfolio with evidence attached is the fastest yes I can give — Showcase candidates make it easy.',
@@ -29,17 +34,10 @@ const HIRING_SIDE: Testimonial[] = [
   },
   {
     quote:
-      'Most new-grad résumés read exactly the same. When someone links case studies with real proof behind each claim, they jump straight to the phone-screen pile.',
-    name: 'Daniel O.',
-    role: 'Talent Acquisition Lead',
-    tone: '#a78bfa',
-  },
-  {
-    quote:
-      'We point our students at Showcase before every career fair. They walk in with work they can actually show, not just bullet points.',
-    name: 'Elena V.',
-    role: 'University Career Services',
-    tone: '#34d399',
+      'Practicing interviews with my own projects as the context is what finally made my answers land.',
+    name: 'Nadia S.',
+    role: 'Product design graduate',
+    tone: '#f472b6',
   },
   {
     quote:
@@ -50,20 +48,20 @@ const HIRING_SIDE: Testimonial[] = [
   },
   {
     quote:
-      'You can tell who practiced in the Interview Lab. Their answers have structure, and the receipts are right there in the portfolio.',
-    name: 'Marcus T.',
-    role: 'Engineering Hiring Manager',
-    tone: '#f472b6',
-  },
-]
-
-const CANDIDATE_SIDE: Testimonial[] = [
-  {
-    quote:
       'I added my Showcase link to three applications and got two replies in a week — after months of silence.',
     name: 'Aisha K.',
     role: 'New-grad frontend developer',
     tone: '#818cf8',
+  },
+]
+
+const COL_B: Testimonial[] = [
+  {
+    quote:
+      'Most new-grad résumés read exactly the same. When someone links case studies with real proof behind each claim, they jump straight to the phone-screen pile.',
+    name: 'Daniel O.',
+    role: 'Talent Acquisition Lead',
+    tone: '#a78bfa',
   },
   {
     quote:
@@ -74,10 +72,20 @@ const CANDIDATE_SIDE: Testimonial[] = [
   },
   {
     quote:
-      'Practicing interviews with my own projects as the context is what finally made my answers land.',
-    name: 'Nadia S.',
-    role: 'Product design graduate',
+      'You can tell who practiced in the Interview Lab. Their answers have structure, and the receipts are right there in the portfolio.',
+    name: 'Marcus T.',
+    role: 'Engineering Hiring Manager',
     tone: '#f472b6',
+  },
+]
+
+const COL_C: Testimonial[] = [
+  {
+    quote:
+      'We point our students at Showcase before every career fair. They walk in with work they can actually show, not just bullet points.',
+    name: 'Elena V.',
+    role: 'University Career Services',
+    tone: '#34d399',
   },
   {
     quote:
@@ -103,23 +111,15 @@ function initials(name: string) {
     .replace('.', '')
 }
 
-function TestimonialCard({ t }: { t: Testimonial }) {
+function WallCard({ t }: { t: Testimonial }) {
   return (
-    <figure className="tsm-card">
-      <div
-        className="mb-4 flex h-8 w-8 items-center justify-center rounded-lg"
-        style={{ background: `${t.tone}1c`, border: `1px solid ${t.tone}36` }}
-      >
-        <Quote className="h-3.5 w-3.5" style={{ color: t.tone }} />
-      </div>
-      <blockquote className="mb-5 text-sm leading-relaxed" style={{ color: 'oklch(80% 0.012 258)' }}>
+    <figure className="tsw-card" style={{ '--tone': t.tone } as React.CSSProperties}>
+      <Quote className="tsw-watermark" aria-hidden />
+      <blockquote className="relative mb-5 text-sm leading-relaxed" style={{ color: 'oklch(82% 0.012 258)' }}>
         {t.quote}
       </blockquote>
-      <figcaption className="flex items-center gap-3">
-        <span
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-          style={{ background: `linear-gradient(135deg, ${t.tone}, oklch(46% 0.21 255))` }}
-        >
+      <figcaption className="relative flex items-center gap-3">
+        <span className="tsw-avatar" style={{ background: `linear-gradient(135deg, ${t.tone}, oklch(46% 0.21 255))` }}>
           {initials(t.name)}
         </span>
         <span>
@@ -131,47 +131,53 @@ function TestimonialCard({ t }: { t: Testimonial }) {
   )
 }
 
-function MarqueeRow({
+function WallColumn({
   items,
-  reverse = false,
   duration,
+  reverse = false,
+  className = '',
 }: {
   items: Testimonial[]
-  reverse?: boolean
   duration: number
+  reverse?: boolean
+  className?: string
 }) {
-  const track = (hidden: boolean) => (
-    <div className="tsm-group" aria-hidden={hidden || undefined}>
+  const stack = (hidden: boolean) => (
+    <div className="tsw-stack" aria-hidden={hidden || undefined}>
       {items.map((t) => (
-        <TestimonialCard key={t.name} t={t} />
+        <WallCard key={t.name} t={t} />
       ))}
     </div>
   )
   return (
-    <div className="tsm-marquee">
+    <div className={`tsw-colwrap ${className}`}>
       <div
-        className={`tsm-track${reverse ? ' tsm-track--reverse' : ''}`}
-        style={{ '--tsm-dur': `${duration}s` } as React.CSSProperties}
+        className={`tsw-col${reverse ? ' tsw-col--reverse' : ''}`}
+        style={{ '--tsw-dur': `${duration}s` } as React.CSSProperties}
       >
-        {track(false)}
-        {track(true)}
+        {stack(false)}
+        {stack(true)}
       </div>
     </div>
   )
 }
 
-export function TestimonialMarquee() {
+export function TestimonialWall() {
   return (
     <section id="voices" className="relative overflow-hidden py-32">
-      {/* ambient glow behind the rows */}
+      {/* ambient glow behind the wall */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="ambient-blob ambient-blob--a"
-          style={{ top: '30%', left: '32%', width: 480, height: 480, background: 'oklch(54% 0.23 255 / 0.10)', filter: 'blur(120px)' }}
+          style={{ top: '28%', left: '18%', width: 460, height: 460, background: 'oklch(54% 0.23 255 / 0.12)', filter: 'blur(120px)' }}
+        />
+        <div
+          className="ambient-blob ambient-blob--b"
+          style={{ bottom: '2%', right: '10%', width: 400, height: 400, background: 'oklch(58% 0.20 290 / 0.10)', filter: 'blur(120px)' }}
         />
       </div>
 
-      <div className="relative mx-auto mb-16 max-w-6xl px-6">
+      <div className="relative mx-auto mb-14 max-w-6xl px-6">
         <SectionLabel number="03" className="mb-6">Voices</SectionLabel>
         <h2
           className="max-w-3xl text-balance font-bold tracking-tight"
@@ -186,15 +192,20 @@ export function TestimonialMarquee() {
         </p>
       </div>
 
-      {/* Full-bleed dual marquee: hiring side drifts left, candidate side drifts right. */}
-      <div className="relative space-y-5">
-        <MarqueeRow items={HIRING_SIDE} duration={58} />
-        <MarqueeRow items={CANDIDATE_SIDE} duration={64} reverse />
+      {/* The tilted wall */}
+      <div className="tsw-stage relative mx-auto max-w-6xl px-6">
+        <div className="tsw-plane">
+          <div className="tsw-wall">
+            <WallColumn items={COL_A} duration={46} />
+            <WallColumn items={COL_B} duration={60} reverse className="tsw-col-b" />
+            <WallColumn items={COL_C} duration={52} className="tsw-col-c" />
+          </div>
+        </div>
       </div>
 
       {/* Truthfulness guard: keep rendered until every quote above is a real,
           permissioned endorsement (Claim Safety, .agents/product-marketing.md). */}
-      <p className="mt-10 text-center text-[10px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
+      <p className="relative mt-10 text-center text-[10px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
         Illustrative quotes — demonstration content, not verified endorsements
       </p>
     </section>

@@ -18,8 +18,7 @@ import { HeroSection } from '@/components/landing/hero-section'
 import { ConnectedJourney } from '@/components/landing/connected-journey'
 import { FeatureBento } from '@/components/landing/feature-bento'
 import { TrustSection } from '@/components/landing/trust-section'
-import { TestimonialMarquee } from '@/components/landing/testimonial-marquee'
-import { HeroBeams } from '@/components/landing/hero-beams'
+import { TestimonialWall } from '@/components/landing/testimonial-wall'
 
 // One narrative, told once: hero (what this is) → journey (what happens to your
 // résumé, in order) → features (everything included) → trust → pricing → FAQ → CTA.
@@ -70,9 +69,9 @@ export default function LandingPage() {
           <TrustSection />
         </AnimatedSection>
 
-        {/* ── Social proof (placeholder quotes — see testimonial-marquee.tsx) ── */}
+        {/* ── Social proof (placeholder quotes — see testimonial-wall.tsx) ── */}
         <AnimatedSection>
-          <TestimonialMarquee />
+          <TestimonialWall />
         </AnimatedSection>
 
         {/* ── Pricing ── */}
@@ -246,8 +245,6 @@ export default function LandingPage() {
               <div className="ambient-blob ambient-blob--a" style={{ top: '10%', left: '22%', width: 420, height: 420, background: 'oklch(54% 0.230 255 / 0.14)', filter: 'blur(110px)' }} />
               <div className="ambient-blob ambient-blob--b" style={{ bottom: '-10%', right: '18%', width: 380, height: 380, background: 'oklch(58% 0.20 290 / 0.12)', filter: 'blur(110px)' }} />
             </div>
-            {/* Same beam system as the hero — the page closes on the light it opened with */}
-            <HeroBeams idPrefix="cta" count={9} className="opacity-60" />
             <div className="relative max-w-3xl mx-auto text-center" style={{ zIndex: 1 }}>
               <p
                 className="text-xs font-semibold uppercase tracking-widest mb-6"
@@ -256,8 +253,8 @@ export default function LandingPage() {
                 Get started today
               </p>
               <h2
-                className="font-bold tracking-tight mb-6 text-balance text-aurora"
-                style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', letterSpacing: '-0.03em' }}
+                className="font-bold tracking-tight mb-6 text-balance"
+                style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', letterSpacing: '-0.03em', color: 'oklch(99% 0.005 255)' }}
               >
                 Start with your résumé.
                 <br />Build everything around it.
