@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { configuredAppUrl } from '@/lib/app-url'
+import { BRAND, HERO } from '@/lib/marketing/positioning'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -38,26 +39,34 @@ export const metadata: Metadata = {
       ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : configuredAppUrl())
   ),
   title: {
-    default: 'Showcase - Your résumé lists claims. Showcase turns them into evidence.',
+    default: `${BRAND.name} - ${HERO.headline}`,
     template: '%s · Showcase',
   },
-  description:
-    'Built for students, new grads, and early-career professionals. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve - without inventing a thing.',
-  keywords: ['portfolio builder', 'resume analyzer', 'career readiness', 'evidence-based portfolio', 'professional portfolio', 'early career job search'],
+  description: HERO.subheadline,
+  keywords: [
+    'AI job search workspace',
+    'portfolio builder',
+    'resume analyzer',
+    'job matching',
+    'application tracker',
+    'AI interview practice',
+    'ATS resume check',
+    'early career job search',
+  ],
   authors: [{ name: 'Showcase' }],
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'Showcase - Turn your experience into evidence',
-    description: 'Your résumé lists claims. Showcase turns them into evidence - without inventing a thing.',
+    title: `${BRAND.name} - ${HERO.headline}`,
+    description: HERO.subheadline,
     siteName: 'Showcase',
     url: '/',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Showcase - Turn your experience into evidence',
-    description: 'Your résumé lists claims. Showcase turns them into evidence - without inventing a thing.',
+    title: `${BRAND.name} - ${HERO.headline}`,
+    description: HERO.subheadline,
   },
   robots: {
     index: true,

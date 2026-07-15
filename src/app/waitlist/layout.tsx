@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Join the Private Beta',
+  title: 'Showcase access updates',
   description:
-    'Your résumé lists claims. Showcase turns them into evidence. Upload your résumé, get a portfolio draft, and see exactly what to fix - without inventing a thing. Join the private beta.',
-  alternates: { canonical: '/waitlist' },
+    'Showcase connects resume import, an editable portfolio, job matching, tailored application tools, interview practice, opportunities, and Pro publishing.',
+  alternates: { canonical: '/' },
+  robots: { index: false, follow: false },
   openGraph: {
-    title: 'Showcase - Join the Private Beta',
-    description: 'Built for students, new grads, and early-career professionals with real projects but no clear way to prove them.',
-    url: '/waitlist',
+    title: 'One resume. Your whole job search, connected.',
+    description:
+      'Build your portfolio, tailor applications, check ATS readiness, practice interviews, and publish when you are ready.',
+    url: '/',
   },
 }
 

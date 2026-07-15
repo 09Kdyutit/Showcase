@@ -11,33 +11,33 @@ const PERSONAS = [
   {
     icon: GraduationCap,
     title: 'The Student',
-    desc: 'Turning coursework and internships into credible, evidence-based case studies.',
-    from: 'class projects',
-    to: 'case studies',
+    desc: 'Turn coursework, hackathons, and internships into an editable portfolio, then practice telling the story.',
+    from: 'coursework',
+    to: 'portfolio + prep',
     hue: 'oklch(63% 0.20 255)', // brand blue
   },
   {
     icon: Rocket,
     title: 'The New Grad',
-    desc: 'Making side projects and first roles understandable to people who hire.',
-    from: 'side projects',
-    to: 'proof of skill',
+    desc: 'Move from one generic resume to role-specific application kits, job matches, and interview practice.',
+    from: 'one resume',
+    to: 'role-specific kit',
     hue: 'oklch(62% 0.22 285)', // violet
   },
   {
     icon: Briefcase,
     title: 'The Early Pro',
-    desc: 'Translating day-to-day work into measurable, defensible evidence.',
-    from: 'daily work',
-    to: 'measurable wins',
+    desc: 'Keep projects, resume bullets, applications, and interview stories connected as your experience grows.',
+    from: 'scattered work',
+    to: 'connected story',
     hue: 'oklch(70% 0.14 200)', // cyan
   },
   {
     icon: Repeat,
     title: 'The Switcher',
-    desc: 'Connecting previous experience to a brand-new target role.',
-    from: 'old career',
-    to: 'new target role',
+    desc: 'Map transferable experience to a new target role with source-grounded drafts you review before using.',
+    from: 'past experience',
+    to: 'new-role match',
     hue: 'oklch(68% 0.18 330)', // magenta
   },
 ] as const

@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import {
-  Zap, BarChart3, Search, Target, MessageSquare, Shield,
-  Globe, CheckCircle2, ArrowRight, Mic, Palette,
+  Zap, BarChart3, Search, Target, MessageSquare, Trophy,
+  Globe, CheckCircle2, ArrowRight, Mic, Palette, Share2, Download, Users,
 } from 'lucide-react'
 
 // The Features section, rebuilt as a bento: every cell contains a living miniature of the
@@ -88,7 +88,7 @@ function VizPortfolio() {
           className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
           style={{ background: 'oklch(72% 0.17 160 / 0.12)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.25)' }}
         >
-          <Globe className="h-2.5 w-2.5" /> LIVE
+          <Globe className="h-2.5 w-2.5" /> PRO · LIVE
         </span>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-3">
@@ -115,7 +115,7 @@ function VizPortfolio() {
   )
 }
 
-function VizProofScore() {
+function VizEvidenceAudit() {
   const bars = [
     { label: 'Evidence', v: 86, c: 'oklch(72% 0.17 160)' },
     { label: 'Depth', v: 74, c: 'oklch(72% 0.17 160)' },
@@ -220,6 +220,14 @@ function VizTailor() {
 function VizInterview() {
   return (
     <div className="space-y-2.5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-[8px] max-sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'oklch(63% 0.20 255 / 0.1)', color: 'oklch(72% 0.16 255)', border: '1px solid oklch(63% 0.20 255 / 0.22)' }}>
+          WRITTEN
+        </span>
+        <span className="text-[8px] max-sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: 'var(--color-surface-0)', color: 'oklch(60% 0.02 258)', border: '1px solid var(--color-border)' }}>
+          VOICE WHEN ENABLED
+        </span>
+      </div>
       <div className="flex items-start gap-2">
         <div className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, oklch(54% 0.230 255), oklch(62% 0.22 285))' }}>
           <Mic className="h-3 w-3 text-white" />
@@ -245,22 +253,25 @@ function VizInterview() {
   )
 }
 
-function VizLedger() {
+function VizMomentum() {
+  const items = [
+    { icon: Trophy, label: 'Opportunity', value: 'Hackathon · matched' },
+    { icon: Users, label: 'Friend invites', value: '3 after your first portfolio' },
+    { icon: Share2, label: 'Private share', value: 'Token-protected report' },
+    { icon: Download, label: 'Your data', value: 'Career packet ready' },
+  ]
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-      <div className="flex-1 rounded-xl p-3" style={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)' }}>
-        <p className="text-[11px] text-foreground/85 leading-snug">
-          &ldquo;Cut weekly reporting from 4 hours to 20 minutes&rdquo;
-        </p>
-      </div>
-      <div className="hidden sm:block h-px w-8 shrink-0" style={{ background: 'linear-gradient(90deg, oklch(72% 0.17 160 / 0.6), oklch(72% 0.17 160 / 0.15))' }} />
-      <span
-        className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1.5 rounded-lg shrink-0 w-fit"
-        style={{ background: 'oklch(72% 0.17 160 / 0.08)', border: '1px solid oklch(72% 0.17 160 / 0.25)', color: 'oklch(74% 0.15 160)' }}
-      >
-        <CheckCircle2 className="h-3 w-3" />
-        sourced: resume.pdf · line 12
-      </span>
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {items.map(({ icon: Icon, label, value }) => (
+        <div key={label} className="rounded-xl p-3" style={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Icon className="h-3.5 w-3.5" style={{ color: 'oklch(72% 0.16 255)' }} />
+            <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider" style={{ color: 'oklch(60% 0.02 258)' }}>{label}</p>
+          </div>
+          <p className="text-[11px] font-semibold text-foreground/85 leading-snug">{value}</p>
+        </div>
+      ))}
     </div>
   )
 }
@@ -274,7 +285,7 @@ export function FeatureBento() {
         <CellHeader
           icon={Zap}
           title="AI Portfolio Builder"
-          desc="Turns your resume into structured, evidence-based case studies in a private draft. Pro adds publishing at one clean link."
+          desc="Import a PDF or DOCX, or paste text. Get an editable case-study draft in minutes with 40 themes, images, a quality checklist, and private preview. Publishing is Pro."
         />
         <VizPortfolio />
       </Cell>
@@ -283,16 +294,16 @@ export function FeatureBento() {
         <CellHeader
           icon={BarChart3}
           title="Evidence Audit"
-          desc="An 11-category hiring-readiness score with concrete fixes."
+          desc="Get a 0–100 score and core feedback. Pro unlocks the full 11-category breakdown and higher daily limits."
         />
-        <VizProofScore />
+        <VizEvidenceAudit />
       </Cell>
 
       <Cell className="md:col-span-2" delay={0.16}>
         <CellHeader
           icon={Search}
-          title="Job Matching"
-          desc="Roles scored against your real evidence — not keyword bingo."
+          title="Jobs & Role Match"
+          desc="Browse available roles or import one for an evidence-based match. Demo listings are labeled; the personalized For You feed is Pro."
         />
         <VizJobs />
       </Cell>
@@ -300,8 +311,8 @@ export function FeatureBento() {
       <Cell className="md:col-span-2" delay={0.24}>
         <CellHeader
           icon={Target}
-          title="Tailor Studio"
-          desc="One click rewrites your resume kit for a specific job."
+          title="Tailor, Check & Export"
+          desc="Generate a role-specific resume kit, cover letter, and outreach drafts, run an ATS check, then export. You review and submit."
         />
         <VizTailor />
       </Cell>
@@ -310,7 +321,7 @@ export function FeatureBento() {
         <CellHeader
           icon={MessageSquare}
           title="Interview Lab"
-          desc="Live AI voice interviews, scored across six dimensions."
+          desc="Practice written answers with role and company context when available, plus per-answer coaching, drills, and a Story Bank. Voice is available when enabled."
         />
         <VizInterview />
       </Cell>
@@ -319,13 +330,13 @@ export function FeatureBento() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="lg:max-w-sm shrink-0">
             <CellHeader
-              icon={Shield}
-              title="Truth Ledger"
-              desc="Every claim is logged. Every AI change is sourced. Nothing fabricated, ever."
+              icon={Trophy}
+              title="Opportunities, invites & sharing"
+              desc="Find hackathons and competitions, unlock limited friend invites after your first portfolio, and share token-protected score or interview summaries."
             />
           </div>
           <div className="flex-1">
-            <VizLedger />
+            <VizMomentum />
           </div>
         </div>
       </Cell>

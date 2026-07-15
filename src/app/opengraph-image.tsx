@@ -1,8 +1,9 @@
 import { ImageResponse } from 'next/og'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { BRAND, HERO } from '@/lib/marketing/positioning'
 
-export const alt = 'Showcase - Your résumé lists claims. Showcase turns them into evidence.'
+export const alt = `${BRAND.name} - ${HERO.headline}`
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -36,11 +37,11 @@ export default async function OpengraphImage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 48 }}>
           <img src={iconDataUri} width={56} height={56} alt="" />
-          <span style={{ color: '#fafafa', fontSize: 32, fontWeight: 700 }}>Showcase</span>
+          <span style={{ color: '#fafafa', fontSize: 32, fontWeight: 700 }}>{BRAND.name}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 980 }}>
           <span style={{ color: '#fafafa', fontSize: 60, fontWeight: 800, lineHeight: 1.15 }}>
-            Your résumé lists claims.
+            One résumé.
           </span>
           <span
             style={{
@@ -52,11 +53,11 @@ export default async function OpengraphImage() {
               color: 'transparent',
             }}
           >
-            Showcase turns them into evidence.
+            Your whole job search, connected.
           </span>
         </div>
         <span style={{ color: '#a1a1aa', fontSize: 26, marginTop: 36 }}>
-          Built for students, new grads, and early-career professionals.
+          Portfolio · job matching · applications · interview practice · Pro publishing
         </span>
       </div>
     ),

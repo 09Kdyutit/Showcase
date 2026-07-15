@@ -1,1051 +1,358 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { FormEvent, Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Check,
-  Copy,
-  Sparkles,
-  ShieldCheck,
   FileText,
-  BarChart3,
-  Lightbulb,
-  ChevronDown,
-  ChevronUp,
-  Lock,
-  Zap,
+  Gauge,
+  GraduationCap,
+  Loader2,
+  Mic2,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { trackMarketingEvent, useTrackOnView } from '@/lib/marketing/track-client'
 import { Logo } from '@/components/shared/logo'
-import { configuredAppHost, configuredAppUrl } from '@/lib/app-url'
+import { trackMarketingEvent } from '@/lib/marketing/track-client'
 
-const APP_HOST = configuredAppHost()
-const APP_URL = configuredAppUrl()
-
-// ── Pricing data ──────────────────────────────────────────────────────────────
+const WORKSPACE_FEATURES = [
+  {
+    icon: FileText,
+    title: 'Build your portfolio',
+    description:
+      'Import a PDF, DOCX, or pasted resume. Turn it into editable case studies, then refine the theme, images, and quality checklist.',
+  },
+  {
+    icon: BriefcaseBusiness,
+    title: 'Run your job search',
+    description:
+      'Compare roles against your actual experience, create tailored application kits, check ATS readiness, and export PDF or DOCX files.',
+  },
+  {
+    icon: Mic2,
+    title: 'Practice interviews',
+    description:
+      'Use written mock interviews, per-answer coaching, drills, and a reusable Story Bank. Voice practice appears when enabled.',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Build stronger experience',
+    description:
+      'Find hackathons, CTFs, and coding competitions that can become the next real project in your portfolio.',
+  },
+]
 
 const FREE_FEATURES = [
-  'Resume text parsing',
-  'One AI portfolio generation',
-  'Evidence audit across all 11 categories',
-  'Build, edit, and preview portfolio drafts',
+  'Resume import and AI parsing',
+  'One generated portfolio with full editing and private preview',
+  'Daily Evidence Audit with core feedback',
+  'Written interview practice and daily ATS tools within Free limits',
 ]
+
 const PRO_FEATURES = [
-  'Everything in Free',
+  'Live publishing with a shareable link and preview card',
   'Portfolio regeneration and higher AI limits',
-  `Public Pro portfolio at ${APP_HOST}/p/your-name`,
-  'Tailor Studio - role-specific resume in one click',
-  'Truth Ledger - every change traced to your real experience',
-  'Voice interviews and standalone HTML export',
+  'Full 11-category Evidence Audit breakdown',
+  'Tailor Studio, personalized job tools, and voice allowances when enabled',
 ]
 
-// ── UTM helpers ───────────────────────────────────────────────────────────────
-
-function useUtmParams() {
-  const params = useSearchParams()
-  return {
-    utm_source: params.get('utm_source') ?? undefined,
-    utm_medium: params.get('utm_medium') ?? undefined,
-    utm_campaign: params.get('utm_campaign') ?? undefined,
-    utm_content: params.get('utm_content') ?? undefined,
-    referral_code: params.get('ref') ?? undefined,
-    referrer: typeof document !== 'undefined' ? document.referrer : undefined,
-  }
-}
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-type Step = 'form' | 'success'
-
-interface FormState {
+type FormState = {
   email: string
-  full_name: string
-  target_role: string
-  experience_level: string
-  user_type: string
-  biggest_challenge: string
   consent: boolean
+  website_url_hidden: string
 }
-
-const INITIAL_FORM: FormState = {
-  email: '',
-  full_name: '',
-  target_role: '',
-  experience_level: '',
-  user_type: '',
-  biggest_challenge: '',
-  consent: false,
-}
-
-// ── FAQ data ──────────────────────────────────────────────────────────────────
-
-const FAQ = [
-  {
-    q: 'What is this waitlist for?',
-    a: 'We are gauging interest before opening Showcase to the public. Joining the waitlist reserves your place and tells us you are interested. We will reach out when access opens.',
-  },
-  {
-    q: 'When will I hear back?',
-    a: 'There is no set timeline. We will email you when we are ready to open access. We are not rushing - we want the product to be right before we let people in.',
-  },
-  {
-    q: 'Is joining the waitlist free?',
-    a: 'Yes. Joining costs nothing, and the product has a real Free plan. Pro is $15/month or $150/year when you want to publish live and raise the AI limits.',
-  },
-  {
-    q: 'Will Showcase write fake experience?',
-    a: 'Never. Showcase only works with what you provide. We do not invent employers, projects, metrics, or certifications.',
-  },
-  {
-    q: 'Will this guarantee a job or interview?',
-    a: 'No, and we will never claim that. A stronger portfolio improves your presentation - outcomes depend on many other factors outside our control.',
-  },
-  {
-    q: 'How will my data be used?',
-    a: 'Your email is used only to notify you when access opens and for occasional product updates. We never sell it. You can unsubscribe or request deletion at any time.',
-  },
-  {
-    q: 'Can I unsubscribe?',
-    a: 'Yes. Every email includes an unsubscribe link. You can also email us to be removed.',
-  },
-]
-
-// ── Mock ProofScore display ───────────────────────────────────────────────────
-
-function ProofScoreWidget() {
-  return (
-    <div className="rounded-2xl border border-border bg-secondary p-6 text-left">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-brand-400" />
-          <span className="text-sm font-semibold text-foreground">Evidence audit</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="text-3xl font-black"
-            style={{
-              background: 'linear-gradient(135deg, #818cf8, #a78bfa)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              display: 'inline-block',
-              willChange: 'transform',
-              transform: 'translateZ(0)',
-            }}
-          >
-            84
-          </span>
-          <span className="text-xs text-muted-foreground font-medium">/100</span>
-        </div>
-      </div>
-
-      <div className="space-y-2.5">
-        {[
-          { label: 'First impression clarity', score: 90, color: 'bg-emerald-500' },
-          { label: 'Proof strength', score: 68, color: 'bg-amber-500' },
-          { label: 'Target role alignment', score: 85, color: 'bg-brand-500' },
-          { label: 'Project depth', score: 72, color: 'bg-violet-500' },
-        ].map((item) => (
-          <div key={item.label}>
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-muted-foreground">{item.label}</span>
-              <span className="text-xs font-semibold text-foreground/80">{item.score}</span>
-            </div>
-            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-              <div
-                className={cn('h-full rounded-full', item.color)}
-                style={{ width: `${item.score}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-5 pt-4 border-t border-border">
-        <p className="text-xs font-bold text-amber-400/80 uppercase tracking-widest mb-2">Evidence gaps found</p>
-        <div className="space-y-1.5">
-          {['3 bullets have no measurable outcome', 'Leadership claims lack team size', 'Project depth: missing problem statement'].map((gap) => (
-            <div key={gap} className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />
-              {gap}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Flow steps display ────────────────────────────────────────────────────────
-
-function HowItWorksFlow() {
-  const steps = [
-    {
-      icon: FileText,
-      title: 'Upload your resume',
-      desc: 'Paste text or upload a file. Showcase parses every role, project, and bullet.',
-      color: 'text-brand-400 bg-brand-500/10',
-    },
-    {
-      icon: Sparkles,
-      title: 'Generate your portfolio',
-      desc: 'AI rewrites your experience into a polished, role-specific proof-of-work portfolio.',
-      color: 'text-violet-400 bg-violet-500/10',
-    },
-    {
-      icon: BarChart3,
-      title: 'Review your evidence',
-      desc: 'Get an honest 0-100 audit across 11 dimensions - from proof strength to first impression.',
-      color: 'text-amber-400 bg-amber-500/10',
-    },
-    {
-      icon: Lightbulb,
-      title: 'Fix evidence gaps',
-      desc: 'See exactly which claims are unsupported, which bullets are vague, and what to do next.',
-      color: 'text-emerald-400 bg-emerald-500/10',
-    },
-  ]
-
-  return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {steps.map((s, i) => (
-        <div
-          key={s.title}
-          className="relative rounded-xl border border-border bg-secondary p-6 hover:border-border transition-colors"
-        >
-          <div className="absolute -top-3 -left-1 text-xs font-black text-muted-foreground tabular-nums">
-            {String(i + 1).padStart(2, '0')}
-          </div>
-          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-4', s.color)}>
-            <s.icon className="h-4 w-4" />
-          </div>
-          <h3 className="font-bold text-foreground text-sm mb-2">{s.title}</h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ── FAQ accordion ─────────────────────────────────────────────────────────────
-
-function FAQAccordion() {
-  const [open, setOpen] = useState<number | null>(null)
-
-  return (
-    <div className="space-y-2">
-      {FAQ.map((item, i) => (
-        <div
-          key={i}
-          className="border border-border rounded-xl overflow-hidden"
-        >
-          <button
-            onClick={() => setOpen(open === i ? null : i)}
-            className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-secondary transition-colors"
-          >
-            <span className="text-sm font-medium text-foreground/80">{item.q}</span>
-            {open === i
-              ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
-              : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-            }
-          </button>
-          {open === i && (
-            <div className="px-5 pb-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ── Success state ─────────────────────────────────────────────────────────────
-
-function SuccessState({
-  referralCode,
-  alreadyJoined,
-}: {
-  referralCode?: string
-  alreadyJoined?: boolean
-}) {
-  const [copied, setCopied] = useState(false)
-  const shareUrl = referralCode
-    ? `${APP_URL}/waitlist?ref=${referralCode}`
-    : null
-
-  function copyLink() {
-    if (!shareUrl) return
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return (
-    <div className="text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-        <Check className="h-8 w-8 text-emerald-400" />
-      </div>
-
-      <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
-        {alreadyJoined ? "You're already on the list" : "You're on the Showcase waitlist"}
-      </h2>
-      <p className="text-foreground/60 text-lg mb-10 max-w-sm mx-auto font-light">
-        {alreadyJoined
-          ? "We already have your spot saved. We'll be in touch when access opens."
-          : "We'll reach out when we're ready to open access. No ETA - we want to get it right first."}
-      </p>
-
-      {/* What happens next */}
-      <div className="text-left max-w-sm mx-auto mb-10 space-y-4">
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">What happens next</p>
-        {[
-          "You're on the list. Nothing else required from you.",
-          'We work on making Showcase the best it can be.',
-          "When we're ready, we'll email you with access details.",
-          'When your turn arrives, we will email a private signup link with the current access details.',
-        ].map((step, i) => (
-          <div key={i} className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-[9px] font-black text-brand-400">{i + 1}</span>
-            </div>
-            <p className="text-sm text-foreground/65 leading-relaxed">{step}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Referral share card */}
-      {shareUrl && (
-        <div className="max-w-sm mx-auto rounded-xl border border-border bg-secondary p-5 text-left">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Share Showcase</p>
-          <p className="text-sm text-foreground/65 mb-4 leading-relaxed">
-            Tell a friend who should have a better portfolio. They&apos;ll join with your referral link.
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 min-w-0">
-              <p className="text-xs text-muted-foreground truncate font-mono">{shareUrl}</p>
-            </div>
-            <button
-              onClick={copyLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20 text-xs font-semibold text-brand-400 hover:bg-brand-500/20 transition-colors shrink-0"
-            >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 
 function WaitlistContent() {
-  const utmParams = useUtmParams()
-  const [step, setStep] = useState<Step>('form')
-  const [form, setForm] = useState<FormState>(INITIAL_FORM)
-  const [error, setError] = useState('')
+  const searchParams = useSearchParams()
+  const [form, setForm] = useState<FormState>({
+    email: '',
+    consent: false,
+    website_url_hidden: '',
+  })
   const [submitting, setSubmitting] = useState(false)
-  const [referralCode, setReferralCode] = useState<string | undefined>()
-  const [alreadyJoined, setAlreadyJoined] = useState(false)
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
-  const isAnnual = billing === 'annual'
-  const formCardRef = useRef<HTMLDivElement>(null)
-  const audienceSectionRef = useTrackOnView<HTMLDivElement>('audience_section_viewed')
-  const comparisonSectionRef = useTrackOnView<HTMLDivElement>('comparison_viewed')
-  const pricingSectionRef = useTrackOnView<HTMLDivElement>('pricing_viewed')
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
-  // Capture localStorage UTMs on mount
-  useEffect(() => {
-    if (utmParams.utm_source) {
-      try {
-        localStorage.setItem('showcase_utm', JSON.stringify(utmParams))
-      } catch {}
-    }
-  }, [utmParams])
+  const attribution = useMemo(
+    () => ({
+      utm_source: searchParams.get('utm_source') ?? undefined,
+      utm_medium: searchParams.get('utm_medium') ?? undefined,
+      utm_campaign: searchParams.get('utm_campaign') ?? undefined,
+      utm_content: searchParams.get('utm_content') ?? undefined,
+      referral_code: searchParams.get('ref') ?? undefined,
+      referrer: typeof document === 'undefined' ? undefined : document.referrer || undefined,
+    }),
+    [searchParams],
+  )
 
   useEffect(() => {
     trackMarketingEvent('landing_viewed', { route: '/waitlist' })
   }, [])
 
-  const scrollToForm = useCallback((ctaLabel?: string) => {
-    if (ctaLabel) trackMarketingEvent('hero_primary_cta_clicked', { cta_label: ctaLabel })
-    formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [])
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setError('')
 
-    if (!form.email) { setError('Email is required.'); return }
-    if (!form.consent) { setError('Please agree to receive updates.'); return }
+    if (!form.email.trim()) {
+      setError('Enter your email address.')
+      return
+    }
+    if (!form.consent) {
+      setError('Confirm that we may send the access update you requested.')
+      return
+    }
 
     setSubmitting(true)
-
     try {
-      let storedUtm: Record<string, string> = {}
-      try {
-        storedUtm = JSON.parse(localStorage.getItem('showcase_utm') ?? '{}')
-      } catch {}
-
-      const res = await fetch('/api/waitlist/join', {
+      const response = await fetch('/api/waitlist/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: form.email,
-          full_name: form.full_name || undefined,
-          target_role: form.target_role || undefined,
-          experience_level: form.experience_level || undefined,
-          user_type: form.user_type || undefined,
-          biggest_challenge: form.biggest_challenge || undefined,
+          email: form.email.trim(),
           consent: form.consent,
-          ...utmParams,
-          utm_source: utmParams.utm_source ?? storedUtm.utm_source,
-          utm_medium: utmParams.utm_medium ?? storedUtm.utm_medium,
-          utm_campaign: utmParams.utm_campaign ?? storedUtm.utm_campaign,
-          utm_content: utmParams.utm_content ?? storedUtm.utm_content,
+          website_url_hidden: form.website_url_hidden,
           source: 'waitlist_page',
+          ...attribution,
         }),
       })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.success) {
-        setError(data.error ?? 'Something went wrong. Please try again.')
-        return
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || !result.success) {
+        throw new Error(result.error ?? 'Access updates are temporarily unavailable. Please try again.')
       }
 
-      setReferralCode(data.referral_code)
-      setAlreadyJoined(data.already_joined ?? false)
-      setStep('success')
-      trackMarketingEvent('waitlist_submitted', { already_joined: data.already_joined ?? false })
-    } catch {
-      setError('Something went wrong. Please try again.')
+      setSubmitted(true)
+      trackMarketingEvent('waitlist_submitted', {})
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'Access updates are temporarily unavailable. Please try again.',
+      )
     } finally {
       setSubmitting(false)
     }
   }
 
-  function update(field: keyof FormState, value: string | boolean) {
-    setForm((prev) => ({ ...prev, [field]: value }))
-    if (error) setError('')
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-
-      {/* ── Nav ──────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <nav className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link href="/" aria-label="Showcase home">
             <Logo size="sm" />
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-400 uppercase tracking-widest">
-              Coming Soon
-            </span>
+          </Link>
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/pricing" className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block">
+              Pricing
+            </Link>
+            <Link href="/login" className="rounded-lg border border-border px-4 py-2 font-semibold transition-colors hover:bg-secondary">
+              Sign in
+            </Link>
           </div>
-
-          <div className="hidden md:flex items-center gap-1">
-            {[
-              { label: 'How it works', href: '#how-it-works' },
-              { label: 'Evidence audit', href: '#proof-score' },
-              { label: 'Pricing', href: '#pricing' },
-              { label: 'FAQ', href: '#faq' },
-            ].map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <button
-            onClick={() => scrollToForm('nav_join_beta')}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-400 text-white text-xs font-semibold hover:opacity-90 transition-opacity shadow-glow-sm"
-          >
-            Join Waitlist
-            <ArrowRight className="h-3 w-3" />
-          </button>
         </div>
       </nav>
 
       <main>
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-24 pb-24 px-6">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:52px_52px]" />
-        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[1100px] h-[700px] bg-brand-500/6 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/3 right-0 w-[600px] h-[500px] bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_400px] gap-16 items-center">
-
-            {/* Left - copy */}
+        <section className="relative overflow-hidden border-b border-border px-6 py-20 sm:py-28">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.16),transparent_52%)]" />
+          <div className="relative mx-auto grid max-w-6xl gap-14 lg:grid-cols-[1.12fr_0.88fr] lg:items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/8 border border-brand-500/15 text-xs font-semibold text-brand-400 mb-8">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                Waitlist · invites released in daily batches
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-brand-400">
+                <Sparkles className="h-3.5 w-3.5" />
+                Portfolio builder + job-search workspace
               </div>
-
-              <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black tracking-tight leading-[1.02] text-balance mb-6">
-                Your résumé lists claims.{' '}
-                <span
-                  style={{
-                    background: 'linear-gradient(135deg, #818cf8, #a78bfa, #c4b5fd)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    display: 'inline',
-                    willChange: 'transform',
-                    transform: 'translateZ(0)',
-                  }}
-                >
-                  Showcase turns them into evidence.
-                </span>
+              <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-tight sm:text-6xl">
+                One resume. Your whole job search, connected.
               </h1>
-
-              <p className="text-xl text-foreground/60 leading-relaxed max-w-xl mb-10 font-light">
-                Built for students, new graduates, and early-career professionals who have real projects but no clear way to prove them. Upload your résumé and Showcase turns your real experience into a portfolio, scores the strength of its evidence, and tells you exactly what to improve - without inventing a thing.
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+                Build an editable portfolio, tailor applications, check ATS readiness, practice interviews, find project opportunities, and publish when you are ready.
               </p>
-
-              <div className="flex flex-wrap items-center gap-3 mb-10">
-                <button
-                  onClick={() => scrollToForm('hero_primary')}
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold hover:opacity-90 transition-opacity shadow-glow"
+              <div className="mt-8 flex flex-wrap gap-3 text-sm text-foreground/75">
+                {['Free plan, no card', 'Private until you publish', 'Every AI draft stays editable'].map((item) => (
+                  <span key={item} className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-2">
+                    <Check className="h-4 w-4 text-emerald-400" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-9 flex flex-wrap gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 font-bold text-white transition-opacity hover:opacity-90"
+                  onClick={() => trackMarketingEvent('hero_primary_cta_clicked', { cta_label: 'waitlist_start_free' })}
                 >
-                  Join the waitlist
+                  Build my portfolio free
                   <ArrowRight className="h-4 w-4" />
-                </button>
-                <a
-                  href="#how-it-works"
-                  onClick={() => trackMarketingEvent('hero_secondary_cta_clicked', { cta_label: 'see_how_it_works' })}
-                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-secondary border border-border hover:bg-secondary text-sm text-muted-foreground hover:text-foreground transition-all"
-                >
-                  See how it works
+                </Link>
+                <a href="#access-updates" className="inline-flex items-center rounded-xl border border-border px-6 py-3.5 font-semibold transition-colors hover:bg-secondary">
+                  Request an access update
                 </a>
               </div>
+            </div>
 
-              <div className="flex flex-wrap items-center gap-5">
-                {[
-                  'We never invent experience',
-                  'You control what gets published',
-                  'Resume files stay private',
-                ].map((t) => (
-                  <div key={t} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500/70 shrink-0" />
-                    {t}
+            <div className="rounded-3xl border border-border bg-secondary/70 p-4 shadow-2xl shadow-brand-950/20">
+              <div className="rounded-2xl border border-border bg-background p-6">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Your workspace</p>
+                    <p className="mt-1 text-lg font-bold">From resume to published portfolio</p>
                   </div>
-                ))}
+                  <ShieldCheck className="h-7 w-7 text-brand-400" />
+                </div>
+                <div className="space-y-3">
+                  {[
+                    ['Resume imported', 'PDF, DOCX, or paste', 'Done'],
+                    ['Portfolio draft', 'Editable case studies', 'Ready'],
+                    ['Job toolkit', 'Match, tailor, ATS', 'Explore'],
+                    ['Interview Lab', 'Written + enabled voice', 'Practice'],
+                    ['Live portfolio', 'Shareable link + preview card', 'Pro'],
+                  ].map(([title, detail, status]) => (
+                    <div key={title} className="flex items-center justify-between gap-4 rounded-xl border border-border bg-secondary px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold">{title}</p>
+                        <p className="text-xs text-muted-foreground">{detail}</p>
+                      </div>
+                      <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-brand-400">
+                        {status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-
-            {/* Right - product widget */}
-            <div className="hidden lg:block" id="proof-score">
-              <ProofScoreWidget />
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Waitlist Form Card ────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-border" ref={formCardRef}>
-        <div className="max-w-xl mx-auto">
+        <section className="px-6 py-20 sm:py-24">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-400">What Showcase actually does</p>
+            <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">
+              One workspace for building, applying, practicing, and sharing.
+            </h2>
+            <div className="mt-10 grid gap-4 md:grid-cols-2">
+              {WORKSPACE_FEATURES.map((feature) => (
+                <article key={feature.title} className="rounded-2xl border border-border bg-secondary p-6">
+                  <feature.icon className="h-6 w-6 text-brand-400" />
+                  <h3 className="mt-4 text-lg font-bold">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+                </article>
+              ))}
+            </div>
 
-          {step === 'success' ? (
-            <SuccessState referralCode={referralCode} alreadyJoined={alreadyJoined} />
-          ) : (
-            <>
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight">
-                  Join the waitlist
-                </h2>
-                <p className="text-foreground/55 leading-relaxed">
-                  Drop your email and we will reach out when access opens. Sharing more context helps us understand who is interested.
+            <div className="mt-6 rounded-2xl border border-border bg-secondary p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <Gauge className="h-5 w-5 text-brand-400" />
+                  Evidence Audit stays in the toolkit
+                </div>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                  It gives an honest 0-100 review and specific fixes. Free includes core feedback; Pro unlocks the full 11-category breakdown. It supports the workflow instead of defining the whole product.
                 </p>
               </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Hidden honeypot */}
-                <input
-                  type="text"
-                  name="website_url_hidden"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  aria-hidden="true"
-                  className="absolute -left-[9999px] opacity-0 pointer-events-none h-0 w-0"
-                  onChange={(e) => {
-                    // Detect fill without state to avoid re-renders
-                    const el = e.currentTarget
-                    el.dataset.filled = el.value ? '1' : '0'
-                  }}
-                />
-
-                {/* Email - required */}
-                <div>
-                  <label htmlFor="email" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Email <span className="text-brand-400">*</span>
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    value={form.email}
-                    onChange={(e) => update('email', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
-                    required
-                  />
-                </div>
-
-                {/* Full name */}
-                <div>
-                  <label htmlFor="full_name" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Full name <span className="text-muted-foreground">(optional)</span>
-                  </label>
-                  <input
-                    id="full_name"
-                    type="text"
-                    autoComplete="name"
-                    placeholder="Alex Chen"
-                    value={form.full_name}
-                    onChange={(e) => update('full_name', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
-                  />
-                </div>
-
-                {/* Target role */}
-                <div>
-                  <label htmlFor="target_role" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Target role <span className="text-muted-foreground">(optional)</span>
-                  </label>
-                  <input
-                    id="target_role"
-                    type="text"
-                    placeholder="Product Designer, SWE, PM, Marketing..."
-                    value={form.target_role}
-                    onChange={(e) => update('target_role', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
-                  />
-                </div>
-
-                {/* Experience level */}
-                <div>
-                  <label htmlFor="experience_level" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Experience level <span className="text-muted-foreground">(optional)</span>
-                  </label>
-                  <select
-                    id="experience_level"
-                    value={form.experience_level}
-                    onChange={(e) => update('experience_level', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
-                  >
-                    <option value="" className="bg-neutral-900">Select your level...</option>
-                    <option value="student" className="bg-neutral-900">Student</option>
-                    <option value="new_grad" className="bg-neutral-900">New grad (0-1 year)</option>
-                    <option value="early" className="bg-neutral-900">Early career (1-3 years)</option>
-                    <option value="mid" className="bg-neutral-900">Mid-level (3-7 years)</option>
-                    <option value="switcher" className="bg-neutral-900">Career switcher</option>
-                    <option value="freelancer" className="bg-neutral-900">Freelancer / consultant</option>
-                  </select>
-                </div>
-
-                {/* What are you building */}
-                <div>
-                  <label htmlFor="user_type" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    What are you building? <span className="text-muted-foreground">(optional)</span>
-                  </label>
-                  <select
-                    id="user_type"
-                    value={form.user_type}
-                    onChange={(e) => update('user_type', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
-                  >
-                    <option value="" className="bg-neutral-900">Select your goal...</option>
-                    <option value="job_search" className="bg-neutral-900">Job search portfolio</option>
-                    <option value="internship" className="bg-neutral-900">Internship portfolio</option>
-                    <option value="career_switch" className="bg-neutral-900">Career switch portfolio</option>
-                    <option value="freelance" className="bg-neutral-900">Freelance / client portfolio</option>
-                    <option value="personal_brand" className="bg-neutral-900">Personal brand portfolio</option>
-                  </select>
-                </div>
-
-                {/* Biggest challenge */}
-                <div>
-                  <label htmlFor="biggest_challenge" className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                    Biggest challenge <span className="text-muted-foreground">(optional)</span>
-                  </label>
-                  <select
-                    id="biggest_challenge"
-                    value={form.biggest_challenge}
-                    onChange={(e) => update('biggest_challenge', e.target.value)}
-                    className="w-full rounded-xl bg-secondary border border-border focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/30 px-4 py-3 text-sm text-foreground outline-none transition-all appearance-none"
-                  >
-                    <option value="" className="bg-neutral-900">What is your biggest problem?</option>
-                    <option value="weak_resume" className="bg-neutral-900">My resume is weak</option>
-                    <option value="no_projects" className="bg-neutral-900">I do not know what projects to show</option>
-                    <option value="looks_unprofessional" className="bg-neutral-900">My portfolio looks unprofessional</option>
-                    <option value="no_proof" className="bg-neutral-900">I have no measurable proof of impact</option>
-                    <option value="recruiter_insight" className="bg-neutral-900">I do not know what recruiters want</option>
-                    <option value="role_versions" className="bg-neutral-900">I need role-specific portfolio versions</option>
-                  </select>
-                </div>
-
-                {/* Consent */}
-                <div className="pt-2">
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <div className="relative mt-0.5">
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={form.consent}
-                        onChange={(e) => update('consent', e.target.checked)}
-                      />
-                      <div className={cn(
-                        'w-4.5 h-4.5 rounded-md border-2 transition-all flex items-center justify-center',
-                        form.consent
-                          ? 'bg-brand-500 border-brand-500'
-                          : 'border-border group-hover:border-brand-500/50 bg-transparent',
-                      )}>
-                        {form.consent && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-                      </div>
-                    </div>
-                    <p className="text-sm text-foreground/60 leading-relaxed">
-                      I agree to receive updates and product emails from Showcase. I can unsubscribe anytime.
-                    </p>
-                  </label>
-                </div>
-
-                {/* Privacy note */}
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary border border-border">
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    We never sell your email. We use it only for waitlist notifications and product updates.
-                  </p>
-                </div>
-
-                {/* Error */}
-                {error && (
-                  <p className="text-sm text-red-400/90 bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3">
-                    {error}
-                  </p>
-                )}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={submitting || !form.consent}
-                  className={cn(
-                    'w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-base transition-all',
-                    submitting || !form.consent
-                      ? 'bg-secondary text-muted-foreground cursor-not-allowed'
-                      : 'bg-gradient-to-r from-brand-500 to-brand-400 text-white hover:opacity-90 shadow-glow',
-                  )}
-                >
-                  {submitting ? (
-                    <>
-                      <div className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                      Joining...
-                    </>
-                  ) : (
-                    <>
-                      Join the waitlist
-                      <ArrowRight className="h-4 w-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* ── How it works ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">How it works</p>
-          <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
-            From messy resume to proof-of-work portfolio
-          </h2>
-          <p className="text-foreground/50 mb-12 max-w-xl">
-            Four steps. No fluff, no fake experience. Just a portfolio that shows exactly what you can do and where the gaps are.
-          </p>
-          <HowItWorksFlow />
-        </div>
-      </section>
-
-      {/* ── Built for ────────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto" ref={audienceSectionRef}>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Built for</p>
-          <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight max-w-lg">
-            Early-career job seekers who have real work to show but no clear way to prove it
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-4 mt-10">
-            {[
-              'A student turning coursework and internships into credible case studies',
-              'A new graduate making side projects understandable to recruiters',
-              'An early-career professional translating day-to-day work into measurable evidence',
-              'A career switcher connecting previous experience to a new target role',
-            ].map((s) => (
-              <div key={s} className="rounded-xl border border-border bg-secondary p-5 text-sm text-foreground/70 leading-relaxed">
-                {s}
-              </div>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground mt-8 max-w-2xl leading-relaxed">
-            Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce generic applications. If the evidence is not there, we tell you it is missing - we do not invent it.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Comparison ───────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-4xl mx-auto" ref={comparisonSectionRef}>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why not just use ChatGPT or a template?</p>
-          <h2 className="text-3xl font-black text-foreground mb-10 tracking-tight max-w-lg">
-            Showcase combines what those tools do separately
-          </h2>
-          <div className="rounded-2xl border border-border bg-secondary divide-y divide-border">
-            {[
-              { alt: 'Résumé template', does: 'Formats claims. Does not check whether they are supported.' },
-              { alt: 'Website builder', does: 'Displays what you already know how to write - you still start from a blank page.' },
-              { alt: 'Generic AI chat', does: 'Produces text but has no persistent evidence structure, no publishing workflow, and no safeguard against inventing a metric you never had.' },
-              { alt: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
-            ].map((row) => (
-              <div key={row.alt} className={cn('flex flex-col sm:flex-row gap-2 sm:gap-6 p-5', row.isShowcase && 'bg-brand-500/[0.04]')}>
-                <p className={cn('text-sm font-bold w-44 shrink-0', row.isShowcase ? 'text-brand-400' : 'text-foreground/70')}>{row.alt}</p>
-                <p className="text-sm text-foreground/60 leading-relaxed">{row.does}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ──────────────────────────────────────────────── */}
-      <section id="pricing" className="py-24 px-6 border-t border-border">
-        <div className="max-w-4xl mx-auto" ref={pricingSectionRef}>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">Pricing</p>
-          <h2 className="text-3xl font-black text-foreground mb-3 tracking-tight text-center">
-            Simple, honest pricing
-          </h2>
-          <p className="text-foreground/50 text-center max-w-md mx-auto mb-10">
-            Here&apos;s what you can expect when we open access.
-          </p>
-
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mb-10">
-            <button
-              onClick={() => { setBilling('monthly'); trackMarketingEvent('billing_period_selected', { billing_period: 'monthly' }) }}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                !isAnnual ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => { setBilling('annual'); trackMarketingEvent('billing_period_selected', { billing_period: 'annual' }) }}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
-                isAnnual ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              Annual
-              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                Save $30
-              </span>
-            </button>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Free */}
-            <div className="rounded-2xl border border-border bg-secondary p-8 flex flex-col">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Free</p>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-4xl font-black text-foreground">$0</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-foreground/50 mb-6">Get started without a credit card.</p>
-              <ul className="space-y-3 mb-8 flex-1">
-                {FREE_FEATURES.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-foreground/70">
-                    <Check className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Pro */}
-            <div className="relative rounded-2xl border border-brand-500/30 bg-gradient-to-br from-brand-500/[0.06] to-white/[0.02] p-8 flex flex-col overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" />
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-brand-400 uppercase tracking-widest">Showcase Pro</p>
-                <span className="text-xs font-bold text-brand-300 bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                  {isAnnual ? 'Best value' : 'Monthly'}
-                </span>
-              </div>
-              {isAnnual ? (
-                <>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-4xl font-black text-foreground">$12.50</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </div>
-                  <p className="text-sm text-emerald-400 font-medium mb-1">$150 billed annually - save $30</p>
-                  <p className="text-sm text-muted-foreground line-through mb-6">$180/year if monthly</p>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-black text-foreground">$15</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </div>
-                  <p className="text-sm text-foreground/50 mb-6">Full access. Cancel anytime.</p>
-                </>
-              )}
-              <ul className="space-y-3 mb-8 flex-1">
-                {PRO_FEATURES.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-foreground/80">
-                    <Check className="h-4 w-4 text-brand-400 mt-0.5 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => scrollToForm('pricing_card')}
-                className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-glow-sm"
-              >
-                <Zap className="h-4 w-4" />
-                Join the waitlist for early access
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Why beta users matter ─────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">Why join early</p>
-              <h2 className="text-3xl font-black text-foreground mb-6 tracking-tight">
-                We are not launching to everyone yet - on purpose.
-              </h2>
-              <p className="text-foreground/60 leading-relaxed mb-6">
-                We are taking our time to build something we are proud of before opening it up. The waitlist is how we know who is serious about getting in when the doors open.
-              </p>
-              <p className="text-foreground/60 leading-relaxed mb-8">
-                No timelines, no promises - just a spot in line for when we are ready.
-              </p>
-              <button
-                onClick={() => scrollToForm('beta_explainer')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-glow-sm"
-              >
-                Join the waitlist
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="space-y-3">
+        <section className="border-y border-border bg-secondary/40 px-6 py-20 sm:py-24">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-5 lg:grid-cols-2">
               {[
-                {
-                  icon: ShieldCheck,
-                  title: 'We never invent experience',
-                  desc: 'Showcase only uses what you provide. No fake projects, employers, metrics, or certifications - ever.',
-                  color: 'text-emerald-400 bg-emerald-500/10',
-                },
-                {
-                  icon: Lock,
-                  title: 'You control what gets published',
-                  desc: 'Nothing goes live without your review. Every portfolio starts as a private draft.',
-                  color: 'text-brand-400 bg-brand-500/10',
-                },
-                {
-                  icon: FileText,
-                  title: 'Resume files stay private by default',
-                  desc: 'Uploaded resumes are not publicly accessible. You decide what portions to include.',
-                  color: 'text-violet-400 bg-violet-500/10',
-                },
-                {
-                  icon: Lightbulb,
-                  title: 'No dark patterns, no fake scarcity',
-                  desc: 'We are not counting down a timer or inventing a waitlist number. Just honest early access.',
-                  color: 'text-amber-400 bg-amber-500/10',
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-secondary">
-                  <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', item.color)}>
-                    <item.icon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-foreground mb-1">{item.title}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
+                { name: 'Free', price: '$0', detail: 'Build before you pay', features: FREE_FEATURES },
+                { name: 'Pro', price: '$15/month', detail: 'or $150/year', features: PRO_FEATURES },
+              ].map((plan) => (
+                <article key={plan.name} className="rounded-3xl border border-border bg-background p-8">
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-400">{plan.name}</p>
+                  <p className="mt-3 text-3xl font-black">{plan.price}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{plan.detail}</p>
+                  <ul className="mt-7 space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-3 text-sm text-foreground/80">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────── */}
-      <section id="faq" className="py-24 px-6 border-t border-border">
-        <div className="max-w-2xl mx-auto">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 text-center">FAQ</p>
-          <h2 className="text-3xl font-black text-foreground mb-12 tracking-tight text-center">Questions answered</h2>
-          <FAQAccordion />
-        </div>
-      </section>
-
-      {/* ── Bottom CTA ───────────────────────────────────────────── */}
-      <section className="py-32 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-white/[0.03] to-white/[0.01] p-14 text-center">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(99,102,241,0.08),transparent)]" />
-            <div className="relative z-10">
-              <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-5 tracking-tight">
-                Turn your experience into evidence.
-              </h2>
-              <p className="text-foreground/50 text-lg mb-10 max-w-md mx-auto font-light">
-                Join the beta and help us build the portfolio tool you wish existed.
+        <section id="access-updates" className="px-6 py-20 sm:py-24">
+          <div className="mx-auto grid max-w-5xl gap-10 rounded-3xl border border-border bg-secondary p-8 sm:p-12 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-400">Access updates</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight">If signup is limited, we will tell you when access is available.</h2>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                This is a requested access notice, not a sales list. We will not claim a job outcome, sell your address, or ask for a card here.
               </p>
-              <button
-                onClick={() => scrollToForm('final_cta')}
-                className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-400 text-white font-bold text-base hover:opacity-90 transition-opacity shadow-glow"
-              >
-                Join the waitlist
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </div>
+
+            {submitted ? (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6" role="status">
+                <Check className="h-7 w-7 text-emerald-400" />
+                <h3 className="mt-4 text-xl font-bold">Your request is saved.</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  If this address is eligible for an access update, it will receive one. No other action is required.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-background p-6" noValidate>
+                <label htmlFor="waitlist-email" className="text-sm font-semibold">Email address</label>
+                <input
+                  id="waitlist-email"
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                  className="mt-2 w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm outline-none transition-colors focus:border-brand-500"
+                  placeholder="you@example.com"
+                  required
+                />
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="website_url_hidden">Website</label>
+                  <input
+                    id="website_url_hidden"
+                    name="website_url_hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={form.website_url_hidden}
+                    onChange={(event) => setForm((current) => ({ ...current, website_url_hidden: event.target.value }))}
+                  />
+                </div>
+                <label className="mt-4 flex items-start gap-3 text-xs leading-5 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={(event) => setForm((current) => ({ ...current, consent: event.target.checked }))}
+                    className="mt-1 h-4 w-4 rounded border-border accent-brand-500"
+                  />
+                  Send me the Showcase access update I requested. I can unsubscribe at any time.
+                </label>
+                {error ? <p className="mt-3 text-sm text-red-400" role="alert">{error}</p> : null}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3 font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {submitting ? 'Saving request...' : 'Request access update'}
+                </button>
+              </form>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
       </main>
 
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="py-10 px-6 border-t border-border">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <Logo size="sm" />
-              </div>
-              <p className="text-xs text-muted-foreground">Turn your experience into evidence.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link href="/refund" className="hover:text-foreground transition-colors">Refund</Link>
-              <a href="mailto:hello@tryshowcase.ink" className="hover:text-foreground transition-colors">Contact</a>
-            </div>
+      <footer className="border-t border-border px-6 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>Showcase is a connected portfolio and job-search workspace.</p>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
           </div>
         </div>
       </footer>

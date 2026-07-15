@@ -3,11 +3,11 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Free gets you a real portfolio draft, editing, and preview. Pro adds publishing, role-specific tailoring, and guided work on evidence gaps. $15/month or $150/year.',
+    'Start free with resume import, an editable portfolio, daily career tools, and no credit card. Pro adds live publishing, higher limits, and the complete job-search workspace for $15/month or $150/year.',
   alternates: { canonical: '/pricing' },
   openGraph: {
-    title: 'Showcase Pricing - $15/month, no trial that auto-charges',
-    description: 'A real free tier so you can see the value before you pay. Upgrade for full generation, publishing, and Tailor Studio.',
+    title: 'Showcase Pricing - Start free, publish with Pro',
+    description: 'Build and preview a portfolio for free. Upgrade for live publishing, higher limits, application tools, and personalized job matching.',
     url: '/pricing',
   },
 }

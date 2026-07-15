@@ -4,14 +4,15 @@ import { useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
 import {
   FileText, Zap, BarChart3, Target, ArrowRight, CheckCircle2, Sparkles,
+  MessageSquare, Globe2, Trophy, Share2,
   type LucideIcon,
 } from 'lucide-react'
 import { SectionLabel } from '@/components/shared/section-label'
 
 // How it works, rebuilt as scroll-driven storytelling: the steps scroll on the right
 // while a sticky stage on the left morphs through a living miniature of each step —
-// parsing, portfolio assembly, evidence review, job matching, tailoring. All fictional
-// demonstration data.
+// parsing, portfolio assembly, evidence review, job matching, tailoring, interview
+// practice, and sharing. All fictional demonstration data.
 
 type Step = {
   icon: LucideIcon
@@ -23,29 +24,39 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    icon: FileText, step: '01', title: 'Upload your resume',
-    desc: 'Paste or upload your resume. Showcase parses it instantly.',
-    detail: 'Skills, projects, experience, education — all extracted and structured automatically. No manual data entry, no forms.',
+    icon: FileText, step: '01', title: 'Add your resume',
+    desc: 'Upload a PDF or DOCX, or paste the text.',
+    detail: 'Showcase extracts your skills, projects, experience, and education into structured source material you can review.',
   },
   {
-    icon: Zap, step: '02', title: 'AI builds your portfolio',
-    desc: 'We turn your experience into structured case studies.',
-    detail: 'Each project becomes a problem → role → process → outcome narrative that makes the available evidence easier to scan.',
+    icon: Zap, step: '02', title: 'Build and edit your portfolio',
+    desc: 'AI drafts scannable case studies from your source material.',
+    detail: 'Review every line, edit the content, add images, choose from 40 themes, and use the quality checklist before private preview.',
   },
   {
-    icon: BarChart3, step: '03', title: 'Review your evidence',
-    desc: 'An honest audit across 11 categories.',
-    detail: 'Evidence strength, first-impression clarity, keyword support and more — each scored, each with a concrete fix.',
+    icon: BarChart3, step: '03', title: 'Audit what needs work',
+    desc: 'Get a 0–100 score and specific next fixes.',
+    detail: 'Free shows the score and core feedback. Pro unlocks the full 11-category breakdown and higher daily limits.',
   },
   {
-    icon: Target, step: '04', title: 'Discover matched roles',
-    desc: 'A personalized feed scored against your real evidence.',
-    detail: 'Jobs ranked by how well your actual proof lines up with the role — compare strengths and gaps before you apply.',
+    icon: Target, step: '04', title: 'Find or import a role',
+    desc: 'Compare a job description with your documented experience.',
+    detail: 'Browse available roles or import one yourself. Demo listings are labeled, and Pro adds a personalized For You feed with explainable matches.',
   },
   {
-    icon: ArrowRight, step: '05', title: 'Tailor and apply',
-    desc: 'One click creates a role-specific resume kit.',
-    detail: 'Every change traced back to your real experience in the Truth Ledger. Nothing invented, nothing inflated.',
+    icon: ArrowRight, step: '05', title: 'Tailor your application kit',
+    desc: 'Draft a role-specific resume, cover letter, and outreach.',
+    detail: 'Review the changes, run an ATS compatibility check, and export your resume. Showcase prepares the kit; you decide what to send and submit it yourself.',
+  },
+  {
+    icon: MessageSquare, step: '06', title: 'Practice the interview',
+    desc: 'Rehearse role-aware questions and improve each answer.',
+    detail: 'Written mock interviews can use role and company context when available, with per-answer coaching, targeted drills, and a Story Bank. Voice practice appears when it is enabled for your account.',
+  },
+  {
+    icon: Globe2, step: '07', title: 'Publish, share, and keep building',
+    desc: 'Turn the draft into a live portfolio when you are ready.',
+    detail: 'Pro adds a live link and preview card. You can also share token-protected score or interview summaries and find hackathons, CTFs, and competitions to build new experience.',
   },
 ]
 
@@ -83,7 +94,7 @@ function VizParse() {
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">resume.pdf</p>
-          <p className="text-[10px]" style={{ color: 'oklch(72% 0.17 160)' }}>✓ parsed in 4 seconds</p>
+          <p className="text-[10px]" style={{ color: 'oklch(72% 0.17 160)' }}>✓ parsed and structured</p>
         </div>
       </motion.div>
 
@@ -297,7 +308,95 @@ function VizTailor() {
   )
 }
 
-const VISUALS = [VizParse, VizBuild, VizScore, VizMatch, VizTailor]
+function VizInterview() {
+  return (
+    <div className="h-full flex flex-col justify-center gap-3">
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-[9px] max-sm:text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: 'oklch(63% 0.20 255 / 0.12)', color: 'oklch(72% 0.16 255)', border: '1px solid oklch(63% 0.20 255 / 0.25)' }}>
+          WRITTEN
+        </span>
+        <span className="text-[9px] max-sm:text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: 'var(--color-surface-100)', color: 'oklch(60% 0.02 258)', border: '1px solid var(--color-border)' }}>
+          VOICE WHEN ENABLED
+        </span>
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: EASE, delay: 0.12 }}
+        className="rounded-xl p-4"
+        style={{ background: 'var(--color-surface-100)', border: '1px solid var(--color-border)' }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <MessageSquare className="h-3.5 w-3.5" style={{ color: 'oklch(72% 0.16 255)' }} />
+          <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider" style={{ color: 'oklch(60% 0.02 258)' }}>Role-aware practice question</p>
+        </div>
+        <p className="text-sm text-foreground/90 leading-relaxed">Tell me about a decision you made with incomplete information.</p>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: EASE, delay: 0.3 }}
+        className="rounded-xl p-4"
+        style={{ background: 'oklch(72% 0.17 160 / 0.07)', border: '1px solid oklch(72% 0.17 160 / 0.24)' }}
+      >
+        <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'oklch(72% 0.17 160)' }}>Next coaching move</p>
+        <p className="text-[11px] text-foreground/80 leading-relaxed">Name the constraint first, then make your action and result easier to follow.</p>
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {['Answer feedback', 'Targeted drill', 'Story Bank'].map((label) => (
+            <span key={label} className="text-[8px] max-sm:text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--color-surface-0)', color: 'oklch(66% 0.03 258)', border: '1px solid var(--color-border)' }}>{label}</span>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function VizPublish() {
+  const nextMoves = [
+    { icon: Trophy, label: 'Opportunity', value: 'CTF · applications open' },
+    { icon: Share2, label: 'Private report', value: 'Token-protected link' },
+  ]
+
+  return (
+    <div className="h-full flex flex-col justify-center gap-3">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="rounded-2xl p-4"
+        style={{ background: 'var(--color-surface-100)', border: '1px solid oklch(72% 0.17 160 / 0.25)', boxShadow: '0 16px 40px oklch(0% 0 0 / 0.35)' }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: 'oklch(72% 0.17 160)' }}>Pro publishing</p>
+            <p className="text-sm font-semibold text-foreground">app.tryshowcase.ink/p/your-name</p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[9px] max-sm:text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: 'oklch(72% 0.17 160 / 0.12)', color: 'oklch(72% 0.17 160)', border: '1px solid oklch(72% 0.17 160 / 0.25)' }}>
+            <Globe2 className="h-2.5 w-2.5" /> LIVE
+          </span>
+        </div>
+      </motion.div>
+      <div className="grid grid-cols-2 gap-3">
+        {nextMoves.map(({ icon: Icon, label, value }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: EASE, delay: 0.22 + i * 0.12 }}
+            className="rounded-xl p-3"
+            style={{ background: 'var(--color-surface-100)', border: '1px solid var(--color-border)' }}
+          >
+            <Icon className="h-3.5 w-3.5 mb-2" style={{ color: 'oklch(72% 0.16 255)' }} />
+            <p className="text-[9px] max-sm:text-[10px] font-bold uppercase tracking-wider" style={{ color: 'oklch(58% 0.02 258)' }}>{label}</p>
+            <p className="text-[11px] font-medium text-foreground/80 mt-1 leading-snug">{value}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const VISUALS = [VizParse, VizBuild, VizScore, VizMatch, VizTailor, VizInterview, VizPublish]
 
 // ── Section ────────────────────────────────────────────────────────────────────
 
@@ -331,8 +430,8 @@ export function HowItWorks() {
             className="font-bold tracking-tight text-balance"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.03em' }}
           >
-            From resume to proof of work,
-            <br />in minutes.
+            One workflow from resume
+            <br />to your next application.
           </h2>
         </motion.div>
 
@@ -458,18 +557,13 @@ export function HowItWorks() {
                     <p className="text-[15px] mt-3 leading-relaxed" style={{ color: 'oklch(82% 0.02 258)' }}>{detail}</p>
                   </div>
 
-                  {/* Mobile inline visual */}
-                  <div className="lg:hidden mt-6">
-                    <div
-                      className="relative rounded-2xl overflow-hidden p-5"
-                      style={{ background: 'var(--color-surface-0)', border: '1px solid var(--color-border)', minHeight: 300 }}
-                    >
-                      <div className="pointer-events-none absolute inset-0 dot-grid opacity-20" />
-                      {(() => { const V = VISUALS[i]; return <V /> })()}
-                    </div>
+                  {/* The product frame above already demonstrates the interface on small
+                      screens. Keep this lifecycle compact on mobile; the sticky visual
+                      stage remains available at desktop widths. */}
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1.5 text-xs text-muted-foreground lg:hidden">
+                    <Icon className="h-3.5 w-3.5 text-brand-400" />
+                    Connected to the same workspace
                   </div>
-                  {/* keep Icon referenced for type completeness on mobile header */}
-                  <span className="sr-only"><Icon className="h-0 w-0" /></span>
                 </div>
               )
             })}

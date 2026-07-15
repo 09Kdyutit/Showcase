@@ -1,54 +1,35 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { CheckCircle2, FileText, BarChart3, Globe } from 'lucide-react'
+import { CheckCircle2, FileText, BriefcaseBusiness, MessagesSquare, PenLine } from 'lucide-react'
 import { Logo } from '@/components/shared/logo'
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const
 
-function useCountUp(target: number, duration = 1500, start = true) {
-  const [v, setV] = useState(0)
-  useEffect(() => {
-    if (!start) return
-    let raf = 0
-    const t0 = performance.now()
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / duration)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setV(Math.round(target * eased))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, duration, start])
-  return v
-}
-
 const BENEFITS = [
-  'Build and preview your portfolio free',
-  'AI-powered resume parsing in seconds',
-  'Draft portfolio with no design required',
+  'Import your resume and build an editable portfolio',
+  'Browse roles and prepare application materials',
+  'Practice written interviews with answer coaching',
   'No credit card needed to start',
 ]
 
 const STEPS = [
-  { step: '01', icon: FileText, title: 'Upload your resume', desc: 'PDF or DOCX, we parse everything instantly', color: 'oklch(63% 0.200 255)' },
-  { step: '02', icon: BarChart3, title: 'Review your evidence', desc: 'See what is strong and what needs work', color: 'oklch(62% 0.20 295)' },
-  { step: '03', icon: Globe, title: 'Publish your portfolio', desc: 'A link that proves your work, not just lists it', color: 'oklch(72% 0.16 162)' },
+  { step: '01', icon: FileText, title: 'Import your resume', desc: 'Upload a PDF or DOCX, or paste your text', color: 'oklch(63% 0.200 255)' },
+  { step: '02', icon: PenLine, title: 'Build and make it yours', desc: 'Generate a portfolio draft, then edit every part', color: 'oklch(62% 0.20 295)' },
+  { step: '03', icon: BriefcaseBusiness, title: 'Search, apply, and practice', desc: 'Use the same career context through the job hunt', color: 'oklch(72% 0.16 162)' },
 ]
 
-const BARS = [
-  { label: 'First impression', score: 78, color: 'oklch(74% 0.16 85)' },
-  { label: 'Role alignment', score: 91, color: 'oklch(72% 0.16 162)' },
-  { label: 'Proof strength', score: 86, color: 'oklch(63% 0.200 255)' },
-  { label: 'Resume quality', score: 72, color: 'oklch(74% 0.16 85)' },
+const WORKSPACE_ITEMS = [
+  { icon: FileText, label: 'Resume', detail: 'Your source material', color: 'oklch(63% 0.200 255)' },
+  { icon: PenLine, label: 'Portfolio', detail: 'Editable case studies', color: 'oklch(62% 0.20 295)' },
+  { icon: BriefcaseBusiness, label: 'Job search', detail: 'Matches and application kits', color: 'oklch(72% 0.16 162)' },
+  { icon: MessagesSquare, label: 'Interview prep', detail: 'Questions and answer coaching', color: 'oklch(74% 0.16 85)' },
 ]
 
 export function AuthAside({ variant }: { variant: 'login' | 'signup' }) {
   const glowRef = useRef<HTMLDivElement>(null)
-  const score = useCountUp(84, 1600)
 
   useEffect(() => {
     let raf = 0
@@ -87,7 +68,7 @@ export function AuthAside({ variant }: { variant: 'login' | 'signup' }) {
 
         {/* Center */}
         <div className="flex-1 flex flex-col items-center justify-center py-10">
-          {variant === 'login' ? <ProofScoreCard score={score} /> : <StepsVisual />}
+          {variant === 'login' ? <CareerWorkspaceCard /> : <StepsVisual />}
         </div>
 
         {/* Bottom */}
@@ -99,7 +80,7 @@ export function AuthAside({ variant }: { variant: 'login' | 'signup' }) {
               className="text-2xl italic leading-snug mb-5"
               style={{ fontFamily: 'var(--font-serif)', color: 'oklch(92% 0.01 255)' }}
             >
-              &ldquo;Turn your experience into evidence.&rdquo;
+              &ldquo;One résumé. Your whole job search, connected.&rdquo;
             </motion.blockquote>
           ) : (
             <motion.div
@@ -128,16 +109,13 @@ export function AuthAside({ variant }: { variant: 'login' | 'signup' }) {
   )
 }
 
-function ProofScoreCard({ score }: { score: number }) {
-  const R = 30
-  const C = 2 * Math.PI * R
-  const pct = score / 100
+function CareerWorkspaceCard() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
-      className="relative w-80 rounded-2xl p-6 space-y-5"
+      className="relative w-80 rounded-2xl p-6 space-y-4"
       style={{
         background: 'oklch(13% 0.008 255 / 0.7)',
         backdropFilter: 'blur(20px)',
@@ -145,49 +123,38 @@ function ProofScoreCard({ score }: { score: number }) {
         boxShadow: '0 24px 70px oklch(0% 0 0 / 0.5), inset 0 1px 0 oklch(97% 0.004 255 / 0.06)',
       }}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs mb-1" style={{ color: 'oklch(66% 0.012 255)' }}>Evidence score</p>
-          <p className="text-5xl font-bold tabular-nums text-foreground tracking-tight">{score}</p>
-          <p className="text-xs font-semibold mt-1" style={{ color: 'oklch(72% 0.16 162)' }}>Strong</p>
-        </div>
-        <svg viewBox="0 0 80 80" className="w-20 h-20 -rotate-90">
-          <circle cx="40" cy="40" r={R} fill="none" stroke="oklch(26% 0.012 255)" strokeWidth="7" />
-          <motion.circle
-            cx="40" cy="40" r={R} fill="none" stroke="url(#aside-ring)" strokeWidth="7" strokeLinecap="round"
-            strokeDasharray={C}
-            initial={{ strokeDashoffset: C }}
-            animate={{ strokeDashoffset: C * (1 - pct) }}
-            transition={{ duration: 1.6, ease: EASE, delay: 0.2 }}
-          />
-          <defs>
-            <linearGradient id="aside-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="oklch(63% 0.200 255)" />
-              <stop offset="100%" stopColor="oklch(62% 0.20 295)" />
-            </linearGradient>
-          </defs>
-        </svg>
+      <div>
+        <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'oklch(66% 0.012 255)' }}>
+          Your workspace
+        </p>
+        <p className="text-xl font-semibold text-foreground leading-tight">
+          Pick up your job search where you left off.
+        </p>
       </div>
-      <div className="space-y-2.5">
-        {BARS.map(({ label, score: s, color }, i) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className="text-xs w-28 shrink-0" style={{ color: 'oklch(58% 0.008 255)' }}>{label}</span>
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'oklch(22% 0.010 255)' }}>
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: color }}
-                initial={{ width: 0 }}
-                animate={{ width: `${s}%` }}
-                transition={{ duration: 0.9, ease: EASE, delay: 0.5 + i * 0.12 }}
-              />
+      <div className="grid grid-cols-2 gap-2.5">
+        {WORKSPACE_ITEMS.map(({ icon: Icon, label, detail, color }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: EASE, delay: 0.35 + i * 0.1 }}
+            className="rounded-xl p-3"
+            style={{ background: 'oklch(18% 0.009 255 / 0.72)', border: '1px solid oklch(25% 0.012 255)' }}
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: color.replace(')', ' / 0.12)') }}>
+              <Icon className="h-4 w-4" style={{ color }} />
             </div>
-            <span className="text-xs font-medium w-6 text-right tabular-nums text-foreground">{s}</span>
-          </div>
+            <p className="text-xs font-semibold text-foreground mb-0.5">{label}</p>
+            <p className="text-[10px] leading-snug" style={{ color: 'oklch(58% 0.008 255)' }}>{detail}</p>
+          </motion.div>
         ))}
       </div>
-      <p className="text-xs pt-3" style={{ color: 'oklch(60% 0.012 255)', borderTop: '1px solid oklch(22% 0.010 255)' }}>
-        Your score is calculated across 11 hiring categories
-      </p>
+      <div className="flex items-start gap-2 pt-3" style={{ borderTop: '1px solid oklch(22% 0.010 255)' }}>
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" style={{ color: 'oklch(72% 0.16 162)' }} />
+        <p className="text-xs leading-relaxed" style={{ color: 'oklch(60% 0.012 255)' }}>
+          AI suggestions start with your source material and stay yours to review.
+        </p>
+      </div>
     </motion.div>
   )
 }

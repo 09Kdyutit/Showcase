@@ -1,28 +1,31 @@
 'use client'
 
 import { useRef } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import { BarChart3, FileText, Briefcase, MessageSquare, Search, TrendingUp, Sparkles, CheckCircle2 } from 'lucide-react'
-import { ProofScoreRing } from '@/components/ui/proof-score-ring'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import {
+  BarChart3,
+  FileText,
+  Briefcase,
+  MessageSquare,
+  Search,
+  TrendingUp,
+  CheckCircle2,
+  Trophy,
+  Globe2,
+  Send,
+} from 'lucide-react'
+import { usePrefersReducedMotion } from '@/components/landing/animated-section'
 
-// The below-hero showstopper: a full product frame rendered in real perspective that
-// un-tilts and rises as you scroll into it (the Linear/Arc move), ringed by floating
-// live-status chips, followed by serif count-up stats. All demonstration data.
+// A broad, illustrative product frame rendered in real perspective. It presents
+// Showcase as one connected career workspace rather than centering a single score.
 
 const MINI_NAV = [
-  { icon: BarChart3, label: 'Dashboard', active: true },
+  { icon: BarChart3, label: 'Workspace', active: true },
   { icon: FileText, label: 'Resume' },
   { icon: Briefcase, label: 'Portfolio' },
-  { icon: TrendingUp, label: 'Evidence Audit' },
   { icon: Search, label: 'Jobs' },
   { icon: MessageSquare, label: 'Interview Lab' },
-]
-
-const CATEGORY_BARS = [
-  { name: 'Evidence strength', score: 86, color: 'oklch(72% 0.17 160)' },
-  { name: 'Project depth', score: 74, color: 'oklch(72% 0.17 160)' },
-  { name: 'Role alignment', score: 68, color: 'oklch(80% 0.15 85)' },
-  { name: 'Keyword support', score: 91, color: 'oklch(72% 0.17 160)' },
+  { icon: Trophy, label: 'Opportunities' },
 ]
 
 function FloatingChip({
@@ -50,9 +53,53 @@ function FloatingChip({
   )
 }
 
+function WorkspaceCard({
+  icon: Icon,
+  eyebrow,
+  title,
+  children,
+  className = '',
+  accent = 'oklch(70% 0.17 255)',
+}: {
+  icon: typeof Briefcase
+  eyebrow: string
+  title: string
+  children: React.ReactNode
+  className?: string
+  accent?: string
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-xl p-3.5 ${className}`}
+      style={{
+        background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 22%, var(--color-surface-100)))',
+        border: '1px solid color-mix(in oklch, var(--color-brand-500) 18%, var(--color-border))',
+      }}
+    >
+      <div
+        className="absolute -right-6 -top-7 h-20 w-20 rounded-full opacity-15"
+        style={{ background: accent, filter: 'blur(18px)' }}
+      />
+      <div className="relative flex items-start gap-2.5">
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: `color-mix(in oklch, ${accent} 14%, transparent)`, color: accent }}
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.18em]" style={{ color: accent }}>{eyebrow}</p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground">{title}</p>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ProductShowcase() {
   const ref = useRef<HTMLDivElement>(null)
-  const reduce = useReducedMotion()
+  const reduce = usePrefersReducedMotion()
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'center 0.55'],
@@ -74,19 +121,20 @@ export function ProductShowcase() {
           style={reduce ? undefined : { rotateX, scale, opacity, transformStyle: 'preserve-3d' }}
           className="relative rounded-2xl"
         >
-          {/* Floating live chips — anchored to the frame itself so they ride its corners */}
+          {/* Floating capability chips — illustrative, not user activity or traction. */}
           <FloatingChip className="-top-4 left-10" delay={0.4}>
             <span className="w-2 h-2 rounded-full" style={{ background: 'oklch(72% 0.17 160)', boxShadow: '0 0 8px oklch(72% 0.17 160)' }} />
-            <span className="text-foreground/90">Portfolio draft: <span style={{ color: 'oklch(72% 0.17 160)' }}>Ready to review</span></span>
+            <span className="text-foreground/90">Resume parsed → <span style={{ color: 'oklch(72% 0.17 160)' }}>portfolio ready to edit</span></span>
           </FloatingChip>
           <FloatingChip className="top-20 -right-7" delay={1.6}>
-            <Sparkles className="h-3.5 w-3.5" style={{ color: 'oklch(70% 0.17 255)' }} />
-            <span className="text-foreground/90">Pro publishing preview → <span style={{ color: 'oklch(70% 0.17 255)' }}>/p/your-name</span></span>
+            <Globe2 className="h-3.5 w-3.5" style={{ color: 'oklch(70% 0.17 255)' }} />
+            <span className="text-foreground/90">Pro publishing → <span style={{ color: 'oklch(70% 0.17 255)' }}>live link + preview card</span></span>
           </FloatingChip>
           <FloatingChip className="-bottom-4 left-1/3" delay={2.8}>
             <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'oklch(72% 0.17 160)' }} />
-            <span className="text-foreground/90">11 evidence categories reviewed</span>
+            <span className="text-foreground/90">Application drafts stay grounded in your experience</span>
           </FloatingChip>
+
           {/* Frame */}
           <div
             className="relative rounded-2xl overflow-hidden"
@@ -115,7 +163,7 @@ export function ProductShowcase() {
               <div className="w-14" />
             </div>
 
-            <div className="flex" style={{ minHeight: '380px' }}>
+            <div className="flex" style={{ minHeight: '430px' }}>
               {/* Mini sidebar */}
               <div
                 className="hidden sm:flex flex-col gap-1 w-40 shrink-0 p-3"
@@ -147,94 +195,121 @@ export function ProductShowcase() {
               </div>
 
               {/* Main panel */}
-              <div className="flex-1 p-5 space-y-4 relative overflow-hidden">
+              <div className="flex-1 p-4 sm:p-5 space-y-3 relative overflow-hidden">
                 <div className="pointer-events-none absolute inset-0 aurora-mesh opacity-30" />
                 <div className="relative">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'oklch(63% 0.20 255)' }}>Dashboard</p>
-                  <p className="text-display text-xl font-semibold text-foreground">Hey, you.</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'oklch(62% 0.02 258)' }}>Illustrative evidence score: 87, with gaps listed below.</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'oklch(63% 0.20 255)' }}>Your career workspace</p>
+                  <p className="text-display text-xl font-semibold text-foreground">From resume to portfolio, applications, and interviews.</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'oklch(68% 0.02 258)' }}>One source of truth for the work you&apos;ve actually done.</p>
                 </div>
 
-                <div className="relative grid grid-cols-3 gap-3">
-                  <div
-                    className="rounded-xl p-3 flex items-center justify-center col-span-1"
-                    style={{
-                      background: 'linear-gradient(135deg, var(--color-surface-100), color-mix(in oklch, var(--color-brand-900) 35%, var(--color-surface-100)))',
-                      border: '1px solid color-mix(in oklch, var(--color-brand-500) 22%, var(--color-border))',
-                    }}
+                <div className="relative grid grid-cols-2 md:grid-cols-6 gap-2.5">
+                  <WorkspaceCard
+                    icon={Briefcase}
+                    eyebrow="Portfolio"
+                    title="Editable case studies"
+                    className="col-span-2 md:col-span-3"
                   >
-                    <ProofScoreRing score={87} size="sm" animate showLabel={false} />
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    {CATEGORY_BARS.map(({ name, score, color }) => (
-                      <div key={name} className="flex items-center gap-2.5">
-                        <span className="text-[10px] w-24 shrink-0 truncate" style={{ color: 'oklch(64% 0.02 258)' }}>{name}</span>
-                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-surface-300)' }}>
-                          <motion.div
-                            className="h-full rounded-full"
-                            style={{ background: color }}
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${score}%` }}
-                            viewport={{ once: true, amount: 0.6 }}
-                            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold w-5 text-right stat-number" style={{ color }}>{score}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="relative grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Portfolio drafts', value: '2 saved' },
-                    { label: 'Saved jobs', value: '4 tracked' },
-                    { label: 'Practice sessions', value: '5 completed' },
-                  ].map(({ label, value }) => (
-                    <div
-                      key={label}
-                      className="rounded-xl p-3"
-                      style={{ background: 'var(--color-surface-100)', border: '1px solid var(--color-border)' }}
-                    >
-                      <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'oklch(58% 0.02 258)' }}>{label}</p>
-                      <p className="text-sm font-bold text-foreground">{value}</p>
+                    <p className="mt-1.5 text-[10px] leading-relaxed" style={{ color: 'oklch(72% 0.02 258)' }}>
+                      Turn your real work into scannable projects, then refine every section.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {['Themes', 'Images', 'Quality checklist'].map((item) => (
+                        <span key={item} className="rounded-md px-1.5 py-0.5 text-[8px]" style={{ background: 'var(--color-surface-300)', color: 'oklch(78% 0.02 258)' }}>{item}</span>
+                      ))}
                     </div>
-                  ))}
+                  </WorkspaceCard>
+
+                  <WorkspaceCard
+                    icon={Search}
+                    eyebrow="Job match + application kit"
+                    title="Ranked against your actual experience"
+                    className="col-span-2 md:col-span-3"
+                    accent="oklch(72% 0.17 160)"
+                  >
+                    <p className="mt-1.5 text-[10px] leading-relaxed" style={{ color: 'oklch(72% 0.02 258)' }}>
+                      See the evidence behind each match, then tailor your resume, cover letter, and outreach draft.
+                    </p>
+                    <div className="mt-2 flex items-center gap-1.5 text-[8px] font-medium" style={{ color: 'oklch(80% 0.10 160)' }}>
+                      <CheckCircle2 className="h-3 w-3" /> Claims stay reviewable before you send
+                    </div>
+                  </WorkspaceCard>
+
+                  <WorkspaceCard
+                    icon={MessageSquare}
+                    eyebrow="Interview Lab"
+                    title="Practice, coach, improve"
+                    className="col-span-2 md:col-span-2"
+                    accent="oklch(78% 0.15 85)"
+                  >
+                    <p className="mt-1.5 text-[9px] leading-relaxed" style={{ color: 'oklch(72% 0.02 258)' }}>
+                      Written practice with per-answer coaching. Voice when enabled.
+                    </p>
+                  </WorkspaceCard>
+
+                  <WorkspaceCard
+                    icon={Trophy}
+                    eyebrow="Opportunities"
+                    title="Build new experience"
+                    className="col-span-1 md:col-span-2"
+                    accent="oklch(72% 0.14 310)"
+                  >
+                    <p className="mt-1.5 text-[9px] leading-relaxed" style={{ color: 'oklch(72% 0.02 258)' }}>
+                      Hackathons, CTFs, and coding competitions.
+                    </p>
+                  </WorkspaceCard>
+
+                  <WorkspaceCard
+                    icon={TrendingUp}
+                    eyebrow="Evidence Audit"
+                    title="11-category Pro review"
+                    className="col-span-1 md:col-span-2"
+                    accent="oklch(74% 0.13 195)"
+                  >
+                    <p className="mt-1.5 text-[9px] leading-relaxed" style={{ color: 'oklch(72% 0.02 258)' }}>
+                      Specific fixes, with unsupported gaps left visible.
+                    </p>
+                  </WorkspaceCard>
                 </div>
 
                 <div
-                  className="relative rounded-xl p-3 flex items-center gap-3"
+                  className="relative rounded-xl px-3.5 py-2.5 flex flex-col gap-2 sm:flex-row sm:items-center"
                   style={{
-                    background: 'color-mix(in oklch, var(--color-brand-500) 8%, var(--color-surface-100))',
-                    border: '1px solid color-mix(in oklch, var(--color-brand-500) 24%, transparent)',
+                    background: 'color-mix(in oklch, var(--color-brand-500) 9%, var(--color-surface-100))',
+                    border: '1px solid color-mix(in oklch, var(--color-brand-500) 26%, transparent)',
                   }}
                 >
-                  <Sparkles className="h-4 w-4 shrink-0" style={{ color: 'oklch(70% 0.17 255)' }} />
-                  <p className="text-xs" style={{ color: 'oklch(78% 0.01 255)' }}>
-                    <span className="font-semibold text-foreground">Next suggested action:</span> add a verified metric to strengthen the dashboard case study&apos;s evidence.
-                  </p>
+                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <Globe2 className="h-4 w-4 shrink-0" style={{ color: 'oklch(70% 0.17 255)' }} />
+                    <div className="min-w-0">
+                      <p className="text-[8px] font-semibold uppercase tracking-[0.18em]" style={{ color: 'oklch(70% 0.17 255)' }}>Pro publishing</p>
+                      <p className="truncate text-[10px] text-foreground">Publish a live portfolio link with its own preview card.</p>
+                    </div>
+                  </div>
+                  <span className="flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-semibold" style={{ background: 'var(--color-brand-500)', color: 'white' }}>
+                    <Send className="h-3 w-3" /> Publish when ready
+                  </span>
                 </div>
 
                 <p className="relative text-right text-[9px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
-                  Fictional demonstration data
+                  Illustrative product view
                 </p>
               </div>
             </div>
           </div>
         </motion.div>
-
       </div>
 
-      {/* Serif stats — numbers always in the markup, motion only accents them */}
+      {/* Product facts, not fabricated usage or outcome statistics. */}
       <div className="max-w-6xl mx-auto mt-20">
         <hr className="divider-dashed" />
         <div className="py-14 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { n: '11', suffix: '', label: 'audit categories' },
-            { n: '5', suffix: ' min', label: 'average setup time' },
-            { n: '1', suffix: ' link', label: 'to share everything' },
-            { n: '0', suffix: '', label: 'fabrications. ever.' },
-          ].map(({ n, suffix, label }, i) => (
+            { value: 'PDF · DOCX · paste', label: 'resume inputs' },
+            { value: '11 dimensions', label: 'Evidence Audit' },
+            { value: 'Written + voice*', label: 'interview practice' },
+            { value: 'Free', label: 'build before you publish' },
+          ].map(({ value, label }, i) => (
             <motion.div
               key={label}
               className="group"
@@ -244,17 +319,17 @@ export function ProductShowcase() {
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: i * 0.09 }}
             >
               <p
-                className="text-display font-semibold mb-1.5 tabular-nums transition-transform duration-300 group-hover:scale-105"
-                style={{ fontSize: 'clamp(2.25rem, 5vw, 3.5rem)' }}
+                className="text-display font-semibold mb-1.5 transition-transform duration-300 group-hover:scale-105"
+                style={{ fontSize: 'clamp(1.45rem, 3.2vw, 2.4rem)' }}
               >
-                <span className="gradient-text">
-                  {n}
-                  <em style={{ fontStyle: 'italic' }}>{suffix}</em>
-                </span>
+                <span className="gradient-text">{value}</span>
               </p>
               <p className="text-xs uppercase tracking-widest" style={{ color: 'oklch(65% 0.022 258)' }}>
                 {label}
               </p>
+              {label === 'interview practice' ? (
+                <p className="mt-1 text-[9px]" style={{ color: 'oklch(58% 0.02 258)' }}>* Voice when enabled</p>
+              ) : null}
             </motion.div>
           ))}
         </div>

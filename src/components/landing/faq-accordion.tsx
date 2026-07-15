@@ -6,44 +6,56 @@ import { cn } from '@/lib/utils'
 
 const FAQS = [
   {
+    q: 'What can I actually do in Showcase?',
+    a: 'Start with a PDF, DOCX, or pasted resume. Build and edit a portfolio, audit it, compare your experience with roles, prepare tailored application materials, check ATS compatibility, export resumes, practice interviews, and find opportunities such as hackathons and competitions. When you are ready to share, Pro adds live portfolio publishing.',
+  },
+  {
     q: 'Does Showcase guarantee I will get hired or get interviews?',
     a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.',
   },
   {
-    q: 'Will Showcase invent experience I do not have?',
-    a: 'Never. Our AI only works with what you provide. It rewrites and improves how you present real experience, but it will never fabricate metrics, employers, projects, or certifications. When evidence is missing, we tell you exactly what to add - we do not fill it in.',
+    q: 'How does Showcase keep AI drafts grounded in my experience?',
+    a: 'Showcase is designed to draft from the resume, job description, and details you provide, and to flag unsupported gaps instead of asking you to exaggerate. AI can still make mistakes, so every portfolio, resume, cover letter, and outreach draft stays editable and should be reviewed before you use it.',
   },
   {
     q: 'How does the evidence audit work?',
-    a: 'Showcase reviews your portfolio across 11 hiring-readiness categories, including first-impression clarity, target-role alignment, evidence strength, project depth, case-study quality, credibility signals, contact readiness, keyword relevance, and presentation clarity. Each category shows what is weak and how to fix it.',
+    a: 'The Evidence Audit produces a 0–100 score and specific fixes based on your uploaded resume and target role. Free shows the overall score and core category feedback. Pro unlocks the full 11-category breakdown and higher daily limits. It is guidance, not a hiring prediction.',
   },
   {
-    q: 'Who can see my portfolio?',
-    a: 'Your portfolio is private by default. Only you can see it while it is in draft mode. When you publish (Pro feature), it becomes available at /p/your-name. You can unpublish at any time and it immediately becomes private again.',
+    q: 'Are the jobs and match scores real?',
+    a: 'Showcase can search configured job inventory, and it clearly labels demo listings whenever the live provider is unavailable. You can also import a job description yourself. Match scores compare the role content with your documented experience; they do not predict whether you will be hired. The personalized For You feed and full match explanations are Pro features.',
+  },
+  {
+    q: 'Does Tailor Studio submit applications for me?',
+    a: 'No. Tailor Studio creates a role-specific application kit from your source material, including an editable resume, cover letter, recruiter note, and interview brief. You review the output, choose what to keep, export it, and submit the application yourself.',
+  },
+  {
+    q: 'What interview practice is available?',
+    a: 'Written mock interviews can use your target role, company, saved job, and experience when that context is available. They include per-answer feedback, targeted drills, and a Story Bank for reusable examples. Voice or recorded practice is a Pro capability when voice is enabled for your account; otherwise Showcase shows written mode.',
   },
   {
     q: 'What is the difference between Free and Pro?',
-    a: 'Free gives you resume parsing, one AI portfolio generation, one 11-category evidence audit per day, draft building and editing, and useful daily AI limits. Pro ($15/month or $150/year) adds live publishing, portfolio regeneration, higher limits, voice interviews, personalized job tools, and standalone HTML export.',
+    a: 'Free requires no card and includes resume parsing, one AI portfolio generation, draft editing and private preview, a daily Evidence Audit with core feedback, demo job browsing, role import, a basic match score, written interview practice, and daily ATS tools within Free limits. Pro is $15/month or $150/year and adds live publishing with a preview card, regeneration, the full audit breakdown, higher limits, Tailor Studio, personalized job tools, standalone HTML export, and voice or recorded interview allowance when enabled.',
+  },
+  {
+    q: 'Who can see my portfolio and shared reports?',
+    a: 'Your portfolio is private in draft mode. Publishing it at /p/your-name is a Pro feature, and you can unpublish it again. Shared Evidence Audit and interview summaries use token-protected, privacy-limited links rather than exposing your resume or full private report.',
+  },
+  {
+    q: 'How do referral invites and bonus AI credits work?',
+    a: 'Completing your first portfolio unlocks three member invites. A referred friend starts with 5 bonus AI credits, and you earn 5 credits only after that friend completes a first portfolio—not just for sharing the link. Credits extend eligible Free AI usage; they do not unlock Pro-only features.',
   },
   {
     q: 'Will my resume sound AI-generated?',
-    a: 'Showcase writes from your real experience and your existing phrasing, then gives you every change to review. It avoids generic filler and never invents facts. No product can honestly guarantee how an AI detector will classify a document, so Showcase focuses on specific, authentic writing that sounds like you - not on gaming detection systems.',
+    a: 'Showcase drafts from your source material and gives you the output to review and edit. No product can honestly guarantee how an AI detector will classify a document, so Showcase focuses on specific, user-reviewed writing rather than gaming detection systems.',
   },
   {
     q: 'Is the resume ATS-friendly?',
-    a: 'Showcase exports clean, selectable-text resumes using standard sections and simple layouts. The built-in ATS check flags common parsing risks, missing keywords, unsupported claims, and formatting issues before export. Applicant-tracking systems vary, so Showcase is designed for ATS compatibility rather than claiming guaranteed passage through every system.',
-  },
-  {
-    q: 'Will Showcase add keywords I do not actually have?',
-    a: 'No. Showcase separates supported keywords from genuine skill gaps. It can prioritize verified experience, but it will never claim a skill, credential, or result you have not provided. The Truth Ledger shows the source of every statement in your tailored resume.',
-  },
-  {
-    q: 'Does Role Match predict whether I will get hired?',
-    a: 'No. Role Match evaluates how closely your documented experience and evidence align with a job description. It is labeled "role-content match" - not a hiring prediction. Hiring decisions depend on many factors beyond a resume or portfolio.',
+    a: 'Showcase exports selectable-text resumes using standard sections and simple layouts in PDF and DOCX. The ATS check flags common parsing risks, missing keywords, unsupported claims, and formatting issues before export. Applicant-tracking systems vary, so compatibility is the goal—not a guarantee that every system will pass a document.',
   },
   {
     q: 'How does Showcase handle my resume data?',
-    a: 'Your resume is sent to the service providers listed in our Privacy Policy only when needed to parse, generate, or improve your content. Showcase does not sell it, and API data is not used to train OpenAI models. You own your data and can delete your account and stored materials from settings.',
+    a: 'Your resume is sent to the service providers listed in the Privacy Policy only when needed to parse, generate, or improve your content. Showcase does not sell it, and OpenAI API data is not used to train OpenAI models. From Settings, you can download a career packet containing your latest resume text, latest audit report, and published portfolio links when available, or confirm permanent account deletion. Any limited retention exceptions are described in the Privacy Policy.',
   },
   {
     q: 'Can I cancel my subscription anytime?',

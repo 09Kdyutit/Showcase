@@ -25,9 +25,9 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '/#built-for', label: "Who it's for" },
-    { href: '/#how-it-works', label: 'How it works' },
-    { href: '/#faq', label: 'FAQ' },
+    { href: '/#how-it-works', label: 'Product tour' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/for-career-services', label: 'Career services' },
   ]
 
   return (
@@ -76,7 +76,7 @@ export function Navbar() {
                 <Button asChild variant="gradient" size="md" className="gap-1.5">
                   <Link href="/signup">
                     <Zap className="h-3.5 w-3.5" />
-                    Get started
+                    Start free
                   </Link>
                 </Button>
               </>
@@ -120,7 +120,7 @@ export function Navbar() {
                 <Button asChild variant="gradient" className="gap-1.5">
                   <Link href="/signup">
                     <Zap className="h-3.5 w-3.5" />
-                    Get started
+                    Start free
                   </Link>
                 </Button>
               </>

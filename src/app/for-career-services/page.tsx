@@ -9,11 +9,11 @@ import { Badge } from '@/components/ui/badge'
 export const metadata: Metadata = {
   title: 'For Career Services Teams',
   description:
-    'Showcase helps your students turn résumés and projects into evidence-backed portfolios, with a concrete evidence audit instead of generic AI text. No fabricated experience, no inflated claims.',
+    'Showcase gives students one workspace to turn a resume into an editable portfolio, prepare applications, practice interviews, and improve career materials without handing control to generic AI.',
   alternates: { canonical: '/for-career-services' },
   openGraph: {
     title: 'Showcase for Career Services Teams',
-    description: 'Give students a structured way to turn real coursework and internships into proof, with no fabrication risk.',
+    description: 'Help students move from resume import to portfolio, applications, and interview practice in one connected workspace.',
     url: '/for-career-services',
   },
 }
@@ -25,21 +25,21 @@ export default function CareerServicesPage() {
       <main className="pt-24 pb-32 px-4 sm:px-6 max-w-4xl mx-auto">
         <Badge variant="outline" className="mb-4">For institutions</Badge>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-6 text-balance">
-          Help every student turn their work into evidence - not just a nicer-looking résumé
+          Give students one place to build the portfolio, applications, and interview skills behind a job search
         </h1>
         <p className="text-muted-foreground text-lg leading-relaxed mb-12 max-w-2xl">
           Career services teams spend a limited number of advising hours across hundreds of
-          students. Showcase gives students a structured first pass - a portfolio draft and an
-          honest audit of what is missing - so your advisors can spend their time on judgment
-          calls, not formatting and missing-metric triage.
+          students. Showcase gives each student a structured workspace built from the resume
+          they already have: an editable portfolio, role and application tools, written
+          interview practice, and specific feedback they can bring into an advising session.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-4 mb-16">
           {[
-            'Students upload a résumé and get a structured portfolio draft, not a blank page to start from.',
-            'The evidence audit flags specific, concrete gaps (e.g. "3 of 8 bullets have no measurable outcome") your advisors can act on directly.',
-            'Nothing is fabricated - Showcase will not invent an internship, metric, or skill a student does not have.',
-            'Drafts stay private. Live sharing is available only when publishing is enabled on a Pro account.',
+            'Import a PDF or DOCX resume, or paste text, then generate a portfolio draft students can fully edit.',
+            'Use Evidence Audit to identify concrete improvement areas instead of treating one generic score as the answer.',
+            'Compare roles with existing experience, create application kits, and keep the final review and submission with the student.',
+            'Practice written, role-aware interview questions with per-answer coaching and drills.',
           ].map((s) => (
             <div key={s} className="glass-card p-5 text-sm text-muted-foreground leading-relaxed">{s}</div>
           ))}
@@ -51,40 +51,44 @@ export default function CareerServicesPage() {
             <div>
               <p className="text-sm font-semibold text-foreground mb-1">A boundary worth stating plainly</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Showcase is not designed to fabricate credentials, inflate achievements, or
-                mass-produce generic applications. If a student has no measurable outcome for a
-                project, Showcase says so - it does not invent one. That is the same behavior
-                whether a student finds Showcase on their own or through your program.
+                Showcase uses student-provided career material as the source for AI-assisted
+                suggestions. Students review and can edit the output. Unsupported details should
+                not be added; gaps are surfaced for the student or advisor to resolve. Draft
+                portfolios stay private, and live portfolio publishing is a Pro feature the
+                student must choose to use.
               </p>
             </div>
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold tracking-tight mb-6">What this is not</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-6">What stays in the student&apos;s hands</h2>
         <ul className="space-y-2.5 text-sm text-muted-foreground mb-16">
           <li className="flex items-start gap-3">
             <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
-            Not a guarantee of placement, interviews, or any specific hiring outcome for your students.
+            They review and edit AI-assisted portfolio, resume, and application material before using it.
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
-            Not a replacement for advisor judgment - the evidence audit flags gaps, it does not coach.
+            They decide which roles to pursue and submit their own applications; Showcase does not apply on their behalf.
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
-            Not a current LinkedIn or campus career-system integration - students bring their résumé directly.
+            They control whether a portfolio remains private or is published with Pro, and can unpublish it later.
+          </li>
+          <li className="flex items-start gap-3">
+            <CheckCircle2 className="h-4 w-4 text-brand-400 shrink-0 mt-0.5" />
+            No placement, interview, or employment outcome is guaranteed.
           </li>
         </ul>
 
         <div className="glass-card p-8 text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Showcase is early, and we have not yet built dedicated cohort or
-            institutional tooling. If you want to explore Showcase for your students, tell us
-            about your program and we will follow up directly.
+            Dedicated cohort and institutional administration tools are not available yet.
+            You can explore the same Free student workspace today with no credit card.
           </p>
           <Button asChild variant="gradient" size="lg" className="gap-2 shadow-glow">
-            <Link href="/waitlist">
-              Tell us about your program
+            <Link href="/signup">
+              Explore the student workspace
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

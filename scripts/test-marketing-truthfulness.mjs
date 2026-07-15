@@ -7,6 +7,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const PUBLIC_DIRS = [
+  'src/app/layout.tsx',
   'src/app/page.tsx',
   'src/app/waitlist',
   'src/app/pricing',
@@ -21,6 +22,7 @@ const PUBLIC_DIRS = [
   'src/app/demo/(app)/billing',
   'src/app/opengraph-image.tsx',
   'src/components/landing',
+  'src/components/auth',
   'src/components/billing',
   'src/components/referrals',
   'src/components/shared/navbar.tsx',
@@ -107,8 +109,68 @@ for (const file of files) {
   }
 }
 
+// Positioning contract: truthfulness is not only the absence of hype. The public
+// surface must continue to describe the actual connected product instead of
+// collapsing Showcase back into a single audit/score feature.
+const positioningSurface = [
+  'src/lib/marketing/positioning.ts',
+  'src/app/layout.tsx',
+  'src/app/page.tsx',
+  'src/app/waitlist/layout.tsx',
+  'src/app/waitlist/page.tsx',
+  'src/app/pricing/page.tsx',
+  'src/components/landing/hero-section.tsx',
+  'src/components/landing/product-showcase.tsx',
+  'src/components/landing/feature-bento.tsx',
+  'src/components/landing/how-it-works.tsx',
+  'src/components/landing/faq-accordion.tsx',
+  'src/components/landing/trust-section.tsx',
+].map((file) => readFileSync(file, 'utf8')).join('\n')
+
+const REQUIRED_POSITIONING = [
+  { label: 'connected job-search category', pattern: /whole job search, connected/i },
+  { label: 'PDF and DOCX resume inputs', pattern: /PDF.{0,50}DOCX/is },
+  { label: 'pasted resume input', pattern: /paste(?:d|\s+text)/i },
+  { label: 'editable portfolio', pattern: /editable.{0,80}portfolio|portfolio.{0,80}editable/is },
+  { label: 'Evidence Audit as a product feature', pattern: /Evidence Audit/i },
+  { label: '0-100 audit range', pattern: /0\s*[–-]\s*100|0-100/i },
+  { label: 'Pro 11-category audit', pattern: /Pro.{0,100}11-category|11-category.{0,100}Pro/is },
+  { label: 'application kit', pattern: /application kit/i },
+  { label: 'ATS readiness tooling', pattern: /ATS/i },
+  { label: 'written interview practice', pattern: /written.{0,80}interview|interview.{0,80}written/is },
+  { label: 'voice feature qualification', pattern: /voice.{0,60}when enabled/is },
+  { label: 'opportunities breadth', pattern: /hackathons?.{0,80}CTF/is },
+  { label: 'referral invites', pattern: /referral invites|friend invites|member invites/i },
+  { label: 'token-protected sharing', pattern: /token-protected/i },
+  { label: 'career-packet export scope', pattern: /career packet/i },
+  { label: 'account deletion control', pattern: /account deletion|delete your account/i },
+  { label: 'Free no-card plan', pattern: /Free.{0,120}(?:no card|no credit card)|(?:no card|no credit card).{0,120}Free/is },
+  { label: 'monthly Pro price', pattern: /\$15\s*\/\s*month/i },
+  { label: 'annual Pro price', pattern: /\$150\s*\/\s*year/i },
+  { label: 'Pro-only live publishing', pattern: /Pro.{0,100}publish|publish.{0,100}Pro/is },
+]
+
+for (const { label, pattern } of REQUIRED_POSITIONING) {
+  if (!pattern.test(positioningSurface)) {
+    console.log(`  ❌ positioning contract — missing ${label}`)
+    violations++
+  }
+}
+
+for (const { label, pattern } of [
+  { label: 'retired claims-to-evidence hero', pattern: /Your résumé lists claims/i },
+  { label: 'retired proof-engine category', pattern: /proof engine/i },
+  { label: 'AI-infallibility claim', pattern: /cannot invent anything|can(?:not|'t) invent anything/i },
+  { label: 'false Free full-audit entitlement', pattern: /Free[^.\n]{0,120}(?:includes?|gets?|unlocks?)[^.\n]{0,80}(?:full|complete) 11-category audit/is },
+]) {
+  if (pattern.test(positioningSurface)) {
+    console.log(`  ❌ positioning contract — found ${label}`)
+    violations++
+  }
+}
+
 if (violations === 0) {
-  console.log('  ✅ No banned claim patterns found across all public-facing files.')
+  console.log('  ✅ No banned claims found, and the connected-product positioning contract is intact.')
 } else {
   console.log(`\n  ${violations} violation(s) found. Rewrite before shipping.`)
 }

@@ -1,57 +1,58 @@
 # Product Marketing Context
 
-*Last updated: 2026-07-09*
+*Last updated: 2026-07-14*
 
-This file records only founder-confirmed operating facts. It does not invent audience,
-positioning, proof, or customer claims that have not been separately validated.
+## Positioning
 
-## Business and product scope
+**Category:** AI portfolio builder and connected early-career job-search workspace.
 
-- Legal/business name: Showcase
-- Public founder: Kumar Dyutit
-- Product type: web application
-- Native iOS/Android apps and mobile-store distribution are not part of the product or
-  release scope.
+**Headline:** One résumé. Your whole job search, connected.
 
-## Market
+**Primary CTA:** Build my portfolio free.
 
-- Available to English-speaking users worldwide.
-- Marketing emphasis is the United States, but the product must not be described or
-  configured as US-only.
-- There is no launch geo-restriction.
+Lead with the complete workflow: résumé import → editable portfolio → role matching and application materials → interview practice → opportunities → Pro publishing and sharing. Evidence Audit is one authenticated improvement feature, not the product category or a public lead magnet.
 
-## Launch and monetization
+## Audience
 
-- Launch mode: closed beta.
-- Starting admission pace: 10 waitlist invites per day.
-- AI operating budget: USD 5 per day and USD 100 per month.
-- Founding offer: 10 spots at USD 99/year.
-- The Founding offer stays unavailable until Stripe test-mode verification passes.
+- Primary: final-year students, new graduates, and 0–2 year professionals in tech and tech-adjacent roles.
+- Secondary: career switchers with relevant transferable experience and university career-services teams.
+- Emotional job: feel prepared and credible without overstating real experience.
 
-## Contact and email
+## Verified Product Claims
 
-- Support and privacy: hello@tryshowcase.ink
-- Inbound reply forwarding: hello@tryshowcase.ink
-- Weekly growth scorecard: kumar.dyutit09@gmail.com
-- Valid sender postal address: unresolved.
-- Commercial and lifecycle email delivery must remain disabled until a valid physical
-  postal address is configured and the email provider, unsubscribe, bounce, complaint,
-  and suppression checks pass.
+- Import PDF, DOCX, TXT, or pasted résumé text and parse it with AI.
+- Generate an editable case-study portfolio draft in minutes.
+- Edit copy, 40 themes, accent colors, headshot/hero/project images, and a quality checklist.
+- Evidence Audit calculates a 0–100 score across 11 dimensions with specific explanations and fixes.
+- Browse available jobs or import a description; personalized recommendations are Pro and provider fallback listings may be demonstrations.
+- Generate a role-specific application kit, cover letter, and outreach draft. Showcase does not submit applications.
+- Run ATS-readiness checks and export résumés as PDF or DOCX.
+- Use written mock interviews, per-answer coaching, drills, and a private Story Bank. Voice is marketed only when the production flag is enabled.
+- Find hackathons, CTFs, coding competitions, and other experience-building opportunities.
+- Publish a live portfolio and preview card with Pro.
+- After a first generated portfolio, earn three referral invites; the referred friend gets five consumable AI credits, and the inviter gets five only after the friend generates a first portfolio.
+- Share privacy-limited, token-protected Audit and interview summaries; download a scoped career packet; confirm account deletion from Settings subject to disclosed limited retention.
 
-## Distribution
+## Plans
 
-- Active social account: X, @Showcase_app1.
-- LinkedIn: no account/page; it is not a launch channel.
-- Buffer: approved for draft preparation and the four-posts-per-week cadence. Imports
-  must be saved as drafts before any scheduling decision.
-- Partner outreach: prepare the first five drafts for founder review. Nothing may be
-  submitted or sent before explicit approval, and no agent may send unreviewed outreach
-  to strangers.
+- **Free:** USD 0, no card; résumé import; one first AI portfolio generation; build/edit/private preview; one daily Audit score with four core categories visible; capped job, written-interview, and ATS tools.
+- **Pro:** USD 15/month or USD 150/year; live publishing; full 11-category Audit; portfolio regeneration; personalized job tools; application kits; higher limits; expanded interview and export tools.
+- **Founding:** the USD 99/year, ten-person-capped plan exists in code but is currently paused. Do not advertise it as available.
 
-## Operating guardrails
+## Claim Safety
 
-- Do not add native/mobile-store work to web release requirements.
-- Do not geo-block non-US English-speaking users.
-- Do not enable email while the postal-address requirement is unresolved.
-- Do not enable the Founding offer before the authorized test-mode verification passes.
-- Do not auto-publish social content or auto-send partner outreach.
+- Generative output is grounded in user-provided source material, editable, and user-reviewed. Never claim it is infallible or “cannot invent anything.”
+- Role Match is a content/evidence comparison, not a hiring prediction.
+- Say ATS readiness or compatibility, never guaranteed ATS passage.
+- Company and role interview personalization is best-effort and may use a curated fallback bank.
+- Publishing is Pro; Free is private build, edit, and preview.
+- Do not claim revenue, hiring outcomes, conversion lifts, user counts, testimonials, recruiter adoption, or social proof without current authoritative evidence.
+
+## Distribution and Operating Guardrails
+
+- The canonical public campaign destination is `https://app.tryshowcase.ink/` with truthful persisted UTM parameters.
+- The anonymous ProofScore offer and `/proofscore` acquisition funnel are retired. Preserve the separate authenticated Evidence Audit.
+- Never distribute the waitlist domain or `/signup` as a campaign link.
+- No paid spend, spam, fake engagement, fake users, account creation, credential entry, CAPTCHA/challenge bypass, PII exposure, participant contact, or duplicate/resend behavior without separate explicit authority.
+- Waitlist sending remains paused. Founding remains paused.
+- Count legitimate distinct production auth users only; sessions, clicks, views, receipts, publications, and waitlist rows are not users.

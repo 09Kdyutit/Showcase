@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 const PHRASES = [
-  'honest about your work.',
-  'evidence, not adjectives.',
-  'built from what you actually did.',
-  'proof a reviewer can inspect.',
-  'your work, made specific.',
+  'your resume turned into an editable portfolio.',
+  'a job search grounded in your experience.',
+  'tailored applications you review before sending.',
+  'interview practice built around the role.',
+  'your portfolio, applications, and prep in one place.',
 ]
 
 export function TypewriterSection() {
@@ -78,10 +78,10 @@ export function TypewriterSection() {
         </div>
 
         {/* Typed line */}
-        {/* min-h-[1.1em] matches the previous inline minHeight at md+; max-md reserves two
-            lines on phones so longer phrases wrapping doesn't make the page height jump. */}
+        {/* min-h-[1.1em] matches the previous inline minHeight at md+; max-md reserves three
+            lines on phones so the broader workflow phrases do not make the page height jump. */}
         <h2
-          className="font-semibold tracking-tight text-balance min-h-[1.1em] max-md:min-h-[2.3em]"
+          className="font-semibold tracking-tight text-balance min-h-[1.1em] max-md:min-h-[3.4em]"
           style={{
             fontSize: 'clamp(2rem, 6.5vw, 4.5rem)',
             letterSpacing: '-0.035em',

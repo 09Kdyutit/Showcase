@@ -11,10 +11,11 @@ export function Footer() {
               <Logo />
             </div>
             <p className="text-sm font-medium text-foreground/80 mb-2">
-              Turn your experience into evidence.
+              Your whole job search, connected.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Build a proof-of-work portfolio that shows recruiters exactly what you can do - not just what you claim.
+              Turn one resume into an editable portfolio, focused applications,
+              interview practice, and a live Pro portfolio when you are ready.
             </p>
           </div>
           <div>
@@ -22,10 +23,10 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
-                { href: '/#how-it-works', label: 'How Showcase works' },
+                { href: '/#how-it-works', label: 'Product tour' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
-                { href: '/signup', label: 'Get started free' },
+                { href: '/signup', label: 'Build my portfolio free' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
@@ -57,7 +58,7 @@ export function Footer() {
             © {new Date().getFullYear()} Showcase. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground font-serif italic">
-            For professionals who show, not just tell.
+            AI-assisted. Source-grounded. Always yours to review.
           </p>
         </div>
       </div>

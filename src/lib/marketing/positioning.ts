@@ -1,120 +1,141 @@
-// Single source of truth for Showcase's public-facing positioning. Every marketing
-// page (/, /pricing, /waitlist, /for-career-services) should pull
-// headline territory, audience language, and trust copy from here rather than
-// re-deriving it - the point is that a visitor reading any two pages back-to-back
-// never hits a contradiction.
+// Single source of truth for Showcase's public-facing positioning. Public pages
+// should pull headline territory, audience language, and trust copy from here so
+// the product is described consistently as one connected job-search workspace.
 //
-// This is a content/copy module, not a design system. It does not import React.
+// Evidence Audit is an important trust and improvement feature, not the product
+// category. Lead with the complete journey: resume -> portfolio -> roles and
+// applications -> interview practice -> publishing.
 
 export const BRAND = {
   name: 'Showcase',
-  tagline: 'Turn your experience into evidence.',
-  belief: 'Evidence over embellishment.',
+  tagline: 'Your whole job search, connected.',
+  belief: 'Your real experience should power every step of your job search.',
   enemy:
-    'Generic claims, empty templates, fabricated AI copy, and career materials that say what someone did without proving why it mattered.',
+    'Disconnected resume tools, generic AI output, scattered application work, and career materials that drift away from what someone has actually done.',
   position:
-    'Showcase is the evidence layer between a résumé and a hiring decision. It takes real career material, structures it into proof, identifies what is still missing, and helps the user present it clearly without inventing anything.',
+    'Showcase is a connected AI job-search workspace. It turns a real resume into an editable portfolio, helps users find and pursue relevant roles, prepares them for interviews, and lets Pro users publish their work - while keeping generated claims grounded in source material they can review.',
 } as const
 
-// ── Primary ICP (B2C) ──────────────────────────────────────────────────────────
-// The root homepage, hero, and waitlist page speak to this person and only this
-// person. Secondary segments get their own page (/for-career-services) rather
-// than sharing the hero.
-
+// Primary ICP (B2C). Secondary audiences get dedicated pages rather than sharing
+// the homepage hero.
 export const PRIMARY_ICP = {
   label: 'Students, new graduates, and early-career professionals',
   situation:
-    'They have real projects or experience but no compelling way to prove what they can do. Their résumé reads like a list of claims, their projects are scattered across GitHub/Notion/Drive links, and they do not know what evidence recruiters actually need.',
+    'They have a resume and real projects or experience, but their portfolio, job search, applications, and interview preparation live in separate tools. Repeating the same context wastes time, and generic AI output can make their story less trustworthy instead of more useful.',
   fears: [
-    'I’ll spend hours making another generic portfolio that still does not prove anything.',
-    'AI-generated material will sound generic or, worse, say something about me that is not true.',
-    'I do not know why my applications are being ignored.',
+    'I will spend hours rebuilding the same career story in disconnected tools.',
+    'AI-generated material will sound generic or claim something I never did.',
+    'I do not know which roles fit my actual experience or how to prepare for them.',
   ],
-  aspiration: 'I want recruiters to understand my value quickly and trust what they see.',
+  aspiration:
+    'I want one place that turns what I have already done into a strong portfolio, focused applications, and better interview preparation.',
   transformation: [
-    'Upload the résumé you already have.',
-    'Receive a professional portfolio draft built from it.',
-    'Discover exactly what evidence is missing.',
-    'Improve the highest-impact gaps first.',
-    'Tailor materials for a specific role.',
-    'Publish or export something you feel confident sharing.',
+    'Upload a PDF or DOCX resume, or paste the text you already have.',
+    'Generate a portfolio draft and edit the writing, images, and theme.',
+    'See specific portfolio gaps through Evidence Audit.',
+    'Find roles and compare them with the experience already in Showcase.',
+    'Tailor application materials and practice role-specific interviews.',
+    'Publish a live portfolio with Pro when it is ready to share.',
   ],
 } as const
 
-// ── Secondary segments - own pages, never the homepage hero ────────────────────
-
 export const SECONDARY_SEGMENTS = [
-  { id: 'career-switcher', label: 'Career switchers', href: '/waitlist?segment=career-switcher' },
-  { id: 'portfolio-heavy', label: 'Portfolio-heavy professionals (design, writing, research)', href: '/waitlist?segment=portfolio-heavy' },
-  { id: 'freelancer', label: 'Freelancers and independent professionals', href: '/waitlist?segment=freelancer' },
+  { id: 'career-switcher', label: 'Career switchers', href: '/signup?segment=career-switcher' },
+  { id: 'portfolio-heavy', label: 'Portfolio-heavy professionals', href: '/signup?segment=portfolio-heavy' },
+  { id: 'freelancer', label: 'Freelancers and independent professionals', href: '/signup?segment=freelancer' },
   { id: 'career-services', label: 'University career-services teams', href: '/for-career-services' },
 ] as const
 
-// ── Headline territory (Phase 4) ────────────────────────────────────────────────
-// Selected: territory 2, adapted for the early-career ICP. Chosen over territory 1
-// (more abstract, less concrete in 5 seconds) and territory 3 (slightly longer,
-// reads more like a subheadline than a hero line). "Lists claims" / "turns them
-// into evidence" names the exact anxiety (a résumé is just assertions) and the
-// exact resolution (evidence) in one breath, and reads correctly on mobile at the
-// hero font size without wrapping awkwardly.
-
 export const HERO = {
-  headline: 'Your résumé lists claims. Showcase turns them into evidence.',
+  headline: 'One résumé. Your whole job search, connected.',
   subheadline:
-    'Upload your résumé and Showcase turns your real experience into a professional portfolio, scores the strength of its evidence, and tells you exactly what to improve - without inventing a thing.',
-  primaryCta: { live: 'Build my portfolio', waitlist: 'Join the private beta' },
-  secondaryCta: 'See a real example',
+    'Turn your real experience into an editable portfolio, matched roles and application materials, and interview practice. Review every AI-assisted claim, then publish your portfolio with Pro when it is ready.',
+  primaryCta: { live: 'Build my portfolio free', waitlist: 'Join the waitlist' },
+  secondaryCta: 'See the full workflow',
 } as const
 
-// ── Feature → benefit translation (Phase 4) ─────────────────────────────────────
-// Lead with the left column in any above-the-fold or first-screen copy. The
-// right column (the actual mechanism) belongs in supporting sections only, after
-// the benefit has already landed.
-
+// Benefit-first descriptions for public marketing surfaces. The mechanism stays
+// explicit enough that each promise can be checked against the product.
 export const FEATURE_BENEFITS = [
-  { feature: 'AI portfolio generation', benefit: 'Go from résumé to a shareable portfolio without starting from a blank page.' },
-  { feature: 'Evidence Audit', benefit: 'Know what weakens your application before a recruiter sees it.' },
-  { feature: 'Evidence Gap Finder', benefit: 'See exactly which claims still need proof.' },
-  { feature: 'Truth Ledger', benefit: 'Trust every generated statement because it traces back to your real experience.' },
-  { feature: 'Tailor Studio', benefit: 'Create role-specific materials without rewriting your career history from zero.' },
-  { feature: 'Role-content matching', benefit: 'Focus on roles your documented experience genuinely supports.' },
-  { feature: 'ATS readiness checks', benefit: 'Catch common formatting and keyword-support risks before exporting.' },
-  { feature: 'Portfolio themes', benefit: 'Publish professional work without becoming a web designer.' },
+  {
+    feature: 'Resume import and AI parsing',
+    benefit: 'Bring in a PDF or DOCX resume, or paste text, without retyping your career history.',
+  },
+  {
+    feature: 'AI portfolio generation and editor',
+    benefit: 'Start with scannable case studies, then edit the copy, images, theme, and structure yourself.',
+  },
+  {
+    feature: 'Evidence Audit',
+    benefit: 'Get a 0-100 review with concrete fixes; Pro unlocks the complete 11-category breakdown.',
+  },
+  {
+    feature: 'Job search and matching',
+    benefit: 'Compare roles with the experience already in Showcase instead of relying on keyword guesses alone.',
+  },
+  {
+    feature: 'Application tools',
+    benefit: 'Create role-specific application materials from one consistent source of career context.',
+  },
+  {
+    feature: 'ATS checks and resume export',
+    benefit: 'Review common compatibility risks and export a resume as PDF or DOCX.',
+  },
+  {
+    feature: 'Written interview practice',
+    benefit: 'Practice role- and company-aware questions when context is available, with per-answer coaching and drills.',
+  },
+  {
+    feature: 'Opportunities feed',
+    benefit: 'Find hackathons, competitions, and other ways to build experience you can add later.',
+  },
+  {
+    feature: 'Pro portfolio publishing',
+    benefit: 'Publish a live portfolio with a shareable link and preview card when it is ready.',
+  },
 ] as const
 
-// ── Approved trust language (Phase 9) - use verbatim, do not paraphrase into a
-// stronger claim. ──────────────────────────────────────────────────────────────
-
+// Approved trust language. Do not paraphrase these into stronger promises.
 export const TRUST_COPY = [
-  'We never invent experience.',
-  'Missing proof is flagged, not auto-filled.',
-  'Your résumé is private by default.',
-  'Nothing becomes public until you publish it.',
-  'You can edit or reject every generated statement.',
-  'You can delete your account and associated data.',
+  'AI-assisted claims stay grounded in information you provide.',
+  'Missing support is flagged, not auto-filled.',
+  'Your resume and portfolio drafts are private by default.',
+  'Nothing becomes public until you choose to publish it.',
+  'You can edit or reject generated material.',
+  'You can export a career packet or delete your account.',
   'Showcase does not guarantee employment outcomes.',
 ] as const
 
-// ── Banned claims (Phase 19) - if new copy contains language matching these
-// patterns, it must be rewritten before shipping, regardless of how persuasive it
-// reads. Checked by scripts/test-marketing-truthfulness.mjs. ────────────────────
-
+// Banned claims. scripts/test-marketing-truthfulness.mjs mirrors these patterns.
 export const BANNED_CLAIM_PATTERNS = [
   /guarantee.*(job|interview|hire|offer)/i,
   /passes? every ats/i,
   /undetectable\s*(by\s*)?ai/i,
-  /\d+%\s*of\s*(recruiters|hiring managers|startups)/i, // unverified stat
-  /\d+,?\d*\+?\s*(users|customers|portfolios published)/i, // fake usage count, pre-traction
-  /rated?\s*\d(\.\d)?\s*\/\s*5/i, // fake rating
-  /as seen (in|on)/i, // fake press mention
-  /trusted by/i, // fake logo wall framing without verified relationships
+  /\d+%\s*of\s*(recruiters|hiring managers|startups)/i,
+  /\d+,?\d*\+?\s*(users|customers|portfolios published)/i,
+  /rated?\s*\d(\.\d)?\s*\/\s*5/i,
+  /as seen (in|on)/i,
+  /trusted by/i,
 ] as const
 
-// ── Comparison framework (Phase 8) - mechanism-based, never "only platform" ────
-
+// Mechanism-based comparison only; never claim Showcase is the only product that
+// can perform any individual task.
 export const COMPARISON = [
-  { alternative: 'Résumé template', does: 'Formats claims. Does not check whether they are supported.' },
-  { alternative: 'Website builder', does: 'Displays what you already know how to write - you still start from a blank page.' },
-  { alternative: 'Generic AI chat', does: 'Produces text but has no persistent evidence structure, no publishing workflow, and no safeguard against inventing a metric you never had.' },
-  { alternative: 'Showcase', does: 'Structures your real career evidence, flags what is missing, preserves source truth, and publishes a professional result.', isShowcase: true },
+  {
+    alternative: 'Resume or portfolio builder',
+    does: 'Creates one career asset, but usually stops before the job search, applications, and interview practice.',
+  },
+  {
+    alternative: 'Job board',
+    does: 'Shows listings, but does not carry one reviewed version of your experience through the rest of the process.',
+  },
+  {
+    alternative: 'Generic AI chat',
+    does: 'Produces text, but requires you to re-explain your background and review every response for unsupported details.',
+  },
+  {
+    alternative: 'Showcase',
+    does: 'Connects your resume, portfolio, role matching, application work, interview practice, and Pro publishing in one workspace.',
+    isShowcase: true,
+  },
 ] as const

@@ -11,42 +11,45 @@ import { TrackedLink } from '@/components/landing/tracked-link'
 import { configuredAppHost } from '@/lib/app-url'
 
 const APP_HOST = configuredAppHost()
+const VOICE_INTERVIEWS_AVAILABLE = process.env.NEXT_PUBLIC_INTERVIEW_VOICE_AVAILABLE === 'true'
 
 const FREE_FEATURES = [
-  'Resume parsing and up to 3 analyses / day',
+  'PDF, DOCX, and pasted resume import with up to 3 analyses / day',
   'One AI portfolio generation',
-  'One 11-category evidence audit / day',
+  'One Evidence Audit score / day with 4 core categories',
   'Build, edit, and preview portfolio drafts',
   '5 AI bullet improvements / day',
   'Browse job listings (demo data)',
   'Import up to 3 job descriptions / day',
   'Basic role-content match score',
   '1 ATS check / day',
+  '5 written interview sessions / month',
   'Up to 5 saved, non-archived jobs',
 ]
 const FREE_LOCKED = [
   'Public portfolio publishing',
   'Portfolio regeneration and additional AI-built portfolios',
   'Higher daily AI limits',
-  'Live voice and recorded interviews',
+  'Complete 11-category Evidence Audit breakdown',
+  ...(VOICE_INTERVIEWS_AVAILABLE ? ['Live voice and recorded interviews'] : []),
   'Standalone HTML portfolio export',
   'Personalized For You job feed',
   'Full match explanations',
-  'Tailor Studio (role-specific resume)',
+  'Tailor Studio application kits',
 ]
 const PRO_FEATURES = [
   'Everything in Free',
   `Publish a live portfolio at ${APP_HOST}/p/your-name`,
-  '10 portfolio generations and 10 full audits / day',
+  '10 portfolio generations and 10 complete 11-category audits / day',
   '25 resume analyses and 50 bullet improvements / day',
-  '15 tailored applications and 40 cover letters / day',
-  '20 voice or recorded interviews / billing period',
+  '15 tailored application kits and 40 cover letters / day',
+  ...(VOICE_INTERVIEWS_AVAILABLE ? ['20 voice or recorded interviews / billing period'] : []),
   '150 written interviews / billing period',
-  'Company-specific interview practice and feedback',
+  'Role- and company-aware written practice when context is available, with per-answer feedback',
   'Standalone HTML portfolio export',
-  'Personalized job feed with explainable match scores',
-  'Tailor Studio - role-specific resume in one click',
-  'Truth Ledger - every change traced to your real experience',
+  'Personalized job feed with explainable match scores (listing inventory may include demo data)',
+  'Tailor Studio application kit for a role - you review and submit it',
+  'Source-grounded AI suggestions that you review and edit',
   '20 ATS readiness checks / day',
   'Application stage tracking without the Free five-job cap',
 ]
@@ -66,9 +69,9 @@ export default function PricingPage() {
             <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>pricing.</em>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
-            Free gets you the transformation: a real portfolio draft you can edit and preview.
-            Pro takes it from draft to shareable — publish it, tailor it per role, and work
-            through the evidence gaps it identifies.
+            Start free with resume import, an editable portfolio, job-search tools, and
+            written interview practice. Pro adds live publishing, complete audits,
+            personalized matching, application kits, and higher limits.
           </p>
         </div>
 
@@ -130,7 +133,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Button asChild variant="secondary" size="lg" className="w-full">
-              <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_free_card">Start free</TrackedLink>
+              <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_free_card">Build my portfolio free</TrackedLink>
             </Button>
           </div>
 
@@ -178,7 +181,7 @@ export default function PricingPage() {
                 <Button asChild variant="gradient" size="lg" className="w-full gap-2 shadow-glow">
                   <TrackedLink href="/signup" event="hero_primary_cta_clicked" ctaLabel="pricing_page_pro_card">
                     <Zap className="h-4 w-4" />
-                    Create my free portfolio
+                    Build my portfolio free
                     <ArrowRight className="h-4 w-4" />
                   </TrackedLink>
                 </Button>
@@ -198,10 +201,10 @@ export default function PricingPage() {
           <div className="space-y-4">
             {[
               { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data - portfolio content, audit history, and uploaded materials - is preserved.' },
-              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. We have a real Free tier so you can build, edit, and preview a draft before deciding whether publishing and higher limits are worth upgrading for.' },
+              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. Free lets you import a resume, build and preview a portfolio, browse jobs, run daily career checks, and practice written interviews before deciding whether Pro is worth it.' },
               { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.' },
               { q: 'Can I get a refund?', a: 'You can request a refund within 7 days if you have not substantively used Pro features. See the refund policy for the exact conditions.' },
-              { q: 'Will Showcase invent experience I do not have?', a: 'Never. Our AI only works with what you provide. It will rewrite and improve how your real experience is presented, but it will not fabricate metrics, employers, projects, or certifications. It will tell you what evidence is missing and suggest where to add proof.' },
+              { q: 'How does Showcase keep AI suggestions grounded?', a: 'Showcase uses the resume and career information you provide as its source material. You review and can edit every generated suggestion. Unsupported details should not be added, and Evidence Audit flags gaps instead of filling them with invented metrics or experience.' },
               { q: 'Can I have multiple portfolios?', a: 'Yes. You can build and edit portfolio drafts on Free. Your first AI generation is included; regenerating or AI-building additional portfolios requires Pro, and publishing any live portfolio is a Pro feature.' },
               { q: 'What file formats can I import?', a: 'You can paste your resume as plain text, or upload a PDF or DOCX file. Showcase parses it automatically and uses it as the foundation for your portfolio content.' },
               { q: 'Who can see my public portfolio?', a: `Only you can see your draft portfolio. When you publish it as a Showcase Pro user, it becomes publicly accessible at ${APP_HOST}/p/your-name. You can unpublish it at any time.` },
