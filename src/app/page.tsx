@@ -191,7 +191,7 @@ export default function LandingPage() {
                       href="/signup"
                       event="hero_primary_cta_clicked"
                       ctaLabel="pricing_pro_card"
-                      className="block w-full text-center py-3.5 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                      className="btn-sheen block w-full text-center py-3.5 rounded-full text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] active:scale-[0.98]"
                       style={{
                         background: 'oklch(54% 0.230 255)',
                         boxShadow: '0 0 28px oklch(54% 0.230 255 / 0.3)',
@@ -228,13 +228,17 @@ export default function LandingPage() {
         {/* ── Final CTA ── */}
         <AnimatedSection>
           <section className="py-40 px-6 relative overflow-hidden" style={{ borderTop: '1px dashed var(--color-border)' }}>
-            {/* Ambient glow behind CTA */}
+            {/* Ambient glow + drifting light behind CTA */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 background: 'radial-gradient(ellipse 60% 50% at 50% 50%, oklch(54% 0.230 255 / 0.09), transparent 70%)',
               }}
             />
+            <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="ambient-blob ambient-blob--a" style={{ top: '10%', left: '22%', width: 420, height: 420, background: 'oklch(54% 0.230 255 / 0.14)', filter: 'blur(110px)' }} />
+              <div className="ambient-blob ambient-blob--b" style={{ bottom: '-10%', right: '18%', width: 380, height: 380, background: 'oklch(58% 0.20 290 / 0.12)', filter: 'blur(110px)' }} />
+            </div>
             <div className="relative max-w-3xl mx-auto text-center" style={{ zIndex: 1 }}>
               <p
                 className="text-xs font-semibold uppercase tracking-widest mb-6"
@@ -258,10 +262,9 @@ export default function LandingPage() {
                   href="/signup"
                   event="hero_primary_cta_clicked"
                   ctaLabel="bottom_cta"
-                  className="group inline-flex items-center gap-2.5 px-9 py-4 rounded-full font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
+                  className="group btn-sheen cta-glow inline-flex items-center gap-2.5 px-9 py-4 rounded-full font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
                   style={{
                     background: 'oklch(54% 0.230 255)',
-                    boxShadow: '0 0 48px oklch(54% 0.230 255 / 0.35)',
                   }}
                 >
                   Build my portfolio free

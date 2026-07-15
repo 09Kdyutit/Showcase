@@ -248,11 +248,12 @@ export function ConnectedJourney() {
   const stagePanel = (
     <div
       key={active}
-      className="rounded-2xl p-5 sm:p-6"
+      className="ring-conic overflow-hidden rounded-2xl p-5 sm:p-6"
       style={{
-        background: 'rgba(7, 20, 51, 0.45)',
+        background: 'rgba(7, 20, 51, 0.55)',
         border: '1px solid var(--color-border)',
         boxShadow: '0 24px 80px rgba(3, 8, 28, 0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(18px)',
         animation: 'fadeIn 0.45s ease both',
       }}
     >
@@ -303,7 +304,7 @@ export function ConnectedJourney() {
                     role="tab"
                     aria-selected={isActive}
                     onClick={() => pick(i)}
-                    className="w-full rounded-2xl px-4 py-3.5 text-left transition-all duration-300"
+                    className="w-full cursor-pointer rounded-2xl px-4 py-3.5 text-left transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
                     style={{
                       background: isActive ? 'oklch(54% 0.230 255 / 0.10)' : 'rgba(255,255,255,0.025)',
                       border: `1px solid ${isActive ? 'oklch(54% 0.230 255 / 0.4)' : 'var(--color-border)'}`,
@@ -312,10 +313,11 @@ export function ConnectedJourney() {
                   >
                     <div className="flex items-center gap-3.5">
                       <div
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-300"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-300"
                         style={{
                           background: isActive ? 'oklch(54% 0.230 255 / 0.2)' : 'rgba(255,255,255,0.05)',
                           border: `1px solid ${isActive ? 'oklch(54% 0.230 255 / 0.45)' : 'var(--color-border)'}`,
+                          boxShadow: isActive ? '0 0 22px oklch(54% 0.230 255 / 0.4)' : 'none',
                         }}
                       >
                         <Icon className="h-4 w-4" style={{ color: isActive ? BRAND : DIM }} />

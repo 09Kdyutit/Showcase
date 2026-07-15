@@ -1,148 +1,209 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  CheckCircle2,
+  FileText,
+  Globe2,
+  MessageSquareText,
+  Search,
+  Sparkles,
+} from 'lucide-react'
+import { HERO } from '@/lib/marketing/positioning'
 import { TrackedLink } from './tracked-link'
-import { EvidenceField } from './evidence-field'
-import { ProofAssembly } from './proof-assembly'
 
-const TRUST = ['No credit card required', 'Build and preview free', 'First draft in about 10 minutes']
+const TRUST = [
+  'No credit card required',
+  'Private by default',
+  'Review every AI change',
+]
 
-// Shared headline so the blurred base layer and the sharp spotlight layer stay identical.
-const HEADLINE = (
-  <>
-    Your résumé lists claims.
-    <br />
-    Showcase turns them into{' '}
-    <span
+const WORKSPACE_ITEMS = [
+  {
+    icon: BriefcaseBusiness,
+    title: 'Portfolio builder',
+    status: 'Ready to edit',
+    desc: 'Scannable case studies, themes, images, and a quality checklist.',
+    tone: '#60a5fa',
+  },
+  {
+    icon: Search,
+    title: 'Job toolkit',
+    status: 'Match + tailor',
+    desc: 'Rank roles, tailor your résumé, and draft cover letters and outreach.',
+    tone: '#a78bfa',
+  },
+  {
+    icon: MessageSquareText,
+    title: 'Interview Lab',
+    status: 'Written now',
+    desc: 'Practice role-aware questions and get per-answer coaching. Voice is available when enabled.',
+    tone: '#34d399',
+  },
+  {
+    icon: Globe2,
+    title: 'Publish and share',
+    status: 'Pro',
+    desc: 'Turn your private draft into a live portfolio with a shareable preview card.',
+    tone: '#fbbf24',
+  },
+] as const
+
+function CareerWorkspacePreview() {
+  return (
+    <div
+      className="ring-conic relative mx-auto max-w-4xl overflow-hidden rounded-[28px] text-left"
       style={{
-        fontStyle: 'italic',
-        background: 'linear-gradient(100deg, #93c5fd, #60a5fa 55%, #818cf8)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
+        background: 'rgba(7, 20, 51, 0.74)',
+        border: '1px solid rgba(147, 197, 253, 0.28)',
+        boxShadow: '0 32px 100px rgba(3, 8, 28, 0.52), inset 0 1px 0 rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(20px)',
       }}
     >
-      evidence.
-    </span>
-  </>
-)
+      <div className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6" style={{ borderBottom: '1px solid rgba(147, 197, 253, 0.16)' }}>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: 'rgba(59,130,246,0.18)', border: '1px solid rgba(96,165,250,0.3)' }}>
+            <Sparkles className="h-4 w-4" style={{ color: '#93c5fd' }} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">Your Showcase workspace</p>
+            <p className="text-xs" style={{ color: 'rgba(191,219,254,0.68)' }}>One source of truth across the job search</p>
+          </div>
+        </div>
+        <span className="hidden rounded-full px-3 py-1 text-xs font-semibold sm:inline-flex" style={{ color: '#86efac', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(74,222,128,0.22)' }}>
+          Private draft
+        </span>
+      </div>
 
-const HEADLINE_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-fraunces), Georgia, serif',
-  fontSize: 'clamp(2.6rem, 6.5vw, 5rem)',
-  lineHeight: 1.05,
-  letterSpacing: '-0.02em',
-  fontWeight: 600,
+      <div className="p-4 sm:p-6">
+        <div
+          className="mb-4 flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between"
+          style={{ background: 'rgba(255,255,255,0.045)', border: '1px solid rgba(147,197,253,0.14)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: 'rgba(59,130,246,0.14)' }}>
+              <FileText className="h-5 w-5" style={{ color: '#93c5fd' }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">Start with the résumé you already have</p>
+              <p className="text-xs" style={{ color: 'rgba(191,219,254,0.68)' }}>Upload PDF or DOCX, or paste your text</p>
+            </div>
+          </div>
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ color: '#93c5fd', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(96,165,250,0.2)' }}>
+            <CheckCircle2 className="h-3 w-3" /> Parsed and editable
+          </span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {WORKSPACE_ITEMS.map(({ icon: Icon, title, status, desc, tone }) => (
+            <div key={title} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(147,197,253,0.13)' }}>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: `${tone}1f`, border: `1px solid ${tone}38` }}>
+                    <Icon className="h-4 w-4" style={{ color: tone }} />
+                  </div>
+                  <p className="text-sm font-semibold text-white">{title}</p>
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: tone }}>{status}</span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(191,219,254,0.68)' }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 flex items-start gap-2 rounded-xl px-3.5 py-3 text-xs leading-relaxed" style={{ color: 'rgba(219,234,254,0.78)', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(96,165,250,0.14)' }}>
+          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: '#60a5fa' }} />
+          AI drafts stay grounded in your source material. You review and edit everything before it is shared.
+        </div>
+        <p className="mt-3 text-right text-[9px] uppercase tracking-widest" style={{ color: 'rgba(191,219,254,0.42)' }}>Illustrative product view</p>
+      </div>
+    </div>
+  )
 }
 
 export function HeroSection() {
-  const sharpRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    let raf = 0
-    function onMove(e: MouseEvent) {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const sharp = sharpRef.current
-        if (!sharp) return
-        const r = sharp.getBoundingClientRect()
-        sharp.style.setProperty('--mx', `${e.clientX - r.left}px`)
-        sharp.style.setProperty('--my', `${e.clientY - r.top}px`)
-      })
-    }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    return () => { window.removeEventListener('mousemove', onMove); if (raf) cancelAnimationFrame(raf) }
-  }, [])
-
   return (
     <section
-      className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden"
+      className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden"
       style={{
         background: 'radial-gradient(130% 95% at 50% -5%, #244aa8 0%, #1a3a8f 32%, #122a6b 62%, #0b1a45 82%, #071433 100%)',
       }}
     >
-      {/* Blue glow orbs — bright, non-blurry accents so it reads BLUE, not black */}
       <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div style={{ position: 'absolute', top: '-12%', left: '18%', width: 560, height: 560, background: 'rgba(96,165,250,0.35)', filter: 'blur(120px)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', bottom: '-18%', right: '14%', width: 520, height: 520, background: 'rgba(99,102,241,0.3)', filter: 'blur(130px)', borderRadius: '50%' }} />
+        <div className="ambient-blob ambient-blob--a" style={{ top: '-12%', left: '18%', width: 560, height: 560, background: 'rgba(96,165,250,0.35)', filter: 'blur(120px)' }} />
+        <div className="ambient-blob ambient-blob--b" style={{ bottom: '-18%', right: '14%', width: 520, height: 520, background: 'rgba(99,102,241,0.3)', filter: 'blur(130px)' }} />
+        {/* Light running along the hero grid lines (21st.dev GridBeam, CSS-only) */}
+        <span className="grid-beam" style={{ left: 'calc(50% - 288px)', animationDelay: '0s' }} />
+        <span className="grid-beam" style={{ left: 'calc(50% - 72px)', animationDelay: '2.3s' }} />
+        <span className="grid-beam" style={{ left: 'calc(50% + 144px)', animationDelay: '4.1s' }} />
+        <span className="grid-beam hidden sm:block" style={{ left: 'calc(50% + 360px)', animationDelay: '5.6s' }} />
       </div>
       <div className="absolute inset-0 pointer-events-none hero-grid" style={{ opacity: 0.4 }} />
 
-      {/* The Evidence Field — drifting unproven claims, periodically caught and
-          verified, their trails feeding the proof engine below */}
-      <EvidenceField />
-
-      <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center" style={{ zIndex: 2 }}>
-        {/* Brand lockup — the first thing you see */}
-        <div className="flex items-center justify-center gap-3 mb-9" style={{ animation: 'fadeIn 0.7s ease both' }}>
-          <Image src="/logo-icon.png" alt="" width={48} height={48} priority className="select-none drop-shadow-lg" />
-          <span className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: '#fff', letterSpacing: '-0.03em' }}>
-            Showcase
-          </span>
+      <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-28 text-center" style={{ zIndex: 2 }}>
+        <div className="mb-7 flex items-center justify-center gap-3" style={{ animation: 'fadeIn 0.7s ease both' }}>
+          <Image src="/logo-icon.png" alt="" width={44} height={44} priority className="select-none drop-shadow-lg" />
+          <span className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ color: '#fff', letterSpacing: '-0.03em' }}>Showcase</span>
         </div>
 
-        {/* Headline — Fraunces serif, blur-to-sharp under the cursor */}
-        <div className="sui-headline relative mb-7" style={{ animation: 'fadeIn 0.9s ease 0.12s both' }}>
-          <h1 className="sui-headline-base" style={HEADLINE_STYLE} aria-hidden="true">{HEADLINE}</h1>
-          <h1 ref={sharpRef} className="sui-headline-sharp" style={HEADLINE_STYLE}>{HEADLINE}</h1>
-        </div>
-
-        {/* Subtext */}
-        <p
-          className="text-lg sm:text-xl max-w-xl mx-auto mb-8 leading-relaxed"
-          style={{ color: 'rgba(226,236,255,0.85)', animation: 'fadeIn 0.8s ease 0.24s both' }}
+        <p className="mb-5 text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#bfdbfe', animation: 'fadeIn 0.8s ease 0.08s both' }}>
+          Portfolio builder + job-search workspace
+        </p>
+        <h1
+          className="mx-auto mb-7 max-w-5xl text-balance text-aurora"
+          style={{
+            fontFamily: 'var(--font-fraunces), Georgia, serif',
+            fontSize: 'clamp(2.7rem, 7vw, 5.7rem)',
+            lineHeight: 1.02,
+            letterSpacing: '-0.035em',
+            fontWeight: 600,
+            // Inline animation would override the .text-aurora keyframes — declare both.
+            animation: 'fadeIn 0.9s ease 0.14s both, aurora-pan 9s ease-in-out 1.2s infinite',
+          }}
         >
-          Upload your résumé — Showcase builds your portfolio, <span style={{ color: '#93c5fd', fontWeight: 600 }}>scores the proof</span> behind every claim, and shows you exactly how to make it stronger. It never invents anything.
+          {HERO.headline}
+        </h1>
+
+        <p className="mx-auto mb-8 max-w-3xl text-lg leading-relaxed sm:text-xl" style={{ color: 'rgba(226,236,255,0.86)', animation: 'fadeIn 0.8s ease 0.24s both' }}>
+          {HERO.subheadline}
         </p>
 
-        {/* CTAs — primary is a vibrant blue */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8" style={{ animation: 'fadeIn 0.8s ease 0.34s both' }}>
+        <div className="mb-7 flex flex-col items-center justify-center gap-3 sm:flex-row" style={{ animation: 'fadeIn 0.8s ease 0.34s both' }}>
           <TrackedLink
             href="/signup"
             event="hero_primary_cta_clicked"
             ctaLabel="hero_primary"
-            className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
-            style={{ background: 'linear-gradient(120deg, #3b82f6, #4f46e5)', color: '#fff', boxShadow: '0 10px 34px rgba(59,130,246,0.45)' }}
+            className="group btn-sheen cta-glow inline-flex items-center gap-2.5 rounded-xl px-8 py-3.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
+            style={{ background: 'linear-gradient(120deg, #3b82f6, #4f46e5)', color: '#fff' }}
           >
-            Get started free
+            {HERO.primaryCta.live}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </TrackedLink>
           <TrackedLink
             href="#how-it-works"
             event="hero_secondary_cta_clicked"
             ctaLabel="see_how"
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.01]"
+            className="inline-flex items-center gap-2.5 rounded-xl px-8 py-3.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.01]"
             style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(147,197,253,0.3)', color: '#e2ecff' }}
           >
-            See how it works
+            {HERO.secondaryCta}
           </TrackedLink>
         </div>
 
-        {/* Trust */}
-        <div
-          className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm mb-9"
-          style={{ color: 'rgba(191,219,254,0.75)', animation: 'fadeIn 0.8s ease 0.44s both' }}
-        >
-          {TRUST.map((t) => (
-            <span key={t} className="flex items-center gap-1.5">
+        <div className="mb-12 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm" style={{ color: 'rgba(191,219,254,0.75)', animation: 'fadeIn 0.8s ease 0.44s both' }}>
+          {TRUST.map((item) => (
+            <span key={item} className="flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: '#60a5fa' }} />
-              {t}
+              {item}
             </span>
           ))}
         </div>
 
-        {/* The Proof Engine — the centerpiece the Evidence Field feeds into */}
-        <div style={{ animation: 'fadeIn 0.9s ease 0.6s both' }}>
-          <ProofAssembly />
+        <div style={{ animation: 'fadeIn 0.9s ease 0.55s both' }}>
+          <CareerWorkspacePreview />
         </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center overflow-hidden" style={{ animation: 'fadeIn 1s ease 1s both', zIndex: 2, height: 44 }}>
-        <div className="w-px h-full scroll-line" style={{ background: 'rgba(147,197,253,0.6)' }} />
       </div>
     </section>
   )
