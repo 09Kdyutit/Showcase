@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { Logo } from '@/components/shared/logo'
+import { Walkthrough, TOUR_DONE_KEY } from '@/components/onboarding/walkthrough'
 import { generateSlug } from '@/lib/utils'
 import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
@@ -64,7 +65,10 @@ function guessIndustry(role: string): string {
   return 'Technology'
 }
 
-type Phase = 'upload' | 'analyzing' | 'review' | 'generating'
+// 'boot' exists to dodge a hydration mismatch: the server can't know whether this
+// browser has already seen the tour, so both render a neutral shell for one frame
+// and the mount effect picks 'tour' or 'upload' from localStorage.
+type Phase = 'boot' | 'tour' | 'upload' | 'analyzing' | 'review' | 'generating'
 
 const ANALYZE_MSGS = ['Reading your resume…', 'Finding your strongest achievements…', 'Structuring your experience…']
 const GENERATE_MSGS = [
@@ -74,7 +78,14 @@ const GENERATE_MSGS = [
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<Phase>('upload')
+  const [phase, setPhase] = useState<Phase>('boot')
+
+  useEffect(() => {
+    let seen = false
+    try { seen = !!window.localStorage.getItem(TOUR_DONE_KEY) } catch { /* no storage → show the tour */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate one-frame mount decision; server can't read localStorage
+    setPhase(seen ? 'upload' : 'tour')
+  }, [])
   const [pasteText, setPasteText] = useState('')
   const [busyMsg, setBusyMsg] = useState('')
   const [editOpen, setEditOpen] = useState(false)
@@ -295,6 +306,20 @@ export default function OnboardingPage() {
       stop()
       generatingRef.current = false
     }
+  }
+
+  // ── Boot: neutral shell for the single frame before localStorage decides ──
+  if (phase === 'boot') {
+    return (
+      <div className="relative min-h-screen bg-background overflow-hidden">
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
+      </div>
+    )
+  }
+
+  // ── First-run tour: explains every area of the workspace, then hands off to upload ──
+  if (phase === 'tour') {
+    return <Walkthrough onDone={() => setPhase('upload')} />
   }
 
   // ── Busy screens (analyzing / generating) ──────────────────────────────

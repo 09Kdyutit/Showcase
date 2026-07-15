@@ -7,31 +7,27 @@ import {
   AnimatedSection,
   StaggerContainer,
   StaggerChild,
-  FadeIn,
 } from '@/components/landing/animated-section'
 import { StickyMobileCTA } from '@/components/landing/sticky-mobile-cta'
 import { FaqAccordion } from '@/components/landing/faq-accordion'
-import { CompanyMarquee } from '@/components/landing/company-marquee'
 import { TrackedSection } from '@/components/landing/tracked-section'
 import { TrackedLink } from '@/components/landing/tracked-link'
 import { ViewTracker } from '@/components/landing/view-tracker'
 import { SectionLabel } from '@/components/shared/section-label'
 import { HeroSection } from '@/components/landing/hero-section'
-import { ProductShowcase } from '@/components/landing/product-showcase'
+import { ConnectedJourney } from '@/components/landing/connected-journey'
 import { FeatureBento } from '@/components/landing/feature-bento'
-import { PersonaCards } from '@/components/landing/persona-cards'
-import { BeforeAfter } from '@/components/landing/before-after'
-import { TypewriterSection } from '@/components/landing/typewriter-section'
-import { HowItWorks } from '@/components/landing/how-it-works'
-import { SpotlightCard } from '@/components/landing/spotlight-card'
 import { TrustSection } from '@/components/landing/trust-section'
-import { configuredAppHost } from '@/lib/app-url'
 
+// One narrative, told once: hero (what this is) → journey (what happens to your
+// résumé, in order) → features (everything included) → trust → pricing → FAQ → CTA.
+// The previous page told the same story four different ways (3D showcase, typewriter,
+// marquee, scroll timeline) and visitors reported it as confusing — resist re-adding
+// parallel explainer sections.
 export default function LandingPage() {
-  const appHost = configuredAppHost()
   return (
     // overflow-x-clip (not hidden): hidden creates a scroll container that silently
-    // kills every position:sticky descendant (the How-it-works stage); clip doesn't.
+    // kills every position:sticky descendant (the journey stage); clip doesn't.
     <div className="min-h-screen bg-background text-foreground overflow-x-clip">
       {/* Grain texture overlay */}
       <div className="grain-overlay" aria-hidden="true" />
@@ -44,240 +40,26 @@ export default function LandingPage() {
         {/* ── Hero ── */}
         <HeroSection />
 
-        {/* ── Product showcase: 3D scroll-reveal app frame + serif count-up stats ── */}
-        <ProductShowcase />
-
-        {/* ── Typewriter statement ── */}
-        <TypewriterSection />
-
-        {/* ── Career domains marquee ── */}
-        <section className="py-12 px-6">
-          <CompanyMarquee />
-        </section>
-
-        {/* ── How it works (scroll timeline) ── */}
-        <HowItWorks />
-
-        {/* ── Why Showcase ── */}
+        {/* ── How it works: the five-step journey (anchor target of the hero CTA) ── */}
         <AnimatedSection>
-          <TrackedSection
-            event="comparison_viewed"
-            className="py-32 px-6"
-            style={{ borderTop: '1px dashed var(--color-border)', borderBottom: '1px dashed var(--color-border)', background: 'linear-gradient(180deg, oklch(21% 0.036 258), oklch(17% 0.032 258))' }}
-          >
-            <div className="max-w-6xl mx-auto">
-              <div className="mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-                <div>
-                  <SectionLabel number="02" className="mb-6">Why Showcase</SectionLabel>
-                  <h2
-                    className="font-bold tracking-tight text-balance"
-                    style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.03em' }}
-                  >
-                    Not ChatGPT.
-                    <br />Not a template.
-                  </h2>
-                </div>
-                <p
-                  className="text-sm leading-relaxed max-w-xs lg:text-right"
-                  style={{ color: 'oklch(60% 0.014 262)' }}
-                >
-                  ChatGPT makes things up. Templates look like everyone else.
-                  Showcase only works with what you actually did.
-                </p>
-              </div>
-
-              <StaggerContainer className="grid sm:grid-cols-3 gap-5">
-                {([
-                  {
-                    icon: 'Target',
-                    title: 'Built around your real work',
-                    desc: 'Showcase only works with what you provide, and flags every claim that needs evidence.',
-                    proof: 'Every claim traced to a source',
-                  },
-                  {
-                    icon: 'BarChart3',
-                    title: 'Evidence review shows exactly what is weak',
-                    desc: 'No vague feedback. 11 specific categories, concrete fixes, no generic advice.',
-                    proof: '11 categories, line-level fixes',
-                  },
-                  {
-                    icon: 'Eye',
-                    title: 'A public page built to open anywhere',
-                    desc: `${appHost}/p/your-name — a clean Pro-hosted page with no visitor login required.`,
-                    proof: 'One link, zero logins',
-                  },
-                ] as const).map(({ icon, title, desc, proof }, i) => (
-                  <StaggerChild key={title}>
-                    <SpotlightCard
-                      icon={icon}
-                      index={`0${i + 1}`}
-                      title={title}
-                      desc={desc}
-                      proof={proof}
-                    />
-                  </StaggerChild>
-                ))}
-              </StaggerContainer>
-            </div>
-          </TrackedSection>
+          <ConnectedJourney />
         </AnimatedSection>
 
         {/* ── Features ── */}
-        <section className="py-32 px-6">
+        <section id="features" className="py-32 px-6">
           <div className="max-w-6xl mx-auto">
             <AnimatedSection className="mb-16">
-              <SectionLabel number="03" className="mb-6">Features</SectionLabel>
+              <SectionLabel number="02" className="mb-6">Features</SectionLabel>
               <h2
                 className="font-bold tracking-tight text-balance"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.03em' }}
               >
-                Everything you need
-                <br />to prove your value.
+                Everything included.
+                <br />All working from the same résumé.
               </h2>
             </AnimatedSection>
 
             <FeatureBento />
-          </div>
-        </section>
-
-        {/* ── Built for ── */}
-        <AnimatedSection>
-          <TrackedSection
-            event="audience_section_viewed"
-            id="built-for"
-            className="py-32 px-6"
-            style={{ borderTop: '1px dashed var(--color-border)', borderBottom: '1px dashed var(--color-border)', background: 'linear-gradient(180deg, oklch(21% 0.036 258), oklch(17% 0.032 258))' }}
-          >
-            <div className="max-w-5xl mx-auto">
-              <SectionLabel number="04" className="mb-6">Built for</SectionLabel>
-              <h2
-                className="font-bold tracking-tight mb-12 text-balance max-w-2xl"
-                style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.03em' }}
-              >
-                Early-career job seekers who have real work to show but no clear way to prove it.
-              </h2>
-              <PersonaCards />
-              <p className="text-sm mt-10 max-w-2xl leading-relaxed" style={{ color: 'oklch(64% 0.022 258)' }}>
-                Showcase is not designed to fabricate credentials, inflate achievements, or mass-produce
-                generic applications. If the evidence is not there, we tell you it is missing. We do not invent it.
-              </p>
-            </div>
-          </TrackedSection>
-        </AnimatedSection>
-
-        {/* ── Evidence review spotlight ── */}
-        <section className="py-32 px-6">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-            <FadeIn from="left">
-              <SectionLabel number="05" className="mb-6">Evidence review</SectionLabel>
-              <h2
-                className="font-bold tracking-tight mb-6 text-balance"
-                style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
-              >
-                See what is weak. Then make the evidence stronger.
-              </h2>
-              <p className="text-lg leading-relaxed mb-8" style={{ color: 'oklch(62% 0.02 255)' }}>
-                Reviewers rarely tell you which evidence was missing from an application.
-                Showcase reviews your materials across 11 categories, shows you what is
-                weak and what evidence is missing, then rewrites your bullets and tells you the
-                specific line to add so your score actually goes up. It is a scan and a fix in one.
-              </p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  'First impression clarity and role positioning',
-                  'Project depth and case study quality',
-                  'Proof strength: are your claims backed up?',
-                  'Keyword relevance for your target role',
-                  'Evidence gaps that could weaken credibility',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-foreground/80">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: 'oklch(54% 0.230 255)' }} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <TrackedLink
-                href="/signup"
-                event="hero_primary_cta_clicked"
-                ctaLabel="evidence_review_spotlight"
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm text-white transition-all duration-200 hover:scale-[1.02]"
-                style={{
-                  background: 'oklch(54% 0.230 255)',
-                  boxShadow: '0 0 32px oklch(54% 0.230 255 / 0.25)',
-                }}
-              >
-                Review your evidence
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </TrackedLink>
-            </FadeIn>
-
-            <FadeIn from="right" delay={0.1}>
-              <div className="space-y-3">
-                {[
-                  { cat: 'First-impression clarity', score: 72, sev: 'major', fix: 'Your headline is vague. Add your specific role and a measurable value prop.' },
-                  { cat: 'Evidence strength', score: 41, sev: 'critical', fix: 'Only 2 of 8 bullets include measurable outcomes. Add metrics to 3 more.' },
-                  { cat: 'Project depth', score: 58, sev: 'major', fix: 'Projects show what you did, not the problem you solved or the impact.' },
-                  { cat: 'Target-role alignment', score: 85, sev: 'minor', fix: 'Strong overall. Add 3 more role-specific keywords to push above 90.' },
-                  { cat: 'Keyword support', score: 79, sev: 'minor', fix: 'Missing: "design systems", "cross-functional", "Figma".' },
-                ].map(({ cat, score, sev, fix }) => (
-                  <div key={cat} className="feat-card p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-foreground">{cat}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={sev === 'critical' ? 'danger' : sev === 'major' ? 'warning' : 'success'}>
-                          {sev}
-                        </Badge>
-                        <span
-                          className={`text-sm font-bold tabular-nums ${score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400'}`}
-                        >
-                          {score}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className="h-1 rounded-full overflow-hidden mb-2"
-                      style={{ background: 'var(--color-surface-300)' }}
-                    >
-                      <div
-                        className={`h-full rounded-full ${score >= 80 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
-                        style={{ width: `${score}%` }}
-                      />
-                    </div>
-                    <p className="text-xs" style={{ color: 'oklch(60% 0.014 262)' }}>{fix}</p>
-                  </div>
-                ))}
-                <p className="text-xs text-center pt-1" style={{ color: 'oklch(62% 0.022 258)' }}>
-                  Fictional demonstration data
-                </p>
-              </div>
-            </FadeIn>
-          </div>
-        </section>
-
-        {/* ── Before / After ── */}
-        <section
-          className="py-32 px-6"
-          style={{ borderTop: '1px dashed var(--color-border)', background: 'linear-gradient(180deg, oklch(21% 0.036 258), oklch(17% 0.032 258))' }}
-        >
-          <div className="max-w-5xl mx-auto">
-            <AnimatedSection className="mb-16">
-              <SectionLabel number="06" className="mb-6">Illustrated example</SectionLabel>
-              <h2
-                className="font-bold tracking-tight text-balance mb-4"
-                style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
-              >
-                The same experience.
-                <br />Two different presentations.
-              </h2>
-              <p style={{ color: 'oklch(60% 0.014 262)' }}>
-                Compare what a reviewer can understand when claims are supported by clearer evidence.
-              </p>
-              <p className="text-xs mt-2 uppercase tracking-widest" style={{ color: 'oklch(62% 0.022 258)' }}>
-                Fictional demonstration data
-              </p>
-            </AnimatedSection>
-
-            <BeforeAfter />
           </div>
         </section>
 
@@ -295,7 +77,7 @@ export default function LandingPage() {
         >
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="mb-16">
-              <SectionLabel number="07" className="mb-6">Pricing</SectionLabel>
+              <SectionLabel number="03" className="mb-6">Pricing</SectionLabel>
               <h2
                 className="font-bold tracking-tight mb-4 text-balance"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
@@ -323,17 +105,17 @@ export default function LandingPage() {
                   <hr className="divider-dashed mb-6" />
                   <ul className="space-y-3 mb-8">
                     {[
-                      'Resume parsing and 3 analyses per day',
+                      'PDF, DOCX, and pasted résumé parsing',
                       'One AI portfolio generation',
-                      'One evidence audit across all 11 categories',
-                      'Build, edit, and preview portfolio drafts',
+                      'Daily Evidence Audit score + 4 core categories',
+                      'Build, edit, and privately preview portfolio drafts',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.008 255)' }}>
                         <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'oklch(64% 0.022 258)' }} />
                         {f}
                       </li>
                     ))}
-                    {['Portfolio regeneration', 'Public portfolio publishing', 'Higher AI limits', 'Standalone HTML export'].map((f) => (
+                    {['Full 11-category audit', 'Portfolio regeneration', 'Public portfolio publishing', 'Personalized job feed'].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.022 258)' }}>
                         <Lock className="h-4 w-4 mt-0.5 shrink-0" />
                         {f}
@@ -351,7 +133,7 @@ export default function LandingPage() {
                       color: 'oklch(72% 0.008 255)',
                     }}
                   >
-                    Get started free
+                    Build my portfolio free
                   </TrackedLink>
                 </div>
               </StaggerChild>
@@ -383,15 +165,18 @@ export default function LandingPage() {
                       <span className="text-4xl font-bold tracking-tight">$15</span>
                       <span style={{ color: 'oklch(60% 0.014 262)' }}>/month</span>
                     </div>
+                    <p className="text-xs -mt-4 mb-6" style={{ color: 'oklch(64% 0.022 258)' }}>
+                      or $150/year
+                    </p>
                     <hr className="divider-dashed mb-6" />
                     <ul className="space-y-3 mb-8">
                       {[
                         'Everything in Free',
-                        '10 portfolio generations and full audits per day',
-                        'Public portfolio at /p/your-name',
-                        '15 tailored applications and 40 cover letters per day',
-                        '20 voice interviews per billing period',
-                        'Standalone HTML portfolio export',
+                        'Full 11-category audits and higher AI limits',
+                        'Public portfolio + shareable preview card',
+                        'Role-specific application kits, cover letters, and outreach drafts',
+                        'Personalized job feed and expanded ATS checks',
+                        'Written mock interviews; voice practice when enabled',
                       ].map((f) => (
                         <li key={f} className="flex items-start gap-3 text-sm text-foreground/90">
                           <CheckCircle2
@@ -412,7 +197,7 @@ export default function LandingPage() {
                         boxShadow: '0 0 28px oklch(54% 0.230 255 / 0.3)',
                       }}
                     >
-                      Get started free
+                      Build my portfolio free
                     </TrackedLink>
                     <p className="text-xs text-center mt-3" style={{ color: 'oklch(64% 0.022 258)' }}>
                       No credit card required · Cancel anytime
@@ -427,7 +212,7 @@ export default function LandingPage() {
         {/* ── FAQ ── */}
         <section id="faq" className="py-32 px-6 max-w-3xl mx-auto">
           <AnimatedSection className="mb-14">
-            <SectionLabel number="08" className="mb-6">FAQ</SectionLabel>
+            <SectionLabel number="04" className="mb-6">FAQ</SectionLabel>
             <h2
               className="font-bold tracking-tight"
               style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', letterSpacing: '-0.03em' }}
@@ -461,12 +246,12 @@ export default function LandingPage() {
                 className="font-bold tracking-tight mb-6 text-balance"
                 style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', letterSpacing: '-0.03em', color: 'oklch(99% 0.005 255)' }}
               >
-                Stop listing claims.
-                <br />Start proving them.
+                Start with your résumé.
+                <br />Build everything around it.
               </h2>
               <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: 'oklch(62% 0.016 262)' }}>
-                Build a portfolio that makes your real work easier to understand.
-                Build your portfolio and see exactly which evidence needs attention.
+                Create an editable portfolio free, then match roles, tailor application materials,
+                practice interviews, and publish when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <TrackedLink
@@ -479,7 +264,7 @@ export default function LandingPage() {
                     boxShadow: '0 0 48px oklch(54% 0.230 255 / 0.35)',
                   }}
                 >
-                  Get started free
+                  Build my portfolio free
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </TrackedLink>
                 <Link
