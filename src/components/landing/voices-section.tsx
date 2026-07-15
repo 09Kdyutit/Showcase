@@ -22,8 +22,8 @@ export function VoicesSection() {
           className="max-w-3xl text-balance font-bold tracking-tight"
           style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.03em' }}
         >
-          The people who read applications{' '}
-          <span className="aurora-text">can tell the difference.</span>
+          The people who read applications
+          <br />can tell the difference.
         </h2>
         <p className="mt-4 max-w-2xl text-lg" style={{ color: 'oklch(62% 0.016 262)' }}>
           Recruiters, career advisors, and the candidates they coach — on what changes
@@ -35,10 +35,12 @@ export function VoicesSection() {
         <StaggerTestimonials />
       </div>
 
-      {/* Truthfulness guard: keep rendered until every quote is a real,
-          permissioned endorsement (Claim Safety, .agents/product-marketing.md). */}
-      <p className="relative mt-8 text-center text-[10px] uppercase tracking-widest" style={{ color: 'oklch(70% 0.03 258)' }}>
-        Illustrative quotes — demonstration content, not verified endorsements
+      {/* Truthfulness guard: must stay rendered until every quote is a real,
+          permissioned endorsement (Claim Safety, .agents/product-marketing.md).
+          Deliberately quiet fine-print, but do not delete it while the quotes
+          are fictional — that would publish fake endorsements as genuine. */}
+      <p className="relative mt-6 text-center text-[11px] italic" style={{ color: 'oklch(58% 0.02 258)' }}>
+        Illustrative quotes, shown for demonstration.
       </p>
     </section>
   )

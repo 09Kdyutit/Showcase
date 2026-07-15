@@ -26,61 +26,51 @@ const testimonials = [
     tempId: 0,
     testimonial: "I screen a few hundred junior applications a week. A portfolio with evidence attached is the fastest yes I can give.",
     by: "Maya R., Technical Recruiter at a SaaS scale-up",
-    tone: '#60a5fa',
   },
   {
     tempId: 1,
     testimonial: "Most new-grad résumés read exactly the same. Case studies with real proof jump straight to the phone-screen pile.",
     by: "Daniel O., Talent Acquisition Lead",
-    tone: '#a78bfa',
   },
   {
     tempId: 2,
     testimonial: "We point our students at Showcase before every career fair. They walk in with work they can actually show.",
     by: "Elena V., University Career Services",
-    tone: '#34d399',
   },
   {
     tempId: 3,
     testimonial: "The Evidence Audit catches the vague claims recruiters roll their eyes at — before we ever see them.",
     by: "Sofia M., HR Manager at a fintech",
-    tone: '#fbbf24',
   },
   {
     tempId: 4,
     testimonial: "You can tell who practiced in the Interview Lab. Their answers have structure, and the receipts are right there.",
     by: "Marcus T., Engineering Hiring Manager",
-    tone: '#f472b6',
   },
   {
     tempId: 5,
     testimonial: "I added my Showcase link to three applications and got two replies in a week — after months of silence.",
     by: "Aisha K., new-grad frontend developer",
-    tone: '#818cf8',
   },
   {
     tempId: 6,
     testimonial: "The draft it built from my résumé was most of the way there in minutes. I spent my energy on polish instead of a blank page.",
     by: "Leo P., career switcher into data analytics",
-    tone: '#34d399',
   },
   {
     tempId: 7,
     testimonial: "Practicing interviews with my own projects as the context is what finally made my answers land.",
     by: "Nadia S., product design graduate",
-    tone: '#f472b6',
   },
   {
     tempId: 8,
     testimonial: "The audit told me exactly which claims were missing proof. I fixed my weakest case study the same day.",
     by: "Tomás G., CS senior",
-    tone: '#fbbf24',
   },
   {
     tempId: 9,
     testimonial: "Publishing with the preview card made my applications look like they came from someone senior.",
     by: "Jin W., junior ML engineer",
-    tone: '#60a5fa',
   },
 ];
 
@@ -140,11 +130,12 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         }}
       />
       <div
-        className="mb-4 flex h-14 w-12 items-center justify-center text-base font-bold text-white"
-        style={{
-          background: `linear-gradient(135deg, ${testimonial.tone}, oklch(46% 0.21 255))`,
-          boxShadow: "3px 3px 0px var(--color-background)"
-        }}
+        className={cn(
+          "mb-4 flex h-12 w-12 items-center justify-center rounded-full border text-sm font-semibold",
+          isCenter
+            ? "border-white/30 bg-white/15 text-white"
+            : "border-border bg-secondary text-foreground/80"
+        )}
         aria-hidden
       >
         {initials(testimonial.by)}
