@@ -18,6 +18,8 @@ import { HeroSection } from '@/components/landing/hero-section'
 import { ConnectedJourney } from '@/components/landing/connected-journey'
 import { FeatureBento } from '@/components/landing/feature-bento'
 import { TrustSection } from '@/components/landing/trust-section'
+import { TestimonialMarquee } from '@/components/landing/testimonial-marquee'
+import { HeroBeams } from '@/components/landing/hero-beams'
 
 // One narrative, told once: hero (what this is) → journey (what happens to your
 // résumé, in order) → features (everything included) → trust → pricing → FAQ → CTA.
@@ -68,6 +70,11 @@ export default function LandingPage() {
           <TrustSection />
         </AnimatedSection>
 
+        {/* ── Social proof (placeholder quotes — see testimonial-marquee.tsx) ── */}
+        <AnimatedSection>
+          <TestimonialMarquee />
+        </AnimatedSection>
+
         {/* ── Pricing ── */}
         <TrackedSection
           event="pricing_viewed"
@@ -77,7 +84,7 @@ export default function LandingPage() {
         >
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="mb-16">
-              <SectionLabel number="03" className="mb-6">Pricing</SectionLabel>
+              <SectionLabel number="04" className="mb-6">Pricing</SectionLabel>
               <h2
                 className="font-bold tracking-tight mb-4 text-balance"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
@@ -212,7 +219,7 @@ export default function LandingPage() {
         {/* ── FAQ ── */}
         <section id="faq" className="py-32 px-6 max-w-3xl mx-auto">
           <AnimatedSection className="mb-14">
-            <SectionLabel number="04" className="mb-6">FAQ</SectionLabel>
+            <SectionLabel number="05" className="mb-6">FAQ</SectionLabel>
             <h2
               className="font-bold tracking-tight"
               style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', letterSpacing: '-0.03em' }}
@@ -239,6 +246,8 @@ export default function LandingPage() {
               <div className="ambient-blob ambient-blob--a" style={{ top: '10%', left: '22%', width: 420, height: 420, background: 'oklch(54% 0.230 255 / 0.14)', filter: 'blur(110px)' }} />
               <div className="ambient-blob ambient-blob--b" style={{ bottom: '-10%', right: '18%', width: 380, height: 380, background: 'oklch(58% 0.20 290 / 0.12)', filter: 'blur(110px)' }} />
             </div>
+            {/* Same beam system as the hero — the page closes on the light it opened with */}
+            <HeroBeams idPrefix="cta" count={9} className="opacity-60" />
             <div className="relative max-w-3xl mx-auto text-center" style={{ zIndex: 1 }}>
               <p
                 className="text-xs font-semibold uppercase tracking-widest mb-6"
@@ -247,8 +256,8 @@ export default function LandingPage() {
                 Get started today
               </p>
               <h2
-                className="font-bold tracking-tight mb-6 text-balance"
-                style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', letterSpacing: '-0.03em', color: 'oklch(99% 0.005 255)' }}
+                className="font-bold tracking-tight mb-6 text-balance text-aurora"
+                style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', letterSpacing: '-0.03em' }}
               >
                 Start with your résumé.
                 <br />Build everything around it.

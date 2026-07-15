@@ -1137,3 +1137,46 @@
   0%, 100% { box-shadow: 0 10px 34px rgba(59, 130, 246, 0.42); }
   50%      { box-shadow: 0 12px 52px rgba(99, 102, 241, 0.62); }
 }
+
+/* ── Testimonial marquee (21st.dev / Launch UI pattern: infinite scroll rows,
+   pause on hover, gradient edge fades). The global prefers-reduced-motion block
+   freezes the scroll; cards stay fully readable in place. ─────────────────── */
+.tsm-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 9%, black 91%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 9%, black 91%, transparent);
+}
+.tsm-track {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  animation: tsm-scroll var(--tsm-dur, 58s) linear infinite;
+  will-change: transform;
+}
+.tsm-track--reverse { animation-direction: reverse; }
+.tsm-marquee:hover .tsm-track { animation-play-state: paused; }
+.tsm-group {
+  display: flex;
+  gap: 1.25rem;
+}
+/* Two identical groups in the track; sliding exactly one group + one gap loops seamlessly. */
+@keyframes tsm-scroll {
+  to { transform: translateX(calc(-50% - 0.625rem)); }
+}
+
+.tsm-card {
+  width: min(370px, 80vw);
+  flex-shrink: 0;
+  border-radius: 20px;
+  padding: 1.5rem 1.625rem;
+  background: radial-gradient(120% 120% at 0% 0%, var(--color-surface-100), var(--color-surface-50) 60%);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+}
+.tsm-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in oklch, var(--color-brand-500) 38%, var(--color-border));
+  box-shadow:
+    0 14px 40px oklch(0% 0 0 / 0.45),
+    0 0 24px color-mix(in oklch, var(--color-brand-500) 18%, transparent);
+}
