@@ -35,8 +35,19 @@ expect('first generated portfolio no longer auto-opens a referral dialog',
   !builderEditor.includes('showcase_referral_prompted'))
 expect('generation completion offers an explicit Publish live action',
   builderEditor.includes("label: 'Publish live'") && builderEditor.includes('void togglePublish()'))
+expect('a generated private preview keeps a persistent Publish decision in context',
+  builderEditor.includes("hero?.headline && portfolio?.status !== 'published'") &&
+  builderEditor.includes('Ready to share this portfolio?') &&
+  builderEditor.includes('See Pro publishing options') &&
+  builderEditor.includes("isPro ? 'Publish now' : 'See Pro publishing options'") &&
+  builderEditor.includes('onClick={togglePublish}'))
+expect('the persistent Publish decision preserves a private draft until explicit action',
+  builderEditor.includes('Your draft stays private until you choose Publish.') &&
+  builderEditor.includes('Your draft stays private. Pro unlocks this live URL'))
 expect('publish intent still goes through the authenticated publish route',
   builderEditor.includes("fetch('/api/portfolio/publish'"))
+expect('the editor never starts Checkout directly',
+  !builderEditor.includes("fetch('/api/stripe/create-checkout-session'"))
 expect('paywall buttons still route through Billing instead of bypassing the approval hold',
   publishPaywall.includes('router.push(`/billing?${params.toString()}`)') &&
   !publishPaywall.includes("fetch('/api/stripe/create-checkout-session'"))

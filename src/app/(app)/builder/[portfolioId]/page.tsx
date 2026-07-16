@@ -702,6 +702,32 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                   </div>
                 </div>
 
+                {hero?.headline && portfolio?.status !== 'published' && (
+                  <div className="glass-card border-brand-500/25 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">Ready to share this portfolio?</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          {isPro
+                            ? 'Your draft stays private until you choose Publish. You can unpublish it later.'
+                            : 'Your draft stays private. Pro unlocks this live URL and its preview card for applications, LinkedIn, and direct outreach.'}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="gradient"
+                        size="sm"
+                        onClick={togglePublish}
+                        loading={publishing}
+                        className="shrink-0 gap-1.5"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                        {isPro ? 'Publish now' : 'See Pro publishing options'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Live preview - the real theme renderer, shrunk to fit, not a mockup */}
                 <div>
                   <div className="glass-card overflow-hidden">
