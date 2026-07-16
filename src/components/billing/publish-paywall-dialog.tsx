@@ -91,9 +91,10 @@ export function PublishPaywallDialog({
               <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/10">
                 <Sparkles className="h-5 w-5 text-brand-400" />
               </div>
-              <DialogTitle className="text-2xl">It&apos;s ready. Put it where recruiters can see it.</DialogTitle>
+              <DialogTitle className="text-2xl">Unlock a live link for this portfolio.</DialogTitle>
               <DialogDescription className="leading-relaxed">
-                Publishing gives this portfolio a live link and preview card for applications, LinkedIn, and direct outreach.
+                Showcase Pro gives this portfolio a live URL and preview card for applications, LinkedIn, and direct outreach.
+                Your draft stays private until you return and choose Publish.
               </DialogDescription>
             </DialogHeader>
 
@@ -129,18 +130,22 @@ export function PublishPaywallDialog({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 gap-2 py-3">
-                Publish live · $15/month
+                Continue with monthly Pro · $15/month
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 gap-2 py-3">
-                $150/year · save $30
+                Continue with annual Pro · $150/year
               </Button>
             </div>
+
+            <p className="rounded-lg border border-border bg-surface-100 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+              Checkout upgrades your account; it does not publish this draft. After payment, return to this portfolio and choose Publish.
+            </p>
 
             <div className="space-y-2 text-xs text-muted-foreground">
               <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Live shareable URL and social preview card</p>
               <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Higher AI limits and portfolio regeneration</p>
-              <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Cancel anytime; the page unpublishes and remains a private draft in your account</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Cancel anytime; when Pro access ends, the page unpublishes and remains a private draft</p>
             </div>
 
             <Button type="button" variant="ghost" className="w-full" onClick={() => onOpenChange(false)}>

@@ -20,6 +20,7 @@ const dashboard = source('src/app/(app)/dashboard/page.tsx')
 const builderIndex = source('src/app/(app)/builder/page.tsx')
 const builderEditor = source('src/app/(app)/builder/[portfolioId]/page.tsx')
 const publishPaywall = source('src/components/billing/publish-paywall-dialog.tsx')
+const billing = source('src/app/(app)/billing/page.tsx')
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -39,6 +40,23 @@ expect('publish intent still goes through the authenticated publish route',
 expect('paywall buttons still route through Billing instead of bypassing the approval hold',
   publishPaywall.includes('router.push(`/billing?${params.toString()}`)') &&
   !publishPaywall.includes("fetch('/api/stripe/create-checkout-session'"))
+expect('paywall plan choices do not imply that selecting a plan publishes immediately',
+  publishPaywall.includes('Continue with monthly Pro · $15/month') &&
+  publishPaywall.includes('Continue with annual Pro · $150/year') &&
+  !publishPaywall.includes('Publish live · $15/month'))
+expect('paywall states the explicit post-payment Publish step',
+  publishPaywall.includes('Checkout upgrades your account; it does not publish this draft.') &&
+  publishPaywall.includes('return to this portfolio and choose Publish'))
+expect('Billing preserves publish intent in its visible decision copy',
+  billing.includes("const fromPublish = searchParams.get('source') === 'publish'") &&
+  billing.includes("fromPublish ? 'Put your portfolio' : 'Invest in your'") &&
+  billing.includes("fromPublish ? 'Continue with Pro' : 'Upgrade to Pro'"))
+expect('Billing repeats that Checkout does not auto-publish',
+  billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
+  billing.includes('return to your portfolio and choose Publish'))
+expect('Billing keeps the approved two-step Checkout implementation unchanged',
+  billing.includes("fetch('/api/stripe/create-checkout-session'") &&
+  billing.includes("body: JSON.stringify({ plan, source: searchParams.get('source') ?? 'billing' })"))
 
 if (failures > 0) {
   console.log(`\n${failures} first-sale path check(s) failed.`)

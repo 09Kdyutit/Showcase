@@ -120,6 +120,7 @@ export default function BillingPage() {
   }, [searchParams, router])
 
   const isPro = sub?.status === 'active' || sub?.status === 'trialing'
+  const fromPublish = searchParams.get('source') === 'publish'
 
   async function startCheckout(plan: CheckoutPlan = billingCycle) {
     setCheckoutLoading(true)
@@ -173,9 +174,11 @@ export default function BillingPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       <PageHeader
         eyebrow="Billing"
-        title="Invest in your"
-        titleAccent="career."
-        description="Manage your subscription and payment details."
+        title={fromPublish ? 'Put your portfolio' : 'Invest in your'}
+        titleAccent={fromPublish ? 'live.' : 'career.'}
+        description={fromPublish
+          ? 'Unlock a live URL and preview card with Pro. Your draft stays private until you explicitly publish it after checkout.'
+          : 'Manage your subscription and payment details.'}
       />
 
       {confirming && (
@@ -186,7 +189,7 @@ export default function BillingPage() {
       )}
 
       {/* Current plan */}
-      <Card className="bg-surface-100 border-border">
+      {(!fromPublish || isPro) && <Card className="bg-surface-100 border-border">
         <CardHeader>
           <CardTitle className="text-sm flex items-center justify-between">
             Current plan
@@ -231,7 +234,7 @@ export default function BillingPage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Upgrade card (if free) */}
       {!isPro && (
@@ -356,9 +359,14 @@ export default function BillingPage() {
               className="w-full sm:w-auto gap-2"
             >
               <Zap className="h-4 w-4" />
-              Upgrade to Pro - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
+              {fromPublish ? 'Continue with Pro' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
               <ArrowRight className="h-4 w-4" />
             </Button>
+            {fromPublish && (
+              <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                Checkout upgrades your account; it does not publish your draft. After payment, return to your portfolio and choose Publish.
+              </p>
+            )}
             <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground/60">
               <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Cancel anytime</span>
               <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Secure via Stripe</span>
