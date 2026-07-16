@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isTrustedOrigin } from '@/lib/security/origin-check'
+import { AUTH_RETURN_PREFIXES, safeNextPath } from '@/lib/security/safe-next-path'
 
-const PROTECTED_ROUTES = ['/dashboard', '/builder', '/audit', '/resume', '/settings', '/billing', '/onboarding']
+const PROTECTED_ROUTES = AUTH_RETURN_PREFIXES
 const AUTH_ROUTES = ['/login']
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 // Webhook providers sign their own payloads - the signature
@@ -84,6 +85,7 @@ function lockdownResponse(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
+  const requestedPath = safeNextPath(`${path}${request.nextUrl.search}`)
 
   if (
     path.startsWith('/api/') &&
@@ -117,7 +119,8 @@ export async function proxy(request: NextRequest) {
     if (isProtected) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
-      url.searchParams.set('redirectTo', path)
+      url.search = ''
+      url.searchParams.set('redirectTo', requestedPath)
       return NextResponse.redirect(url)
     }
     return supabaseResponse
@@ -152,14 +155,16 @@ export async function proxy(request: NextRequest) {
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('redirectTo', path)
+    url.search = ''
+    url.searchParams.set('redirectTo', requestedPath)
     return NextResponse.redirect(url)
   }
 
   if (isAuthRoute && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(new URL(
+      safeNextPath(request.nextUrl.searchParams.get('redirectTo')),
+      request.url,
+    ))
   }
 
   return supabaseResponse

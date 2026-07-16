@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/shared/logo'
 import { AuthAside } from '@/components/auth/auth-aside'
 import { GoogleButton } from '@/components/auth/google-button'
+import { safeNextPath } from '@/lib/security/safe-next-path'
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const
 
@@ -22,6 +23,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [nextPath] = useState(() => (
+    typeof window === 'undefined'
+      ? '/dashboard'
+      : safeNextPath(new URLSearchParams(window.location.search).get('redirectTo'))
+  ))
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -33,7 +39,7 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    router.push('/dashboard')
+    router.replace(nextPath)
     router.refresh()
   }
 
@@ -43,7 +49,9 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/callback?next=${encodeURIComponent(nextPath)}`,
+      },
     })
     if (error) toast.error(error.message)
     else toast.success('Magic link sent — check your email')
@@ -76,7 +84,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <GoogleButton next="/dashboard" label="Continue with Google" />
+          <GoogleButton next={nextPath} label="Continue with Google" />
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
