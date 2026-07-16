@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { ArrowRight } from 'lucide-react'
-import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { TrackedLink } from '@/components/landing/tracked-link'
 
 export function StickyMobileCTA() {
   const [visible, setVisible] = useState(false)
@@ -28,14 +28,16 @@ export function StickyMobileCTA() {
       )}
     >
       <div className="bg-surface-50/95 backdrop-blur-xl border-t border-border/60 px-4 py-3">
-        <Link
+        <TrackedLink
           href="/signup"
+          event="hero_primary_cta_clicked"
+          ctaLabel="sticky_mobile"
           className="flex items-center justify-center gap-2 w-full h-12 rounded-xl font-semibold text-sm text-white"
           style={{ background: 'linear-gradient(135deg, var(--color-brand-500), var(--color-brand-500))' }}
         >
           Build my portfolio free
           <ArrowRight className="h-4 w-4" />
-        </Link>
+        </TrackedLink>
         <p className="text-center text-xs text-muted-foreground mt-2">No credit card required</p>
       </div>
     </div>

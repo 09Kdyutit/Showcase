@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/shared/logo'
 import { AuthAside } from '@/components/auth/auth-aside'
 import { GoogleButton } from '@/components/auth/google-button'
+import { trackMarketingEvent } from '@/lib/marketing/track-client'
 
 const EASE = [0.21, 0.47, 0.32, 0.98] as const
 const INVITE_TOKEN_PATTERN = /^[a-f0-9]{48}$/
@@ -32,6 +33,13 @@ export default function SignupPage() {
   const [referralCode, setReferralCode] = useState<string | null>(null)
   const [referralState, setReferralState] = useState<ReferralState>('none')
   const [referralRemaining, setReferralRemaining] = useState(0)
+  const signupStarted = useRef(false)
+
+  function markSignupStarted(method: 'google' | 'email') {
+    if (signupStarted.current) return
+    signupStarted.current = true
+    trackMarketingEvent('signup_started', { route: '/signup', cta_label: method })
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -108,6 +116,7 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
+    markSignupStarted('email')
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters')
       return
@@ -279,6 +288,7 @@ export default function SignupPage() {
                 return `/onboarding${params.size ? `?${params.toString()}` : ''}`
               })()}
               label="Sign up with Google"
+              onStart={() => markSignupStarted('google')}
               disabled={admissionState === 'checking' || admissionState === 'invalid' || referralState === 'checking' || referralState === 'invalid' || referralState === 'unavailable'}
             />
           </div>
@@ -290,7 +300,11 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSignup} className="space-y-4">
+          <form
+            onSubmit={handleSignup}
+            onFocusCapture={() => markSignupStarted('email')}
+            className="space-y-4"
+          >
             <div className="space-y-1.5">
               <Label htmlFor="name">Full name</Label>
               <Input

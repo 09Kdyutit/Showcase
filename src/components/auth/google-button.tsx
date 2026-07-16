@@ -19,15 +19,18 @@ export function GoogleButton({
   next = '/dashboard',
   label = 'Continue with Google',
   disabled = false,
+  onStart,
 }: {
   next?: string
   label?: string
   disabled?: boolean
+  onStart?: () => void
 }) {
   const [loading, setLoading] = useState(false)
 
   async function handleGoogle() {
     if (disabled) return
+    onStart?.()
     setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({

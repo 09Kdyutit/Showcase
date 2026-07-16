@@ -21,6 +21,9 @@ const builderIndex = source('src/app/(app)/builder/page.tsx')
 const builderEditor = source('src/app/(app)/builder/[portfolioId]/page.tsx')
 const publishPaywall = source('src/components/billing/publish-paywall-dialog.tsx')
 const billing = source('src/app/(app)/billing/page.tsx')
+const signup = source('src/app/(auth)/signup/page.tsx')
+const googleButton = source('src/components/auth/google-button.tsx')
+const stickyMobileCta = source('src/components/landing/sticky-mobile-cta.tsx')
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -82,6 +85,19 @@ expect('Billing repeats that Checkout does not auto-publish',
 expect('Billing keeps the approved two-step Checkout implementation unchanged',
   billing.includes("fetch('/api/stripe/create-checkout-session'") &&
   billing.includes("body: JSON.stringify({ plan, source: searchParams.get('source') ?? 'billing' })"))
+expect('signup intent is measured once without recording form values',
+  signup.includes("trackMarketingEvent('signup_started', { route: '/signup', cta_label: method })") &&
+  signup.includes("onFocusCapture={() => markSignupStarted('email')}") &&
+  signup.includes("onStart={() => markSignupStarted('google')}") &&
+  signup.includes('if (signupStarted.current) return') &&
+  !signup.includes("trackMarketingEvent('signup_started', { email"))
+expect('Google signup exposes a pre-redirect intent callback',
+  googleButton.includes('onStart?: () => void') &&
+  googleButton.indexOf('onStart?.()') < googleButton.indexOf('signInWithOAuth'))
+expect('the mobile sticky CTA uses the same durable click tracking as other signup links',
+  stickyMobileCta.includes('<TrackedLink') &&
+  stickyMobileCta.includes('event="hero_primary_cta_clicked"') &&
+  stickyMobileCta.includes('ctaLabel="sticky_mobile"'))
 
 if (failures > 0) {
   console.log(`\n${failures} first-sale path check(s) failed.`)
