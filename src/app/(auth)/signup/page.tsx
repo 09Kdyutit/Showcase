@@ -223,6 +223,9 @@ export default function SignupPage() {
 
           <div className="mb-7">
             <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Create your account</h1>
+            <p className="mb-3 text-sm text-muted-foreground lg:hidden">
+              Build, edit, and privately preview your portfolio free. No credit card required.
+            </p>
             <p className="text-muted-foreground text-sm">
               Already have one?{' '}
               <Link href="/login" className="text-brand-400 hover:text-brand-300 transition-colors font-semibold">
@@ -296,7 +299,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="email">Work email</Label>
+              <Label htmlFor="email">Email address</Label>
               <Input
                 id="email" type="email" placeholder="you@example.com" autoComplete="email"
                 value={email} onChange={(e) => setEmail(e.target.value)} required

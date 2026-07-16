@@ -132,6 +132,7 @@ const positioningSurface = [
 // retired claims-to-evidence animation the hero centerpiece.
 const landingEntry = readFileSync('src/app/page.tsx', 'utf8')
 const heroEntry = readFileSync('src/components/landing/hero-section.tsx', 'utf8')
+const signupEntry = readFileSync('src/app/(auth)/signup/page.tsx', 'utf8')
 for (const { label, content, pattern } of [
   { label: 'fictional testimonial carousel', content: landingEntry, pattern: /VoicesSection|StaggerTestimonials/ },
   { label: 'retired Evidence Field hero animation', content: heroEntry, pattern: /EvidenceField/ },
@@ -141,6 +142,22 @@ for (const { label, content, pattern } of [
     console.log(`  ❌ landing entry point — mounts ${label}`)
     violations++
   }
+}
+
+for (const { label, pattern } of [
+  { label: 'mobile free-portfolio promise', pattern: /Build, edit, and privately preview your portfolio free/i },
+  { label: 'mobile no-card reassurance', pattern: /No credit card required/i },
+  { label: 'audience-neutral email label', pattern: /<Label htmlFor="email">Email address<\/Label>/i },
+]) {
+  if (!pattern.test(signupEntry)) {
+    console.log(`  ❌ signup entry point — missing ${label}`)
+    violations++
+  }
+}
+
+if (/<Label htmlFor="email">Work email<\/Label>/i.test(signupEntry)) {
+  console.log('  ❌ signup entry point — still requires a work-email framing')
+  violations++
 }
 
 const REQUIRED_POSITIONING = [
