@@ -127,6 +127,22 @@ const positioningSurface = [
   'src/components/landing/trust-section.tsx',
 ].map((file) => readFileSync(file, 'utf8')).join('\n')
 
+// Fictional demonstrations may remain in source for internal design work, but the
+// production landing entry points must never mount them as testimonials or make the
+// retired claims-to-evidence animation the hero centerpiece.
+const landingEntry = readFileSync('src/app/page.tsx', 'utf8')
+const heroEntry = readFileSync('src/components/landing/hero-section.tsx', 'utf8')
+for (const { label, content, pattern } of [
+  { label: 'fictional testimonial carousel', content: landingEntry, pattern: /VoicesSection|StaggerTestimonials/ },
+  { label: 'retired Evidence Field hero animation', content: heroEntry, pattern: /EvidenceField/ },
+  { label: 'retired Proof Assembly hero animation', content: heroEntry, pattern: /ProofAssembly/ },
+]) {
+  if (pattern.test(content)) {
+    console.log(`  ❌ landing entry point — mounts ${label}`)
+    violations++
+  }
+}
+
 const REQUIRED_POSITIONING = [
   { label: 'connected job-search category', pattern: /whole job search, connected/i },
   { label: 'PDF and DOCX resume inputs', pattern: /PDF.{0,50}DOCX/is },

@@ -18,7 +18,6 @@ import { HeroSection } from '@/components/landing/hero-section'
 import { ConnectedJourney } from '@/components/landing/connected-journey'
 import { FeatureBento } from '@/components/landing/feature-bento'
 import { TrustSection } from '@/components/landing/trust-section'
-import { VoicesSection } from '@/components/landing/voices-section'
 
 // One narrative, told once: hero (what this is) → journey (what happens to your
 // résumé, in order) → features (everything included) → trust → pricing → FAQ → CTA.
@@ -69,11 +68,6 @@ export default function LandingPage() {
           <TrustSection />
         </AnimatedSection>
 
-        {/* ── Social proof (placeholder quotes — see ui/stagger-testimonials.tsx) ── */}
-        <AnimatedSection>
-          <VoicesSection />
-        </AnimatedSection>
-
         {/* ── Pricing ── */}
         <TrackedSection
           event="pricing_viewed"
@@ -83,7 +77,7 @@ export default function LandingPage() {
         >
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="mb-16">
-              <SectionLabel number="04" className="mb-6">Pricing</SectionLabel>
+              <SectionLabel number="03" className="mb-6">Pricing</SectionLabel>
               <h2
                 className="font-bold tracking-tight mb-4 text-balance"
                 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', letterSpacing: '-0.03em' }}
@@ -218,7 +212,7 @@ export default function LandingPage() {
         {/* ── FAQ ── */}
         <section id="faq" className="py-32 px-6 max-w-3xl mx-auto">
           <AnimatedSection className="mb-14">
-            <SectionLabel number="05" className="mb-6">FAQ</SectionLabel>
+            <SectionLabel number="04" className="mb-6">FAQ</SectionLabel>
             <h2
               className="font-bold tracking-tight"
               style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', letterSpacing: '-0.03em' }}

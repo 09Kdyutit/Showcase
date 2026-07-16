@@ -5,8 +5,6 @@ import Image from 'next/image'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import { HERO } from '@/lib/marketing/positioning'
 import { TrackedLink } from './tracked-link'
-import { EvidenceField } from './evidence-field'
-import { ProofAssembly } from './proof-assembly'
 
 const TRUST = [
   'No credit card required',
@@ -83,10 +81,6 @@ export function HeroSection() {
       </div>
       <div className="absolute inset-0 pointer-events-none hero-grid" style={{ opacity: 0.4 }} />
 
-      {/* The Evidence Field — drifting unproven claims, periodically caught and
-          verified, their trails feeding the assembly card below */}
-      <EvidenceField />
-
       <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center" style={{ zIndex: 2 }}>
         {/* Brand lockup — the first thing you see */}
         <div className="flex items-center justify-center gap-3 mb-9" style={{ animation: 'fadeIn 0.7s ease both' }}>
@@ -146,10 +140,6 @@ export function HeroSection() {
           ))}
         </div>
 
-        {/* The proof assembly — the centerpiece the Evidence Field feeds into */}
-        <div style={{ animation: 'fadeIn 0.9s ease 0.6s both' }}>
-          <ProofAssembly />
-        </div>
       </div>
 
       {/* Scroll indicator */}
