@@ -102,11 +102,11 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {!isPro && (
+            {!isPro && latestGeneratedPortfolio && latestGeneratedPortfolio.status !== 'published' && (
               <Button asChild variant="gradient" size="sm" className="gap-1.5">
-                <Link href="/billing">
-                  <Zap className="h-3.5 w-3.5" />
-                  Upgrade to Pro
+                <Link href={latestPortfolioHref}>
+                  <Globe className="h-3.5 w-3.5" />
+                  Review &amp; publish
                 </Link>
               </Button>
             )}

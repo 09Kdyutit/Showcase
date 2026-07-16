@@ -29,6 +29,11 @@ expect('dashboard links a generated user to the exact portfolio editor', dashboa
 expect('dashboard prioritizes review/publish before Evidence Audit',
   dashboard.indexOf("label: 'Review and publish your portfolio'") > -1 &&
   dashboard.indexOf("label: 'Review and publish your portfolio'") < dashboard.indexOf("label: 'Run your Evidence Audit'"))
+expect('dashboard asks for Publish only after generated-portfolio value and keeps its context',
+  dashboard.includes("!isPro && latestGeneratedPortfolio && latestGeneratedPortfolio.status !== 'published'") &&
+  dashboard.includes('<Link href={latestPortfolioHref}>') &&
+  dashboard.includes('Review &amp; publish') &&
+  !dashboard.includes('<Link href="/billing">\n                  <Zap'))
 expect('builder list labels generated drafts Review & publish', builderIndex.includes("'Review & publish'"))
 expect('first generated portfolio no longer auto-opens a referral dialog',
   !builderEditor.includes('CompletionReferralDialog') &&
