@@ -51,10 +51,19 @@ expect('the editor never starts Checkout directly',
 expect('paywall buttons still route through Billing instead of bypassing the approval hold',
   publishPaywall.includes('router.push(`/billing?${params.toString()}`)') &&
   !publishPaywall.includes("fetch('/api/stripe/create-checkout-session'"))
-expect('paywall plan choices do not imply that selecting a plan publishes immediately',
-  publishPaywall.includes('Continue with monthly Pro · $15/month') &&
-  publishPaywall.includes('Continue with annual Pro · $150/year') &&
+expect('paywall plan choices fit their decision column with compact, truthful pricing',
+  publishPaywall.includes('<span>Monthly Pro</span>') &&
+  publishPaywall.includes('$15/month') &&
+  publishPaywall.includes('Annual Pro') &&
+  publishPaywall.includes('Save $30') &&
+  publishPaywall.includes('$150/year') &&
+  !publishPaywall.includes('sm:grid-cols-2') &&
   !publishPaywall.includes('Publish live · $15/month'))
+expect('mobile paywall shows the upgrade decision before the duplicate portfolio preview',
+  publishPaywall.includes('order-2 border-t') &&
+  publishPaywall.includes('order-1 space-y-6') &&
+  publishPaywall.includes('lg:order-1') &&
+  publishPaywall.includes('lg:order-2'))
 expect('paywall states the explicit post-payment Publish step',
   publishPaywall.includes('Checkout upgrades your account; it does not publish this draft.') &&
   publishPaywall.includes('return to this portfolio and choose Publish'))

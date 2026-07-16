@@ -68,7 +68,7 @@ export function PublishPaywallDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto p-0">
         <div className="grid lg:grid-cols-[1.12fr_0.88fr]">
-          <div className="border-b border-border bg-surface-50 p-5 lg:border-b-0 lg:border-r">
+          <div className="order-2 border-t border-border bg-surface-50 p-5 lg:order-1 lg:border-t-0 lg:border-r">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Globe className="h-3.5 w-3.5 text-brand-400" />
@@ -86,7 +86,7 @@ export function PublishPaywallDialog({
             />
           </div>
 
-          <div className="space-y-6 p-6 sm:p-8">
+          <div className="order-1 space-y-6 p-6 sm:p-8 lg:order-2">
             <DialogHeader>
               <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/10">
                 <Sparkles className="h-5 w-5 text-brand-400" />
@@ -128,13 +128,19 @@ export function PublishPaywallDialog({
               </button>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 gap-2 py-3">
-                Continue with monthly Pro · $15/month
-                <ArrowRight className="h-4 w-4" />
+            <div className="grid gap-3">
+              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
+                <span>Monthly Pro</span>
+                <span className="ml-auto flex items-center gap-1.5 text-white/90">
+                  $15/month <ArrowRight className="h-4 w-4" />
+                </span>
               </Button>
-              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 gap-2 py-3">
-                Continue with annual Pro · $150/year
+              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
+                <span className="flex items-center gap-2">
+                  Annual Pro
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Save $30</span>
+                </span>
+                <span className="ml-auto text-muted-foreground">$150/year</span>
               </Button>
             </div>
 
