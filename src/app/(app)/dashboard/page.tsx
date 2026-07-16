@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp, Briefcase } from 'lucide-react'
+import { ArrowRight, Plus, Zap, FileText, BarChart3, AlertCircle, CheckCircle2, TrendingUp, Briefcase, Globe } from 'lucide-react'
 import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Tilt3D } from '@/components/ui/tilt-3d'
@@ -20,14 +20,14 @@ export default async function DashboardPage() {
   const [profileRes, subRes, portfoliosRes, auditsRes, resumesRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
-    supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
+    supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role, ai_generated_at').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
     supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(12),
     supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
   ])
 
   const profile = profileRes.data as Profile | null
   const subscription = subRes.data as Subscription | null
-  const portfolios = (portfoliosRes.data ?? []) as Pick<Portfolio, 'id' | 'title' | 'slug' | 'status' | 'proof_score' | 'updated_at' | 'target_role'>[]
+  const portfolios = (portfoliosRes.data ?? []) as Pick<Portfolio, 'id' | 'title' | 'slug' | 'status' | 'proof_score' | 'updated_at' | 'target_role' | 'ai_generated_at'>[]
   const auditHistory = (auditsRes.data ?? []) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'>[]
   const latestAudit = (auditHistory[0] ?? null) as Pick<Audit, 'overall_score' | 'category_scores' | 'created_at'> | null
   // Oldest→newest, real numeric scores only, for the trajectory sparkline.
@@ -38,6 +38,9 @@ export default async function DashboardPage() {
   const latestResume = (resumesRes.data?.[0] ?? null) as Pick<Resume, 'id' | 'title' | 'created_at'> | null
   const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
   const latestPortfolio = portfolios[0] ?? null
+  const latestGeneratedPortfolio = portfolios.find((portfolio) => !!portfolio.ai_generated_at) ?? null
+  const latestPortfolioHref = latestGeneratedPortfolio ? `/builder/${latestGeneratedPortfolio.id}` : '/builder'
+  const hasGeneratedPortfolio = !!latestGeneratedPortfolio
   const proofScore = latestAudit?.overall_score ?? latestPortfolio?.proof_score ?? null
 
   if (profile && !profile.onboarding_completed) {
@@ -45,11 +48,13 @@ export default async function DashboardPage() {
   }
 
   const nextAction = !latestResume
-    ? { href: '/resume', label: 'Upload your resume', icon: FileText, desc: 'Start by adding your resume for an evidence audit.' }
-    : !latestPortfolio
+    ? { href: '/resume', label: 'Upload your résumé', icon: FileText, desc: 'Start with the document you already have.' }
+    : !hasGeneratedPortfolio
     ? { href: '/builder', label: 'Create your portfolio', icon: Plus, desc: 'Build your first portfolio from your resume.' }
+    : latestGeneratedPortfolio?.status !== 'published'
+    ? { href: latestPortfolioHref, label: 'Review and publish your portfolio', icon: Globe, desc: 'Your private draft is ready. Review it, then publish a live link when you are ready.' }
     : !latestAudit
-    ? { href: '/audit', label: 'Run your evidence audit', icon: BarChart3, desc: 'See exactly how ready you are.' }
+    ? { href: '/audit', label: 'Run your Evidence Audit', icon: BarChart3, desc: 'See the strongest parts of your portfolio and the next fixes to make.' }
     : { href: '/builder', label: 'Improve your portfolio', icon: TrendingUp, desc: 'Apply your evidence-audit recommendations.' }
 
   const categories = latestAudit?.category_scores
@@ -58,9 +63,9 @@ export default async function DashboardPage() {
 
   const setupSteps = [
     { label: 'Upload your resume', done: !!latestResume, href: '/resume', cta: 'Add your résumé — everything starts here.' },
-    { label: 'Run your evidence audit', done: !!latestAudit, href: '/audit', cta: 'See exactly how hiring-ready you are.' },
-    { label: 'Build your portfolio', done: !!latestPortfolio, href: '/builder', cta: 'Turn your résumé into a portfolio in one click.' },
-    { label: 'Publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: '/builder', cta: 'Get a shareable link recruiters can open.' },
+    { label: 'Build your portfolio', done: hasGeneratedPortfolio, href: '/builder', cta: 'Turn your résumé into an editable private draft.' },
+    { label: 'Review and publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: latestPortfolioHref, cta: 'Review your draft, then publish a live shareable link with Pro.' },
+    { label: 'Run your Evidence Audit', done: !!latestAudit, href: '/audit', cta: 'See the strongest parts and the next fixes to make.' },
   ]
   const setupDone = setupSteps.filter((s) => s.done).length
   // Persist the checklist as the north star until EVERY step is done, not just the first few.

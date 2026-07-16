@@ -20,7 +20,6 @@ import { portfolioGoalLabel } from '@/lib/constants'
 import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
 import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
 import { ImageUploader } from '@/components/portfolio/image-uploader'
-import { CompletionReferralDialog } from '@/components/referrals/completion-referral-dialog'
 import { PublishPaywallDialog } from '@/components/billing/publish-paywall-dialog'
 import { configuredAppHost } from '@/lib/app-url'
 
@@ -55,10 +54,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     linkedin_url: string | null
     github_url: string | null
     website_url: string | null
-    referral_code: string | null
   } | null>(null)
-  const [referralCode, setReferralCode] = useState<string | null>(null)
-  const [referralDialogOpen, setReferralDialogOpen] = useState(false)
   const [publishPaywallOpen, setPublishPaywallOpen] = useState(false)
   const [genMsg, setGenMsg] = useState('')
   const [activeProject, setActiveProject] = useState<number | null>(null)
@@ -93,7 +89,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       supabase.from('subscriptions').select('status').maybeSingle(),
       supabase.from('resumes').select('raw_text, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle(),
       user
-        ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url, referral_code').eq('id', user.id).single()
+        ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url').eq('id', user.id).single()
         : Promise.resolve({ data: null }),
       // Display-only signal for the free-tier generation allowance; the server route
       // re-checks this authoritatively on every generate call.
@@ -118,14 +114,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       linkedin_url: string | null
       github_url: string | null
       website_url: string | null
-      referral_code: string | null
     } | null
     setProfileMeta(loadedProfile)
-    setReferralCode(loadedProfile?.referral_code ?? null)
     setLoading(false)
-    if (loadedProfile?.referral_code && portfolioRes.data.ai_generated_at && generatedCount === 1) {
-      window.setTimeout(() => maybeOpenReferralPrompt(loadedProfile.referral_code), 250)
-    }
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
@@ -185,34 +176,12 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   function updateRole(v: string) { setTargetRole(v) }
   function updateTheme(v: ThemeId) { setTheme(v) }
 
-  function maybeOpenReferralPrompt(code: string | null) {
-    if (!code) return
-    try {
-      if (window.localStorage.getItem(`showcase_referral_prompted:${code}`)) return
-    } catch {
-      // A disabled localStorage should not break the completion experience.
-    }
-    setReferralDialogOpen(true)
-  }
-
-  function handleReferralDialogOpenChange(open: boolean) {
-    setReferralDialogOpen(open)
-    if (!open) {
-      try {
-        if (referralCode) window.localStorage.setItem(`showcase_referral_prompted:${referralCode}`, new Date().toISOString())
-      } catch {
-        // Best-effort frequency guard only. Settings keeps the referral link available.
-      }
-    }
-  }
-
   async function generatePortfolio(confirmOverwrite = false) {
     // Free includes the first generation; regeneration needs Pro. The server enforces
     // this authoritatively - this check just gives a clear message without a round trip.
     if (!isPro && hasUsedFreeGeneration) { toast.error('Your free plan includes one AI generation. Upgrade to Pro to regenerate.'); return }
     if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
     if (generatingRef.current) return
-    const isFirstGeneration = !hasUsedFreeGeneration
     generatingRef.current = true
 
     setGenerating(true)
@@ -281,8 +250,12 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       updateContent(() => data)
       setHasUsedFreeGeneration(true)
       recordGeneratedPreview()
-      toast.success('Portfolio generated! Review and edit the content below.')
-      if (isFirstGeneration) maybeOpenReferralPrompt(referralCode)
+      toast.success('Portfolio generated. Review your draft, then publish when it is ready.', {
+        action: {
+          label: 'Publish live',
+          onClick: () => { void togglePublish() },
+        },
+      })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Generation failed. Please try again.')
     } finally {
@@ -1248,14 +1221,6 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
           </Tabs>
         </div>
       </div>
-      {referralCode && (
-        <CompletionReferralDialog
-          key={referralCode}
-          open={referralDialogOpen}
-          onOpenChange={handleReferralDialogOpenChange}
-          referralCode={referralCode}
-        />
-      )}
       {portfolio && (
         <PublishPaywallDialog
           open={publishPaywallOpen}

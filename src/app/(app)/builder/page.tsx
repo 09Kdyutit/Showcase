@@ -200,8 +200,11 @@ export default async function BuilderPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button asChild variant="secondary" size="sm" className="flex-1 text-xs">
-                    <Link href={`/builder/${p.id}`}>Edit</Link>
+                  <Button asChild variant={p.ai_generated_at && p.status !== 'published' ? 'gradient' : 'secondary'} size="sm" className="flex-1 gap-1.5 text-xs">
+                    <Link href={`/builder/${p.id}`}>
+                      {p.ai_generated_at && p.status !== 'published' && <Globe className="h-3.5 w-3.5" />}
+                      {p.ai_generated_at && p.status !== 'published' ? 'Review & publish' : 'Edit'}
+                    </Link>
                   </Button>
                   {p.status === 'published' && isPro && (
                     <Button asChild variant="ghost" size="icon" className="h-8 w-8">
