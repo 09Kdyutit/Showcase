@@ -26,6 +26,10 @@ const googleButton = source('src/components/auth/google-button.tsx')
 const stickyMobileCta = source('src/components/landing/sticky-mobile-cta.tsx')
 const navbar = source('src/components/shared/navbar.tsx')
 const careerServices = source('src/app/for-career-services/page.tsx')
+const sitemap = source('src/app/sitemap.ts')
+const robots = source('src/app/robots.ts')
+const pricingMetadata = source('src/app/pricing/layout.tsx')
+const genericPaywall = source('src/components/ui/paywall.tsx')
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -113,6 +117,25 @@ expect('career-services visitors have an organizer-specific inquiry path alongsi
   careerServices.includes('ctaLabel="career_services_sprint_request_top"') &&
   careerServices.includes('ctaLabel="career_services_sprint_request_bottom"') &&
   careerServices.includes('ctaLabel="career_services_student_workspace_top"'))
+expect('public discovery exposes only canonical acquisition pages',
+  sitemap.includes("path: '/pricing'") &&
+  sitemap.includes("path: '/for-career-services'") &&
+  sitemap.includes('configuredAppUrl()') &&
+  !/path: '\/(?:signup|login|waitlist|proofscore|demo|api|privacy|terms|refund)/.test(sitemap) &&
+  pricingMetadata.includes("alternates: { canonical: '/pricing' }") &&
+  pricingMetadata.includes("url: '/pricing'"))
+expect('crawler guidance links the sitemap while excluding private, retired, and token routes',
+  robots.includes('`${appUrl}/sitemap.xml`') &&
+  robots.includes("'/api/'") &&
+  robots.includes("'/dashboard'") &&
+  robots.includes("'/proof/'") &&
+  robots.includes("'/proofscore'") &&
+  robots.includes("'/shared/'") &&
+  robots.includes("'/waitlist'"))
+expect('the $15 monthly upgrade card preserves the advertised monthly plan in Billing',
+  genericPaywall.includes("router.push('/billing?plan=monthly')") &&
+  genericPaywall.includes('$15/month · Cancel anytime') &&
+  billing.includes("searchParams.get('plan') === 'monthly' ? 'monthly' : 'annual'"))
 
 if (failures > 0) {
   console.log(`\n${failures} first-sale path check(s) failed.`)

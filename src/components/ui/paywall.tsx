@@ -26,7 +26,7 @@ export function PaywallCard({ feature, description, className }: PaywallProps) {
         <Button
           variant="gradient"
           size="md"
-          onClick={() => router.push('/billing')}
+          onClick={() => router.push('/billing?plan=monthly')}
           className="gap-2"
         >
           <Zap className="h-4 w-4" />
