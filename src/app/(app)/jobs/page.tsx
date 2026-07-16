@@ -768,6 +768,15 @@ export default function JobsPage() {
       toast.info('Already saved')
       return
     }
+    // Optimistic: the bookmark flips immediately. savedJobMap/savedJobs still
+    // reconcile from the response (they need the created row's id); any failure
+    // rolls the flip back so the UI never claims a save that didn't happen.
+    setSavedIds(prev => new Set([...prev, job.id]))
+    const rollbackSaved = () => setSavedIds(prev => {
+      const next = new Set(prev)
+      next.delete(job.id)
+      return next
+    })
     try {
       const res = await fetch('/api/jobs/save', {
         method: 'POST',
@@ -797,9 +806,11 @@ export default function JobsPage() {
       if (!res.ok) {
         const { error, code } = await res.json()
         if (error === 'You have already saved this job') {
+          // Server agrees it's saved — the optimistic flip is truthful, keep it.
           toast.info('Already saved')
           return
         }
+        rollbackSaved()
         if (code === 'PRO_REQUIRED') {
           toast.error(apiErrorMessage(error, 'Upgrade to Pro to save more jobs'), {
             action: { label: 'Upgrade', onClick: () => { window.location.href = '/billing' } },
@@ -810,11 +821,11 @@ export default function JobsPage() {
         return
       }
       const { data } = await res.json()
-      setSavedIds(prev => new Set([...prev, job.id]))
       setSavedJobMap(prev => new Map([...prev, [job.id, data.id]]))
       setSavedJobs(prev => [data, ...prev])
       toast.success(`Saved "${job.title}"`)
     } catch {
+      rollbackSaved()
       toast.error('Could not save job')
     }
   }
