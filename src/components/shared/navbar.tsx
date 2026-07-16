@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TrackedLink } from '@/components/landing/tracked-link'
 import { cn } from '@/lib/utils'
 import { tryCreateClient } from '@/lib/supabase/client'
 import { Logo } from '@/components/shared/logo'
@@ -74,10 +75,14 @@ export function Navbar() {
                   <Link href="/login">Sign in</Link>
                 </Button>
                 <Button asChild variant="gradient" size="md" className="gap-1.5">
-                  <Link href="/signup">
+                  <TrackedLink
+                    href="/signup"
+                    event="hero_primary_cta_clicked"
+                    ctaLabel="navbar_desktop"
+                  >
                     <Zap className="h-3.5 w-3.5" />
                     Start free
-                  </Link>
+                  </TrackedLink>
                 </Button>
               </>
             )}
@@ -118,10 +123,15 @@ export function Navbar() {
                   <Link href="/login">Sign in</Link>
                 </Button>
                 <Button asChild variant="gradient" className="gap-1.5">
-                  <Link href="/signup">
+                  <TrackedLink
+                    href="/signup"
+                    event="hero_primary_cta_clicked"
+                    ctaLabel="navbar_mobile"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     <Zap className="h-3.5 w-3.5" />
                     Start free
-                  </Link>
+                  </TrackedLink>
                 </Button>
               </>
             )}

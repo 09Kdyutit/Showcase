@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { TrackedLink } from '@/components/landing/tracked-link'
 import { Navbar } from '@/components/shared/navbar'
 import { Footer } from '@/components/shared/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+const SPRINT_REQUEST_HREF =
+  'mailto:hello@tryshowcase.ink?subject=Showcase%20Portfolio%20Sprint%20request'
 
 export const metadata: Metadata = {
   title: 'For Career Services Teams',
@@ -33,6 +36,28 @@ export default function CareerServicesPage() {
           they already have: an editable portfolio, role and application tools, written
           interview practice, and specific feedback they can bring into an advising session.
         </p>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-16">
+          <Button asChild variant="gradient" size="lg" className="gap-2 shadow-glow">
+            <TrackedLink
+              href={SPRINT_REQUEST_HREF}
+              event="hero_primary_cta_clicked"
+              ctaLabel="career_services_sprint_request_top"
+            >
+              Ask about a Portfolio Sprint
+              <ArrowRight className="h-4 w-4" />
+            </TrackedLink>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <TrackedLink
+              href="/signup"
+              event="hero_secondary_cta_clicked"
+              ctaLabel="career_services_student_workspace_top"
+            >
+              Explore the student workspace
+            </TrackedLink>
+          </Button>
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-4 mb-16">
           {[
@@ -82,16 +107,40 @@ export default function CareerServicesPage() {
         </ul>
 
         <div className="glass-card p-8 text-center">
-          <p className="text-sm text-muted-foreground mb-4">
-            Dedicated cohort and institutional administration tools are not available yet.
-            You can explore the same Free student workspace today with no credit card.
+          <h2 className="text-2xl font-bold tracking-tight mb-3">Try the workflow with a small group</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-6 max-w-2xl mx-auto">
+            Ask about a no-cost, organizer-hosted 30-minute Portfolio Sprint for up to five
+            volunteers your organization selects who explicitly opt in. Your team hosts and
+            shares the session link. We do not ask your organization for a member list or
+            participant contact details; volunteers create their own accounts and keep their
+            credentials and files private. We coordinate the date and access before any
+            participant link is released.
           </p>
-          <Button asChild variant="gradient" size="lg" className="gap-2 shadow-glow">
-            <Link href="/signup">
-              Explore the student workspace
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 mb-5">
+            <Button asChild variant="gradient" size="lg" className="gap-2 shadow-glow">
+              <TrackedLink
+                href={SPRINT_REQUEST_HREF}
+                event="hero_primary_cta_clicked"
+                ctaLabel="career_services_sprint_request_bottom"
+              >
+                Request a Portfolio Sprint
+                <ArrowRight className="h-4 w-4" />
+              </TrackedLink>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <TrackedLink
+                href="/signup"
+                event="hero_secondary_cta_clicked"
+                ctaLabel="career_services_student_workspace_bottom"
+              >
+                Explore the student workspace
+              </TrackedLink>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Dedicated cohort and institutional administration tools are not available yet.
+            The Free student workspace requires no credit card; live publishing is optional Pro.
+          </p>
         </div>
       </main>
       <Footer />

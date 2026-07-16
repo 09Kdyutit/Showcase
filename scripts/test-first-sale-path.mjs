@@ -24,6 +24,8 @@ const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
 const googleButton = source('src/components/auth/google-button.tsx')
 const stickyMobileCta = source('src/components/landing/sticky-mobile-cta.tsx')
+const navbar = source('src/components/shared/navbar.tsx')
+const careerServices = source('src/app/for-career-services/page.tsx')
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -98,6 +100,19 @@ expect('the mobile sticky CTA uses the same durable click tracking as other sign
   stickyMobileCta.includes('<TrackedLink') &&
   stickyMobileCta.includes('event="hero_primary_cta_clicked"') &&
   stickyMobileCta.includes('ctaLabel="sticky_mobile"'))
+expect('desktop and mobile navbar signup CTAs record durable click intent',
+  navbar.includes('ctaLabel="navbar_desktop"') &&
+  navbar.includes('ctaLabel="navbar_mobile"') &&
+  (navbar.match(/event="hero_primary_cta_clicked"/g) ?? []).length >= 2)
+expect('career-services visitors have an organizer-specific inquiry path alongside student signup',
+  careerServices.includes('mailto:hello@tryshowcase.ink?subject=Showcase%20Portfolio%20Sprint%20request') &&
+  careerServices.includes('Ask about a no-cost, organizer-hosted 30-minute Portfolio Sprint') &&
+  careerServices.includes('up to five') &&
+  careerServices.includes('do not ask your organization for a member list') &&
+  careerServices.includes('volunteers create their own accounts') &&
+  careerServices.includes('ctaLabel="career_services_sprint_request_top"') &&
+  careerServices.includes('ctaLabel="career_services_sprint_request_bottom"') &&
+  careerServices.includes('ctaLabel="career_services_student_workspace_top"'))
 
 if (failures > 0) {
   console.log(`\n${failures} first-sale path check(s) failed.`)
