@@ -122,7 +122,8 @@ export default function BillingPage() {
   const isPro = sub?.status === 'active' || sub?.status === 'trialing'
   const fromPublish = searchParams.get('source') === 'publish'
   const fromAudit = searchParams.get('source') === 'audit'
-  const fromUpgradeIntent = fromPublish || fromAudit
+  const fromExport = searchParams.get('source') === 'export'
+  const fromUpgradeIntent = fromPublish || fromAudit || fromExport
   const billingHeader = fromPublish
     ? {
         title: 'Put your portfolio',
@@ -135,6 +136,12 @@ export default function BillingPage() {
           titleAccent: 'Evidence Audit.',
           description: 'Free calculates your score from 4 core categories. Pro evaluates the full 11-category Audit and recalculates from every category supported by your saved materials, so it may change. It adds analysis and fixes where the material supports them, with up to 10 full audits per day.',
         }
+      : fromExport
+        ? {
+            title: 'Export your portfolio',
+            titleAccent: 'as HTML.',
+            description: 'Unlock a hostable HTML snapshot from selected saved portfolio content, using its color treatment and an export-ready layout. No build tools are required; saved image URLs and Google Fonts remain externally referenced.',
+          }
       : {
           title: 'Invest in your',
           titleAccent: 'career.',
@@ -376,7 +383,7 @@ export default function BillingPage() {
               className="w-full sm:w-auto gap-2"
             >
               <Zap className="h-4 w-4" />
-              {fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
+              {fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
               <ArrowRight className="h-4 w-4" />
             </Button>
             {fromPublish && (
@@ -387,6 +394,11 @@ export default function BillingPage() {
             {fromAudit && (
               <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
                 Checkout upgrades your account; it does not rerun the audit you just viewed. After payment, return to Evidence Audit and run it again to evaluate all 11 categories. Categories without enough saved material are marked unavailable instead of being guessed.
+              </p>
+            )}
+            {fromExport && (
+              <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                Checkout upgrades your account; it does not download the file. After payment, return to this portfolio, open Settings → Export, and choose Download HTML.
               </p>
             )}
             <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground/60">

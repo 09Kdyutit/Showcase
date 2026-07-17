@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, use } from 'react'
+import { useState, useEffect, useCallback, useRef, use, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon, Download, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,7 +21,9 @@ import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
 import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
 import { ImageUploader } from '@/components/portfolio/image-uploader'
 import { PublishPaywallDialog } from '@/components/billing/publish-paywall-dialog'
+import { ExportPaywallDialog } from '@/components/billing/export-paywall-dialog'
 import { configuredAppHost } from '@/lib/app-url'
+import { runPortfolioExport, type ExportRequestResult } from '@/lib/portfolio/export-flow'
 
 const APP_HOST = configuredAppHost()
 
@@ -70,6 +72,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     website_url: string | null
   } | null>(null)
   const [publishPaywallOpen, setPublishPaywallOpen] = useState(false)
+  const [exportPaywallOpen, setExportPaywallOpen] = useState(false)
   const [genMsg, setGenMsg] = useState('')
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -77,6 +80,8 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const lastSavedRef = useRef<EditorSnapshot>(EMPTY_EDITOR_SNAPSHOT)
   const saveInFlightRef = useRef<Promise<boolean> | null>(null)
   const publishingRef = useRef(false)
+  const exportingRef = useRef(false)
+  const exportTriggerRef = useRef<HTMLButtonElement | null>(null)
   // Synchronous guard checked before any state update - a second click landing before React
   // re-renders (and the `generating` state/disabled prop actually reflect the first click)
   // would otherwise both pass an `if (generating) return` check and fire two generations.
@@ -332,7 +337,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   }
 
   async function togglePublish() {
-    if (publishingRef.current) return
+    if (publishingRef.current || exportingRef.current) return
     const action = portfolio?.status === 'published' ? 'unpublish' : 'publish'
     if (action === 'publish' && generatingRef.current) {
       toast.error('Wait for portfolio generation to finish before publishing.')
@@ -383,37 +388,49 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     }
   }
 
-  async function exportHtml() {
+  async function exportHtml(event?: MouseEvent<HTMLButtonElement>) {
     if (!portfolioId) return
-    // HTML download is a Pro feature. Nudge free users to upgrade instead of a silent fail.
-    if (!isPro) { toast.error('Downloading your portfolio as HTML is a Pro feature. Upgrade to unlock it.'); return }
-    setExporting(true)
-    try {
-      const res = await fetch('/api/portfolio/export-html', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolioId }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        toast.error(data.code === 'PRO_REQUIRED'
-          ? 'Downloading your portfolio as HTML is a Pro feature. Upgrade to unlock it.'
-          : 'Export failed')
-        return
-      }
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'portfolio.html'
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.success('Portfolio exported as HTML')
-    } catch {
-      toast.error('Export failed')
-    } finally {
-      setExporting(false)
-    }
+    if (event) exportTriggerRef.current = event.currentTarget
+    await runPortfolioExport<Response>({
+      lock: exportingRef,
+      isGenerating: generatingRef.current,
+      isPublishing: publishingRef.current,
+      setBusy: setExporting,
+      clearPendingSave: () => {
+        if (autosaveTimer.current) {
+          clearTimeout(autosaveTimer.current)
+          autosaveTimer.current = null
+        }
+      },
+      flushEditorSave,
+      requestExport: async (): Promise<ExportRequestResult<Response>> => {
+        const res = await fetch('/api/portfolio/export-html', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ portfolioId }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          return data.code === 'PRO_REQUIRED'
+            ? { kind: 'pro-required' }
+            : { kind: 'error' }
+        }
+        return { kind: 'download', payload: res }
+      },
+      openPaywall: () => setExportPaywallOpen(true),
+      markNotPro: () => setIsPro(false),
+      download: async (res) => {
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'portfolio.html'
+        a.click()
+        URL.revokeObjectURL(url)
+        toast.success('Portfolio exported as HTML')
+      },
+      reportError: (message) => toast.error(message),
+    })
   }
 
   if (loading) {
@@ -527,7 +544,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             size="sm"
             onClick={() => save(true)}
             loading={saveState === 'saving'}
-            disabled={publishing}
+            disabled={publishing || exporting}
             className="gap-1.5 text-xs"
           >
             <Save className="h-3 w-3" />
@@ -538,6 +555,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             size="sm"
             onClick={togglePublish}
             loading={publishing}
+            disabled={exporting}
             className="gap-1.5 text-xs"
           >
             {portfolio?.status === 'published' ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
@@ -549,25 +567,27 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-          <fieldset disabled={publishing} aria-busy={publishing} className="min-w-0 border-0 p-0">
+          <fieldset disabled={publishing || exporting} aria-busy={publishing || exporting} className="min-w-0 border-0 p-0">
           <Tabs defaultValue="content">
-            <TabsList className="mb-6">
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="projects">
-                Projects
-                {projects.length > 0 && (
-                  <span className="ml-1.5 text-xs bg-brand-500/20 text-brand-400 px-1.5 py-0.5 rounded-full font-medium">
-                    {projects.length}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="experience">Experience</TabsTrigger>
-              <TabsTrigger value="photos">
-                <ImageIcon className="h-3 w-3 mr-1.5" />
-                Photos
-              </TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
+            <div className="-mx-1 overflow-x-auto px-1 pb-1">
+              <TabsList className="mb-5 min-w-max">
+                <TabsTrigger value="content">Content</TabsTrigger>
+                <TabsTrigger value="projects">
+                  Projects
+                  {projects.length > 0 && (
+                    <span className="ml-1.5 text-xs bg-brand-500/20 text-brand-400 px-1.5 py-0.5 rounded-full font-medium">
+                      {projects.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="experience">Experience</TabsTrigger>
+                <TabsTrigger value="photos">
+                  <ImageIcon className="h-3 w-3 mr-1.5" />
+                  Photos
+                </TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="content">
               {hasGeneratedPreview && (
@@ -1361,7 +1381,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                     )}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Download your portfolio as a standalone HTML file. Host it anywhere - GitHub Pages, Netlify, your own server, or point a custom domain at it.
+                    Download a hostable HTML snapshot using selected saved portfolio content. Use it on GitHub Pages, Netlify, your own server, or a custom domain.
                   </p>
                   {isPro ? (
                     <Button
@@ -1375,15 +1395,19 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                       Download HTML
                     </Button>
                   ) : (
-                    <Button asChild variant="outline" size="sm" className="gap-1.5">
-                      <Link href="/billing">
-                        <Lock className="h-3 w-3" />
-                        Unlock with Pro
-                      </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportHtml}
+                      loading={exporting}
+                      className="h-auto min-h-10 gap-1.5 whitespace-normal"
+                    >
+                      <Lock className="h-3 w-3" />
+                      See Pro export options
                     </Button>
                   )}
-                  <p className="text-xs text-muted-foreground/50">
-                    The exported file includes all fonts and styles. No build tools needed - open it in any browser or deploy to any static host.
+                  <p className="text-xs text-muted-foreground">
+                    The snapshot includes an export-ready layout and styles and needs no build tools. Saved images and Google Fonts remain loaded from their existing URLs.
                   </p>
                 </div>
               </div>
@@ -1404,6 +1428,11 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
           content={content}
         />
       )}
+      <ExportPaywallDialog
+        open={exportPaywallOpen}
+        onOpenChange={setExportPaywallOpen}
+        returnFocusRef={exportTriggerRef}
+      />
     </div>
   )
 }

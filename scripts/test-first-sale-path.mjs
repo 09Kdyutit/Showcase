@@ -20,6 +20,7 @@ const dashboard = source('src/app/(app)/dashboard/page.tsx')
 const builderIndex = source('src/app/(app)/builder/page.tsx')
 const builderEditor = source('src/app/(app)/builder/[portfolioId]/page.tsx')
 const publishPaywall = source('src/components/billing/publish-paywall-dialog.tsx')
+const exportPaywall = source('src/components/billing/export-paywall-dialog.tsx')
 const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
 const googleButton = source('src/components/auth/google-button.tsx')
@@ -32,6 +33,12 @@ const robots = source('src/app/robots.ts')
 const pricingMetadata = source('src/app/pricing/layout.tsx')
 const genericPaywall = source('src/components/ui/paywall.tsx')
 const audit = source('src/app/(app)/audit/page.tsx')
+const exportFlow = source('src/lib/portfolio/export-flow.ts')
+const exportHandlerStart = builderEditor.indexOf('async function exportHtml(')
+const exportHandlerEnd = builderEditor.indexOf('\n  if (loading)', exportHandlerStart)
+const exportHandler = builderEditor.slice(exportHandlerStart, exportHandlerEnd)
+const publishHandlerStart = builderEditor.indexOf('async function togglePublish()')
+const publishHandler = builderEditor.slice(publishHandlerStart, exportHandlerStart)
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -85,11 +92,11 @@ expect('the persistent Publish decision preserves a private draft until explicit
   builderEditor.includes('Your draft stays private. Pro unlocks this live URL'))
 expect('Publish flushes the latest editor state and stops when persistence fails',
   builderEditor.includes('const flushEditorSave = useCallback(async (): Promise<boolean>') &&
-  builderEditor.includes('const saved = await flushEditorSave()') &&
-  builderEditor.includes("toast.error('Save your latest changes before publishing.')") &&
-  builderEditor.includes("if (!saved) {\n          toast.error('Save your latest changes before publishing.')\n          return") &&
-  builderEditor.indexOf('const saved = await flushEditorSave()') <
-    builderEditor.indexOf("fetch('/api/portfolio/publish'") &&
+  publishHandler.includes('const saved = await flushEditorSave()') &&
+  publishHandler.includes("toast.error('Save your latest changes before publishing.')") &&
+  publishHandler.includes("if (!saved) {\n          toast.error('Save your latest changes before publishing.')\n          return") &&
+  publishHandler.indexOf('const saved = await flushEditorSave()') <
+    publishHandler.indexOf("fetch('/api/portfolio/publish'") &&
   builderEditor.includes('if (pendingSave) await pendingSave') &&
   builderEditor.includes('saveInFlightRef.current = operation') &&
   builderEditor.indexOf('saveInFlightRef.current = operation') <
@@ -97,16 +104,16 @@ expect('Publish flushes the latest editor state and stops when persistence fails
   builderEditor.includes('for (let attempt = 0; attempt < 3; attempt += 1)') &&
   builderEditor.includes('if (!await save(false)) return false') &&
   builderEditor.includes('if (editorSnapshotRef.current === lastSavedRef.current) return true') &&
-  builderEditor.includes('publishingRef.current = true') &&
-  builderEditor.includes("if (action === 'publish' && generatingRef.current)") &&
-  builderEditor.indexOf("const action = portfolio?.status === 'published' ? 'unpublish' : 'publish'") <
-    builderEditor.indexOf("if (action === 'publish' && generatingRef.current)") &&
-  builderEditor.includes('<fieldset disabled={publishing} aria-busy={publishing}') &&
-  builderEditor.includes("if (data.code === 'PRO_REQUIRED') {\n          // The publish eligibility request") &&
-  builderEditor.indexOf("if (data.code === 'PRO_REQUIRED') {") <
-    builderEditor.lastIndexOf('const saved = await flushEditorSave()') &&
-  builderEditor.lastIndexOf('const saved = await flushEditorSave()') <
-    builderEditor.indexOf('setPublishPaywallOpen(true)') &&
+  publishHandler.includes('publishingRef.current = true') &&
+  publishHandler.includes("if (action === 'publish' && generatingRef.current)") &&
+  publishHandler.indexOf("const action = portfolio?.status === 'published' ? 'unpublish' : 'publish'") <
+    publishHandler.indexOf("if (action === 'publish' && generatingRef.current)") &&
+  builderEditor.includes('<fieldset disabled={publishing || exporting} aria-busy={publishing || exporting}') &&
+  publishHandler.includes("if (data.code === 'PRO_REQUIRED') {\n          // The publish eligibility request") &&
+  publishHandler.indexOf("if (data.code === 'PRO_REQUIRED') {") <
+    publishHandler.lastIndexOf('const saved = await flushEditorSave()') &&
+  publishHandler.lastIndexOf('const saved = await flushEditorSave()') <
+    publishHandler.indexOf('setPublishPaywallOpen(true)') &&
   builderEditor.includes('body: JSON.stringify({ portfolioId, ...snapshot })'))
 expect('publish intent still goes through the authenticated publish route',
   builderEditor.includes("fetch('/api/portfolio/publish'"))
@@ -136,10 +143,82 @@ expect('Billing preserves publish intent in its visible decision copy',
   billing.includes("title: 'Put your portfolio'") &&
   billing.includes("titleAccent: 'live.'") &&
   billing.includes('Unlock a live URL and preview card with Pro.') &&
-  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'"))
+  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'"))
 expect('Billing repeats that Checkout does not auto-publish',
   billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
   billing.includes('return to your portfolio and choose Publish'))
+expect('Export flushes the exact latest editor state before either the upgrade decision or download',
+  exportHandlerStart > -1 &&
+  exportHandler.includes('runPortfolioExport<Response>') &&
+  exportHandler.includes('lock: exportingRef') &&
+  exportHandler.includes('isGenerating: generatingRef.current') &&
+  exportHandler.includes('isPublishing: publishingRef.current') &&
+  exportHandler.includes('clearTimeout(autosaveTimer.current)') &&
+  exportHandler.includes('flushEditorSave,') &&
+  exportHandler.includes("fetch('/api/portfolio/export-html'") &&
+  exportFlow.includes('if (lock.current || isPublishing) return') &&
+  exportFlow.includes('if (!await flushEditorSave())') &&
+  exportFlow.indexOf('clearPendingSave()') < exportFlow.indexOf('if (!await flushEditorSave())') &&
+  exportFlow.indexOf('if (!await flushEditorSave())') < exportFlow.indexOf('const result = await requestExport()') &&
+  !exportFlow.includes('if (!isPro)'))
+expect('both Free Export entry points converge on the save-safe contextual paywall',
+  (builderEditor.match(/onClick=\{exportHtml\}/g) ?? []).length >= 3 &&
+  builderEditor.includes('setExportPaywallOpen(true)') &&
+  builderEditor.includes('<ExportPaywallDialog') &&
+  builderEditor.includes('See Pro export options') &&
+  !builderEditor.includes('<Link href="/billing">\n                        <Lock'))
+expect('Publish and Export cannot race into competing requests or dialogs',
+  publishHandler.includes('if (publishingRef.current || exportingRef.current) return') &&
+  exportHandler.includes('isPublishing: publishingRef.current') &&
+  builderEditor.includes('disabled={publishing || exporting}') &&
+  builderEditor.includes('fieldset disabled={publishing || exporting} aria-busy={publishing || exporting}'))
+expect('a stale client entitlement fails into the same Export decision instead of a dead toast',
+  exportHandler.includes("data.code === 'PRO_REQUIRED'") &&
+  exportHandler.includes('markNotPro: () => setIsPro(false)') &&
+  exportFlow.includes("if (result.kind === 'pro-required')") &&
+  (exportFlow.match(/if \(!await flushEditorSave\(\)\)/g) ?? []).length === 2 &&
+  exportFlow.indexOf("if (result.kind === 'pro-required')") < exportFlow.lastIndexOf('clearPendingSave()') &&
+  exportFlow.lastIndexOf('clearPendingSave()') < exportFlow.indexOf('markNotPro()') &&
+  exportFlow.indexOf('markNotPro()') < exportFlow.lastIndexOf('openPaywall()'))
+expect('the Export decision is transparent, contextual, and routes through Billing only',
+  exportPaywall.includes('Download an HTML snapshot of this portfolio.') &&
+  exportPaywall.includes('from selected saved portfolio content') &&
+  exportPaywall.includes("router.push(`/billing?plan=${plan}&source=export`)") &&
+  exportPaywall.includes("choosePlan('monthly')") &&
+  exportPaywall.includes("choosePlan('annual')") &&
+  exportPaywall.includes('$15/month') &&
+  exportPaywall.includes('$150/year') &&
+  exportPaywall.includes('Save $30') &&
+  exportPaywall.includes('Keep editing for free') &&
+  !exportPaywall.includes('Founding') &&
+  !exportPaywall.includes("fetch('/api/stripe/create-checkout-session'") &&
+  !builderEditor.includes("fetch('/api/stripe/create-checkout-session'"))
+expect('Export copy qualifies external assets and never promises a fully embedded file',
+  exportPaywall.includes('Saved image URLs and Google Fonts remain externally referenced') &&
+  builderEditor.includes('Saved images and Google Fonts remain loaded from their existing URLs.') &&
+  !builderEditor.includes('includes all fonts and styles') &&
+  !exportPaywall.includes('your saved content, theme, and styles') &&
+  !exportPaywall.includes('fully self-contained'))
+expect('mobile users can reach Settings and the Export decision without horizontal modal overflow',
+  builderEditor.includes('overflow-x-auto') &&
+  builderEditor.includes('<TabsList className="mb-5 min-w-max">') &&
+  exportPaywall.includes('w-[calc(100%-2rem)]') &&
+  exportPaywall.includes('max-h-[92vh]') &&
+  exportPaywall.includes('min-h-12 w-full') &&
+  exportPaywall.includes('whitespace-normal'))
+expect('closing the Export decision restores focus to the exact trigger that opened it',
+  builderEditor.includes('returnFocusRef={exportTriggerRef}') &&
+  exportPaywall.includes('onCloseAutoFocus={(event) => {') &&
+  exportPaywall.includes('returnFocusRef.current.focus()'))
+expect('Billing preserves Export intent and states the manual post-payment download step',
+  billing.includes("const fromExport = searchParams.get('source') === 'export'") &&
+  billing.includes('fromPublish || fromAudit || fromExport') &&
+  billing.includes("title: 'Export your portfolio'") &&
+  billing.includes("titleAccent: 'as HTML.'") &&
+  billing.includes('from selected saved portfolio content') &&
+  billing.includes("fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'") &&
+  billing.includes('it does not download the file') &&
+  billing.includes('open Settings → Export, and choose Download HTML'))
 expect('a completed Free audit exposes one clear, priced route to the full 11-category result',
   audit.includes('const visibleCategories = sortedCategories.filter((category) => !category.gated)') &&
   audit.includes('const gatedCategories = sortedCategories.filter((category) => category.gated)') &&
@@ -169,7 +248,7 @@ expect('Billing preserves full-audit intent without changing the held Checkout i
   billing.includes('Pro evaluates the full 11-category Audit') &&
   billing.includes('recalculates from every category supported by your saved materials, so it may change') &&
   billing.includes('where the material supports them') &&
-  billing.includes("fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'") &&
+  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'") &&
   billing.includes('it does not rerun the audit you just viewed') &&
   billing.includes('return to Evidence Audit and run it again to evaluate all 11 categories') &&
   billing.includes('marked unavailable instead of being guessed'))
