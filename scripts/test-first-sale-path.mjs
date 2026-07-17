@@ -21,6 +21,9 @@ const builderIndex = source('src/app/(app)/builder/page.tsx')
 const builderEditor = source('src/app/(app)/builder/[portfolioId]/page.tsx')
 const publishPaywall = source('src/components/billing/publish-paywall-dialog.tsx')
 const exportPaywall = source('src/components/billing/export-paywall-dialog.tsx')
+const tailorPaywall = source('src/components/billing/tailor-paywall-dialog.tsx')
+const tailorStudio = source('src/app/(app)/jobs/[savedJobId]/tailor/page.tsx')
+const tailorRoute = source('src/app/api/jobs/[id]/tailor/route.ts')
 const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
 const googleButton = source('src/components/auth/google-button.tsx')
@@ -143,7 +146,7 @@ expect('Billing preserves publish intent in its visible decision copy',
   billing.includes("title: 'Put your portfolio'") &&
   billing.includes("titleAccent: 'live.'") &&
   billing.includes('Unlock a live URL and preview card with Pro.') &&
-  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'"))
+  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'"))
 expect('Billing repeats that Checkout does not auto-publish',
   billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
   billing.includes('return to your portfolio and choose Publish'))
@@ -212,13 +215,52 @@ expect('closing the Export decision restores focus to the exact trigger that ope
   exportPaywall.includes('returnFocusRef.current.focus()'))
 expect('Billing preserves Export intent and states the manual post-payment download step',
   billing.includes("const fromExport = searchParams.get('source') === 'export'") &&
-  billing.includes('fromPublish || fromAudit || fromExport') &&
+  billing.includes('fromPublish || fromAudit || fromExport || fromTailor') &&
   billing.includes("title: 'Export your portfolio'") &&
   billing.includes("titleAccent: 'as HTML.'") &&
   billing.includes('from selected saved portfolio content') &&
-  billing.includes("fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'") &&
+  billing.includes("fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
   billing.includes('it does not download the file') &&
   billing.includes('open Settings → Export, and choose Download HTML'))
+expect('the authoritative Tailor Pro response opens a contextual upgrade decision instead of a dead toast',
+  tailorStudio.includes("if (code === 'PRO_REQUIRED')") &&
+  tailorStudio.includes('setTailorPaywallOpen(true)') &&
+  tailorStudio.includes('<TailorPaywallDialog') &&
+  !tailorStudio.includes("toast.error('Tailor Studio requires Pro')"))
+expect('Tailor keeps generation behind the server entitlement gate before AI work',
+  tailorRoute.includes("code: 'PRO_REQUIRED'") &&
+  tailorRoute.indexOf("code: 'PRO_REQUIRED'") < tailorRoute.indexOf('runPromptWithQuota('))
+expect('the Tailor decision is contextual, priced, reversible, and routes through Billing only',
+  tailorPaywall.includes('Create an application kit for this saved role.') &&
+  tailorPaywall.includes('editable résumé draft grounded in your saved experience and this role') &&
+  tailorPaywall.includes('Review it before use;') &&
+  tailorPaywall.includes('Showcase does not submit applications.') &&
+  tailorPaywall.includes('accept or revert suggested experience-bullet changes') &&
+  tailorPaywall.includes("router.push(`/billing?plan=${plan}&source=tailor`)") &&
+  tailorPaywall.includes("choosePlan('monthly')") &&
+  tailorPaywall.includes("choosePlan('annual')") &&
+  tailorPaywall.includes('$15/month') &&
+  tailorPaywall.includes('$150/year') &&
+  tailorPaywall.includes('Save $30') &&
+  tailorPaywall.includes('Keep this role saved for free') &&
+  tailorPaywall.includes('it does not generate or submit the kit') &&
+  !tailorPaywall.includes("fetch('/api/stripe/create-checkout-session'"))
+expect('closing the Tailor decision restores focus to the Generate trigger',
+  tailorStudio.includes('ref={headerGenerateTriggerRef}') &&
+  tailorStudio.includes('ref={primaryGenerateTriggerRef}') &&
+  tailorStudio.includes("setGenerateTriggerKind(event.currentTarget === primaryGenerateTriggerRef.current") &&
+  tailorStudio.includes("returnFocusRef={generateTriggerKind === 'primary'") &&
+  tailorPaywall.includes('onCloseAutoFocus={(event) => {') &&
+  tailorPaywall.includes('returnFocusRef.current.focus()'))
+expect('Billing preserves Tailor intent and the explicit post-payment Generate step',
+  billing.includes("const fromTailor = searchParams.get('source') === 'tailor'") &&
+  billing.includes('fromPublish || fromAudit || fromExport || fromTailor') &&
+  billing.includes("title: 'Build your role-specific'") &&
+  billing.includes("titleAccent: 'application kit.'") &&
+  billing.includes('Showcase never submits the application for you.') &&
+  billing.includes("fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
+  billing.includes('it does not generate or submit the kit') &&
+  billing.includes('return to this saved role, review your options, and choose Generate'))
 expect('a completed Free audit exposes one clear, priced route to the full 11-category result',
   audit.includes('const visibleCategories = sortedCategories.filter((category) => !category.gated)') &&
   audit.includes('const gatedCategories = sortedCategories.filter((category) => category.gated)') &&
@@ -248,7 +290,7 @@ expect('Billing preserves full-audit intent without changing the held Checkout i
   billing.includes('Pro evaluates the full 11-category Audit') &&
   billing.includes('recalculates from every category supported by your saved materials, so it may change') &&
   billing.includes('where the material supports them') &&
-  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'") &&
+  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
   billing.includes('it does not rerun the audit you just viewed') &&
   billing.includes('return to Evidence Audit and run it again to evaluate all 11 categories') &&
   billing.includes('marked unavailable instead of being guessed'))

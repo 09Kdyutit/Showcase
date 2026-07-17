@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react'
+import { useState, useEffect, useCallback, use, useRef } from 'react'
+import type { MouseEvent } from 'react'
 import {
   Zap, ChevronRight, AlertCircle, AlertTriangle,
   Check, X, FileText, Loader2, ArrowLeft,
@@ -15,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { TailorPaywallDialog } from '@/components/billing/tailor-paywall-dialog'
 import type { TailoredResumeOutput } from '@/lib/ai/schemas'
 import type { JobListing, TruthEntry, TailoredBullet, SavedJob, MatchBreakdown } from '@/types/database'
 
@@ -485,6 +487,10 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   const [truthMap, setTruthMap] = useState<TruthEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [tailorPaywallOpen, setTailorPaywallOpen] = useState(false)
+  const headerGenerateTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const primaryGenerateTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const [generateTriggerKind, setGenerateTriggerKind] = useState<'header' | 'primary'>('header')
   const [coverLetter, setCoverLetter] = useState(false)
   const [recruiterNote, setRecruiterNote] = useState(false)
   const [markedApplied, setMarkedApplied] = useState(false)
@@ -575,7 +581,12 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void loadData() }, [loadData])
 
-  async function handleGenerate() {
+  async function handleGenerate(event?: MouseEvent<HTMLButtonElement>) {
+    if (event) {
+      setGenerateTriggerKind(event.currentTarget === primaryGenerateTriggerRef.current
+        ? 'primary'
+        : 'header')
+    }
     if (!parsedResume) {
       toast.error('Upload your resume first')
       return
@@ -603,7 +614,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
       if (!res.ok) {
         const { error, code } = await res.json()
         if (code === 'PRO_REQUIRED') {
-          toast.error('Tailor Studio requires Pro')
+          setTailorPaywallOpen(true)
           return
         }
         toast.error(apiErrorMessage(error, 'Generation failed'))
@@ -793,6 +804,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
             )
           )}
           <Button
+            ref={headerGenerateTriggerRef}
             onClick={handleGenerate}
             variant="gradient"
             size="sm"
@@ -848,6 +860,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               ))}
             </div>
             <Button
+              ref={primaryGenerateTriggerRef}
               onClick={handleGenerate}
               variant="gradient"
               size="lg"
@@ -1177,6 +1190,13 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
           </div>
         </div>
       )}
+      <TailorPaywallDialog
+        open={tailorPaywallOpen}
+        onOpenChange={setTailorPaywallOpen}
+        returnFocusRef={generateTriggerKind === 'primary'
+          ? primaryGenerateTriggerRef
+          : headerGenerateTriggerRef}
+      />
     </div>
   )
 }

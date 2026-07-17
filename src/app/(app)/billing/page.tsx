@@ -123,7 +123,8 @@ export default function BillingPage() {
   const fromPublish = searchParams.get('source') === 'publish'
   const fromAudit = searchParams.get('source') === 'audit'
   const fromExport = searchParams.get('source') === 'export'
-  const fromUpgradeIntent = fromPublish || fromAudit || fromExport
+  const fromTailor = searchParams.get('source') === 'tailor'
+  const fromUpgradeIntent = fromPublish || fromAudit || fromExport || fromTailor
   const billingHeader = fromPublish
     ? {
         title: 'Put your portfolio',
@@ -142,6 +143,12 @@ export default function BillingPage() {
             titleAccent: 'as HTML.',
             description: 'Unlock a hostable HTML snapshot from selected saved portfolio content, using its color treatment and an export-ready layout. No build tools are required; saved image URLs and Google Fonts remain externally referenced.',
           }
+        : fromTailor
+          ? {
+              title: 'Build your role-specific',
+              titleAccent: 'application kit.',
+              description: 'Unlock a tailored résumé draft, Truth Ledger, and interview brief grounded in your saved resume and this role. Showcase never submits the application for you.',
+            }
       : {
           title: 'Invest in your',
           titleAccent: 'career.',
@@ -383,7 +390,7 @@ export default function BillingPage() {
               className="w-full sm:w-auto gap-2"
             >
               <Zap className="h-4 w-4" />
-              {fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
+              {fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
               <ArrowRight className="h-4 w-4" />
             </Button>
             {fromPublish && (
@@ -399,6 +406,11 @@ export default function BillingPage() {
             {fromExport && (
               <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
                 Checkout upgrades your account; it does not download the file. After payment, return to this portfolio, open Settings → Export, and choose Download HTML.
+              </p>
+            )}
+            {fromTailor && (
+              <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                Checkout upgrades your account; it does not generate or submit the kit. After payment, return to this saved role, review your options, and choose Generate.
               </p>
             )}
             <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground/60">
