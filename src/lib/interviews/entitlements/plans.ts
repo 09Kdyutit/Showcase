@@ -77,3 +77,15 @@ export function isSessionTypeAllowed(tier: PlanTier, sessionType: string): boole
   if (tier === 'pro') return true
   return (FREE_SESSION_TYPES as readonly string[]).includes(sessionType)
 }
+
+// Written sessions are question-count driven; voice sessions ignore questionCount and
+// remain governed by their separate audio/session allowances. Keep this decision pure
+// so the route can reject a paid written option before reserving usage or doing AI work.
+export function isWrittenQuestionCountAllowed(
+  tier: PlanTier,
+  deliveryMode: string,
+  questionCount: number | undefined,
+): boolean {
+  if (deliveryMode !== 'text' || questionCount === undefined) return true
+  return questionCount <= getPlanLimits(tier).maxPrimaryQuestions
+}

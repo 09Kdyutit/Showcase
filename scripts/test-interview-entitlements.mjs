@@ -3,7 +3,7 @@
 // constants, period-boundary math, and session-type gating. No network, no database —
 // the real atomic-reservation behavior under concurrency is tested separately in
 // test:interview-limits, which needs a live server and real parallel HTTP requests.
-import { FREE_PLAN_LIMITS, PRO_PLAN_LIMITS, isSessionTypeAllowed, getPlanLimits } from '../src/lib/interviews/entitlements/plans.ts'
+import { FREE_PLAN_LIMITS, PRO_PLAN_LIMITS, isSessionTypeAllowed, isWrittenQuestionCountAllowed, getPlanLimits } from '../src/lib/interviews/entitlements/plans.ts'
 import { freeCalendarMonthPeriod, proBillingPeriod } from '../src/lib/interviews/entitlements/limits.ts'
 
 let PASS = 0, FAIL = 0
@@ -34,6 +34,13 @@ record('Free can access behavioral', isSessionTypeAllowed('free', 'behavioral'))
 record('Free CANNOT access case_problem_solving', !isSessionTypeAllowed('free', 'case_problem_solving'))
 record('Free CANNOT access rapid_fire_drill', !isSessionTypeAllowed('free', 'rapid_fire_drill'))
 record('Pro can access every session type', ['recruiter_screen', 'case_problem_solving', 'rapid_fire_drill', 'presentation_defense'].every((t) => isSessionTypeAllowed('pro', t)))
+
+console.log('\n── Written question-count gating ──')
+record('Free text allows the 10-question ceiling', isWrittenQuestionCountAllowed('free', 'text', 10))
+record('Free text denies 15 questions', !isWrittenQuestionCountAllowed('free', 'text', 15))
+record('Free text denies 30 questions', !isWrittenQuestionCountAllowed('free', 'text', 30))
+record('Pro text allows 30 questions', isWrittenQuestionCountAllowed('pro', 'text', 30))
+record('Voice ignores the written question-count gate', isWrittenQuestionCountAllowed('free', 'voice', 30))
 
 console.log('\n── Global env ceilings clamp plan constants, never the other way ──')
 process.env.INTERVIEW_MAX_FOLLOW_UPS = '1'

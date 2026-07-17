@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { buildInterviewPlan, primaryQuestionCount } from '@/lib/interviews/plan'
 import { isInterviewLiveEnabled, isInterviewAnalysisEnabled } from '@/lib/interviews/config'
 import { SESSION_TYPES, DELIVERY_MODES, COACHING_MODES, DIFFICULTIES, type InterviewPlanQuestion } from '@/lib/interviews/schemas'
-import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
+import { resolvePlanContext, reserveSessionUsage, getPlanLimits, isSessionTypeAllowed, isWrittenQuestionCountAllowed, EntitlementError, attachSessionToReservations } from '@/lib/interviews/entitlements'
 import { generatePersonalizedQuestions } from '@/lib/interviews/gemini/question-gen'
 import type { ResumeContext, PortfolioProjectContext, StoryBankContext } from '@/lib/interviews/gemini/question-gen'
 import { recordCostEvent, costFromTokens, RATES } from '@/lib/interviews/budget'
@@ -65,7 +65,19 @@ export async function POST(request: NextRequest) {
     // built - see security/release-gate.json IL-10.)
 
     const serviceSupabase = await createServiceClient()
-    const { tier } = await resolvePlanContext(supabase, user.id)
+    let planContext
+    try {
+      planContext = await resolvePlanContext(serviceSupabase, user.id)
+    } catch (e) {
+      if (e instanceof EntitlementError) {
+        return NextResponse.json(
+          { error: e.message, code: e.code, tier: e.tier },
+          { status: e.httpStatus },
+        )
+      }
+      throw e
+    }
+    const { tier } = planContext
     const limits = getPlanLimits(tier)
 
     // Every interview is a fixed 10 minutes — no more, no less — enforced here regardless
@@ -75,18 +87,19 @@ export async function POST(request: NextRequest) {
     // Server-authoritative plan/tier gates - the browser's request body is never
     // trusted for any of these, only re-derived facts (subscription status) decide.
     if (!isSessionTypeAllowed(tier, input.sessionType)) {
-      return NextResponse.json({ error: `${input.sessionType.replace(/_/g, ' ')} requires Pro.`, code: 'SESSION_TYPE_REQUIRES_PRO' }, { status: 403 })
+      return NextResponse.json({ error: `${input.sessionType.replace(/_/g, ' ')} requires Pro.`, code: 'SESSION_TYPE_REQUIRES_PRO', tier }, { status: 403 })
     }
     if (!(limits.difficulties as readonly string[]).includes(input.difficulty)) {
-      return NextResponse.json({ error: `${input.difficulty} difficulty requires Pro.`, code: 'DIFFICULTY_REQUIRES_PRO' }, { status: 403 })
+      return NextResponse.json({ error: `${input.difficulty} difficulty requires Pro.`, code: 'DIFFICULTY_REQUIRES_PRO', tier }, { status: 403 })
     }
     if (!(limits.coachingModes as readonly string[]).includes(input.coachingMode)) {
-      return NextResponse.json({ error: `${input.coachingMode} coaching mode requires Pro.`, code: 'COACHING_MODE_REQUIRES_PRO' }, { status: 403 })
+      return NextResponse.json({ error: `${input.coachingMode} coaching mode requires Pro.`, code: 'COACHING_MODE_REQUIRES_PRO', tier }, { status: 403 })
     }
-    if (input.durationMinutes > limits.maxSessionMinutes) {
+    if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount)) {
       return NextResponse.json({
-        error: `${input.durationMinutes}-minute interviews require Pro. Your plan allows up to ${limits.maxSessionMinutes} minutes.`,
+        error: `${input.questionCount}-question written interviews require Pro. Your plan allows up to ${limits.maxPrimaryQuestions} questions.`,
         code: 'QUESTION_COUNT_EXCEEDS_PLAN',
+        tier,
       }, { status: 403 })
     }
 
@@ -98,7 +111,7 @@ export async function POST(request: NextRequest) {
     try {
       reservation = await reserveSessionUsage(serviceSupabase, user.id, null, input.deliveryMode !== 'text')
     } catch (e) {
-      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.httpStatus })
+      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code, tier: e.tier }, { status: e.httpStatus })
       throw e
     }
 

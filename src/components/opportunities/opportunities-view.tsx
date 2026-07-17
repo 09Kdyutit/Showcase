@@ -9,10 +9,11 @@ import Link from 'next/link'
 import {
   Award, Banknote, BookOpen, Briefcase, Calendar, CalendarClock, ExternalLink,
   FlaskConical, Globe, GraduationCap, Handshake, Heart, MapPin, RefreshCw,
-  Search, Shield, Sparkles, Trophy, X, Lock, Zap,
+  Search, Shield, Sparkles, Trophy, X, Lock, Zap, AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUser } from '@/hooks/use-user'
 import type { Opportunity, OpportunityCategory } from '@/app/api/opportunities/search/route'
@@ -147,13 +148,25 @@ function OpportunityCard({ opp, matchScore }: { opp: Opportunity; matchScore?: n
 type OppCategoryFilter = '' | OpportunityCategory
 
 export function OpportunitiesView({ region }: { region: string }) {
-  const { isPro } = useUser()
+  const {
+    user,
+    isPro,
+    loading: entitlementLoading,
+    authError,
+    subscriptionError,
+    refresh: refreshUser,
+  } = useUser()
+  const isVerifiedFree = Boolean(
+    user && !entitlementLoading && !authError && !subscriptionError && !isPro
+  )
   const [view, setView] = useState<'browse' | 'for-you'>('browse')
   const [opps, setOpps] = useState<Opportunity[]>([])
   const [forYouOpps, setForYouOpps] = useState<Array<Opportunity & { match_score: number }>>([])
   const [forYouProfile, setForYouProfile] = useState<{ location: string | null; skills: string[]; education_level: string; experience_level: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingForYou, setLoadingForYou] = useState(false)
+  const [forYouError, setForYouError] = useState<string | null>(null)
+  const [forYouAccessDenied, setForYouAccessDenied] = useState(false)
   const forYouLoadedRef = useRef(false)
   const forYouInFlightRef = useRef(false)
   const [counts, setCounts] = useState<Partial<Record<OppCategoryFilter, number>>>({})
@@ -184,17 +197,30 @@ export function OpportunitiesView({ region }: { region: string }) {
     if (forYouInFlightRef.current || (!force && forYouLoadedRef.current)) return
     forYouInFlightRef.current = true
     setLoadingForYou(true)
+    setForYouError(null)
+    setForYouAccessDenied(false)
     try {
       const res = await fetch('/api/opportunities/for-you')
+      const json = await res.json().catch(() => ({})) as {
+        data?: Array<Opportunity & { match_score: number }>
+        profile?: typeof forYouProfile
+        error?: string
+      }
       if (res.ok) {
-        const json = await res.json() as { data: Array<Opportunity & { match_score: number }>; profile: typeof forYouProfile }
         setForYouOpps(json.data ?? [])
         setForYouProfile(json.profile ?? null)
         forYouLoadedRef.current = true
+      } else if (res.status === 403) {
+        setForYouAccessDenied(true)
+      } else {
+        setForYouError(json.error ?? 'Personalised matching could not be loaded. Please try again.')
       }
-    } catch { /* non-fatal */ }
-    forYouInFlightRef.current = false
-    setLoadingForYou(false)
+    } catch {
+      setForYouError('Personalised matching could not be loaded. Please try again.')
+    } finally {
+      forYouInFlightRef.current = false
+      setLoadingForYou(false)
+    }
   }, [])
 
   // One debounced fetch effect covers both the initial load (0ms) and searches (350ms).
@@ -206,6 +232,26 @@ export function OpportunitiesView({ region }: { region: string }) {
     searchTimer.current = setTimeout(() => fetchOpps(query, category), delay)
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
   }, [query, category, fetchOpps])
+
+  // If a user opens For You while the client is still resolving their plan, fetch as
+  // soon as Pro is authoritatively available. A read error never becomes a Free upsell;
+  // the server remains the final gate and reports its own 403/503 state.
+  useEffect(() => {
+    if (
+      view === 'for-you' &&
+      !entitlementLoading &&
+      !authError &&
+      !subscriptionError &&
+      isPro &&
+      !forYouAccessDenied
+    ) {
+      const timeoutId = window.setTimeout(() => {
+        void fetchForYou()
+      }, 0)
+      return () => window.clearTimeout(timeoutId)
+    }
+    return undefined
+  }, [view, entitlementLoading, authError, subscriptionError, isPro, forYouAccessDenied, fetchForYou])
 
   const visibleForYou = forYouOpps.filter(o => !category || o.category === category)
   const totalCount = (counts as Record<string, number>)['all'] ?? opps.length
@@ -228,13 +274,19 @@ export function OpportunitiesView({ region }: { region: string }) {
               Browse
             </button>
             <button
-              onClick={() => { setView('for-you'); if (isPro) void fetchForYou() }}
+              onClick={() => setView('for-you')}
               className={cn(
                 'px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1',
                 view === 'for-you' ? 'bg-surface-400 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {isPro ? <Sparkles className="h-3 w-3" /> : <Lock className="h-3 w-3 text-brand-400" />}
+              {entitlementLoading
+                ? <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+                : isPro
+                  ? <Sparkles className="h-3 w-3" />
+                  : authError || subscriptionError
+                    ? <AlertCircle className="h-3 w-3 text-amber-400" />
+                    : <Lock className="h-3 w-3 text-brand-400" />}
               For You
             </button>
           </div>
@@ -249,8 +301,11 @@ export function OpportunitiesView({ region }: { region: string }) {
             <button
               onClick={() => {
                 void fetchOpps(query, category)
-                if (view === 'for-you' && isPro) void fetchForYou(true)
-                else forYouLoadedRef.current = false
+                if (view === 'for-you') {
+                  forYouLoadedRef.current = false
+                  if (authError || subscriptionError || !user) void refreshUser()
+                  else if (isPro) void fetchForYou(true)
+                }
               }}
               className="p-1.5 rounded-lg border border-border bg-surface-100 hover:bg-surface-200 transition-colors text-muted-foreground hover:text-foreground"
               title="Refresh"
@@ -319,7 +374,25 @@ export function OpportunitiesView({ region }: { region: string }) {
       <div className="flex-1 overflow-y-auto thin-scrollbar p-4 lg:p-6">
         {view === 'for-you' ? (
           // ─ For You view (Pro) ──────────────────────────────────────────────
-          !isPro ? (
+          entitlementLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <RefreshCw className="mb-4 h-6 w-6 animate-spin text-brand-400" />
+              <p className="text-sm font-semibold text-foreground">Checking your current plan…</p>
+            </div>
+          ) : authError || subscriptionError || !user ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10">
+                <AlertCircle className="h-5 w-5 text-amber-400" />
+              </div>
+              <p className="mb-1 text-sm font-semibold text-foreground">Your plan could not be verified</p>
+              <p className="mb-5 max-w-[320px] text-xs text-muted-foreground">
+                Showcase will not label your account Free or show an upgrade prompt until the current subscription check succeeds.
+              </p>
+              <Button type="button" variant="secondary" size="sm" onClick={() => void refreshUser()}>
+                Try plan check again
+              </Button>
+            </div>
+          ) : isVerifiedFree || forYouAccessDenied ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-12 h-12 rounded-xl bg-brand-500/15 border border-brand-500/25 flex items-center justify-center mb-4">
                 <Lock className="h-5 w-5 text-brand-400" />
@@ -335,6 +408,17 @@ export function OpportunitiesView({ region }: { region: string }) {
           ) : loadingForYou ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-52 rounded-xl" />)}
+            </div>
+          ) : forYouError ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/10">
+                <AlertCircle className="h-5 w-5 text-amber-400" />
+              </div>
+              <p className="mb-1 text-sm font-semibold text-foreground">Personalised matching is temporarily unavailable</p>
+              <p className="mb-5 max-w-[320px] text-xs text-muted-foreground">{forYouError}</p>
+              <Button type="button" variant="secondary" size="sm" onClick={() => void fetchForYou(true)}>
+                Try again
+              </Button>
             </div>
           ) : visibleForYou.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -403,4 +487,3 @@ export function OpportunitiesView({ region }: { region: string }) {
     </div>
   )
 }
-

@@ -2,12 +2,32 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchAllOpportunities } from '@/app/api/opportunities/search/route'
 import type { Opportunity, OpportunityCategory } from '@/app/api/opportunities/search/route'
+import { isProUserStrict } from '@/lib/ai/rate-limit'
 
 export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    let isPro: boolean
+    try {
+      isPro = await isProUserStrict(user.id)
+    } catch (error) {
+      console.error(
+        '[opportunities/for-you] subscription verification failed:',
+        error instanceof Error ? error.message : 'unknown error'
+      )
+      return NextResponse.json({
+        error: 'Your subscription could not be verified right now. Please try again shortly.',
+        code: 'SUBSCRIPTION_VERIFICATION_FAILED',
+      }, { status: 503 })
+    }
+    if (!isPro) {
+      return NextResponse.json({
+        error: 'Personalised opportunity matching requires Pro.',
+        code: 'PRO_REQUIRED',
+      }, { status: 403 })
+    }
 
     // Get user's latest resume for personalization
     const { data: resumes } = await supabase

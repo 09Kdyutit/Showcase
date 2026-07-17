@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, type MouseEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Mic, Keyboard, ChevronLeft, Sparkles } from 'lucide-react'
@@ -10,6 +10,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, apiErrorMessage } from '@/lib/utils'
 import { useUser } from '@/hooks/use-user'
+import { shouldOfferInterviewUpgrade } from '@/lib/interviews/upgrade-intent'
+import {
+  InterviewPaywallDialog,
+  type InterviewPaywallReason,
+} from '@/components/billing/interview-paywall-dialog'
 
 const SESSION_TYPES = [
   { value: 'recruiter_screen', label: 'Recruiter Screen', desc: 'Background, motivation, role fit, logistics.', pro: false },
@@ -32,8 +37,16 @@ type DeliveryMode = 'voice' | 'text'
 export default function NewInterviewPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { subscription } = useUser()
-  const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
+  const {
+    user,
+    isPro,
+    loading: entitlementLoading,
+    authError,
+    subscriptionError,
+  } = useUser()
+  const isVerifiedFree = Boolean(
+    user && !entitlementLoading && !authError && !subscriptionError && !isPro
+  )
 
   const savedJobId = searchParams.get('savedJobId')
   const prefillSessionType = searchParams.get('sessionType')
@@ -54,6 +67,12 @@ export default function NewInterviewPage() {
   const [targetRole, setTargetRole] = useState(searchParams.get('targetRole') ?? '')
   const [targetCompany, setTargetCompany] = useState(searchParams.get('targetCompany') ?? '')
   const [submitting, setSubmitting] = useState(false)
+  const [interviewPaywallOpen, setInterviewPaywallOpen] = useState(false)
+  const [interviewPaywallReason, setInterviewPaywallReason] = useState<InterviewPaywallReason>({
+    kind: 'session-type',
+    label: 'more interview practice',
+  })
+  const interviewPaywallTriggerRef = useRef<HTMLButtonElement | null>(null)
 
   const voiceAvailable = process.env.NEXT_PUBLIC_INTERVIEW_VOICE_AVAILABLE === 'true'
 
@@ -66,7 +85,18 @@ export default function NewInterviewPage() {
     setStep('details')
   }
 
-  async function handleSubmit() {
+  function openInterviewPaywall(reason: InterviewPaywallReason, trigger: HTMLButtonElement | null) {
+    interviewPaywallTriggerRef.current = trigger
+    setInterviewPaywallReason(reason)
+    setInterviewPaywallOpen(true)
+  }
+
+  async function handleSubmit(event: MouseEvent<HTMLButtonElement>) {
+    const submitTrigger = event.currentTarget
+    if (entitlementLoading) {
+      toast.info('Checking your plan. Try again in a moment.')
+      return
+    }
     if (!targetRole.trim()) {
       toast.error('Enter a target role to practice for.')
       return
@@ -75,15 +105,23 @@ export default function NewInterviewPage() {
       toast.info('Live voice interviews are coming soon. Use Written mode for now.')
       return
     }
-    // Client-side Pro gate - catches edge cases like URL-prefilled Pro session types
-    // before hitting the server and getting a generic 403.
-    const selectedType = SESSION_TYPES.find(t => t.value === sessionType)
-    if (!isPro && selectedType?.pro) {
-      toast.error('This session type requires Pro.')
+    if (isVerifiedFree && deliveryMode === 'voice') {
+      openInterviewPaywall({ kind: 'voice', label: 'live voice interview practice' }, submitTrigger)
       return
     }
-    if (!isPro && !(FREE_DIFFICULTIES as readonly string[]).includes(difficulty)) {
-      toast.error('Challenging difficulty requires Pro.')
+    // Client-side Pro gate - catches edge cases like URL-prefilled Pro session types
+    // before hitting the server, while preserving the exact purchase-intent trigger.
+    const selectedType = SESSION_TYPES.find(t => t.value === sessionType)
+    if (isVerifiedFree && selectedType?.pro) {
+      openInterviewPaywall({ kind: 'session-type', label: `${selectedType.label} practice` }, submitTrigger)
+      return
+    }
+    if (isVerifiedFree && !(FREE_DIFFICULTIES as readonly string[]).includes(difficulty)) {
+      openInterviewPaywall({ kind: 'difficulty', label: 'challenging interview difficulty' }, submitTrigger)
+      return
+    }
+    if (isVerifiedFree && questionCount > FREE_MAX_QUESTIONS) {
+      openInterviewPaywall({ kind: 'question-count', label: `${questionCount}-question written interviews` }, submitTrigger)
       return
     }
     setSubmitting(true)
@@ -99,13 +137,33 @@ export default function NewInterviewPage() {
           savedJobId: savedJobId ?? undefined,
         }),
       })
-      const json = await res.json()
+      const json = await res.json().catch(() => ({}))
       if (!res.ok) {
         const code = json.code as string | undefined
-        if (code === 'SESSION_TYPE_REQUIRES_PRO' || code === 'DIFFICULTY_REQUIRES_PRO' || code === 'COACHING_MODE_REQUIRES_PRO' || code === 'QUESTION_COUNT_EXCEEDS_PLAN') {
-          toast.error('This option requires Pro. Upgrade to unlock it.')
-        } else if (code === 'SESSION_LIMIT_REACHED') {
-          toast.error(json.error ?? 'You\'ve used all your interviews for this period. Upgrade to Pro for more.')
+        const planOptionCodes = [
+          'SESSION_TYPE_REQUIRES_PRO',
+          'DIFFICULTY_REQUIRES_PRO',
+          'COACHING_MODE_REQUIRES_PRO',
+          'QUESTION_COUNT_EXCEEDS_PLAN',
+        ] as const
+        if (shouldOfferInterviewUpgrade({ status: res.status, tier: json.tier, code, allowedCodes: planOptionCodes })) {
+          const reason: InterviewPaywallReason = code === 'SESSION_TYPE_REQUIRES_PRO'
+            ? { kind: 'session-type', label: `${selectedType?.label ?? 'this session style'} practice` }
+            : code === 'DIFFICULTY_REQUIRES_PRO'
+              ? { kind: 'difficulty', label: 'challenging interview difficulty' }
+              : code === 'QUESTION_COUNT_EXCEEDS_PLAN'
+                ? { kind: 'question-count', label: `${questionCount}-question written interviews` }
+                : { kind: 'session-type', label: 'this interview configuration' }
+          openInterviewPaywall(reason, submitTrigger)
+        } else if (shouldOfferInterviewUpgrade({ status: res.status, tier: json.tier, code, allowedCodes: ['AUDIO_LIMIT_REACHED'] })) {
+          openInterviewPaywall({ kind: 'voice', label: 'live voice interview practice' }, submitTrigger)
+        } else if (shouldOfferInterviewUpgrade({ status: res.status, tier: json.tier, code, allowedCodes: ['SESSION_LIMIT_REACHED'] })) {
+          openInterviewPaywall({
+            kind: 'quota',
+            label: json.error ?? 'Your Free interview limit has been reached',
+          }, submitTrigger)
+        } else if (code === 'SESSION_LIMIT_REACHED' || code === 'AUDIO_LIMIT_REACHED') {
+          toast.error(apiErrorMessage(json.error, 'Could not verify your interview usage. Please try again.'))
         } else if (code === 'VOICE_NOT_ENABLED') {
           toast.error('Live voice interviews are coming soon. Use Written mode for now.')
         } else {
@@ -215,21 +273,24 @@ export default function NewInterviewPage() {
         <CardHeader><CardTitle className="text-base">Question style</CardTitle></CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           {SESSION_TYPES.map((t) => {
-            const locked = !isPro && t.pro
+            const resolving = entitlementLoading && t.pro
+            const locked = isVerifiedFree && t.pro
             return (
               <button
                 key={t.value}
                 type="button"
-                onClick={() => {
+                disabled={resolving}
+                aria-haspopup={locked ? 'dialog' : undefined}
+                onClick={(event) => {
                   if (locked) {
-                    toast.error('This session type requires Pro.')
+                    openInterviewPaywall({ kind: 'session-type', label: `${t.label} practice` }, event.currentTarget)
                     return
                   }
                   setSessionType(t.value)
                 }}
                 className={cn(
                   'text-left p-4 rounded-xl border transition-all relative',
-                  locked ? 'opacity-60 cursor-default border-border/40' : sessionType === t.value ? 'border-brand-500/60 bg-brand-500/10' : 'border-border/60 hover:bg-surface-200'
+                  resolving ? 'cursor-wait opacity-55 border-border/40' : locked ? 'opacity-60 cursor-pointer border-border/40 hover:border-brand-500/40' : sessionType === t.value ? 'border-brand-500/60 bg-brand-500/10' : 'border-border/60 hover:bg-surface-200'
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -249,20 +310,27 @@ export default function NewInterviewPage() {
 
       <Card>
         <CardHeader><CardTitle className="text-base">Difficulty</CardTitle></CardHeader>
-        <CardContent className="flex gap-2">
+        <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {DIFFICULTIES.map((d) => {
-            const locked = !isPro && !(FREE_DIFFICULTIES as readonly string[]).includes(d)
+            const proOnly = !(FREE_DIFFICULTIES as readonly string[]).includes(d)
+            const resolving = entitlementLoading && proOnly
+            const locked = isVerifiedFree && proOnly
             return (
               <button
                 key={d}
                 type="button"
-                onClick={() => {
-                  if (locked) { toast.error('Challenging difficulty requires Pro.'); return }
+                disabled={resolving}
+                aria-haspopup={locked ? 'dialog' : undefined}
+                onClick={(event) => {
+                  if (locked) {
+                    openInterviewPaywall({ kind: 'difficulty', label: 'challenging interview difficulty' }, event.currentTarget)
+                    return
+                  }
                   setDifficulty(d)
                 }}
                 className={cn(
-                  'flex-1 text-sm py-2 rounded-xl border transition-all relative',
-                  locked ? 'opacity-55 cursor-default border-border/40 text-muted-foreground' : difficulty === d ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
+                  'min-w-0 rounded-xl border py-2 text-sm transition-all relative',
+                  resolving ? 'cursor-wait opacity-55 border-border/40 text-muted-foreground' : locked ? 'opacity-55 cursor-pointer border-border/40 text-muted-foreground hover:border-brand-500/40' : difficulty === d ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
                 )}
               >
                 <span className="capitalize">{d}</span>
@@ -279,19 +347,27 @@ export default function NewInterviewPage() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {QUESTION_OPTIONS.map((n) => {
-                const locked = !isPro && n > FREE_MAX_QUESTIONS
+                const proOnly = n > FREE_MAX_QUESTIONS
+                const resolving = entitlementLoading && proOnly
+                const locked = isVerifiedFree && proOnly
                 const selected = questionCount === n
                 return (
                   <button
                     key={n}
                     type="button"
-                    onClick={() => {
-                      if (locked) { toast.error('More than 10 questions requires Pro.'); return }
+                    disabled={resolving}
+                    aria-haspopup={locked ? 'dialog' : undefined}
+                    onClick={(event) => {
+                      if (locked) {
+                        openInterviewPaywall({ kind: 'question-count', label: `${n}-question written interviews` }, event.currentTarget)
+                        return
+                      }
                       setQuestionCount(n)
                     }}
                     className={cn(
                       'relative py-3 rounded-xl border text-center transition-all',
-                      locked ? 'opacity-55 cursor-default border-border/40 text-muted-foreground'
+                      resolving ? 'cursor-wait opacity-55 border-border/40 text-muted-foreground'
+                        : locked ? 'opacity-55 cursor-pointer border-border/40 text-muted-foreground hover:border-brand-500/40'
                         : selected ? 'border-brand-500/60 bg-brand-500/10 text-foreground' : 'border-border/60 text-muted-foreground hover:bg-surface-200'
                     )}
                   >
@@ -323,7 +399,7 @@ export default function NewInterviewPage() {
         {deliveryMode === 'voice' ? (
           <>
             <p>Your microphone is used only to send your spoken answers to the AI interviewer in real time. A transcript of both sides is saved privately for you; no raw audio recording is stored.</p>
-            {!isPro && <p className="text-brand-300">Live Interview requires Pro - you can pick it now and upgrade before you start.</p>}
+            {isVerifiedFree && <p className="text-brand-300">Live Interview requires Pro - you can pick it now and upgrade before you start.</p>}
           </>
         ) : (
           <p>Your transcript is private and stored only for you. No audio is recorded in text mode.</p>
@@ -331,9 +407,16 @@ export default function NewInterviewPage() {
         <p>This is practice, not a real interview - Showcase never represents itself as an employer.</p>
       </div>
 
-      <Button onClick={handleSubmit} disabled={submitting} size="lg" className="w-full">
-        {submitting ? 'Creating session…' : 'Continue to Lobby'}
+      <Button onClick={handleSubmit} disabled={submitting || entitlementLoading} size="lg" className="w-full">
+        {submitting ? 'Creating session…' : entitlementLoading ? 'Checking your plan…' : 'Continue to Lobby'}
       </Button>
+
+      <InterviewPaywallDialog
+        open={interviewPaywallOpen}
+        onOpenChange={setInterviewPaywallOpen}
+        reason={interviewPaywallReason}
+        returnFocusRef={interviewPaywallTriggerRef}
+      />
     </div>
   )
 }

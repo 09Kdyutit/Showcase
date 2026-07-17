@@ -97,7 +97,7 @@
     "test:e2e-paid": "node --env-file=.env.local scripts/test-e2e-paid-path.mjs",
     "capture:screenshots": "node scripts/capture-screenshots.mjs",
     "test:marketing-truthfulness": "node scripts/test-marketing-truthfulness.mjs",
-    "test:first-sale-path": "node scripts/test-first-sale-path.mjs && npm run test:export-flow",
+    "test:first-sale-path": "node scripts/test-first-sale-path.mjs && node --experimental-strip-types scripts/test-interview-upgrade-intent.mjs && npm run test:export-flow",
     "test:export-flow": "node --experimental-strip-types scripts/test-export-flow.mjs",
     "audit:first-sale": "node --env-file=.env.local scripts/audit-first-sale-authority.mjs",
     "test:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",

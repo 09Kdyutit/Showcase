@@ -24,6 +24,18 @@ const exportPaywall = source('src/components/billing/export-paywall-dialog.tsx')
 const tailorPaywall = source('src/components/billing/tailor-paywall-dialog.tsx')
 const tailorStudio = source('src/app/(app)/jobs/[savedJobId]/tailor/page.tsx')
 const tailorRoute = source('src/app/api/jobs/[id]/tailor/route.ts')
+const interviewPaywall = source('src/components/billing/interview-paywall-dialog.tsx')
+const interviewSetup = source('src/app/(app)/interviews/new/page.tsx')
+const interviewResults = source('src/app/(app)/interviews/[sessionId]/results/page.tsx')
+const interviewUsage = source('src/components/interviews/hub/usage-summary.tsx')
+const opportunitiesForYouRoute = source('src/app/api/opportunities/for-you/route.ts')
+const opportunitiesView = source('src/components/opportunities/opportunities-view.tsx')
+const interviewSessionRoute = source('src/app/api/interviews/sessions/route.ts')
+const interviewRetryRoute = source('src/app/api/interviews/sessions/[id]/answers/[questionId]/retry/route.ts')
+const interviewUpgradeIntent = source('src/lib/interviews/upgrade-intent.ts')
+const interviewEntitlementUsage = source('src/lib/interviews/entitlements/usage.ts')
+const rateLimit = source('src/lib/ai/rate-limit.ts')
+const useUserHook = source('src/hooks/use-user.ts')
 const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
 const googleButton = source('src/components/auth/google-button.tsx')
@@ -146,7 +158,7 @@ expect('Billing preserves publish intent in its visible decision copy',
   billing.includes("title: 'Put your portfolio'") &&
   billing.includes("titleAccent: 'live.'") &&
   billing.includes('Unlock a live URL and preview card with Pro.') &&
-  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'"))
+  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'"))
 expect('Billing repeats that Checkout does not auto-publish',
   billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
   billing.includes('return to your portfolio and choose Publish'))
@@ -215,11 +227,11 @@ expect('closing the Export decision restores focus to the exact trigger that ope
   exportPaywall.includes('returnFocusRef.current.focus()'))
 expect('Billing preserves Export intent and states the manual post-payment download step',
   billing.includes("const fromExport = searchParams.get('source') === 'export'") &&
-  billing.includes('fromPublish || fromAudit || fromExport || fromTailor') &&
+  billing.includes('fromPublish || fromAudit || fromExport || fromTailor || fromInterview') &&
   billing.includes("title: 'Export your portfolio'") &&
   billing.includes("titleAccent: 'as HTML.'") &&
   billing.includes('from selected saved portfolio content') &&
-  billing.includes("fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
+  billing.includes("fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
   billing.includes('it does not download the file') &&
   billing.includes('open Settings → Export, and choose Download HTML'))
 expect('the authoritative Tailor Pro response opens a contextual upgrade decision instead of a dead toast',
@@ -254,13 +266,166 @@ expect('closing the Tailor decision restores focus to the Generate trigger',
   tailorPaywall.includes('returnFocusRef.current.focus()'))
 expect('Billing preserves Tailor intent and the explicit post-payment Generate step',
   billing.includes("const fromTailor = searchParams.get('source') === 'tailor'") &&
-  billing.includes('fromPublish || fromAudit || fromExport || fromTailor') &&
+  billing.includes('fromPublish || fromAudit || fromExport || fromTailor || fromInterview') &&
   billing.includes("title: 'Build your role-specific'") &&
   billing.includes("titleAccent: 'application kit.'") &&
   billing.includes('Showcase never submits the application for you.') &&
-  billing.includes("fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
+  billing.includes("fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
   billing.includes('it does not generate or submit the kit') &&
   billing.includes('return to this saved role, review your options, and choose Generate'))
+expect('Interview Lab paid choices and real 403 quota denials open one contextual decision instead of dead toasts',
+  interviewSetup.includes('function openInterviewPaywall(') &&
+  interviewSetup.includes('loading: entitlementLoading') &&
+  interviewSetup.includes('const isVerifiedFree = Boolean(') &&
+  interviewSetup.includes('!authError && !subscriptionError && !isPro') &&
+  interviewSetup.includes('disabled={resolving}') &&
+  interviewSetup.includes('disabled={submitting || entitlementLoading}') &&
+  interviewSetup.includes("openInterviewPaywall({ kind: 'session-type'") &&
+  interviewSetup.includes("openInterviewPaywall({ kind: 'difficulty'") &&
+  interviewSetup.includes("openInterviewPaywall({ kind: 'question-count'") &&
+  interviewSetup.includes("allowedCodes: ['AUDIO_LIMIT_REACHED']") &&
+  interviewSetup.includes("allowedCodes: ['SESSION_LIMIT_REACHED']") &&
+  interviewSetup.includes('tier: json.tier') &&
+  interviewSetup.includes('<InterviewPaywallDialog') &&
+  !interviewSetup.includes("toast.error('This session type requires Pro.')") &&
+  !interviewSetup.includes("toast.error('Challenging difficulty requires Pro.')") &&
+  !interviewSetup.includes("toast.error('More than 10 questions requires Pro.')"))
+expect('Interview retry text survives a real Free retry denial while the upgrade decision opens',
+  interviewResults.includes("allowedCodes: ['RETRY_LIMIT_REACHED']") &&
+  interviewResults.includes('tier: json.tier') &&
+  interviewResults.includes("setInterviewPaywallReason({ kind: 'retry', label: 'more answer retries' })") &&
+  interviewResults.includes('onClick={(event) => handleSubmitRetry(retryQuestionId, event.currentTarget)}') &&
+  interviewResults.includes('<InterviewPaywallDialog') &&
+  interviewResults.includes('sessionStorage.setItem(') &&
+  interviewResults.includes('serializeInterviewRetryUpgradeIntent({') &&
+  interviewResults.includes('if (!open) clearStoredRetryIntent()') &&
+  interviewResults.includes('sessionStorage.removeItem(INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY)') &&
+  interviewResults.includes("toast.error('Could not submit retry. Your answer is still here; please try again.')") &&
+  interviewResults.includes('submittingRetryRef.current = false') &&
+  interviewResults.indexOf('setRetryResults(') < interviewResults.indexOf("setRetryText('')"))
+expect('the Interview Lab decision is contextual, priced, reversible, focus-safe, and routes through Billing only',
+  interviewPaywall.includes('additional session styles') &&
+  interviewPaywall.includes('up to 30 questions in a written session') &&
+  interviewPaywall.includes('up to 150 total interview sessions per billing period') &&
+  interviewPaywall.includes("router.push(`/billing?plan=${plan}&source=interview${intent}`)") &&
+  interviewPaywall.includes("const intent = retryIntent ? '&intent=retry' : ''") &&
+  interviewPaywall.includes("choosePlan('monthly')") &&
+  interviewPaywall.includes("choosePlan('annual')") &&
+  interviewPaywall.includes('$15/month') &&
+  interviewPaywall.includes('$150/year') &&
+  interviewPaywall.includes('Save $30') &&
+  interviewPaywall.includes('Review existing interviews') &&
+  interviewPaywall.includes('Review this completed interview') &&
+  interviewPaywall.includes('Choose a Free practice option') &&
+  interviewPaywall.includes('Get more answer retries across your billing period') &&
+  interviewPaywall.includes('it does not create or start an interview') &&
+  interviewPaywall.includes('it does not submit the retry') &&
+  interviewPaywall.includes('onCloseAutoFocus={(event) => {') &&
+  interviewPaywall.includes('returnFocusRef.current.focus()') &&
+  !interviewPaywall.includes('Founding') &&
+  !interviewPaywall.includes("fetch('/api/stripe/create-checkout-session'"))
+expect('exhausted Interview Lab usage keeps monthly plan and purchase context through Billing',
+  interviewUsage.includes('href="/billing?plan=monthly&source=interview"') &&
+  interviewUsage.includes('$15/mo or $150/yr'))
+expect('Billing preserves Interview Lab intent and explains the manual post-payment return',
+  billing.includes("const explicitInterviewRetry = searchParams.get('source') === 'interview' && searchParams.get('intent') === 'retry'") &&
+  billing.includes('const fromInterviewRetry = explicitInterviewRetry || fromStoredInterviewReturn') &&
+  billing.includes('hasStoredRetryCheckoutOrigin') &&
+  billing.includes('fromPublish || fromAudit || fromExport || fromTailor || fromInterview') &&
+  billing.includes("title: 'Continue your interview'") &&
+  billing.includes("titleAccent: 'practice.'") &&
+  billing.includes('up to 30 questions per written session') &&
+  billing.includes('up to 150 total interview sessions per billing period') &&
+  billing.includes("title: 'Retry this interview'") &&
+  billing.includes('it does not submit the retry') &&
+  billing.includes('Your typed draft is kept in this browser tab') &&
+  billing.includes('isPro && fromInterviewRetry && storedInterviewIntent') &&
+  billing.includes('Your retry is ready to continue') &&
+  billing.includes('Return to completed interview') &&
+  billing.includes("fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
+  billing.includes('it does not create or start an interview') &&
+  billing.includes('return to Interview Lab and choose New Interview'))
+expect('a retained retry draft cannot take over an unrelated Checkout return',
+  billing.includes('INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY') &&
+  billing.includes('interviewRetryCheckoutOriginValue(storedInterviewIntent)') &&
+  billing.includes('const billingReturnPath = hasStoredRetryCheckoutOrigin') &&
+  billing.includes('const fromStoredInterviewReturn = hasStoredRetryCheckoutOrigin') &&
+  billing.includes('sessionStorage.removeItem(INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY)') &&
+  billing.includes('sessionStorage.removeItem(INTERVIEW_UPGRADE_INTENT_STORAGE_KEY)'))
+expect('Billing never labels a paid account Free when its subscription read fails',
+  billing.includes("const [planReadError, setPlanReadError] = useState<string | null>(null)") &&
+  billing.includes("const { data, error } = await supabase.from('subscriptions').select('*').maybeSingle()") &&
+  billing.includes('if (error) throw new Error(error.message)') &&
+  billing.includes('No checkout has been started.') &&
+  billing.includes('Showcase will not label your account Free or offer another checkout') &&
+  billing.includes('!confirming && !isPro') &&
+  billing.indexOf('if (planReadError)') >= 0 &&
+  billing.indexOf('{/* Upgrade card (if free) */}') >= 0 &&
+  billing.indexOf('if (planReadError)') < billing.indexOf('{/* Upgrade card (if free) */}'))
+expect('Billing plan selection and contextual CTA remain usable and announced on narrow screens',
+  billing.includes('role="group" aria-label="Billing cycle"') &&
+  billing.includes("aria-pressed={billingCycle === 'monthly'}") &&
+  billing.includes("aria-pressed={billingCycle === 'annual'}") &&
+  billing.includes('flex flex-col items-center justify-center gap-1') &&
+  billing.includes('h-auto min-h-11 w-full gap-2 whitespace-normal px-4 py-3 text-center') &&
+  billing.includes('p-5 sm:p-8'))
+expect('only authoritative Free 403 entitlement denials can be offered an Interview upgrade',
+  interviewUpgradeIntent.includes("input.status === 403") &&
+  interviewUpgradeIntent.includes("input.tier === 'free'") &&
+  interviewSessionRoute.includes('code: e.code, tier: e.tier') &&
+  interviewRetryRoute.includes('code: e.code, tier: e.tier') &&
+  interviewSessionRoute.includes("code: 'SESSION_TYPE_REQUIRES_PRO', tier") &&
+  interviewSessionRoute.includes("code: 'DIFFICULTY_REQUIRES_PRO', tier"))
+expect('subscription read failures stay transient instead of being mislabeled as Free',
+  rateLimit.includes('export async function isProUserStrict(') &&
+  rateLimit.includes('if (error) {') &&
+  rateLimit.includes('if (!data) return false') &&
+  rateLimit.includes('if (!data.current_period_end) return true') &&
+  interviewEntitlementUsage.includes("'ENTITLEMENT_UNAVAILABLE'") &&
+  interviewEntitlementUsage.includes('subscription verification failed') &&
+  interviewEntitlementUsage.includes("'Your Pro billing period could not be verified right now. Please try again shortly.'") &&
+  interviewEntitlementUsage.includes("'pro',") &&
+  interviewEntitlementUsage.includes('503,') &&
+  !interviewEntitlementUsage.includes("import { isProUser }") &&
+  interviewSessionRoute.includes('planContext = await resolvePlanContext(serviceSupabase, user.id)') &&
+  interviewSessionRoute.indexOf('planContext = await resolvePlanContext(serviceSupabase, user.id)') < interviewSessionRoute.indexOf('const limits = getPlanLimits(tier)') &&
+  useUserHook.includes('subscriptionError') &&
+  useUserHook.includes('if (subRes.error)') &&
+  useUserHook.includes('setLoading(false)') &&
+  interviewSetup.includes('const isVerifiedFree = Boolean(') &&
+  interviewSetup.includes('!authError && !subscriptionError && !isPro'))
+expect('written question-count entitlement is rejected before reservation, session creation, or AI work',
+  interviewSessionRoute.includes('if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount))') &&
+  interviewSessionRoute.includes("code: 'QUESTION_COUNT_EXCEEDS_PLAN'") &&
+  !interviewSessionRoute.includes('if (input.durationMinutes > limits.maxSessionMinutes)') &&
+  interviewSessionRoute.indexOf('if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount))') >= 0 &&
+  interviewSessionRoute.indexOf('await reserveSessionUsage(') >= 0 &&
+  interviewSessionRoute.indexOf(".from('interview_sessions')") >= 0 &&
+  interviewSessionRoute.indexOf('await generatePersonalizedQuestions(') >= 0 &&
+  interviewSessionRoute.indexOf('if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount))') < interviewSessionRoute.indexOf('await reserveSessionUsage(') &&
+  interviewSessionRoute.indexOf('if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount))') < interviewSessionRoute.indexOf(".from('interview_sessions')") &&
+  interviewSessionRoute.indexOf('if (!isWrittenQuestionCountAllowed(tier, input.deliveryMode, input.questionCount))') < interviewSessionRoute.indexOf('await generatePersonalizedQuestions('))
+expect('personalised opportunity matching is enforced as Pro on the server before profile data or scoring',
+  opportunitiesForYouRoute.includes("import { isProUserStrict } from '@/lib/ai/rate-limit'") &&
+  opportunitiesForYouRoute.includes('isPro = await isProUserStrict(user.id)') &&
+  opportunitiesForYouRoute.includes("code: 'SUBSCRIPTION_VERIFICATION_FAILED'") &&
+  opportunitiesForYouRoute.includes('if (!isPro)') &&
+  opportunitiesForYouRoute.includes("code: 'PRO_REQUIRED'") &&
+  opportunitiesForYouRoute.includes('Personalised opportunity matching requires Pro.') &&
+  opportunitiesForYouRoute.indexOf('await isProUserStrict(user.id)') >= 0 &&
+  opportunitiesForYouRoute.indexOf("code: 'PRO_REQUIRED'") >= 0 &&
+  opportunitiesForYouRoute.indexOf(".from('resumes')") >= 0 &&
+  opportunitiesForYouRoute.indexOf('fetchAllOpportunities()') >= 0 &&
+  opportunitiesForYouRoute.indexOf('await isProUserStrict(user.id)') < opportunitiesForYouRoute.indexOf(".from('resumes')") &&
+  opportunitiesForYouRoute.indexOf("code: 'PRO_REQUIRED'") < opportunitiesForYouRoute.indexOf('fetchAllOpportunities()') &&
+  opportunitiesView.includes('loading: entitlementLoading') &&
+  opportunitiesView.includes('authError') &&
+  opportunitiesView.includes('subscriptionError') &&
+  opportunitiesView.includes('const isVerifiedFree = Boolean(') &&
+  opportunitiesView.includes("view === 'for-you'") &&
+  opportunitiesView.includes('void fetchForYou()') &&
+  opportunitiesView.includes('Your plan could not be verified') &&
+  opportunitiesView.includes('isVerifiedFree || forYouAccessDenied'))
 expect('a completed Free audit exposes one clear, priced route to the full 11-category result',
   audit.includes('const visibleCategories = sortedCategories.filter((category) => !category.gated)') &&
   audit.includes('const gatedCategories = sortedCategories.filter((category) => category.gated)') &&
@@ -290,7 +455,7 @@ expect('Billing preserves full-audit intent without changing the held Checkout i
   billing.includes('Pro evaluates the full 11-category Audit') &&
   billing.includes('recalculates from every category supported by your saved materials, so it may change') &&
   billing.includes('where the material supports them') &&
-  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : 'Upgrade to Pro'") &&
+  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
   billing.includes('it does not rerun the audit you just viewed') &&
   billing.includes('return to Evidence Audit and run it again to evaluate all 11 categories') &&
   billing.includes('marked unavailable instead of being guessed'))

@@ -2,7 +2,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getPlanLimits, type PlanTier } from './plans.ts'
 import { freeCalendarMonthPeriod, proBillingPeriod, type UsagePeriod } from './limits.ts'
-import { isProUser } from '../../ai/rate-limit.ts'
+import { EntitlementError } from './errors.ts'
 
 export interface PlanContext {
   tier: PlanTier
@@ -14,23 +14,45 @@ export interface PlanContext {
 // derives the exact same answer from the exact same source - never a tier string
 // trusted from the request body or a client-held value.
 //
-// Tier itself is delegated to isProUser() - the SAME canonical Pro check every other
-// Showcase module uses (it also rejects an 'active' row whose current_period_end has
-// already passed, which a naive `status === 'active'` check here would have missed).
-// Entitlements only adds period-boundary math on top of that shared answer; it must
-// never re-derive tier with even slightly different logic.
+// Subscription lookup errors are not the same thing as a Free plan. Failing closed to
+// Free would present a paid customer with an authoritative-looking upgrade gate during
+// a database/RLS outage. A missing, inactive, or expired row is legitimately Free; an
+// unreadable row is a transient 503 that callers must preserve.
 export async function resolvePlanContext(supabase: SupabaseClient, userId: string): Promise<PlanContext> {
-  const isPro = await isProUser(userId)
-  if (!isPro) return { tier: 'free', period: freeCalendarMonthPeriod() }
-
-  const { data: sub } = await supabase
+  const { data: sub, error } = await supabase
     .from('subscriptions')
-    .select('current_period_end, price_id')
+    .select('status, current_period_end, price_id')
     .eq('user_id', userId)
     .maybeSingle()
 
-  if (!sub?.current_period_end) return { tier: 'free', period: freeCalendarMonthPeriod() }
-  return { tier: 'pro', period: proBillingPeriod({ currentPeriodEnd: new Date(sub.current_period_end), priceId: sub.price_id }) }
+  if (error) {
+    console.error('[interview-entitlements] subscription verification failed:', error.message)
+    throw new EntitlementError(
+      'ENTITLEMENT_UNAVAILABLE',
+      'Your plan could not be verified right now. Please try again shortly.',
+      503,
+    )
+  }
+
+  if (!sub || !['active', 'trialing'].includes(sub.status)) {
+    return { tier: 'free', period: freeCalendarMonthPeriod() }
+  }
+
+  if (!sub.current_period_end) {
+    throw new EntitlementError(
+      'ENTITLEMENT_UNAVAILABLE',
+      'Your Pro billing period could not be verified right now. Please try again shortly.',
+      503,
+      'pro',
+    )
+  }
+
+  const periodEnd = new Date(sub.current_period_end)
+  if (!Number.isFinite(periodEnd.getTime()) || periodEnd <= new Date()) {
+    return { tier: 'free', period: freeCalendarMonthPeriod() }
+  }
+
+  return { tier: 'pro', period: proBillingPeriod({ currentPeriodEnd: periodEnd, priceId: sub.price_id }) }
 }
 
 export interface UsageSnapshot {

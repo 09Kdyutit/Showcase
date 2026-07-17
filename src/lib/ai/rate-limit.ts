@@ -186,21 +186,48 @@ export async function checkRateLimit(
   }
 }
 
+/**
+ * Resolves Pro status without collapsing a failed subscription read into Free.
+ * Callers that must distinguish a real Free account from an unavailable entitlement
+ * source should use this strict variant and translate failures for their own surface.
+ */
+export async function isProUserStrict(userId: string): Promise<boolean> {
+  const supabase = await createServiceClient()
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('status, current_period_end')
+    .eq('user_id', userId)
+    .in('status', ['active', 'trialing'])
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(`Subscription status query failed: ${error.message}`)
+  }
+  if (!data) return false
+  // The schema permits a null period end and the existing Billing/publish gates treat
+  // an active/trialing row in that state as Pro. Preserve that contract here; callers
+  // that require period-bound quota math must handle the missing boundary separately.
+  if (!data.current_period_end) return true
+
+  const periodEnd = new Date(data.current_period_end)
+  if (Number.isNaN(periodEnd.getTime())) {
+    throw new Error('Subscription status query returned an invalid period end.')
+  }
+  return periodEnd > new Date()
+}
+
+/**
+ * Legacy fail-closed wrapper for quota and abuse-prevention paths whose existing
+ * contract is boolean-only. New purchase gates should prefer isProUserStrict().
+ */
 export async function isProUser(userId: string): Promise<boolean> {
   try {
-    const supabase = await createServiceClient()
-    const { data } = await supabase
-      .from('subscriptions')
-      .select('status, current_period_end')
-      .eq('user_id', userId)
-      .in('status', ['active', 'trialing'])
-      .single()
-
-    if (!data) return false
-    const now = new Date()
-    const periodEnd = data.current_period_end ? new Date(data.current_period_end) : null
-    return !periodEnd || periodEnd > now
-  } catch {
+    return await isProUserStrict(userId)
+  } catch (error) {
+    console.error(
+      '[rate-limit/subscription] could not verify Pro status:',
+      error instanceof Error ? error.message : 'unknown error'
+    )
     return false
   }
 }

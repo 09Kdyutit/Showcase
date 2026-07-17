@@ -63,7 +63,7 @@ export async function POST(
     const previous = previousAnswers?.[0]
     if (!previous) return NextResponse.json({ error: 'This question has no original answer to retry.' }, { status: 409 })
 
-    // "1 retry per completed session" (Free) / "30 retries per billing period" (Pro)
+    // "1 retry per completed session" (Free) / a finite billing-period pool (Pro)
     // is counted across the WHOLE session, not per question - a retry on question 2
     // after already retrying question 1 in the same session is still the user's
     // second retry of that session, and Free only gets one. This decision is made
@@ -77,7 +77,7 @@ export async function POST(
       const reserved = await reserveRetryUsage(await createServiceClient(), user.id, id)
       retryReservationId = reserved.reservationId
     } catch (e) {
-      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.httpStatus })
+      if (e instanceof EntitlementError) return NextResponse.json({ error: e.message, code: e.code, tier: e.tier }, { status: e.httpStatus })
       throw e
     }
 

@@ -1,6 +1,6 @@
 import 'server-only'
 
-export { getPlanLimits, isSessionTypeAllowed, FREE_PLAN_LIMITS, PRO_PLAN_LIMITS, FREE_SESSION_TYPES } from './plans.ts'
+export { getPlanLimits, isSessionTypeAllowed, isWrittenQuestionCountAllowed, FREE_PLAN_LIMITS, PRO_PLAN_LIMITS, FREE_SESSION_TYPES } from './plans.ts'
 export type { InterviewPlanLimits, PlanTier } from './plans.ts'
 export { freeCalendarMonthPeriod, proBillingPeriod } from './limits.ts'
 export type { UsagePeriod, ProSubscriptionInfo } from './limits.ts'

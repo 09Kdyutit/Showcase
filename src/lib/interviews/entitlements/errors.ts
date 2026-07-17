@@ -1,4 +1,5 @@
 export type EntitlementErrorCode =
+  | 'ENTITLEMENT_UNAVAILABLE'
   | 'SESSION_LIMIT_REACHED'
   | 'AUDIO_LIMIT_REACHED'
   | 'RETRY_LIMIT_REACHED'
@@ -12,9 +13,11 @@ export type EntitlementErrorCode =
 export class EntitlementError extends Error {
   code: EntitlementErrorCode
   httpStatus: number
-  constructor(code: EntitlementErrorCode, message: string, httpStatus = 403) {
+  tier?: 'free' | 'pro'
+  constructor(code: EntitlementErrorCode, message: string, httpStatus = 403, tier?: 'free' | 'pro') {
     super(message)
     this.code = code
     this.httpStatus = httpStatus
+    this.tier = tier
   }
 }

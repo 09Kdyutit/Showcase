@@ -27,7 +27,7 @@ export async function reserveSessionUsage(
   const limits = getPlanLimits(tier)
 
   if (isAudioMode && limits.audioSessionsPerPeriod === 0) {
-    throw new EntitlementError('AUDIO_LIMIT_REACHED', 'Voice and Recorded interviews require Pro.')
+    throw new EntitlementError('AUDIO_LIMIT_REACHED', 'Voice and Recorded interviews require Pro.', 403, tier)
   }
 
   const periodStartIso = period.start.toISOString()
@@ -51,14 +51,14 @@ export async function reserveSessionUsage(
   if (sessionErr || !sessionRes) {
     // Fail CLOSED here, unlike the generic abuse-prevention rate limiter - an outage
     // in the entitlement ledger must not silently grant unlimited free sessions.
-    throw new EntitlementError('SESSION_LIMIT_REACHED', 'Could not verify your interview usage right now. Please try again in a moment.', 503)
+    throw new EntitlementError('SESSION_LIMIT_REACHED', 'Could not verify your interview usage right now. Please try again in a moment.', 503, tier)
   }
   if (!sessionRes.allowed) {
     if (sessionRes.denial_reason === 'concurrent_limit') {
       throw new EntitlementError('CONCURRENT_SESSION_LIMIT', 'You have an interview already in progress. Finish or leave it before starting another.')
     }
     const resetDate = period.end.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-    throw new EntitlementError('SESSION_LIMIT_REACHED', `You've used your ${limits.sessionsPerPeriod} interview session${limits.sessionsPerPeriod === 1 ? '' : 's'} for this period. Resets ${resetDate}.`)
+    throw new EntitlementError('SESSION_LIMIT_REACHED', `You've used your ${limits.sessionsPerPeriod} interview session${limits.sessionsPerPeriod === 1 ? '' : 's'} for this period. Resets ${resetDate}.`, 403, tier)
   }
 
   let audioReservationId: string | null = null
@@ -77,13 +77,13 @@ export async function reserveSessionUsage(
     if (audioErr || !audioRes) {
       // RPC failed (e.g. DB unreachable) - fail CLOSED and be honest about the cause.
       await supabase.rpc('interview_release_usage', { p_reservation_id: sessionRes.reservation_id, p_user_id: userId, p_allow_committed_release: false })
-      throw new EntitlementError('AUDIO_LIMIT_REACHED', 'Could not verify your voice/recorded interview usage right now. Please try again in a moment.', 503)
+      throw new EntitlementError('AUDIO_LIMIT_REACHED', 'Could not verify your voice/recorded interview usage right now. Please try again in a moment.', 503, tier)
     }
     if (!audioRes.allowed) {
       // Genuine quota denial - roll back the session slot and give the user an accurate count.
       await supabase.rpc('interview_release_usage', { p_reservation_id: sessionRes.reservation_id, p_user_id: userId, p_allow_committed_release: false })
       const resetDate = period.end.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-      throw new EntitlementError('AUDIO_LIMIT_REACHED', `You've used your ${limits.audioSessionsPerPeriod} voice/recorded interview${limits.audioSessionsPerPeriod === 1 ? '' : 's'} for this period. Resets ${resetDate}.`)
+      throw new EntitlementError('AUDIO_LIMIT_REACHED', `You've used your ${limits.audioSessionsPerPeriod} voice/recorded interview${limits.audioSessionsPerPeriod === 1 ? '' : 's'} for this period. Resets ${resetDate}.`, 403, tier)
     }
     audioReservationId = audioRes.reservation_id
   }
@@ -99,7 +99,7 @@ export async function reserveSessionUsage(
 // (the IL-17 gap (b) bypass) collide and only the allowed number commit.
 //
 //   * Free: exactly one retry per completed session (per-session ceiling = 1).
-//   * Pro:  a real period pool of 30 retries, counted across the whole period.
+//   * Pro:  a finite configured retry pool, counted across the whole billing period.
 //
 // A denial inserts no row, so a request that loses the race burns nothing. The returned
 // reservationId is always non-null on success (Free included) so the route can release
@@ -127,13 +127,13 @@ export async function reserveRetryUsage(
   // Fail CLOSED - an outage in the retry ledger must not silently grant unlimited
   // retries, the same posture as session/audio reservation above.
   if (error || !data) {
-    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Could not verify your retry usage right now. Please try again in a moment.', 503)
+    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Could not verify your retry usage right now. Please try again in a moment.', 503, tier)
   }
   if (!data.allowed) {
     if (isPro) {
-      throw new EntitlementError('RETRY_LIMIT_REACHED', `You've used your ${limits.retriesPerPeriod} retries for this billing period.`)
+      throw new EntitlementError('RETRY_LIMIT_REACHED', `You've used your ${limits.retriesPerPeriod} retries for this billing period.`, 403, tier)
     }
-    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Free includes 1 retry per completed session. Upgrade to Pro for more.')
+    throw new EntitlementError('RETRY_LIMIT_REACHED', 'Free includes 1 retry per completed session. Upgrade to Pro for more.', 403, tier)
   }
   return { reservationId: data.reservation_id }
 }

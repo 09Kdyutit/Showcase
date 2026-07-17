@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -19,6 +19,17 @@ import { buildExchanges } from '@/lib/interviews/conversation'
 import { recommendDrillsForDimensions } from '@/lib/interviews/drills'
 import { DIMENSION_REGISTRY } from '@/lib/interviews/rubrics'
 import type { LucideIcon } from 'lucide-react'
+import {
+  InterviewPaywallDialog,
+  type InterviewPaywallReason,
+} from '@/components/billing/interview-paywall-dialog'
+import {
+  INTERVIEW_UPGRADE_INTENT_STORAGE_KEY,
+  INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY,
+  parseInterviewRetryUpgradeIntent,
+  serializeInterviewRetryUpgradeIntent,
+  shouldOfferInterviewUpgrade,
+} from '@/lib/interviews/upgrade-intent'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -202,22 +213,108 @@ export default function InterviewResultsPage() {
   const [creatingShare, setCreatingShare] = useState(false)
   const [newShareLink, setNewShareLink] = useState<string | null>(null)
   const [expandedCoaching, setExpandedCoaching] = useState<Set<string>>(new Set())
-  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
-  const [retryText, setRetryText] = useState('')
+  const [restoredRetryIntent] = useState(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const stored = parseInterviewRetryUpgradeIntent(
+        sessionStorage.getItem(INTERVIEW_UPGRADE_INTENT_STORAGE_KEY)
+      )
+      return stored?.sessionId === params.sessionId ? stored : null
+    } catch {
+      return null
+    }
+  })
+  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(restoredRetryIntent?.questionId ?? null)
+  const [retryText, setRetryText] = useState(restoredRetryIntent?.answerText ?? '')
   const [submittingRetry, setSubmittingRetry] = useState(false)
   const [retryResults, setRetryResults] = useState<Record<string, RetryResult>>({})
+  const submittingRetryRef = useRef(false)
+  const [interviewPaywallOpen, setInterviewPaywallOpen] = useState(false)
+  const [interviewPaywallReason, setInterviewPaywallReason] = useState<InterviewPaywallReason>({
+    kind: 'retry',
+    label: 'more answer retries',
+  })
+  const interviewPaywallTriggerRef = useRef<HTMLButtonElement | null>(null)
 
-  async function handleSubmitRetry(questionId: string) {
+  function clearStoredRetryIntent(questionId?: string) {
+    try {
+      const stored = parseInterviewRetryUpgradeIntent(
+        sessionStorage.getItem(INTERVIEW_UPGRADE_INTENT_STORAGE_KEY)
+      )
+      const storedMatches = (
+        stored?.sessionId === params.sessionId &&
+        (!questionId || stored.questionId === questionId)
+      )
+      const checkoutOrigin = sessionStorage.getItem(INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY)
+      const checkoutOriginMatches = questionId
+        ? checkoutOrigin === `${params.sessionId}:${questionId}`
+        : checkoutOrigin?.startsWith(`${params.sessionId}:`) === true
+      if (storedMatches) {
+        sessionStorage.removeItem(INTERVIEW_UPGRADE_INTENT_STORAGE_KEY)
+      }
+      if (storedMatches || checkoutOriginMatches) {
+        sessionStorage.removeItem(INTERVIEW_RETRY_CHECKOUT_ORIGIN_STORAGE_KEY)
+      }
+    } catch {
+      // Storage can be disabled without blocking Interview Lab.
+    }
+  }
+
+  function handleInterviewPaywallOpenChange(open: boolean) {
+    setInterviewPaywallOpen(open)
+    if (!open) clearStoredRetryIntent()
+  }
+
+  async function handleSubmitRetry(questionId: string, trigger: HTMLButtonElement) {
     if (!retryText.trim()) { toast.error('Write a retry answer first.'); return }
+    if (submittingRetryRef.current) return
+    const answerText = retryText.trim()
+    submittingRetryRef.current = true
     setSubmittingRetry(true)
-    const res = await fetch(`/api/interviews/sessions/${params.sessionId}/answers/${questionId}/retry`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answerText: retryText.trim() }),
-    })
-    const json = await res.json()
-    if (!res.ok) { toast.error(apiErrorMessage(json.error, 'Could not submit retry.')); setSubmittingRetry(false); return }
-    setRetryResults((prev) => ({ ...prev, [questionId]: json.data }))
-    setRetryingQuestionId(null); setRetryText(''); setSubmittingRetry(false)
+    try {
+      const res = await fetch(`/api/interviews/sessions/${params.sessionId}/answers/${questionId}/retry`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerText }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (shouldOfferInterviewUpgrade({
+          status: res.status,
+          tier: json.tier,
+          code: json.code,
+          allowedCodes: ['RETRY_LIMIT_REACHED'],
+        })) {
+          try {
+            sessionStorage.setItem(
+              INTERVIEW_UPGRADE_INTENT_STORAGE_KEY,
+              serializeInterviewRetryUpgradeIntent({
+                kind: 'retry',
+                sessionId: params.sessionId,
+                questionId,
+                answerText,
+              })
+            )
+          } catch {
+            // Storage can be disabled. The dialog still preserves the visible draft in-place.
+          }
+          interviewPaywallTriggerRef.current = trigger
+          setInterviewPaywallReason({ kind: 'retry', label: 'more answer retries' })
+          setInterviewPaywallOpen(true)
+        } else {
+          toast.error(apiErrorMessage(json.error, 'Could not submit retry.'))
+        }
+        return
+      }
+      setRetryResults((prev) => ({ ...prev, [questionId]: json.data }))
+      clearStoredRetryIntent(questionId)
+      setRetryingQuestionId(null)
+      setRetryText('')
+    } catch {
+      toast.error('Could not submit retry. Your answer is still here; please try again.')
+    } finally {
+      submittingRetryRef.current = false
+      setSubmittingRetry(false)
+    }
   }
 
   async function loadShares() {
@@ -697,8 +794,8 @@ export default function InterviewResultsPage() {
                   <div className="ml-8 space-y-2 pl-3 border-l-2 border-brand-500/30">
                     <Textarea value={retryText} onChange={(e) => setRetryText(e.target.value)} placeholder="Try answering again…" className="min-h-[100px]" maxLength={10000} />
                     <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => setRetryingQuestionId(null)}>Cancel</Button>
-                      <Button size="sm" onClick={() => handleSubmitRetry(retryQuestionId)} disabled={submittingRetry}>{submittingRetry ? 'Comparing…' : 'Submit Retry'}</Button>
+                      <Button size="sm" variant="ghost" onClick={() => { clearStoredRetryIntent(retryQuestionId); setRetryingQuestionId(null); setRetryText('') }}>Cancel</Button>
+                      <Button size="sm" onClick={(event) => handleSubmitRetry(retryQuestionId, event.currentTarget)} disabled={submittingRetry}>{submittingRetry ? 'Comparing…' : 'Submit Retry'}</Button>
                     </div>
                   </div>
                 )}
@@ -794,6 +891,13 @@ export default function InterviewResultsPage() {
           </CardContent>
         </Card>
       )}
+
+      <InterviewPaywallDialog
+        open={interviewPaywallOpen}
+        onOpenChange={handleInterviewPaywallOpenChange}
+        reason={interviewPaywallReason}
+        returnFocusRef={interviewPaywallTriggerRef}
+      />
     </div>
   )
 }
