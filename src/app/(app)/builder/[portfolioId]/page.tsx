@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon, Download } from 'lucide-react'
+import { Save, Zap, Globe, Lock, Eye, ExternalLink, ArrowLeft, BarChart3, Plus, Trash2, CheckCircle2, ImageIcon, Download, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,20 @@ interface BuilderPageProps {
 }
 
 type SaveState = 'saved' | 'saving' | 'unsaved' | 'error'
+
+type EditorSnapshot = {
+  title: string
+  targetRole: string
+  content: Partial<PortfolioContent>
+  theme: ThemeId
+}
+
+const EMPTY_EDITOR_SNAPSHOT: EditorSnapshot = {
+  title: '',
+  targetRole: '',
+  content: {},
+  theme: 'executive-dark',
+}
 
 export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const { portfolioId } = use(params)
@@ -59,7 +73,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [genMsg, setGenMsg] = useState('')
   const [activeProject, setActiveProject] = useState<number | null>(null)
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const lastSavedRef = useRef({ title: '', targetRole: '', content: {} as Partial<PortfolioContent> })
+  const editorSnapshotRef = useRef<EditorSnapshot>(EMPTY_EDITOR_SNAPSHOT)
+  const lastSavedRef = useRef<EditorSnapshot>(EMPTY_EDITOR_SNAPSHOT)
+  const saveInFlightRef = useRef<Promise<boolean> | null>(null)
+  const publishingRef = useRef(false)
   // Synchronous guard checked before any state update - a second click landing before React
   // re-renders (and the `generating` state/disabled prop actually reflect the first click)
   // would otherwise both pass an `if (generating) return` check and fire two generations.
@@ -97,12 +114,20 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     ])
     if (!portfolioRes.data) { router.push('/builder'); return }
     setPortfolio(portfolioRes.data)
+    const loadedTheme = coerceThemeId(portfolioRes.data.theme)
     setTitle(portfolioRes.data.title)
     setTargetRole(portfolioRes.data.target_role ?? '')
-    setTheme(coerceThemeId(portfolioRes.data.theme))
+    setTheme(loadedTheme)
     const c = portfolioRes.data.content as unknown as Partial<PortfolioContent> ?? {}
     setContent(c)
-    lastSavedRef.current = { title: portfolioRes.data.title, targetRole: portfolioRes.data.target_role ?? '', content: c }
+    const loadedSnapshot: EditorSnapshot = {
+      title: portfolioRes.data.title,
+      targetRole: portfolioRes.data.target_role ?? '',
+      content: c,
+      theme: loadedTheme,
+    }
+    editorSnapshotRef.current = loadedSnapshot
+    lastSavedRef.current = loadedSnapshot
     setIsPro(subRes.data?.status === 'active' || subRes.data?.status === 'trialing')
     const generatedCount = genCountRes.count ?? 0
     setHasUsedFreeGeneration(generatedCount > 0)
@@ -122,23 +147,52 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { load() }, [portfolioId])
 
-  const save = useCallback(async (showToast = true) => {
-    setSaveState('saving')
-    try {
-      const res = await fetch('/api/portfolio/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolioId, title, targetRole, content, theme }),
-      })
-      if (!res.ok) throw new Error('Save failed')
-      lastSavedRef.current = { title, targetRole, content }
-      setSaveState('saved')
-      if (showToast) toast.success('Saved')
-    } catch {
-      setSaveState('error')
-      if (showToast) toast.error('Save failed - check your connection')
+  const save = useCallback(async (showToast = true): Promise<boolean> => {
+    // Serialize saves so an older autosave can never finish after a newer explicit
+    // Publish flush and overwrite the content the user actually chose to share.
+    const pendingSave = saveInFlightRef.current
+    const operation = (async () => {
+      if (pendingSave) await pendingSave
+      const snapshot = editorSnapshotRef.current
+      setSaveState('saving')
+      try {
+        const res = await fetch('/api/portfolio/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ portfolioId, ...snapshot }),
+        })
+        if (!res.ok) throw new Error('Save failed')
+        lastSavedRef.current = snapshot
+        const isCurrent = editorSnapshotRef.current === snapshot
+        setSaveState(isCurrent ? 'saved' : 'unsaved')
+        if (showToast && isCurrent) toast.success('Saved')
+        return true
+      } catch {
+        setSaveState('error')
+        if (showToast) toast.error('Save failed - check your connection')
+        return false
+      }
+    })()
+
+    saveInFlightRef.current = operation
+    const succeeded = await operation
+    if (saveInFlightRef.current === operation) saveInFlightRef.current = null
+    return succeeded
+  }, [portfolioId])
+
+  const flushEditorSave = useCallback(async (): Promise<boolean> => {
+    // A user can keep editing while a request is in flight. Re-flush until the
+    // persisted snapshot is still the current editor state; after three moving
+    // targets, stop safely and ask them to publish again once editing has paused.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const pendingSave = saveInFlightRef.current
+      if (pendingSave) await pendingSave
+      if (editorSnapshotRef.current === lastSavedRef.current) return true
+      if (!await save(false)) return false
+      if (editorSnapshotRef.current === lastSavedRef.current) return true
     }
-  }, [title, targetRole, content, theme, portfolioId])
+    return false
+  }, [save])
 
   // Debounce off the actual [title, targetRole, content, theme] values via an effect, rather
   // than calling a manually-built `save` closure from inside each setState updater. The old
@@ -169,12 +223,23 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   }, [loading, portfolio?.ai_generated_at, recordGeneratedPreview])
 
   function updateContent(updater: (prev: Partial<PortfolioContent>) => Partial<PortfolioContent>) {
-    setContent(updater)
+    const next = updater(editorSnapshotRef.current.content)
+    editorSnapshotRef.current = { ...editorSnapshotRef.current, content: next }
+    setContent(next)
   }
 
-  function updateTitle(v: string) { setTitle(v) }
-  function updateRole(v: string) { setTargetRole(v) }
-  function updateTheme(v: ThemeId) { setTheme(v) }
+  function updateTitle(v: string) {
+    editorSnapshotRef.current = { ...editorSnapshotRef.current, title: v }
+    setTitle(v)
+  }
+  function updateRole(v: string) {
+    editorSnapshotRef.current = { ...editorSnapshotRef.current, targetRole: v }
+    setTargetRole(v)
+  }
+  function updateTheme(v: ThemeId) {
+    editorSnapshotRef.current = { ...editorSnapshotRef.current, theme: v }
+    setTheme(v)
+  }
 
   async function generatePortfolio(confirmOverwrite = false) {
     // Free includes the first generation; regeneration needs Pro. The server enforces
@@ -267,9 +332,26 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   }
 
   async function togglePublish() {
-    setPublishing(true)
+    if (publishingRef.current) return
     const action = portfolio?.status === 'published' ? 'unpublish' : 'publish'
+    if (action === 'publish' && generatingRef.current) {
+      toast.error('Wait for portfolio generation to finish before publishing.')
+      return
+    }
+    publishingRef.current = true
+    setPublishing(true)
     try {
+      if (action === 'publish') {
+        if (autosaveTimer.current) {
+          clearTimeout(autosaveTimer.current)
+          autosaveTimer.current = null
+        }
+        const saved = await flushEditorSave()
+        if (!saved) {
+          toast.error('Save your latest changes before publishing.')
+          return
+        }
+      }
       const res = await fetch('/api/portfolio/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -278,6 +360,13 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       const data = await res.json()
       if (!res.ok) {
         if (data.code === 'PRO_REQUIRED') {
+          // The publish eligibility request can take long enough for an async editor
+          // update to land. Re-flush before presenting a dialog that can navigate away.
+          const saved = await flushEditorSave()
+          if (!saved) {
+            toast.error('Save your latest changes before publishing.')
+            return
+          }
           setPublishPaywallOpen(true)
         } else {
           throw new Error(data.error ?? 'Failed to update')
@@ -289,6 +378,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update portfolio status')
     } finally {
+      publishingRef.current = false
       setPublishing(false)
     }
   }
@@ -352,6 +442,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const proof = content?.proof ?? []
   const experience = content?.experience ?? []
   const isGeneratedDraft = Boolean(portfolio?.ai_generated_at) && portfolio?.status !== 'published'
+  const hasGeneratedPreview = isGeneratedDraft && Boolean(hero?.headline)
 
   // Portfolio quality checklist
   const qualityChecks = [
@@ -424,6 +515,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             size="sm"
             onClick={exportHtml}
             loading={exporting}
+            disabled={publishing}
             className="gap-1.5 text-xs hidden sm:flex"
             title={isPro ? 'Export as standalone HTML file' : 'Download HTML is a Pro feature'}
           >
@@ -435,6 +527,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             size="sm"
             onClick={() => save(true)}
             loading={saveState === 'saving'}
+            disabled={publishing}
             className="gap-1.5 text-xs"
           >
             <Save className="h-3 w-3" />
@@ -456,6 +549,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+          <fieldset disabled={publishing} aria-busy={publishing} className="min-w-0 border-0 p-0">
           <Tabs defaultValue="content">
             <TabsList className="mb-6">
               <TabsTrigger value="content">Content</TabsTrigger>
@@ -476,7 +570,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             </TabsList>
 
             <TabsContent value="content">
-              {isGeneratedDraft && (
+              {hasGeneratedPreview && (
                 <div className="glass-card mb-6 border-brand-500/25 p-4 lg:hidden">
                   <div className="flex flex-col gap-3">
                     <div className="min-w-0">
@@ -506,10 +600,30 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 <div className="space-y-5">
                   {/* AI Generate - free plan includes the first generation */}
                   {!isPro && hasUsedFreeGeneration ? (
-                    <PaywallCard
-                      feature="AI Portfolio Generation"
-                      description="Your free plan includes one AI generation and you've used it. Upgrade to Pro to regenerate or build more portfolios."
-                    />
+                    hasGeneratedPreview ? (
+                      <details className="glass-card group overflow-hidden">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-medium text-foreground/80 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/60 [&::-webkit-details-marker]:hidden">
+                          <span>Want a different AI draft?</span>
+                          <span className="flex shrink-0 items-center gap-2">
+                            <Badge variant="default">Regeneration · Pro</Badge>
+                            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                          </span>
+                        </summary>
+                        <div className="border-t border-border px-5 py-4">
+                          <p className="text-xs leading-relaxed text-muted-foreground">
+                            Your generated draft is already loaded and fully editable below. Pro adds regeneration when you want to replace it with a fresh version.
+                          </p>
+                          <Button asChild variant="secondary" size="sm" className="mt-3">
+                            <Link href="/billing?plan=monthly">View regeneration options</Link>
+                          </Button>
+                        </div>
+                      </details>
+                    ) : (
+                      <PaywallCard
+                        feature="AI Portfolio Generation"
+                        description="Your free plan includes one AI generation and you've used it. Upgrade to Pro to regenerate or build more portfolios."
+                      />
+                    )
                   ) : (
                     <div className="glass-card p-5">
                       <div className="flex items-start justify-between mb-3">
@@ -732,7 +846,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 {hero?.headline && portfolio?.status !== 'published' && (
                   <div className={cn(
                     'glass-card border-brand-500/25 p-4',
-                    isGeneratedDraft && 'hidden lg:block'
+                    hasGeneratedPreview && 'hidden lg:block'
                   )}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0">
@@ -1275,6 +1389,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
               </div>
             </TabsContent>
           </Tabs>
+          </fieldset>
         </div>
       </div>
       {portfolio && (

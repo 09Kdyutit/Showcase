@@ -60,7 +60,8 @@ expect('a generated private preview keeps a persistent Publish decision in conte
   builderEditor.includes('onClick={togglePublish}'))
 expect('mobile generated drafts show a stable value summary and Publish decision before the full editor',
   builderEditor.includes("const isGeneratedDraft = Boolean(portfolio?.ai_generated_at) && portfolio?.status !== 'published'") &&
-  builderEditor.includes('{isGeneratedDraft && (') &&
+  builderEditor.includes('const hasGeneratedPreview = isGeneratedDraft && Boolean(hero?.headline)') &&
+  builderEditor.includes('{hasGeneratedPreview && (') &&
   builderEditor.includes('Your generated portfolio is ready') &&
   builderEditor.includes('Review the complete preview below, keep editing, or unlock its live link.') &&
   builderEditor.includes('mb-6 border-brand-500/25 p-4 lg:hidden') &&
@@ -69,10 +70,43 @@ expect('mobile generated drafts show a stable value summary and Publish decision
   !builderEditor.includes("hero?.headline ? 'order-2 lg:order-1'") &&
   !builderEditor.includes("hero?.headline ? 'order-1 lg:order-2'"))
 expect('generated mobile drafts avoid a duplicate lower Publish card while desktop keeps it in preview context',
-  builderEditor.includes("isGeneratedDraft && 'hidden lg:block'"))
+  builderEditor.includes("hasGeneratedPreview && 'hidden lg:block'"))
+expect('generated drafts keep regeneration secondary to the contextual Publish decision',
+  builderEditor.includes('hasGeneratedPreview ? (') &&
+  builderEditor.includes('<details className="glass-card group overflow-hidden">') &&
+  builderEditor.includes('Want a different AI draft?') &&
+  builderEditor.includes('Regeneration · Pro') &&
+  builderEditor.includes('View regeneration options') &&
+  builderEditor.includes('group-open:rotate-180') &&
+  builderEditor.includes('focus-visible:ring-inset'))
 expect('the persistent Publish decision preserves a private draft until explicit action',
   builderEditor.includes('Your draft stays private until you choose Publish.') &&
   builderEditor.includes('Your draft stays private. Pro unlocks this live URL'))
+expect('Publish flushes the latest editor state and stops when persistence fails',
+  builderEditor.includes('const flushEditorSave = useCallback(async (): Promise<boolean>') &&
+  builderEditor.includes('const saved = await flushEditorSave()') &&
+  builderEditor.includes("toast.error('Save your latest changes before publishing.')") &&
+  builderEditor.includes("if (!saved) {\n          toast.error('Save your latest changes before publishing.')\n          return") &&
+  builderEditor.indexOf('const saved = await flushEditorSave()') <
+    builderEditor.indexOf("fetch('/api/portfolio/publish'") &&
+  builderEditor.includes('if (pendingSave) await pendingSave') &&
+  builderEditor.includes('saveInFlightRef.current = operation') &&
+  builderEditor.indexOf('saveInFlightRef.current = operation') <
+    builderEditor.indexOf('const succeeded = await operation') &&
+  builderEditor.includes('for (let attempt = 0; attempt < 3; attempt += 1)') &&
+  builderEditor.includes('if (!await save(false)) return false') &&
+  builderEditor.includes('if (editorSnapshotRef.current === lastSavedRef.current) return true') &&
+  builderEditor.includes('publishingRef.current = true') &&
+  builderEditor.includes("if (action === 'publish' && generatingRef.current)") &&
+  builderEditor.indexOf("const action = portfolio?.status === 'published' ? 'unpublish' : 'publish'") <
+    builderEditor.indexOf("if (action === 'publish' && generatingRef.current)") &&
+  builderEditor.includes('<fieldset disabled={publishing} aria-busy={publishing}') &&
+  builderEditor.includes("if (data.code === 'PRO_REQUIRED') {\n          // The publish eligibility request") &&
+  builderEditor.indexOf("if (data.code === 'PRO_REQUIRED') {") <
+    builderEditor.lastIndexOf('const saved = await flushEditorSave()') &&
+  builderEditor.lastIndexOf('const saved = await flushEditorSave()') <
+    builderEditor.indexOf('setPublishPaywallOpen(true)') &&
+  builderEditor.includes('body: JSON.stringify({ portfolioId, ...snapshot })'))
 expect('publish intent still goes through the authenticated publish route',
   builderEditor.includes("fetch('/api/portfolio/publish'"))
 expect('the editor never starts Checkout directly',
