@@ -248,6 +248,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
         throw new Error(genErr?.message ?? genErr ?? 'Generation failed')
       }
       updateContent(() => data)
+      setPortfolio(prev => prev ? { ...prev, ai_generated_at: new Date().toISOString() } : prev)
       setHasUsedFreeGeneration(true)
       recordGeneratedPreview()
       toast.success('Portfolio generated. Review your draft, then publish when it is ready.', {
@@ -350,6 +351,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const projects = content?.projects ?? []
   const proof = content?.proof ?? []
   const experience = content?.experience ?? []
+  const isGeneratedDraft = Boolean(portfolio?.ai_generated_at) && portfolio?.status !== 'published'
 
   // Portfolio quality checklist
   const qualityChecks = [
@@ -474,6 +476,31 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
             </TabsList>
 
             <TabsContent value="content">
+              {isGeneratedDraft && (
+                <div className="glass-card mb-6 border-brand-500/25 p-4 lg:hidden">
+                  <div className="flex flex-col gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Your generated portfolio is ready</p>
+                      <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-foreground/80">{hero?.headline || title}</p>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                        Your draft is private. Review the complete preview below, keep editing, or unlock its live link.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="gradient"
+                      size="sm"
+                      onClick={togglePublish}
+                      loading={publishing}
+                      className="w-full gap-1.5"
+                    >
+                      <Globe className="h-3.5 w-3.5" />
+                      {isPro ? 'Publish now' : 'See Pro publishing options'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid lg:grid-cols-2 gap-6">
                 {/* Editor column */}
                 <div className="space-y-5">
@@ -703,7 +730,10 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                 </div>
 
                 {hero?.headline && portfolio?.status !== 'published' && (
-                  <div className="glass-card border-brand-500/25 p-4">
+                  <div className={cn(
+                    'glass-card border-brand-500/25 p-4',
+                    isGeneratedDraft && 'hidden lg:block'
+                  )}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground">Ready to share this portfolio?</p>

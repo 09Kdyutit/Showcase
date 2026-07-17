@@ -50,12 +50,26 @@ expect('first generated portfolio no longer auto-opens a referral dialog',
   !builderEditor.includes('showcase_referral_prompted'))
 expect('generation completion offers an explicit Publish live action',
   builderEditor.includes("label: 'Publish live'") && builderEditor.includes('void togglePublish()'))
+expect('generation completion exposes the generated-draft handoff without requiring a reload',
+  builderEditor.includes("setPortfolio(prev => prev ? { ...prev, ai_generated_at: new Date().toISOString() } : prev)"))
 expect('a generated private preview keeps a persistent Publish decision in context',
   builderEditor.includes("hero?.headline && portfolio?.status !== 'published'") &&
   builderEditor.includes('Ready to share this portfolio?') &&
   builderEditor.includes('See Pro publishing options') &&
   builderEditor.includes("isPro ? 'Publish now' : 'See Pro publishing options'") &&
   builderEditor.includes('onClick={togglePublish}'))
+expect('mobile generated drafts show a stable value summary and Publish decision before the full editor',
+  builderEditor.includes("const isGeneratedDraft = Boolean(portfolio?.ai_generated_at) && portfolio?.status !== 'published'") &&
+  builderEditor.includes('{isGeneratedDraft && (') &&
+  builderEditor.includes('Your generated portfolio is ready') &&
+  builderEditor.includes('Review the complete preview below, keep editing, or unlock its live link.') &&
+  builderEditor.includes('mb-6 border-brand-500/25 p-4 lg:hidden') &&
+  builderEditor.indexOf('Your generated portfolio is ready') <
+    builderEditor.indexOf('{/* Editor column */}') &&
+  !builderEditor.includes("hero?.headline ? 'order-2 lg:order-1'") &&
+  !builderEditor.includes("hero?.headline ? 'order-1 lg:order-2'"))
+expect('generated mobile drafts avoid a duplicate lower Publish card while desktop keeps it in preview context',
+  builderEditor.includes("isGeneratedDraft && 'hidden lg:block'"))
 expect('the persistent Publish decision preserves a private draft until explicit action',
   builderEditor.includes('Your draft stays private until you choose Publish.') &&
   builderEditor.includes('Your draft stays private. Pro unlocks this live URL'))
