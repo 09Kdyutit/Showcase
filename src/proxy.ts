@@ -21,7 +21,7 @@ const LAUNCH_OPEN = process.env.LAUNCH_OPEN === 'true'
 // without this, a social crawler fetching /waitlist's og:image would get redirected
 // to /waitlist itself instead of the actual image.
 const WAITLIST_ALLOWED_PATHS = [
-  '/', '/pricing', '/for-career-services', '/beta/feedback',
+  '/', '/resume-to-portfolio', '/pricing', '/for-career-services', '/beta/feedback',
   '/waitlist', '/join', '/proofscore', '/privacy', '/terms', '/refund',
   '/opengraph-image', '/login', '/callback',
 ]
@@ -44,6 +44,10 @@ const WAITLIST_ALLOWED_API_PREFIXES = [
   '/api/marketing/track',
 ]
 const INVITE_TOKEN_PATTERN = /^[a-f0-9]{48}$/
+
+function matchesRoute(path: string, route: string): boolean {
+  return path === route || path.startsWith(`${route}/`)
+}
 
 function requestInviteToken(request: NextRequest): string | null {
   const direct = request.nextUrl.searchParams.get('invite')?.trim().toLowerCase()
@@ -115,7 +119,7 @@ export async function proxy(request: NextRequest) {
   // Without credentials, pass through all requests unauthenticated
   if (!supabaseUrl || !supabaseKey) {
     if (!LAUNCH_OPEN && !isLockdownBypass) return lockdownResponse(request)
-    const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
+    const isProtected = PROTECTED_ROUTES.some((r) => matchesRoute(path, r))
     if (isProtected) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
@@ -149,8 +153,8 @@ export async function proxy(request: NextRequest) {
     return lockdownResponse(request)
   }
 
-  const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
-  const isAuthRoute = AUTH_ROUTES.some((r) => path.startsWith(r))
+  const isProtected = PROTECTED_ROUTES.some((r) => matchesRoute(path, r))
+  const isAuthRoute = AUTH_ROUTES.some((r) => matchesRoute(path, r))
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()

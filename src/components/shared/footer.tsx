@@ -24,6 +24,7 @@ export function Footer() {
               {[
                 { href: '/pricing', label: 'Pricing' },
                 { href: '/#how-it-works', label: 'Product tour' },
+                { href: '/resume-to-portfolio', label: 'Resume to portfolio' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
                 { href: '/signup', label: 'Build my portfolio free' },

@@ -83,6 +83,7 @@ for (const path of [
   '/proof/',
   '/shared/',
 ]) assert.ok(proxy.includes(path), `lockdown allowance missing: ${path}`)
+assert.ok(proxy.includes("'/resume-to-portfolio'"), 'public resume-to-portfolio page must bypass closed-beta lockdown')
 assert.match(proxy, /WAITLIST_ALLOWED_PATH_PREFIXES\.some/,
   'closed beta must use prefix matching for published and token-authorized public routes')
 assert.ok(proxy.includes('showcase_admitted'), 'lockdown must recognize admitted accounts')

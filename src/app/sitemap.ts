@@ -3,6 +3,7 @@ import { configuredAppUrl } from '@/lib/app-url'
 
 const PUBLIC_ROUTES = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
+  { path: '/resume-to-portfolio', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/pricing', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/for-career-services', changeFrequency: 'monthly', priority: 0.8 },
 ] as const satisfies ReadonlyArray<{

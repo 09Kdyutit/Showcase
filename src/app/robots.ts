@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
+      allow: ['/', '/resume-to-portfolio'],
       disallow: [
         '/api/',
         '/audit',

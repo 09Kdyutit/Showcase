@@ -26,6 +26,7 @@ const googleButton = source('src/components/auth/google-button.tsx')
 const stickyMobileCta = source('src/components/landing/sticky-mobile-cta.tsx')
 const navbar = source('src/components/shared/navbar.tsx')
 const careerServices = source('src/app/for-career-services/page.tsx')
+const resumeToPortfolio = source('src/app/resume-to-portfolio/page.tsx')
 const sitemap = source('src/app/sitemap.ts')
 const robots = source('src/app/robots.ts')
 const pricingMetadata = source('src/app/pricing/layout.tsx')
@@ -117,7 +118,23 @@ expect('career-services visitors have an organizer-specific inquiry path alongsi
   careerServices.includes('ctaLabel="career_services_sprint_request_top"') &&
   careerServices.includes('ctaLabel="career_services_sprint_request_bottom"') &&
   careerServices.includes('ctaLabel="career_services_student_workspace_top"'))
+expect('high-intent resume-to-portfolio discovery has a claim-safe measured signup path',
+  resumeToPortfolio.includes("alternates: { canonical: '/resume-to-portfolio' }") &&
+  resumeToPortfolio.includes("twitter: {") &&
+  resumeToPortfolio.includes("card: 'summary_large_image'") &&
+  resumeToPortfolio.includes('Turn your resume into a portfolio you can actually make your own.') &&
+  resumeToPortfolio.includes('editable private portfolio draft') &&
+  resumeToPortfolio.includes('No credit card required') &&
+  resumeToPortfolio.includes('Your draft stays private') &&
+  (resumeToPortfolio.match(/href="\/signup"/g) ?? []).length === 3 &&
+  (resumeToPortfolio.match(/event="hero_primary_cta_clicked"/g) ?? []).length === 3 &&
+  resumeToPortfolio.includes('ctaLabel="resume_to_portfolio_hero"') &&
+  resumeToPortfolio.includes('ctaLabel="resume_to_portfolio_connected"') &&
+  resumeToPortfolio.includes('ctaLabel="resume_to_portfolio_final"') &&
+  resumeToPortfolio.includes('<ViewTracker event="landing_viewed"') &&
+  resumeToPortfolio.includes('metadata={{ route: \'/resume-to-portfolio\' }}'))
 expect('public discovery exposes only canonical acquisition pages',
+  sitemap.includes("path: '/resume-to-portfolio'") &&
   sitemap.includes("path: '/pricing'") &&
   sitemap.includes("path: '/for-career-services'") &&
   sitemap.includes('configuredAppUrl()') &&
@@ -126,6 +143,7 @@ expect('public discovery exposes only canonical acquisition pages',
   pricingMetadata.includes("url: '/pricing'"))
 expect('crawler guidance links the sitemap while excluding private, retired, and token routes',
   robots.includes('`${appUrl}/sitemap.xml`') &&
+  robots.includes("allow: ['/', '/resume-to-portfolio']") &&
   robots.includes("'/api/'") &&
   robots.includes("'/dashboard'") &&
   robots.includes("'/proof/'") &&

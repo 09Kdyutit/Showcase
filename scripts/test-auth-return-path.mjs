@@ -35,6 +35,20 @@ for (const unsafePath of [
 }
 
 const proxy = source('src/proxy.ts')
+assert.match(
+  proxy,
+  /function matchesRoute\(path: string, route: string\): boolean \{\s*return path === route \|\| path\.startsWith\(`\$\{route\}\/`\)\s*\}/,
+  'protected routes must use segment boundaries so public paths such as /resume-to-portfolio stay public',
+)
+assert.ok(
+  (proxy.match(/PROTECTED_ROUTES\.some\(\(r\) => matchesRoute\(path, r\)\)/g) ?? []).length >= 2,
+  'both unauthenticated proxy branches must apply segment-boundary protected-route checks',
+)
+assert.doesNotMatch(
+  proxy,
+  /PROTECTED_ROUTES\.some\(\(r\) => path\.startsWith\(r\)\)/,
+  'protected-route matching must not use a bare prefix check',
+)
 assert.match(proxy, /const requestedPath = safeNextPath\(`\$\{path\}\$\{request\.nextUrl\.search\}`\)/)
 assert.ok(
   (proxy.match(/url\.search = ''/g) ?? []).length >= 2,
