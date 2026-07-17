@@ -10,8 +10,6 @@ import { Logo } from '@/components/shared/logo'
 
 // Optional workspace tour. Onboarding exposes this from the résumé screen, so a
 // user can learn the product without making seven slides a prerequisite to value.
-// Completion remains stored locally for compatibility with existing browsers.
-export const TOUR_DONE_KEY = 'showcase_tour_done_v1'
 
 type Slide = {
   icon: LucideIcon
@@ -120,7 +118,6 @@ export function Walkthrough({ onDone }: { onDone: () => void }) {
   const Icon = slide.icon
 
   const finish = useCallback(() => {
-    try { window.localStorage.setItem(TOUR_DONE_KEY, '1') } catch { /* storage unavailable — tour will just show again */ }
     onDone()
   }, [onDone])
 

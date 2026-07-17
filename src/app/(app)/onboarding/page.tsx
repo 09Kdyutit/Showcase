@@ -18,6 +18,12 @@ import { Walkthrough } from '@/components/onboarding/walkthrough'
 import { generateSlug } from '@/lib/utils'
 import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
+import {
+  INVITE_STORAGE_KEY,
+  REFERRAL_STORAGE_KEY,
+  redeemPendingAdmission,
+  selectPendingAdmission,
+} from '@/lib/onboarding/admission-gate'
 import type { ParsedResume } from '@/types/database'
 
 // LinkedIn "in" glyph — lucide's Linkedin export isn't available in this version.
@@ -84,6 +90,10 @@ export default function OnboardingPage() {
   const generatingRef = useRef(false)
   const resumeHeadingRef = useRef<HTMLHeadingElement>(null)
   const restoreResumeFocusRef = useRef(false)
+  const [admissionPending, setAdmissionPending] = useState(true)
+  const [admissionError, setAdmissionError] = useState<string | null>(null)
+  const [admissionChecking, setAdmissionChecking] = useState(true)
+  const [admissionRetryKey, setAdmissionRetryKey] = useState(0)
 
   useEffect(() => {
     if (phase !== 'upload' || !restoreResumeFocusRef.current) return
@@ -91,78 +101,88 @@ export default function OnboardingPage() {
     resumeHeadingRef.current?.focus()
   }, [phase])
 
-  // Claim a pending completion referral. Keep it retryable on transient failure; on
-  // success refresh the JWT so proxy sees the admission metadata written by the DB RPC.
+  // Tokenized callbacks bypass the closed-beta proxy only long enough to redeem access.
+  // Keep every résumé mutation disabled until that grant is reflected in the refreshed
+  // JWT; otherwise a fast upload can create partial data and then fail at the next API.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.has('invite')) {
-      // Admission paths are mutually exclusive. Prefer the email-bound waitlist token and
-      // never spend a member's referral slot on the same account.
-      localStorage.removeItem('showcase_ref')
-      return
-    }
-    const fromUrl = params.get('ref')?.trim().toUpperCase()
-    const ref = fromUrl || localStorage.getItem('showcase_ref')
-    if (!ref) return
-    if (!/^[A-F0-9]{32}$/.test(ref)) {
-      localStorage.removeItem('showcase_ref')
-      router.replace('/waitlist')
-      return
-    }
-    void (async () => {
+    let cancelled = false
+
+    async function confirmAdmission() {
       try {
-        const response = await fetch('/api/referral/claim', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: ref }),
+        const pending = selectPendingAdmission(
+          window.location.search,
+          localStorage.getItem(INVITE_STORAGE_KEY),
+          localStorage.getItem(REFERRAL_STORAGE_KEY),
+        )
+        const attempt = await redeemPendingAdmission(pending, {
+          redeemInvite: async (token) => {
+            const response = await fetch('/api/waitlist/admission', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+            })
+            return { ok: response.ok, status: response.status }
+          },
+          claimReferral: async (code) => {
+            const response = await fetch('/api/referral/claim', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            })
+            const result = await response.json().catch(() => ({})) as { data?: { claimed?: boolean } }
+            return { ok: response.ok, status: response.status, claimed: result.data?.claimed === true }
+          },
         })
-        const result = await response.json().catch(() => ({})) as { data?: { claimed?: boolean } }
-        if (response.ok && result.data?.claimed === true) {
-          localStorage.removeItem('showcase_ref')
-          await createClient().auth.refreshSession()
-          router.replace('/onboarding')
-          router.refresh()
+        if (cancelled) return
+
+        if (attempt.kind === 'ready') {
+          setAdmissionChecking(false)
+          setAdmissionPending(false)
           return
         }
-        if (response.ok || response.status === 400 || response.status === 403 || response.status === 409) {
-          localStorage.removeItem('showcase_ref')
-          toast.error('This referral invite is no longer available. Join the waitlist for access.')
-          router.replace('/waitlist')
+        if (attempt.kind === 'retry') {
+          setAdmissionChecking(false)
+          setAdmissionError(attempt.message)
+          return
         }
-      } catch {
-        // Keep the code in local storage for a later retry.
-      }
-    })()
-  }, [router])
+        if (attempt.kind === 'rejected') {
+          localStorage.removeItem(attempt.storageKey)
+          if (attempt.storageKey === INVITE_STORAGE_KEY) localStorage.removeItem(REFERRAL_STORAGE_KEY)
+          toast.error(attempt.message)
+          router.replace('/waitlist')
+          return
+        }
 
-  // OAuth and email-confirmation callbacks cannot redeem admission until a real auth session
-  // exists. Carry the single-use token through the callback, redeem it here, then immediately
-  // remove it from both the URL and local storage. Transient failures keep the token retryable.
-  useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get('invite')?.trim().toLowerCase()
-    const token = fromUrl || localStorage.getItem('showcase_invite')
-    if (!token || !/^[a-f0-9]{48}$/.test(token)) return
+        const { data, error } = await createClient().auth.refreshSession()
+        if (cancelled) return
+        if (error || data.user?.app_metadata?.showcase_admitted !== true) {
+          setAdmissionChecking(false)
+          setAdmissionError('Access was confirmed, but this session could not refresh. No résumé was submitted. Try again.')
+          return
+        }
 
-    void fetch('/api/waitlist/admission', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    }).then(async (response) => {
-      if (response.ok) {
-        localStorage.removeItem('showcase_invite')
-        await createClient().auth.refreshSession()
+        // The App Router can preserve this client mount while removing the token query.
+        // Unlock from the authoritative refreshed session now; navigation below is URL
+        // hygiene and must not be responsible for resetting local gate state.
+        setAdmissionError(null)
+        setAdmissionChecking(false)
+        setAdmissionPending(false)
+        resumeHeadingRef.current?.focus()
+        localStorage.removeItem(attempt.storageKey)
+        if (attempt.storageKey === INVITE_STORAGE_KEY) localStorage.removeItem(REFERRAL_STORAGE_KEY)
         router.replace('/onboarding')
         router.refresh()
-        return
+      } catch {
+        if (!cancelled) {
+          setAdmissionChecking(false)
+          setAdmissionError('We could not confirm your access. No résumé was submitted. Try again.')
+        }
       }
-      if (response.status === 400 || response.status === 403) {
-        localStorage.removeItem('showcase_invite')
-        toast.error('This invite is expired, already used, or belongs to another email address.')
-      }
-    }).catch(() => {
-      // Keep the token for a later retry; admission must never be lost to a network blip.
-    })
-  }, [router])
+    }
+
+    void confirmAdmission()
+    return () => { cancelled = true }
+  }, [router, admissionRetryKey])
 
   const [parsed, setParsed] = useState<ParsedResume | null>(null)
 
@@ -372,24 +392,73 @@ export default function OnboardingPage() {
           </div>
 
           <div className="glass-card p-8 space-y-4">
-            <FileUploadZone onText={handleResumeText} />
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground/50">or paste text</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-            <Textarea
-              placeholder="Paste your resume text here..."
-              value={pasteText}
-              onChange={(e) => setPasteText(e.target.value)}
-              className="min-h-[140px] font-mono text-xs leading-relaxed"
-            />
-            {pasteText.trim().length >= 50 && (
-              <Button variant="gradient" size="md" className="w-full gap-2" onClick={() => handleResumeText(pasteText)}>
-                Continue
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+            {admissionPending && (
+              <div
+                role={admissionError ? 'alert' : 'status'}
+                className="rounded-xl border border-brand-500/25 bg-brand-500/5 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  {admissionError && !admissionChecking
+                    ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                    : <Sparkles className="mt-0.5 h-4 w-4 shrink-0 animate-pulse text-brand-300" />}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {admissionChecking ? 'Confirming your access…' : 'Access check needs another try'}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {admissionChecking
+                        ? 'Your résumé controls will unlock as soon as this session is confirmed.'
+                        : admissionError}
+                    </p>
+                    {admissionError && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          aria-disabled={admissionChecking}
+                          aria-busy={admissionChecking}
+                          onClick={() => {
+                            if (admissionChecking) return
+                            setAdmissionChecking(true)
+                            setAdmissionRetryKey((key) => key + 1)
+                          }}
+                        >
+                          {admissionChecking ? 'Checking access…' : 'Try access check again'}
+                        </Button>
+                        <Button asChild type="button" variant="ghost" size="sm">
+                          <a href="/waitlist">Return to waitlist</a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
+            <fieldset
+              disabled={admissionPending}
+              aria-busy={admissionPending}
+              className="space-y-4 transition-opacity disabled:opacity-55"
+            >
+              <FileUploadZone onText={handleResumeText} />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground/50">or paste text</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              <Textarea
+                placeholder="Paste your resume text here..."
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                className="min-h-[140px] font-mono text-xs leading-relaxed"
+              />
+              {pasteText.trim().length >= 50 && (
+                <Button variant="gradient" size="md" className="w-full gap-2" onClick={() => handleResumeText(pasteText)}>
+                  Continue
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </fieldset>
           </div>
 
           {/* Import from LinkedIn — no résumé file needed, just export the profile you already have */}
@@ -409,7 +478,11 @@ export default function OnboardingPage() {
             </div>
           </details>
 
-          <button onClick={skipResume} className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors">
+          <button
+            onClick={skipResume}
+            disabled={admissionPending}
+            className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+          >
             Skip - I&apos;ll set this up manually
           </button>
         </div>

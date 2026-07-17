@@ -73,7 +73,20 @@ expect('the workspace tour remains an explicit optional action',
   onboardingWalkthrough.includes('tourHeadingRef.current?.focus()') &&
   onboardingWalkthrough.includes('}, [i])') &&
   !onboardingWalkthrough.includes("e.key === 'ArrowRight' || e.key === 'Enter'") &&
+  !onboardingWalkthrough.includes('TOUR_DONE_KEY') &&
   onboardingWalkthrough.includes('Skip tour'))
+expect('resume mutations stay disabled until callback admission and JWT refresh are authoritative',
+  onboarding.includes('const [admissionPending, setAdmissionPending] = useState(true)') &&
+  onboarding.includes('disabled={admissionPending}') &&
+  onboarding.includes('aria-busy={admissionPending}') &&
+  !onboarding.includes('ADMISSION_REFRESH_PENDING_KEY') &&
+  onboarding.includes("data.user?.app_metadata?.showcase_admitted !== true") &&
+  onboarding.includes('navigation below is URL') &&
+  onboarding.match(/setAdmissionPending\(false\)/g)?.length === 2 &&
+  onboarding.includes('aria-disabled={admissionChecking}') &&
+  onboarding.includes('resumeHeadingRef.current?.focus()') &&
+  onboarding.includes('Try access check again') &&
+  onboarding.includes('No résumé was submitted.'))
 
 expect('dashboard reads the authoritative generation timestamp', dashboard.includes('ai_generated_at'))
 expect('dashboard links a generated user to the exact portfolio editor', dashboard.includes('`/builder/${latestGeneratedPortfolio.id}`'))
