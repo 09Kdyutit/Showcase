@@ -121,13 +121,21 @@ export default function StoryBankPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this story? This cannot be undone.')) return
-    const res = await fetch(`/api/interviews/story-bank/${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      toast.error('Could not delete story.')
-      return
-    }
-    toast.success('Story deleted.')
+    // Optimistic: the story leaves the list immediately; a failed delete restores it.
+    const previous = stories
     setStories((prev) => prev.filter((s) => s.id !== id))
+    try {
+      const res = await fetch(`/api/interviews/story-bank/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        setStories(previous)
+        toast.error('Could not delete story.')
+        return
+      }
+      toast.success('Story deleted.')
+    } catch {
+      setStories(previous)
+      toast.error('Could not delete story.')
+    }
   }
 
   const coveredCompetencies = new Set(stories.flatMap((s) => s.competencies))

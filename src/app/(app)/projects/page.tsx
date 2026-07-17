@@ -256,19 +256,38 @@ export default function ProjectSuggestionsPage() {
 
   async function toggleSave(p: ProjectSuggestion) {
     const existing = savedItems.find((s) => s.project.title === p.title)
+    // Optimistic in both directions; savingKey already blocks re-clicks while the
+    // request is in flight, so the temp row below can't be unsaved mid-request.
     setSavingKey(p.title)
     try {
       if (existing) {
-        const res = await fetch(`/api/projects/saved?id=${existing.id}`, { method: 'DELETE' })
-        if (res.ok) setSavedItems((prev) => prev.filter((s) => s.id !== existing.id))
-        else toast.error('Could not remove.')
+        setSavedItems((prev) => prev.filter((s) => s.id !== existing.id))
+        try {
+          const res = await fetch(`/api/projects/saved?id=${existing.id}`, { method: 'DELETE' })
+          if (!res.ok) throw new Error()
+        } catch {
+          setSavedItems((prev) => [existing, ...prev])
+          toast.error('Could not remove.')
+        }
       } else {
-        const res = await fetch('/api/projects/saved', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ project: p }),
-        })
-        const j = await res.json()
-        if (res.ok) { setSavedItems((prev) => [j.data, ...prev]); toast.success('Project saved') }
-        else toast.error(j.error ?? 'Could not save.')
+        const temp = { id: `temp-${Date.now()}`, project: p }
+        setSavedItems((prev) => [temp, ...prev])
+        try {
+          const res = await fetch('/api/projects/saved', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ project: p }),
+          })
+          const j = await res.json()
+          if (!res.ok) {
+            setSavedItems((prev) => prev.filter((s) => s.id !== temp.id))
+            toast.error(j.error ?? 'Could not save.')
+            return
+          }
+          setSavedItems((prev) => prev.map((s) => (s.id === temp.id ? j.data : s)))
+          toast.success('Project saved')
+        } catch {
+          setSavedItems((prev) => prev.filter((s) => s.id !== temp.id))
+          toast.error('Could not save.')
+        }
       }
     } finally { setSavingKey(null) }
   }

@@ -496,15 +496,17 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   async function markApplied() {
     if (!savedJobId || isApplied) return
     setApplying(true)
+    // Optimistic: the pipeline badge flips immediately; a failed PATCH flips it back.
+    setMarkedApplied(true)
     try {
       const res = await fetch('/api/jobs/save', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: savedJobId, status: 'applied' }),
       })
-      if (res.ok) { setMarkedApplied(true); toast.success('Marked as applied — we\'ll nudge you to follow up.') }
-      else toast.error('Could not update status.')
-    } catch { toast.error('Could not update status.') }
+      if (res.ok) { toast.success('Marked as applied — we\'ll nudge you to follow up.') }
+      else { setMarkedApplied(false); toast.error('Could not update status.') }
+    } catch { setMarkedApplied(false); toast.error('Could not update status.') }
     finally { setApplying(false) }
   }
   const [activeSection, setActiveSection] = useState<'summary' | 'experience' | 'truth' | 'interview'>('summary')
