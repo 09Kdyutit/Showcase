@@ -102,8 +102,19 @@ console.log('\n── Free tier hides Pro-only categories (null, not zero) ─�
   const result = computeProofScore(strongResume(), null, 'Software Engineer', 'Technology', false)
   const proOnly = result.categories.find((c) => c.key === 'quantified_impact')
   const freeTier = result.categories.find((c) => c.key === 'role_positioning')
+  const gated = result.categories.filter((c) => c.gated)
+  const visible = result.categories.filter((c) => !c.gated)
   assert(proOnly.score === null, 'Pro-only category is null on free tier (not a fake score)', `got ${proOnly.score}`)
   assert(freeTier.score !== null, 'Free-tier category still has a real score on free tier')
+  assert(visible.length === 4, 'Free tier exposes exactly 4 core categories', `got ${visible.length}`)
+  assert(gated.length === 7, 'Free tier gates exactly 7 Pro categories', `got ${gated.length}`)
+  assert(gated.every((category) => category.score === null), 'Every gated Free category has a null score')
+  const pro = computeProofScore(strongResume(), null, 'Software Engineer', 'Technology', true)
+  assert(pro.categories.every((category) => !category.gated), 'Pro exposes all 11 categories without gates')
+  assert(
+    pro.categories.find((category) => category.key === 'case_study_quality').score === null,
+    'Pro leaves a category null when the supplied materials cannot support a score',
+  )
 }
 
 console.log('\n── No resume, portfolio only: resume-dependent categories degrade to null, not a guess ──')

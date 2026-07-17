@@ -31,6 +31,7 @@ const sitemap = source('src/app/sitemap.ts')
 const robots = source('src/app/robots.ts')
 const pricingMetadata = source('src/app/pricing/layout.tsx')
 const genericPaywall = source('src/components/ui/paywall.tsx')
+const audit = source('src/app/(app)/audit/page.tsx')
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
 
@@ -132,11 +133,46 @@ expect('paywall states the explicit post-payment Publish step',
   publishPaywall.includes('return to this portfolio and choose Publish'))
 expect('Billing preserves publish intent in its visible decision copy',
   billing.includes("const fromPublish = searchParams.get('source') === 'publish'") &&
-  billing.includes("fromPublish ? 'Put your portfolio' : 'Invest in your'") &&
-  billing.includes("fromPublish ? 'Continue with Pro' : 'Upgrade to Pro'"))
+  billing.includes("title: 'Put your portfolio'") &&
+  billing.includes("titleAccent: 'live.'") &&
+  billing.includes('Unlock a live URL and preview card with Pro.') &&
+  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'"))
 expect('Billing repeats that Checkout does not auto-publish',
   billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
   billing.includes('return to your portfolio and choose Publish'))
+expect('a completed Free audit exposes one clear, priced route to the full 11-category result',
+  audit.includes('const visibleCategories = sortedCategories.filter((category) => !category.gated)') &&
+  audit.includes('const gatedCategories = sortedCategories.filter((category) => category.gated)') &&
+  audit.indexOf('{visibleCategories.map((cat, i) => (') < audit.indexOf('<FullAuditUpgradeCard gatedCategoryCount={gatedCategoryCount} />') &&
+  audit.includes('See all 11 audit categories.') &&
+  audit.includes('Free shows a score based on') &&
+  audit.includes('A Pro rerun evaluates the full 11-category Audit') &&
+  audit.includes('recalculates the score from every category supported by your saved materials, so it may change') &&
+  audit.includes('wherever the material supports one') &&
+  audit.includes('href="/billing?plan=monthly&source=audit"') &&
+  (audit.match(/\/billing\?plan=monthly&source=audit/g) ?? []).length === 1 &&
+  audit.includes('See Pro options · $15/mo') &&
+  audit.includes('Or $150/year (save $30) · cancel anytime') &&
+  audit.includes('gatedCategoryCount > 0') &&
+  audit.includes('rerun the Audit to evaluate this category against your saved materials') &&
+  !audit.includes("unlock this category&apos;s analysis and next fix") &&
+  audit.includes("gatedCategoryCount > 0 ? 'Core category breakdown' : 'Full category breakdown'") &&
+  audit.includes('flex flex-col items-start gap-1 sm:flex-row') &&
+  audit.includes('h-auto w-full gap-2 whitespace-normal') &&
+  !audit.includes('Founding') &&
+  !audit.includes("fetch('/api/stripe/create-checkout-session'"))
+expect('Billing preserves full-audit intent without changing the held Checkout implementation',
+  billing.includes("const fromAudit = searchParams.get('source') === 'audit'") &&
+  billing.includes("title: 'Unlock your full'") &&
+  billing.includes("titleAccent: 'Evidence Audit.'") &&
+  billing.includes('Free calculates your score from 4 core categories.') &&
+  billing.includes('Pro evaluates the full 11-category Audit') &&
+  billing.includes('recalculates from every category supported by your saved materials, so it may change') &&
+  billing.includes('where the material supports them') &&
+  billing.includes("fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'") &&
+  billing.includes('it does not rerun the audit you just viewed') &&
+  billing.includes('return to Evidence Audit and run it again to evaluate all 11 categories') &&
+  billing.includes('marked unavailable instead of being guessed'))
 expect('Billing keeps the approved two-step Checkout implementation unchanged',
   billing.includes("fetch('/api/stripe/create-checkout-session'") &&
   billing.includes("body: JSON.stringify({ plan, source: searchParams.get('source') ?? 'billing' })"))

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   BarChart3, AlertCircle, CheckCircle2, ArrowRight, Info, Copy, Check,
-  Search, Lightbulb, TrendingUp, Zap, Target, FileText, Share2,
+  Search, Lightbulb, TrendingUp, Zap, Target, FileText, Share2, Lock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -29,15 +29,15 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
 
   if (cat.gated) {
     return (
-      <div className="glass-card p-5 opacity-60">
+      <div className="glass-card border-brand-500/15 bg-brand-500/[0.02] p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
             <h3 className="font-semibold text-sm text-foreground">{cat.name}</h3>
           </div>
-          <Badge variant="outline" className="text-xs">Pro</Badge>
+          <Badge variant="pro" className="text-xs">Pro</Badge>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">Upgrade to Pro to score this category.</p>
+        <p className="text-xs text-muted-foreground mt-2">Available on Pro — rerun the Audit to evaluate this category against your saved materials.</p>
       </div>
     )
   }
@@ -225,6 +225,41 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
   )
 }
 
+function FullAuditUpgradeCard({ gatedCategoryCount }: { gatedCategoryCount: number }) {
+  return (
+    <section
+      aria-labelledby="audit-pro-heading"
+      aria-describedby="audit-pro-description"
+      className="relative overflow-hidden rounded-2xl border border-brand-500/25 bg-gradient-to-br from-brand-950/70 to-surface-100/50 p-4 shadow-glow-sm sm:p-6"
+    >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-500/20 bg-brand-500/10">
+            <Lock className="h-4 w-4 text-brand-400" aria-hidden="true" />
+          </div>
+          <div>
+            <Badge variant="pro" className="mb-2">Showcase Pro</Badge>
+            <h3 id="audit-pro-heading" className="text-base font-semibold text-foreground">See all 11 audit categories.</h3>
+            <p id="audit-pro-description" className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Free shows a score based on {11 - gatedCategoryCount} core categories. A Pro rerun evaluates the full 11-category Audit and recalculates the score from every category supported by your saved materials, so it may change. It adds analysis and a specific next fix wherever the material supports one, with up to 10 full audits per day.
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 sm:text-right">
+          <Button asChild variant="gradient" size="md" className="h-auto w-full gap-2 whitespace-normal px-3 py-2 text-center sm:w-auto">
+            <Link href="/billing?plan=monthly&source=audit">
+              See Pro options · $15/mo
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </Button>
+          <p className="mt-2 text-xs text-muted-foreground">Or $150/year (save $30) · cancel anytime</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const AUDIT_SCAN_STEPS = [
   { label: 'Parsing resume structure', detail: 'extracting experience, skills, and projects' },
   { label: 'Analyzing first impression', detail: 'evaluating opening clarity and role positioning' },
@@ -376,6 +411,9 @@ export default function AuditPage() {
 
   const criticalItems = result?.categories.filter((c) => c.severity === 'critical') ?? []
   const sortedCategories = result?.categories.slice().sort((a, b) => (a.score ?? 100) - (b.score ?? 100)) ?? []
+  const visibleCategories = sortedCategories.filter((category) => !category.gated)
+  const gatedCategories = sortedCategories.filter((category) => category.gated)
+  const gatedCategoryCount = gatedCategories.length
 
   return (
     <PageShell>
@@ -515,16 +553,34 @@ export default function AuditPage() {
           )}
 
           {/* Category breakdown */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-foreground">Full category breakdown</h3>
-              <span className="text-xs text-muted-foreground">{sortedCategories.length} categories scored</span>
+          <div className="space-y-4">
+            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                {gatedCategoryCount > 0 ? 'Core category breakdown' : 'Full category breakdown'}
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                {gatedCategoryCount > 0
+                  ? `${visibleCategories.length} core categories shown · ${gatedCategoryCount} more on Pro`
+                  : `${sortedCategories.length}-category breakdown`}
+              </span>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              {sortedCategories.map((cat, i) => (
+              {visibleCategories.map((cat, i) => (
                 <CategoryCard key={cat.name} cat={cat} index={i} />
               ))}
             </div>
+
+            {gatedCategoryCount > 0 && (
+              <FullAuditUpgradeCard gatedCategoryCount={gatedCategoryCount} />
+            )}
+
+            {gatedCategoryCount > 0 && (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {gatedCategories.map((cat, i) => (
+                  <CategoryCard key={cat.name} cat={cat} index={visibleCategories.length + i} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* What's strong */}

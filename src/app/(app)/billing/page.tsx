@@ -121,6 +121,25 @@ export default function BillingPage() {
 
   const isPro = sub?.status === 'active' || sub?.status === 'trialing'
   const fromPublish = searchParams.get('source') === 'publish'
+  const fromAudit = searchParams.get('source') === 'audit'
+  const fromUpgradeIntent = fromPublish || fromAudit
+  const billingHeader = fromPublish
+    ? {
+        title: 'Put your portfolio',
+        titleAccent: 'live.',
+        description: 'Unlock a live URL and preview card with Pro. Your draft stays private until you explicitly publish it after checkout.',
+      }
+    : fromAudit
+      ? {
+          title: 'Unlock your full',
+          titleAccent: 'Evidence Audit.',
+          description: 'Free calculates your score from 4 core categories. Pro evaluates the full 11-category Audit and recalculates from every category supported by your saved materials, so it may change. It adds analysis and fixes where the material supports them, with up to 10 full audits per day.',
+        }
+      : {
+          title: 'Invest in your',
+          titleAccent: 'career.',
+          description: 'Manage your subscription and payment details.',
+        }
 
   async function startCheckout(plan: CheckoutPlan = billingCycle) {
     setCheckoutLoading(true)
@@ -174,11 +193,9 @@ export default function BillingPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       <PageHeader
         eyebrow="Billing"
-        title={fromPublish ? 'Put your portfolio' : 'Invest in your'}
-        titleAccent={fromPublish ? 'live.' : 'career.'}
-        description={fromPublish
-          ? 'Unlock a live URL and preview card with Pro. Your draft stays private until you explicitly publish it after checkout.'
-          : 'Manage your subscription and payment details.'}
+        title={billingHeader.title}
+        titleAccent={billingHeader.titleAccent}
+        description={billingHeader.description}
       />
 
       {confirming && (
@@ -189,7 +206,7 @@ export default function BillingPage() {
       )}
 
       {/* Current plan */}
-      {(!fromPublish || isPro) && <Card className="bg-surface-100 border-border">
+      {(!fromUpgradeIntent || isPro) && <Card className="bg-surface-100 border-border">
         <CardHeader>
           <CardTitle className="text-sm flex items-center justify-between">
             Current plan
@@ -359,12 +376,17 @@ export default function BillingPage() {
               className="w-full sm:w-auto gap-2"
             >
               <Zap className="h-4 w-4" />
-              {fromPublish ? 'Continue with Pro' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
+              {fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : 'Upgrade to Pro'} - {billingCycle === 'annual' ? '$150/yr' : '$15/mo'}
               <ArrowRight className="h-4 w-4" />
             </Button>
             {fromPublish && (
               <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
                 Checkout upgrades your account; it does not publish your draft. After payment, return to your portfolio and choose Publish.
+              </p>
+            )}
+            {fromAudit && (
+              <p className="mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                Checkout upgrades your account; it does not rerun the audit you just viewed. After payment, return to Evidence Audit and run it again to evaluate all 11 categories. Categories without enough saved material are marked unavailable instead of being guessed.
               </p>
             )}
             <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground/60">
