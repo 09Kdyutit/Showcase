@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { Logo } from '@/components/shared/logo'
-import { Walkthrough, TOUR_DONE_KEY } from '@/components/onboarding/walkthrough'
+import { Walkthrough } from '@/components/onboarding/walkthrough'
 import { generateSlug } from '@/lib/utils'
 import { PORTFOLIO_GOALS } from '@/lib/constants'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
@@ -65,10 +65,9 @@ function guessIndustry(role: string): string {
   return 'Technology'
 }
 
-// 'boot' exists to dodge a hydration mismatch: the server can't know whether this
-// browser has already seen the tour, so both render a neutral shell for one frame
-// and the mount effect picks 'tour' or 'upload' from localStorage.
-type Phase = 'boot' | 'tour' | 'upload' | 'analyzing' | 'review' | 'generating'
+// Resume intake is the first value-producing action. The workspace tour remains
+// available on demand, but never blocks a newly confirmed user from starting.
+type Phase = 'tour' | 'upload' | 'analyzing' | 'review' | 'generating'
 
 const ANALYZE_MSGS = ['Reading your resume…', 'Finding your strongest achievements…', 'Structuring your experience…']
 const GENERATE_MSGS = [
@@ -78,18 +77,19 @@ const GENERATE_MSGS = [
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<Phase>('boot')
-
-  useEffect(() => {
-    let seen = false
-    try { seen = !!window.localStorage.getItem(TOUR_DONE_KEY) } catch { /* no storage → show the tour */ }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate one-frame mount decision; server can't read localStorage
-    setPhase(seen ? 'upload' : 'tour')
-  }, [])
+  const [phase, setPhase] = useState<Phase>('upload')
   const [pasteText, setPasteText] = useState('')
   const [busyMsg, setBusyMsg] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const generatingRef = useRef(false)
+  const resumeHeadingRef = useRef<HTMLHeadingElement>(null)
+  const restoreResumeFocusRef = useRef(false)
+
+  useEffect(() => {
+    if (phase !== 'upload' || !restoreResumeFocusRef.current) return
+    restoreResumeFocusRef.current = false
+    resumeHeadingRef.current?.focus()
+  }, [phase])
 
   // Claim a pending completion referral. Keep it retryable on transient failure; on
   // success refresh the JWT so proxy sees the admission metadata written by the DB RPC.
@@ -308,16 +308,7 @@ export default function OnboardingPage() {
     }
   }
 
-  // ── Boot: neutral shell for the single frame before localStorage decides ──
-  if (phase === 'boot') {
-    return (
-      <div className="relative min-h-screen bg-background overflow-hidden">
-        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[440px] aurora-mesh opacity-40" />
-      </div>
-    )
-  }
-
-  // ── First-run tour: explains every area of the workspace, then hands off to upload ──
+  // ── Optional tour: explains the workspace without delaying résumé intake ──
   if (phase === 'tour') {
     return <Walkthrough onDone={() => setPhase('upload')} />
   }
@@ -359,11 +350,25 @@ export default function OnboardingPage() {
               <Logo size="lg" />
             </div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'oklch(63% 0.20 255)' }}>Step 1 of 2 · Your résumé</p>
-            <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
+            <h1
+              ref={resumeHeadingRef}
+              tabIndex={-1}
+              className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05] focus:outline-none"
+            >
               Start with what you{' '}
               <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>already have.</em>
             </h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Drop in your résumé — we extract the role, skills, experience, projects and links, and turn them into structured evidence. No forms to fill out.</p>
+            <button
+              type="button"
+              onClick={() => {
+                restoreResumeFocusRef.current = true
+                setPhase('tour')
+              }}
+              className="mt-4 text-xs font-medium text-brand-300 transition-colors hover:text-brand-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              See how Showcase works · 1 minute
+            </button>
           </div>
 
           <div className="glass-card p-8 space-y-4">

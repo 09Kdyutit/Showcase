@@ -38,6 +38,8 @@ const rateLimit = source('src/lib/ai/rate-limit.ts')
 const useUserHook = source('src/hooks/use-user.ts')
 const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
+const onboarding = source('src/app/(app)/onboarding/page.tsx')
+const onboardingWalkthrough = source('src/components/onboarding/walkthrough.tsx')
 const googleButton = source('src/components/auth/google-button.tsx')
 const stickyMobileCta = source('src/components/landing/sticky-mobile-cta.tsx')
 const navbar = source('src/components/shared/navbar.tsx')
@@ -56,6 +58,22 @@ const publishHandlerStart = builderEditor.indexOf('async function togglePublish(
 const publishHandler = builderEditor.slice(publishHandlerStart, exportHandlerStart)
 
 console.log('Checking the generated-portfolio → Publish/Pro handoff...\n')
+
+expect('newly confirmed users reach résumé intake before any product tour',
+  onboarding.includes("useState<Phase>('upload')") &&
+  !onboarding.includes("useState<Phase>('boot')") &&
+  !onboarding.includes("setPhase(seen ? 'upload' : 'tour')") &&
+  onboarding.indexOf("if (phase === 'upload')") > -1 &&
+  onboarding.includes('<FileUploadZone onText={handleResumeText} />'))
+expect('the workspace tour remains an explicit optional action',
+  onboarding.includes('See how Showcase works · 1 minute') &&
+  onboarding.includes('restoreResumeFocusRef.current = true') &&
+  onboarding.includes('resumeHeadingRef.current?.focus()') &&
+  onboardingWalkthrough.includes("export function Walkthrough({ onDone }") &&
+  onboardingWalkthrough.includes('tourHeadingRef.current?.focus()') &&
+  onboardingWalkthrough.includes('}, [i])') &&
+  !onboardingWalkthrough.includes("e.key === 'ArrowRight' || e.key === 'Enter'") &&
+  onboardingWalkthrough.includes('Skip tour'))
 
 expect('dashboard reads the authoritative generation timestamp', dashboard.includes('ai_generated_at'))
 expect('dashboard links a generated user to the exact portfolio editor', dashboard.includes('`/builder/${latestGeneratedPortfolio.id}`'))

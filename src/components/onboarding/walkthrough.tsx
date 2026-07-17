@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, FileText, LayoutTemplate, Gauge, Send,
   MessagesSquare, Compass, Globe2, Sparkles, CheckCircle2, Lock, type LucideIcon,
@@ -8,9 +8,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/shared/logo'
 
-// First-run tour: shown once before résumé intake so a brand-new user knows what
-// the workspace contains before we ask them for anything. Dismissal is stored in
-// localStorage (no schema change); returning users skip straight to upload.
+// Optional workspace tour. Onboarding exposes this from the résumé screen, so a
+// user can learn the product without making seven slides a prerequisite to value.
+// Completion remains stored locally for compatibility with existing browsers.
 export const TOUR_DONE_KEY = 'showcase_tour_done_v1'
 
 type Slide = {
@@ -114,6 +114,7 @@ const SLIDES: Slide[] = [
 
 export function Walkthrough({ onDone }: { onDone: () => void }) {
   const [i, setI] = useState(0)
+  const tourHeadingRef = useRef<HTMLHeadingElement>(null)
   const last = SLIDES.length - 1
   const slide = SLIDES[i]
   const Icon = slide.icon
@@ -131,8 +132,14 @@ export function Walkthrough({ onDone }: { onDone: () => void }) {
   const back = useCallback(() => setI((v) => Math.max(v - 1, 0)), [])
 
   useEffect(() => {
+    tourHeadingRef.current?.focus()
+  }, [i])
+
+  useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight' || e.key === 'Enter') next()
+      // Native buttons already advance on Enter. Handling Enter globally as well
+      // would fire both key and click paths and skip a slide.
+      if (e.key === 'ArrowRight') next()
       if (e.key === 'ArrowLeft') back()
     }
     window.addEventListener('keydown', onKey)
@@ -185,7 +192,11 @@ export function Walkthrough({ onDone }: { onDone: () => void }) {
           <p className="text-xs font-semibold uppercase tracking-widest mb-2.5" style={{ color: slide.tone }}>
             {slide.area}
           </p>
-          <h1 className="text-display text-2xl sm:text-3xl font-semibold text-foreground mb-3 leading-[1.1]">
+          <h1
+            ref={tourHeadingRef}
+            tabIndex={-1}
+            className="text-display text-2xl sm:text-3xl font-semibold text-foreground mb-3 leading-[1.1] focus:outline-none"
+          >
             {slide.title}
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed mb-6">{slide.desc}</p>
