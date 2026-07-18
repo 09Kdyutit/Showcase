@@ -294,7 +294,7 @@ export function FeatureBento() {
         <CellHeader
           icon={BarChart3}
           title="Evidence Audit"
-          desc="Get a 0–100 score and core feedback. Pro unlocks the full 11-category breakdown and higher daily limits."
+          desc="Get a complete 0–100 review across 11 dimensions with specific fixes once every 24 hours on Free. Pro raises the limit to 10 every 24 hours."
         />
         <VizEvidenceAudit />
       </Cell>

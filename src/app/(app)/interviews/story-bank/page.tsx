@@ -121,13 +121,21 @@ export default function StoryBankPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this story? This cannot be undone.')) return
-    const res = await fetch(`/api/interviews/story-bank/${id}`, { method: 'DELETE' })
-    if (!res.ok) {
-      toast.error('Could not delete story.')
-      return
-    }
-    toast.success('Story deleted.')
+    // Optimistic: the story leaves the list immediately; a failed delete restores it.
+    const previous = stories
     setStories((prev) => prev.filter((s) => s.id !== id))
+    try {
+      const res = await fetch(`/api/interviews/story-bank/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        setStories(previous)
+        toast.error('Could not delete story.')
+        return
+      }
+      toast.success('Story deleted.')
+    } catch {
+      setStories(previous)
+      toast.error('Could not delete story.')
+    }
   }
 
   const coveredCompetencies = new Set(stories.flatMap((s) => s.competencies))
@@ -217,7 +225,7 @@ export default function StoryBankPage() {
 
       <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-        <p>Stories are private to you. Showcase never invents facts to complete a story - only what you write here, or evidence you&apos;ve verified from your resume or portfolio, is ever used.</p>
+        <p>Stories are private to you. Showcase uses what you write here and evidence from your resume or portfolio as context; review and correct every AI suggestion before using it.</p>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -24,25 +24,52 @@ export interface CategoryDefinition {
   key: ProofScoreCategoryKey
   name: string
   weight: number
-  freeTier: boolean
 }
 
 // Weights sum to 100. proof_strength-equivalent categories (evidence_strength,
 // quantified_impact) and target_role_alignment count roughly double the others,
 // matching the existing product framing that those are the highest-leverage levers.
-export const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
-  { key: 'role_positioning', name: 'Role positioning', weight: 8, freeTier: true },
-  { key: 'first_impression', name: 'First-impression clarity', weight: 8, freeTier: true },
-  { key: 'target_role_alignment', name: 'Target-role alignment', weight: 14, freeTier: true },
-  { key: 'evidence_strength', name: 'Evidence strength', weight: 14, freeTier: true },
-  { key: 'quantified_impact', name: 'Quantified impact', weight: 12, freeTier: false },
-  { key: 'project_depth', name: 'Project depth', weight: 10, freeTier: false },
-  { key: 'case_study_quality', name: 'Case-study quality', weight: 8, freeTier: false },
-  { key: 'credibility_signals', name: 'Credibility signals', weight: 7, freeTier: false },
-  { key: 'contact_readiness', name: 'Contact readiness', weight: 5, freeTier: false },
-  { key: 'keyword_support', name: 'Keyword support', weight: 8, freeTier: false },
-  { key: 'presentation_clarity', name: 'Presentation clarity', weight: 6, freeTier: false },
-]
+export const CATEGORY_DEFINITIONS: readonly CategoryDefinition[] = Object.freeze([
+  { key: 'role_positioning', name: 'Role positioning', weight: 8 },
+  { key: 'first_impression', name: 'First-impression clarity', weight: 8 },
+  { key: 'target_role_alignment', name: 'Target-role alignment', weight: 14 },
+  { key: 'evidence_strength', name: 'Evidence strength', weight: 14 },
+  { key: 'quantified_impact', name: 'Quantified impact', weight: 12 },
+  { key: 'project_depth', name: 'Project depth', weight: 10 },
+  { key: 'case_study_quality', name: 'Case-study quality', weight: 8 },
+  { key: 'credibility_signals', name: 'Credibility signals', weight: 7 },
+  { key: 'contact_readiness', name: 'Contact readiness', weight: 5 },
+  { key: 'keyword_support', name: 'Keyword support', weight: 8 },
+  { key: 'presentation_clarity', name: 'Presentation clarity', weight: 6 },
+])
+
+export const PROOF_SCORE_DIMENSION_COUNT = 11
+
+// Free and Pro receive the same complete diagnostic. The product boundary is
+// frequency (one successful audit per 24 hours on Free, ten on Pro), never a
+// different score, a hidden dimension, or a weaker recommendation.
+export const FALLBACK_FIXES: Readonly<Record<ProofScoreCategoryKey, string>> = Object.freeze({
+  role_positioning: 'Rewrite your headline so it names the target role and one documented specialty from your resume.',
+  first_impression: 'Add a two-to-three sentence summary that states your target role, strongest documented skill, and one supported result.',
+  target_role_alignment: 'Add the target-role terms that truthfully match your experience to the relevant resume bullets or skills section.',
+  evidence_strength: 'Replace one vague bullet with what you did, how you did it, and the supported outcome without adding facts you cannot verify.',
+  quantified_impact: 'Review one achievement and add a truthful number you already know, such as scope, time, volume, users, or change; keep it qualitative if no number exists.',
+  project_depth: 'Expand one real project with the problem, your specific contribution, the steps you took, and the outcome you can support.',
+  case_study_quality: 'In your private portfolio, complete the Problem, Process, Outcome, and proof or link fields for one real project.',
+  credibility_signals: 'Add one missing, verifiable signal you already own, such as education, a certification, GitHub, LinkedIn, or a project link.',
+  contact_readiness: 'Add a current contact email and at least one professional link you control.',
+  keyword_support: 'Compare the target-role wording with your resume and add only the matching skills or tools you actually used.',
+  presentation_clarity: 'Add missing dates and keep each role to one-to-eight concise bullets ordered by relevance.',
+})
+
+const categoryKeys = CATEGORY_DEFINITIONS.map((definition) => definition.key)
+if (
+  CATEGORY_DEFINITIONS.length !== PROOF_SCORE_DIMENSION_COUNT
+  || new Set(categoryKeys).size !== PROOF_SCORE_DIMENSION_COUNT
+  || CATEGORY_DEFINITIONS.reduce((sum, definition) => sum + definition.weight, 0) !== 100
+) {
+  throw new Error('Evidence Audit must define exactly 11 unique dimensions with weights totaling 100')
+}
 
 export interface CategoryScore {
   key: ProofScoreCategoryKey
@@ -52,12 +79,43 @@ export interface CategoryScore {
   weight: number
   evidence: string[]
   severity: 'critical' | 'major' | 'minor'
-  gated: boolean  // true only when locked behind Pro tier, never when score is null due to missing data
+  gated: false
 }
 
 export interface ProofScoreResult {
   overall_score: number
   categories: CategoryScore[]
+}
+
+export interface AuditCategoryExplanation {
+  key: string
+  explanation: string
+  issues: string[]
+  fix: string
+  example: string
+}
+
+export interface AuditExplanation {
+  summary: string
+  categories: AuditCategoryExplanation[]
+  missing_evidence: string[]
+  top_priorities: string[]
+}
+
+export interface MergedAuditCategory extends CategoryScore {
+  explanation: string
+  issues: string[]
+  fix: string
+  example: string
+  priority: number
+}
+
+export interface MergedAuditResult {
+  overall_score: number
+  summary: string
+  categories: MergedAuditCategory[]
+  missing_evidence: string[]
+  top_priorities: string[]
 }
 
 const STOPWORDS = new Set([
@@ -226,7 +284,7 @@ function scoreCaseStudyQuality(portfolio: PortfolioContentOutput | null): ScoreI
   const evidence: string[] = []
   const projects = portfolio?.projects ?? []
   if (projects.length === 0) {
-    evidence.push('No portfolio case studies found - publish a portfolio to unlock this category.')
+    evidence.push('No portfolio case studies found. A private draft is enough; publishing is not required for this dimension.')
     return { key: 'case_study_quality', score: null, evidence }
   }
   let totalPoints = 0
@@ -246,7 +304,12 @@ function scoreCredibilitySignals(parsed: ParsedResumeOutput | null, portfolio: P
   const evidence: string[] = []
   const certs = parsed?.certifications.length ?? 0
   const education = parsed?.education.length ?? 0
-  const links = parsed?.links ?? portfolio?.contact ?? {}
+  const links = {
+    linkedin: parsed?.links?.linkedin?.trim() || portfolio?.contact?.linkedin?.trim() || null,
+    github: parsed?.links?.github?.trim() || portfolio?.contact?.github?.trim() || null,
+    website: parsed?.links?.website?.trim() || portfolio?.contact?.website?.trim() || null,
+    portfolio: parsed?.links?.portfolio?.trim() || null,
+  }
   const linkCount = Object.values(links).filter(Boolean).length
   const points = (certs > 0 ? 1 : 0) + (education > 0 ? 1 : 0) + (linkCount > 0 ? 2 : 0)
   const score = clamp((points / 4) * 100)
@@ -256,8 +319,13 @@ function scoreCredibilitySignals(parsed: ParsedResumeOutput | null, portfolio: P
 
 function scoreContactReadiness(parsed: ParsedResumeOutput | null, portfolio: PortfolioContentOutput | null): ScoreInput {
   const evidence: string[] = []
-  const email = parsed?.email ?? portfolio?.contact?.email
-  const links = parsed?.links ?? portfolio?.contact ?? {}
+  const email = parsed?.email?.trim() || portfolio?.contact?.email?.trim() || null
+  const links = {
+    linkedin: parsed?.links?.linkedin?.trim() || portfolio?.contact?.linkedin?.trim() || null,
+    github: parsed?.links?.github?.trim() || portfolio?.contact?.github?.trim() || null,
+    website: parsed?.links?.website?.trim() || portfolio?.contact?.website?.trim() || null,
+    portfolio: parsed?.links?.portfolio?.trim() || null,
+  }
   const hasLink = Object.values(links).some(Boolean)
   const points = (email ? 2 : 0) + (hasLink ? 2 : 0)
   const score = clamp((points / 4) * 100)
@@ -305,7 +373,6 @@ export function computeProofScore(
   portfolio: PortfolioContentOutput | null,
   targetRole: string,
   industry: string,
-  isPro: boolean
 ): ProofScoreResult {
   const raw: ScoreInput[] = [
     scoreRolePositioning(parsed, portfolio, targetRole),
@@ -323,19 +390,17 @@ export function computeProofScore(
 
   const byKey = new Map(raw.map((r) => [r.key, r]))
   const categories: CategoryScore[] = CATEGORY_DEFINITIONS.map((def) => {
-    const computed = byKey.get(def.key)!
-    const visible = isPro || def.freeTier
-    const score = visible ? computed.score : null
-    const gated = !visible
+    const computed = byKey.get(def.key)
+    if (!computed) throw new Error(`Missing deterministic Evidence Audit dimension: ${def.key}`)
     return {
       key: def.key,
       name: def.name,
-      score,
+      score: computed.score,
       maxScore: 100 as const,
       weight: def.weight,
-      evidence: visible ? computed.evidence : ['Available on Pro - upgrade to see this category.'],
-      severity: severityFor(score),
-      gated,
+      evidence: computed.evidence,
+      severity: severityFor(computed.score),
+      gated: false,
     }
   })
 
@@ -345,4 +410,59 @@ export function computeProofScore(
     totalWeight === 0 ? 0 : Math.round(scored.reduce((sum, c) => sum + c.score! * c.weight, 0) / totalWeight)
 
   return { overall_score, categories }
+}
+
+/**
+ * Attach grounded AI explanations to the authoritative deterministic result.
+ * The fixed deterministic list drives the output, so duplicate, missing, or
+ * unknown AI category keys can never add, remove, or gate a dimension.
+ */
+export function mergeAuditExplanation(
+  deterministic: ProofScoreResult,
+  explanation: AuditExplanation,
+): MergedAuditResult {
+  const explanationByKey = new Map<string, AuditCategoryExplanation>()
+  for (const category of explanation.categories) {
+    if (!explanationByKey.has(category.key)) explanationByKey.set(category.key, category)
+  }
+
+  const rankedKeys = deterministic.categories
+    .filter((category) => category.score !== null)
+    .slice()
+    .sort((a, b) => (
+      b.weight * (100 - (b.score ?? 100)) - a.weight * (100 - (a.score ?? 100))
+    ))
+    .map((category) => category.key)
+
+  const categories: MergedAuditCategory[] = deterministic.categories.map((category) => {
+    const ai = explanationByKey.get(category.key)
+    const aiFix = ai?.fix.trim() ?? ''
+    const aiExplanation = ai?.explanation.trim() ?? ''
+    return {
+      ...category,
+      explanation: aiExplanation || category.evidence.join(' ') || 'No evidence was available for this dimension.',
+      issues: ai?.issues ?? [],
+      fix: aiFix || FALLBACK_FIXES[category.key],
+      example: ai?.example ?? '',
+      priority: category.score === null ? 0 : rankedKeys.indexOf(category.key) + 1,
+      gated: false,
+    }
+  })
+
+  const suppliedPriorities = explanation.top_priorities
+    .map((priority) => priority.trim())
+    .filter(Boolean)
+  const fallbackPriorities = categories
+    .filter((category) => category.priority > 0)
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, 3)
+    .map((category) => category.fix)
+
+  return {
+    overall_score: deterministic.overall_score,
+    summary: explanation.summary.trim() || 'Review the 11 dimensions below for the strongest evidence and the next concrete fixes.',
+    categories,
+    missing_evidence: explanation.missing_evidence,
+    top_priorities: suppliedPriorities.length > 0 ? suppliedPriorities : fallbackPriorities,
+  }
 }

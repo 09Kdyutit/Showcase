@@ -10,6 +10,7 @@ import { ProofScoreTrajectory } from '@/components/dashboard/proofscore-trajecto
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { scoreLabel } from '@/lib/utils'
+import { resumeIntakePath } from '@/lib/constants'
 import type { Profile, Subscription, Portfolio, Audit, Resume } from '@/types/database'
 
 export default async function DashboardPage() {
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
     supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle(),
     supabase.from('portfolios').select('id, title, slug, status, proof_score, updated_at, target_role, ai_generated_at').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(3),
     supabase.from('audits').select('overall_score, category_scores, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(12),
-    supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+    supabase.from('resumes').select('id, title, created_at').eq('user_id', user.id).not('parsed_json', 'is', null).order('created_at', { ascending: false }).limit(1),
   ])
 
   const profile = profileRes.data as Profile | null
@@ -48,7 +49,7 @@ export default async function DashboardPage() {
   }
 
   const nextAction = !latestResume
-    ? { href: '/resume', label: 'Upload your résumé', icon: FileText, desc: 'Start with the document you already have.' }
+    ? { href: resumeIntakePath('/dashboard'), label: 'Upload your résumé', icon: FileText, desc: 'Start with the document you already have.' }
     : !hasGeneratedPortfolio
     ? { href: '/builder', label: 'Create your portfolio', icon: Plus, desc: 'Build your first portfolio from your resume.' }
     : latestGeneratedPortfolio?.status !== 'published'
@@ -62,7 +63,7 @@ export default async function DashboardPage() {
     : []
 
   const setupSteps = [
-    { label: 'Upload your resume', done: !!latestResume, href: '/resume', cta: 'Add your résumé — everything starts here.' },
+    { label: 'Upload your resume', done: !!latestResume, href: resumeIntakePath('/dashboard'), cta: 'Add your résumé — everything starts here.' },
     { label: 'Build your portfolio', done: hasGeneratedPortfolio, href: '/builder', cta: 'Turn your résumé into an editable private draft.' },
     { label: 'Review and publish your portfolio', done: portfolios.some((p) => p.status === 'published'), href: latestPortfolioHref, cta: 'Review your draft, then publish a live shareable link with Pro.' },
     { label: 'Run your Evidence Audit', done: !!latestAudit, href: '/audit', cta: 'See the strongest parts and the next fixes to make.' },
@@ -268,7 +269,7 @@ export default async function DashboardPage() {
                 <>
                   <p className="text-2xl font-bold stat-number text-muted-foreground/20">0</p>
                   <Button asChild variant="link" size="sm" className="px-0 mt-1 h-auto text-xs" style={{ color: 'oklch(63% 0.20 255)' }}>
-                    <Link href="/resume">Upload one →</Link>
+                    <Link href={resumeIntakePath('/dashboard')}>Upload one →</Link>
                   </Button>
                 </>
               )}

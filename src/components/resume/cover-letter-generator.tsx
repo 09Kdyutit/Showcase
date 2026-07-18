@@ -197,7 +197,7 @@ export function CoverLetterGenerator() {
         <Button onClick={generate} loading={loading} variant="gradient" className="w-full gap-2">
           {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Writing…</> : <><Sparkles className="h-4 w-4" /> {isLetter ? 'Generate cover letter' : 'Write message'}</>}
         </Button>
-        <p className="text-xs text-muted-foreground/60 text-center">Grounded strictly in your real resume — no invented experience.</p>
+        <p className="text-xs text-muted-foreground/60 text-center">Starts from your resume; review and edit the draft for unsupported wording before using it.</p>
       </div>
 
       {/* Output */}

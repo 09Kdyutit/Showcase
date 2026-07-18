@@ -48,8 +48,17 @@ export function SavedSearches<T>({
   }
 
   async function remove(id: string) {
+    // Optimistic removal — but a swallowed failure would leave the search alive
+    // server-side and resurrected on refresh, so roll back visibly instead.
+    const previous = searches
     setSearches((s) => s.filter((x) => x.id !== id))
-    await fetch(`/api/jobs/saved-searches?id=${id}`, { method: 'DELETE' }).catch(() => {})
+    try {
+      const res = await fetch(`/api/jobs/saved-searches?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+    } catch {
+      setSearches(previous)
+      toast.error('Could not remove saved search')
+    }
   }
 
   if (searches.length === 0 && !hasActiveFilters) return null

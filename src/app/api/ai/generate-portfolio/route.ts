@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { runPromptWithQuota } from '@/lib/ai/client'
+import { runPromptWithFeatureUsageLease } from '@/lib/ai/client'
 import { portfolioGenerationPrompt } from '@/lib/ai/prompts/registry'
 import { isProUser, rateLimitResponse } from '@/lib/ai/rate-limit'
 import { trackAsync } from '@/lib/analytics/track'
@@ -11,6 +11,11 @@ import { sanitizePortfolioCopy } from '@/lib/portfolio/sanitize-copy'
 import { isGeminiReviewEnabled, callGeminiReviewer } from '@/lib/ai/gemini'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
 import { recordTrustedEventSafe } from '@/lib/growth/trusted-events'
+import {
+  aiFeatureUsageLeaseDenialResponse,
+  commitPortfolioGenerationLease,
+  releaseAiFeatureUsageLease,
+} from '@/lib/ai/feature-usage-leases'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -27,11 +32,17 @@ const schema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let service: Awaited<ReturnType<typeof createServiceClient>> | null = null
+  let leaseUserId: string | null = null
+  let leaseId: string | null = null
+  let leaseFinalized = false
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const service = await createServiceClient()
+    service = await createServiceClient()
+    leaseUserId = user.id
 
     // Free includes the FIRST portfolio generation - it's the product's core aha moment
     // (onboarding promises "one click builds your full portfolio from this", and an empty
@@ -39,38 +50,6 @@ export async function POST(request: NextRequest) {
     // generation after the first (regeneration, or a second portfolio) requires Pro.
     // Server-decided: the client never controls this.
     const isPro = await isProUser(user.id)
-    if (!isPro) {
-      // Check both the live portfolio marker and the durable generation ledger. A user may
-      // delete a portfolio, but deleting it must not mint a fresh "first" generation.
-      // Generation rows have no portfolio FK and clients have no DELETE grant.
-      const [portfolioHistory, generationHistory] = await Promise.all([
-        service
-          .from('portfolios')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .not('ai_generated_at', 'is', null),
-        service
-          .from('generations')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('type', 'portfolio_generation')
-          .eq('status', 'completed'),
-      ])
-      const entitlementError = portfolioHistory.error ?? generationHistory.error
-      if (entitlementError) {
-        console.error('[generate-portfolio] free entitlement check unavailable:', entitlementError.message)
-        return NextResponse.json(
-          { error: 'Portfolio generation eligibility could not be verified. Please try again shortly.', code: 'ENTITLEMENT_UNAVAILABLE' },
-          { status: 503 },
-        )
-      }
-      if ((portfolioHistory.count ?? 0) > 0 || (generationHistory.count ?? 0) > 0) {
-        return NextResponse.json(
-          { error: 'Your free plan includes one AI portfolio generation. Upgrade to Pro to regenerate or build more portfolios.', code: 'PRO_REQUIRED' },
-          { status: 403 }
-        )
-      }
-    }
 
     const body = await request.json()
     const parsed = schema.safeParse(body)
@@ -82,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const { data: portfolio } = await supabase
       .from('portfolios')
-      .select('id, content, ai_generated_at, updated_at')
+      .select('id, content, target_role, ai_generated_at, updated_at')
       .eq('id', portfolioId)
       .eq('user_id', user.id)
       .single()
@@ -105,37 +84,66 @@ export async function POST(request: NextRequest) {
 
     trackAsync(user.id, 'portfolio_generation_started', { portfolio_id: portfolioId })
 
-    const prompt = await runPromptWithQuota(portfolioGenerationPrompt, {
+    const prompt = await runPromptWithFeatureUsageLease(portfolioGenerationPrompt, {
       parsedResume: parsedResume as unknown as ParsedResume,
       targetRole,
       industry,
       portfolioGoal,
       links,
     }, {
+      service,
       userId: user.id,
       eventName: 'portfolio_generated',
-      // Free uses its atomic one-call quota as an in-flight mutex. Combined with the
-      // durable completed-generation history above, parallel requests and portfolio
-      // deletion cannot multiply the first generation. Pro keeps its ten-per-day limit.
-      isPro,
+      portfolioId,
+      expectedPortfolioContent: portfolio.content as unknown as Record<string, unknown> | null,
+      expectedPortfolioTargetRole: portfolio.target_role,
+      isProForAttemptThrottle: isPro,
     })
-    if (!prompt.allowed) return rateLimitResponse(prompt.rateLimit)
+    if (!prompt.allowed) {
+      return prompt.denial.kind === 'attempt_throttle'
+        ? rateLimitResponse(prompt.denial.rateLimit)
+        : aiFeatureUsageLeaseDenialResponse(prompt.denial.lease)
+    }
+    leaseId = prompt.leaseId
     const { data: rawResult, meta } = prompt
     await recordPromptCost({ userId: user.id, meta })
     const result = sanitizePortfolioCopy(rawResult)
 
-    const generatedAt = new Date().toISOString()
-    const { error: portfolioUpdateError } = await service
-      .from('portfolios')
-      .update({
-        content: result as unknown as Record<string, unknown>,
-        target_role: targetRole,
-        ai_generated_at: generatedAt,
-        updated_at: generatedAt,
-      })
-      .eq('id', portfolioId)
-      .eq('user_id', user.id)
-    if (portfolioUpdateError) throw portfolioUpdateError
+    const commit = await commitPortfolioGenerationLease(service, {
+      leaseId,
+      userId: user.id,
+      portfolioId,
+      content: result as unknown as Record<string, unknown>,
+      targetRole,
+      modelUsed: meta.model,
+      promptId: meta.promptId,
+      promptVersion: meta.promptVersion,
+      provider: meta.provider,
+    })
+    leaseFinalized = commit.lease_committed
+    if (!commit.lease_committed) {
+      throw new Error(`Portfolio generation could not be committed (${commit.outcome}).`)
+    }
+    if (!commit.portfolio_persisted) {
+      const targetDeleted = commit.outcome === 'target_deleted_before_commit'
+      const targetModified = commit.outcome === 'target_modified_before_commit'
+      return NextResponse.json({
+        error: targetDeleted
+          ? 'The portfolio was deleted while generation was running, so the result could not be saved.'
+          : targetModified
+            ? 'Your portfolio changed while generation was running. Your newer edits were preserved, so this result was not saved.'
+            : 'A newer portfolio generation finished first, so this result was not saved.',
+        code: targetDeleted
+          ? 'PORTFOLIO_TARGET_DELETED'
+          : targetModified
+            ? 'PORTFOLIO_TARGET_MODIFIED'
+            : 'GENERATION_SUPERSEDED',
+      }, { status: 409 })
+    }
+    if (!commit.generated_at || !commit.generation_id) {
+      throw new Error('Portfolio generation commit returned incomplete authority.')
+    }
+    const generatedAt = commit.generated_at
 
     await recordTrustedEventSafe({
       idempotencyKey: `portfolio-generated:${user.id}:${portfolioId}:${generatedAt}`,
@@ -177,18 +185,6 @@ export async function POST(request: NextRequest) {
       console.error('[ai/generate-portfolio] referral credit failed (continuing):', err instanceof Error ? err.message : err)
     }
 
-    const { error: generationError } = await service.from('generations').insert({
-      user_id: user.id,
-      type: 'portfolio_generation',
-      output: result as unknown as Record<string, unknown>,
-      model_used: meta.model,
-      prompt_id: meta.promptId,
-      prompt_version: meta.promptVersion,
-      provider: meta.provider,
-      status: 'completed',
-    })
-    if (generationError) throw generationError
-
     // Gemini shadow review hook - a strict no-op today. isGeminiReviewEnabled() checks
     // AI_REVIEW_MODE (default 'off'), a configured key, per-task eligibility, and the
     // privacy/legal gate in src/lib/ai/gemini.ts, all of which must be true before this does
@@ -200,6 +196,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: result })
   } catch (err) {
+    if (service && leaseUserId && leaseId && !leaseFinalized) {
+      try {
+        await releaseAiFeatureUsageLease(service, {
+          leaseId,
+          userId: leaseUserId,
+          eventName: 'portfolio_generated',
+          reason: 'route_failed_before_commit',
+        })
+      } catch (recoveryError) {
+        console.error(
+          '[generate-portfolio] exact feature lease release failed:',
+          recoveryError instanceof Error ? recoveryError.message : 'unknown error',
+        )
+      }
+    }
     console.error('[generate-portfolio]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Generation failed. Please try again.' }, { status: 500 })
   }

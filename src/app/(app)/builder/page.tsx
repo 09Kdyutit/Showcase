@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { PageShell, PageHeader } from '@/components/shared/page-header'
 import { Tilt3D } from '@/components/ui/tilt-3d'
 import { generateSlug, scoreColor } from '@/lib/utils'
+import { resumeIntakePath } from '@/lib/constants'
 import type { Portfolio } from '@/types/database'
 
 type ViewStats = Record<string, { total: number; last7: number; topRef: string | null }>
@@ -51,22 +52,36 @@ export default async function BuilderPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const portfoliosRes = await supabase.from('portfolios').select('*').eq('user_id', user.id).order('updated_at', { ascending: false })
-  const subRes = await supabase.from('subscriptions').select('status').eq('user_id', user.id).maybeSingle()
+  const [portfoliosRes, subRes, resumeRes] = await Promise.all([
+    supabase.from('portfolios').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
+    supabase.from('subscriptions').select('status').eq('user_id', user.id).maybeSingle(),
+    supabase.from('resumes').select('id').eq('user_id', user.id).not('parsed_json', 'is', null).limit(1).maybeSingle(),
+  ])
 
   const portfolios = (portfoliosRes.data ?? []) as Portfolio[]
+  if (resumeRes.error) throw new Error('Could not verify your saved resume. Please reload and try again.')
 
   const publishedSlugs = portfolios.filter((p) => p.status === 'published').map((p) => p.slug)
   const viewsBySlug = await getPortfolioViews(publishedSlugs)
   const totalViews = Object.values(viewsBySlug).reduce((n, v) => n + v.total, 0)
   const last7Views = Object.values(viewsBySlug).reduce((n, v) => n + v.last7, 0)
   const isPro = (subRes.data as { status: string } | null)?.status === 'active' || (subRes.data as { status: string } | null)?.status === 'trialing'
+  const hasResume = !!resumeRes.data
 
   async function createPortfolio() {
     'use server'
     const supabase2 = await createClient()
     const { data: { user: u } } = await supabase2.auth.getUser()
     if (!u) return
+    const { data: parsedResume, error: resumeError } = await supabase2
+      .from('resumes')
+      .select('id')
+      .eq('user_id', u.id)
+      .not('parsed_json', 'is', null)
+      .limit(1)
+      .maybeSingle()
+    if (resumeError) throw new Error('Could not verify your saved résumé. Please try again.')
+    if (!parsedResume) redirect(resumeIntakePath('/builder'))
     const { data: p } = await supabase2.from('profiles').select('target_role').eq('id', u.id).single()
     const slug = generateSlug((p as { target_role?: string } | null)?.target_role ?? 'portfolio')
     const { data } = await supabase2.from('portfolios').insert({
@@ -86,14 +101,18 @@ export default async function BuilderPage() {
         title="Your work, made"
         titleAccent="undeniable."
         description="Create and manage your professional portfolios."
-        actions={
+        actions={hasResume ? (
           <form action={createPortfolio}>
             <Button type="submit" variant="gradient" size="sm" className="gap-1.5 btn-sheen">
               <Plus className="h-3.5 w-3.5" />
               New portfolio
             </Button>
           </form>
-        }
+        ) : (
+          <Button asChild variant="gradient" size="sm" className="gap-1.5 btn-sheen">
+            <Link href={resumeIntakePath('/builder')}>Import résumé</Link>
+          </Button>
+        )}
       />
 
       {/* Portfolio views — the "did it work?" dopamine + a Pro-worthy signal */}
@@ -144,12 +163,18 @@ export default async function BuilderPage() {
               Create your first portfolio. Upload your resume and AI will build it for you.
             </p>
           </div>
-          <form action={createPortfolio} className="relative">
-            <Button type="submit" variant="gradient" size="lg" className="gap-2 btn-sheen shadow-glow">
-              <Plus className="h-4 w-4" />
-              Create your first portfolio
+          {hasResume ? (
+            <form action={createPortfolio} className="relative">
+              <Button type="submit" variant="gradient" size="lg" className="gap-2 btn-sheen shadow-glow">
+                <Plus className="h-4 w-4" />
+                Create your first portfolio
+              </Button>
+            </form>
+          ) : (
+            <Button asChild variant="gradient" size="lg" className="relative gap-2 btn-sheen shadow-glow">
+              <Link href={resumeIntakePath('/builder')}>Import résumé first</Link>
             </Button>
-          </form>
+          )}
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -9,7 +9,7 @@ export const contentType = 'image/png'
 
 // Code-generated, not a designed asset - uses the product's real brand gradient
 // (brand-500 → violet-500, the same one used on the logo mark and CTAs) rather than
-// a generic stock-photo social card. Real product language, no fabricated metric.
+// a generic stock-photo social card. Real product language, no unsupported metric.
 //
 // Satori (next/og's renderer) can't use next/image or load files by URL at render
 // time the way a normal page can - it needs a literal <img src> that's either an

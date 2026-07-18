@@ -33,7 +33,7 @@ export function betaInviteEmail(
   // Outcome-focused — what they walk away with, not features.
   const outcomes: [string, string][] = [
     ['A portfolio draft', 'Your real experience organized into evidence-based case studies you can review and edit. Publishing the live page is a Pro feature.'],
-    ['An evidence audit', 'An honest review across 11 dimensions, each with a specific fix. No fluff, no invented wins.'],
+    ['An evidence audit', 'An honest review across 11 dimensions, each with a specific fix. Gaps are flagged for you to review.'],
     ['A role-match view', 'Compare available role requirements with the evidence in your resume before you apply.'],
   ]
 

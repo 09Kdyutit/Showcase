@@ -16,7 +16,8 @@ import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { createClient } from '@/lib/supabase/client'
 import { cn, scoreColor } from '@/lib/utils'
 import { PageShell, PageHeader } from '@/components/shared/page-header'
-import type { AuditResult, AuditCategory, Resume } from '@/types/database'
+import { resumeIntakePath } from '@/lib/constants'
+import type { AuditResult, AuditCategory, Portfolio, Resume } from '@/types/database'
 
 function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
   const [copied, setCopied] = useState(false)
@@ -27,24 +28,9 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (cat.gated) {
-    return (
-      <div className="glass-card border-brand-500/15 bg-brand-500/[0.02] p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
-            <h3 className="font-semibold text-sm text-foreground">{cat.name}</h3>
-          </div>
-          <Badge variant="pro" className="text-xs">Pro</Badge>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">Available on Pro — rerun the Audit to evaluate this category against your saved materials.</p>
-      </div>
-    )
-  }
-
   if (cat.score === null) {
     return (
-      <div className="glass-card p-5 opacity-60">
+      <div className="glass-card p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground/40">#{index + 1}</span>
@@ -52,6 +38,13 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-2">{cat.explanation || 'No data available for this category yet.'}</p>
+        <div className="bg-surface-300/60 rounded-xl p-3 flex items-start gap-2 mt-3">
+          <Info className="h-3.5 w-3.5 text-brand-400 shrink-0 mt-0.5" />
+          <p className="text-xs text-foreground/80 flex-1 leading-relaxed">{cat.fix}</p>
+          <button onClick={copyFix} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+        </div>
       </div>
     )
   }
@@ -121,10 +114,10 @@ function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
 }
 
 
-function RoleFitBadge({ score }: { score: number }) {
-  if (score >= 80) return <Badge variant="success">Strong match</Badge>
-  if (score >= 60) return <Badge variant="warning">Needs work</Badge>
-  return <Badge variant="danger">Significant gaps</Badge>
+function EvidenceClarityBadge({ score }: { score: number }) {
+  if (score >= 80) return <Badge variant="success">Well supported</Badge>
+  if (score >= 60) return <Badge variant="warning">Needs strengthening</Badge>
+  return <Badge variant="danger">Limited support</Badge>
 }
 
 function Next3Fixes({ priorities }: { priorities: string[] }) {
@@ -195,7 +188,7 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
         <div>
           <h3 className="text-sm font-bold text-foreground">Evidence Gap Finder</h3>
           <p className="text-xs text-muted-foreground">
-            {gaps.length} specific proof gap{gaps.length !== 1 ? 's' : ''} found in your materials
+            {gaps.length} specific support gap{gaps.length !== 1 ? 's' : ''} found in your materials
           </p>
         </div>
       </div>
@@ -217,15 +210,15 @@ function EvidenceGapFinder({ gaps }: { gaps: string[] }) {
       <div className="mt-4 p-3 rounded-xl bg-surface-300/50 flex items-start gap-2">
         <Info className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground/70 leading-relaxed">
-          Showcase will never fabricate evidence. These are areas where you have real experience to add - we&apos;ll
-          help you surface and frame it.
+          Showcase flags evidence gaps instead of filling them. AI guidance starts from the material you supplied,
+          but review every suggestion before using it.
         </p>
       </div>
     </div>
   )
 }
 
-function FullAuditUpgradeCard({ gatedCategoryCount }: { gatedCategoryCount: number }) {
+function AuditLimitUpgradeCard() {
   return (
     <section
       aria-labelledby="audit-pro-heading"
@@ -240,16 +233,16 @@ function FullAuditUpgradeCard({ gatedCategoryCount }: { gatedCategoryCount: numb
           </div>
           <div>
             <Badge variant="pro" className="mb-2">Showcase Pro</Badge>
-            <h3 id="audit-pro-heading" className="text-base font-semibold text-foreground">See all 11 audit categories.</h3>
+            <h3 id="audit-pro-heading" className="text-base font-semibold text-foreground">Run more complete Audits.</h3>
             <p id="audit-pro-description" className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Free shows a score based on {11 - gatedCategoryCount} core categories. A Pro rerun evaluates the full 11-category Audit and recalculates the score from every category supported by your saved materials, so it may change. It adds analysis and a specific next fix wherever the material supports one, with up to 10 full audits per day.
+              Free includes one complete 11-dimension Evidence Audit every 24 hours. Pro raises that frequency to 10 complete Audits every 24 hours. Your last result stays saved; Checkout does not rerun it.
             </p>
           </div>
         </div>
         <div className="shrink-0 sm:text-right">
           <Button asChild variant="gradient" size="md" className="h-auto w-full gap-2 whitespace-normal px-3 py-2 text-center sm:w-auto">
             <Link href="/billing?plan=monthly&source=audit">
-              See Pro options · $15/mo
+              Increase Audit frequency · $15/mo
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
@@ -263,10 +256,10 @@ function FullAuditUpgradeCard({ gatedCategoryCount }: { gatedCategoryCount: numb
 const AUDIT_SCAN_STEPS = [
   { label: 'Parsing resume structure', detail: 'extracting experience, skills, and projects' },
   { label: 'Analyzing first impression', detail: 'evaluating opening clarity and role positioning' },
-  { label: 'Scoring proof strength', detail: 'checking how many claims have supporting evidence' },
+  { label: 'Scoring evidence support', detail: 'checking how many claims have supporting material' },
   { label: 'Evaluating project depth', detail: 'assessing Problem → Process → Outcome framework' },
   { label: 'Checking keyword relevance', detail: 'matching against target role vocabulary' },
-  { label: 'Identifying hiring risk gaps', detail: 'looking for vague dates, gaps, unsupported claims' },
+  { label: 'Identifying evidence gaps', detail: 'looking for vague dates, gaps, and unsupported claims' },
   { label: 'Calculating evidence score', detail: 'weighting all 11 categories' },
 ]
 
@@ -334,30 +327,81 @@ function AuditLoadingPanel({ step }: { step: number }) {
 
 export default function AuditPage() {
   const [resumes, setResumes] = useState<Resume[]>([])
+  const [portfolioContexts, setPortfolioContexts] = useState<Array<Pick<Portfolio, 'id' | 'title' | 'status'>>>([])
   const [loadingResumes, setLoadingResumes] = useState(true)
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null)
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState('')
   const [targetRole, setTargetRole] = useState('')
   const [industry, setIndustry] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
+  const [auditLimitReached, setAuditLimitReached] = useState(false)
   const [scanStep, setScanStep] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase
-      .from('resumes')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .then(({ data }) => {
-        setResumes(data ?? [])
-        setSelectedResumeId(data?.[0]?.id ?? null)
-        setLoadingResumes(false)
-      })
-    // Prefill from the profile so the user isn't re-asked for a role they already gave
-    // us during onboarding - they can still change it per audit.
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return
-      const { data: profile } = await supabase.from('profiles').select('target_role, industry').eq('id', data.user.id).maybeSingle()
+      if (!data.user) {
+        setLoadingResumes(false)
+        return
+      }
+      const [resumeResult, portfolioResult, profileResult, latestAuditResult] = await Promise.all([
+        supabase
+          .from('resumes')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .order('updated_at', { ascending: false }),
+        // Published portfolios are anonymously readable, so RLS alone is not an
+        // ownership filter. Keep this selector explicitly scoped to the signed-in user.
+        supabase
+          .from('portfolios')
+          .select('id, title, status')
+          .eq('user_id', data.user.id)
+          .not('content', 'is', null)
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('target_role, industry')
+          .eq('id', data.user.id)
+          .maybeSingle(),
+        supabase
+          .from('audits')
+          .select('id, overall_score, category_scores, findings, recommendations, created_at')
+          .eq('user_id', data.user.id)
+          .eq('audit_type', 'full')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ])
+
+      setResumes(resumeResult.data ?? [])
+      setSelectedResumeId(resumeResult.data?.[0]?.id ?? null)
+      setPortfolioContexts(portfolioResult.data ?? [])
+      setLoadingResumes(false)
+
+      // A successful Audit is an earned result, not a transient response. Restore the
+      // latest complete 11-dimension record after refresh or a lost network response.
+      const latestAudit = latestAuditResult.data
+      const categories = Array.isArray(latestAudit?.category_scores)
+        ? latestAudit.category_scores as unknown as AuditCategory[]
+        : []
+      if (latestAudit && categories.length === 11) {
+        setResult({
+          overall_score: latestAudit.overall_score,
+          categories,
+          missing_evidence: Array.isArray(latestAudit.findings)
+            ? latestAudit.findings.filter((item): item is string => typeof item === 'string')
+            : [],
+          top_priorities: Array.isArray(latestAudit.recommendations)
+            ? latestAudit.recommendations.filter((item): item is string => typeof item === 'string')
+            : [],
+          summary: 'Your latest completed Evidence Audit is restored below. Review all 11 dimensions and their specific fixes before updating your materials.',
+        })
+      }
+
+      // Prefill from the profile so the user isn't re-asked for a role they already gave
+      // us during onboarding - they can still change it per audit.
+      const profile = profileResult.data
       if (profile?.target_role) setTargetRole((prev) => prev || profile.target_role)
       if (profile?.industry) setIndustry((prev) => prev || profile.industry)
     })
@@ -383,6 +427,7 @@ export default function AuditPage() {
 
     setLoading(true)
     setResult(null)
+    setAuditLimitReached(false)
     setScanStep(0)
 
     let step = 0
@@ -395,10 +440,26 @@ export default function AuditPage() {
       const res = await fetch('/api/ai/audit-portfolio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeId: selectedResumeId, targetRole, industry: industry || 'Technology' }),
+        body: JSON.stringify({
+          resumeId: selectedResumeId,
+          portfolioId: selectedPortfolioId || undefined,
+          targetRole,
+          industry: industry || 'Technology',
+        }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Audit failed')
+      const data = await res.json() as {
+        data?: AuditResult
+        error?: string
+        code?: string
+        upgradeAvailable?: boolean
+      }
+      if (!res.ok) {
+        if (data.code === 'RATE_LIMITED' && data.upgradeAvailable === true) {
+          setAuditLimitReached(true)
+        }
+        throw new Error(data.error || 'Audit failed')
+      }
+      if (!data.data) throw new Error('Audit returned no result')
       setResult(data.data)
       toast.success('Evidence audit complete!')
     } catch (err) {
@@ -411,9 +472,6 @@ export default function AuditPage() {
 
   const criticalItems = result?.categories.filter((c) => c.severity === 'critical') ?? []
   const sortedCategories = result?.categories.slice().sort((a, b) => (a.score ?? 100) - (b.score ?? 100)) ?? []
-  const visibleCategories = sortedCategories.filter((category) => !category.gated)
-  const gatedCategories = sortedCategories.filter((category) => category.gated)
-  const gatedCategoryCount = gatedCategories.length
 
   return (
     <PageShell>
@@ -422,7 +480,7 @@ export default function AuditPage() {
         eyebrow="Evidence Audit"
         title="Know exactly where you"
         titleAccent="stand."
-        description="The evidence audit reviews the resume you already uploaded against a specific target role across 11 hiring-readiness categories. Resume parsing extracts your experience; the audit checks how well that evidence supports the role you pick below."
+        description="The Evidence Audit reviews the resume you already uploaded against a specific target role across 11 evidence-clarity dimensions. Resume parsing extracts your experience; the Audit checks how clearly that material supports the role you pick below."
       />
 
       {/* Input */}
@@ -437,7 +495,7 @@ export default function AuditPage() {
                 Upload your resume first - the evidence audit reviews it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/resume">Go to Resume</Link>
+                <Link href={resumeIntakePath('/audit')}>Import résumé</Link>
               </Button>
             </div>
           ) : (
@@ -449,7 +507,10 @@ export default function AuditPage() {
                   <select
                     id="resume-select"
                     value={selectedResumeId ?? ''}
-                    onChange={(e) => setSelectedResumeId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedResumeId(e.target.value)
+                      setSelectedPortfolioId('')
+                    }}
                     className="flex-1 bg-transparent text-sm text-foreground outline-none"
                   >
                     {resumes.map((r) => (
@@ -466,6 +527,28 @@ export default function AuditPage() {
                   Manage
                 </Link>
               </div>
+            </div>
+          )}
+
+          {portfolioContexts.length > 0 && (
+            <div className="space-y-1.5">
+              <Label htmlFor="portfolio-context">Portfolio case-study context (optional)</Label>
+              <select
+                id="portfolio-context"
+                value={selectedPortfolioId}
+                onChange={(event) => setSelectedPortfolioId(event.target.value)}
+                className="w-full rounded-xl border border-border/60 bg-surface-200/60 px-3 py-2.5 text-sm text-foreground outline-none focus:border-brand-500/50"
+              >
+                <option value="" className="bg-surface-100">Resume only — no portfolio context</option>
+                {portfolioContexts.map((portfolio) => (
+                  <option key={portfolio.id} value={portfolio.id} className="bg-surface-100">
+                    {portfolio.title} · {portfolio.status === 'draft' ? 'Private draft' : 'Published'}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground/70">
+                Choose a portfolio only if it was built from this resume. Private drafts work; publishing is not required.
+              </p>
             </div>
           )}
 
@@ -501,6 +584,7 @@ export default function AuditPage() {
             <BarChart3 className="h-4 w-4" />
             Run Evidence Audit
           </Button>
+          {auditLimitReached && <AuditLimitUpgradeCard />}
         </div>
       )}
 
@@ -518,7 +602,7 @@ export default function AuditPage() {
                 <h2 className="text-xl font-bold text-foreground">
                   Evidence score: {result.overall_score}/100
                 </h2>
-                <RoleFitBadge score={result.overall_score} />
+                <EvidenceClarityBadge score={result.overall_score} />
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed mb-4">{result.summary}</p>
               {criticalItems.length > 0 && (
@@ -553,34 +637,16 @@ export default function AuditPage() {
           )}
 
           {/* Category breakdown */}
-          <div className="space-y-4">
-            <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-sm font-semibold text-foreground">
-                {gatedCategoryCount > 0 ? 'Core category breakdown' : 'Full category breakdown'}
-              </h3>
-              <span className="text-xs text-muted-foreground">
-                {gatedCategoryCount > 0
-                  ? `${visibleCategories.length} core categories shown · ${gatedCategoryCount} more on Pro`
-                  : `${sortedCategories.length}-category breakdown`}
-              </span>
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-foreground">Full category breakdown</h3>
+              <span className="text-xs text-muted-foreground">{sortedCategories.length} dimensions reviewed</span>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              {visibleCategories.map((cat, i) => (
+              {sortedCategories.map((cat, i) => (
                 <CategoryCard key={cat.name} cat={cat} index={i} />
               ))}
             </div>
-
-            {gatedCategoryCount > 0 && (
-              <FullAuditUpgradeCard gatedCategoryCount={gatedCategoryCount} />
-            )}
-
-            {gatedCategoryCount > 0 && (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {gatedCategories.map((cat, i) => (
-                  <CategoryCard key={cat.name} cat={cat} index={visibleCategories.length + i} />
-                ))}
-              </div>
-            )}
           </div>
 
           {/* What's strong */}
@@ -636,8 +702,8 @@ export default function AuditPage() {
 
           {/* Disclaimer */}
           <p className="text-xs text-muted-foreground/50 text-center leading-relaxed">
-            The evidence audit is an AI-powered analysis tool. Results are designed to be helpful, not guaranteed to
-            reflect recruiter decisions. Showcase does not guarantee employment or interview outcomes.
+            Evidence Audit guidance can contain errors and is not a hiring prediction. Review each suggestion against
+            your real experience. Showcase does not guarantee employment or interview outcomes.
           </p>
         </div>
       )}

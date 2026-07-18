@@ -19,6 +19,7 @@ import { SavedSearches } from '@/components/jobs/saved-searches'
 import type { JobListing, SavedJob, WorkMode, Seniority, MatchBreakdown } from '@/types/database'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { resumeIntakePath } from '@/lib/constants'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Tab = 'browse' | 'for-you' | 'pipeline'
@@ -635,6 +636,7 @@ export default function JobsPage() {
   const [loadingRecs, setLoadingRecs] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
   const [isPro, setIsPro] = useState(false)
+  const [hasParsedResume, setHasParsedResume] = useState<boolean | null>(null)
   const [isDemo, setIsDemo] = useState(true)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -704,9 +706,11 @@ export default function JobsPage() {
 
       const parsedResume = resumes?.[0]?.parsed_json
       if (!parsedResume) {
+        setHasParsedResume(false)
         setLoadingRecs(false)
         return
       }
+      setHasParsedResume(true)
 
       const res = await fetch('/api/jobs/recommendations', {
         method: 'POST',
@@ -949,13 +953,34 @@ export default function JobsPage() {
                   <div className="w-12 h-12 rounded-xl bg-surface-200 border border-border flex items-center justify-center mb-4">
                     <Star className="h-5 w-5 text-muted-foreground/40" />
                   </div>
-                  <p className="text-sm font-medium text-foreground mb-1">Personalized feed requires Pro</p>
-                  <p className="text-xs text-muted-foreground max-w-[220px] mb-4">
-                    Upload your resume first, then upgrade to Pro to see roles matched to your experience.
-                  </p>
-                  <Button asChild variant="gradient" size="sm">
-                    <Link href="/billing">Upgrade to Pro</Link>
-                  </Button>
+                  {hasParsedResume === false ? (
+                    <>
+                      <p className="text-sm font-medium text-foreground mb-1">Import your résumé first</p>
+                      <p className="text-xs text-muted-foreground max-w-[220px] mb-4">
+                        We use your real experience to match roles instead of guessing.
+                      </p>
+                      <Button asChild variant="gradient" size="sm">
+                        <Link href={resumeIntakePath('/jobs')}>Import résumé</Link>
+                      </Button>
+                    </>
+                  ) : !isPro ? (
+                    <>
+                      <p className="text-sm font-medium text-foreground mb-1">Personalized feed requires Pro</p>
+                      <p className="text-xs text-muted-foreground max-w-[220px] mb-4">
+                        Upgrade to see roles matched to your experience.
+                      </p>
+                      <Button asChild variant="gradient" size="sm">
+                        <Link href="/billing">Upgrade to Pro</Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-foreground mb-1">No matches yet</p>
+                      <p className="text-xs text-muted-foreground max-w-[220px]">
+                        Try Browse or broaden your role filters while we look for more matches.
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : loading ? (
                 Array.from({ length: 6 }).map((_, i) => (

@@ -1,6 +1,6 @@
 # Product Marketing Context
 
-*Last updated: 2026-07-14*
+*Last updated: 2026-07-18*
 
 ## Positioning
 
@@ -35,13 +35,12 @@ Lead with the complete workflow: résumé import → editable portfolio → role
 
 ## Plans
 
-- **Free:** USD 0, no card; résumé import; one first AI portfolio generation; build/edit/private preview; one daily Audit score with four core categories visible; capped job, written-interview, and ATS tools.
-- **Pro:** USD 15/month or USD 150/year; live publishing; full 11-category Audit; portfolio regeneration; personalized job tools; application kits; higher limits; expanded interview and export tools.
-- **Founding:** the USD 99/year, ten-person-capped plan exists in code but is currently paused. Do not advertise it as available.
+- **Free:** USD 0, no card; résumé import; one first AI portfolio generation; build/edit/private preview; one complete 11-dimension Evidence Audit every 24 hours; capped job, written-interview, and ATS tools.
+- **Pro:** $15/month or $150/year; live publishing; portfolio regeneration; 10 complete 11-dimension Evidence Audits every 24 hours; personalized job tools; application kits; higher limits; expanded interview and export tools.
 
 ## Claim Safety
 
-- Generative output is grounded in user-provided source material, editable, and user-reviewed. Never claim it is infallible or “cannot invent anything.”
+- Generative output is grounded in user-provided source material, editable, and user-reviewed. Never describe it as infallible, guaranteed, or error-free.
 - Role Match is a content/evidence comparison, not a hiring prediction.
 - Say ATS readiness or compatibility, never guaranteed ATS passage.
 - Company and role interview personalization is best-effort and may use a curated fallback bank.
@@ -54,5 +53,5 @@ Lead with the complete workflow: résumé import → editable portfolio → role
 - The anonymous ProofScore offer and `/proofscore` acquisition funnel are retired. Preserve the separate authenticated Evidence Audit.
 - Never distribute the waitlist domain or `/signup` as a campaign link.
 - No paid spend, spam, fake engagement, fake users, account creation, credential entry, CAPTCHA/challenge bypass, PII exposure, participant contact, or duplicate/resend behavior without separate explicit authority.
-- Waitlist sending remains paused. Founding remains paused.
+- Waitlist sending remains paused. Do not market legacy or scarcity-priced plans.
 - Count legitimate distinct production auth users only; sessions, clicks, views, receipts, publications, and waitlist rows are not users.

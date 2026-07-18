@@ -33,7 +33,7 @@ export async function GET() {
       profile?.target_role ? `Target role: ${profile.target_role}` : '',
       '',
       'Contents:',
-      '- evidence-audit-report.md — your latest hiring-readiness audit',
+      '- evidence-audit-report.md — your latest evidence clarity and coverage review',
       resume?.raw_text ? '- resume.txt — your résumé text' : '',
       published.length ? '- portfolios.md — your published portfolio links' : '',
       '',

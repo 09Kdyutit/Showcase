@@ -107,7 +107,7 @@ export default function LandingPage() {
                     {[
                       'PDF, DOCX, and pasted résumé parsing',
                       'One AI portfolio generation',
-                      'Daily Evidence Audit score + 4 core categories',
+                      'One complete 11-dimension Evidence Audit every 24 hours',
                       'Build, edit, and privately preview portfolio drafts',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.008 255)' }}>
@@ -115,7 +115,7 @@ export default function LandingPage() {
                         {f}
                       </li>
                     ))}
-                    {['Full 11-category audit', 'Portfolio regeneration', 'Public portfolio publishing', 'Personalized job feed'].map((f) => (
+                    {['Portfolio regeneration', 'Public portfolio publishing', 'Personalized job feed'].map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm" style={{ color: 'oklch(60% 0.022 258)' }}>
                         <Lock className="h-4 w-4 mt-0.5 shrink-0" />
                         {f}
@@ -172,8 +172,9 @@ export default function LandingPage() {
                     <ul className="space-y-3 mb-8">
                       {[
                         'Everything in Free',
-                        'Full 11-category audits and higher AI limits',
+                        '10 complete 11-dimension Evidence Audits every 24 hours',
                         'Public portfolio + shareable preview card',
+                        'Portfolio regeneration and higher AI limits',
                         'Role-specific application kits, cover letters, and outreach drafts',
                         'Personalized job feed and expanded ATS checks',
                         'Written mock interviews; voice practice when enabled',

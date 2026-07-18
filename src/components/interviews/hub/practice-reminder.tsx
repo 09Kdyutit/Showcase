@@ -40,8 +40,17 @@ export function PracticeReminder() {
   }
 
   async function remove(id: string) {
+    // Optimistic removal — but a swallowed failure would leave the reminder alive
+    // server-side and resurrected on refresh, so roll back visibly instead.
+    const previous = reminders
     setReminders((r) => r.filter((x) => x.id !== id))
-    await fetch(`/api/interviews/reminders?id=${id}`, { method: 'DELETE' }).catch(() => {})
+    try {
+      const res = await fetch(`/api/interviews/reminders?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+    } catch {
+      setReminders(previous)
+      toast.error('Could not remove reminder')
+    }
   }
 
   const todayStr = new Date().toISOString().slice(0, 10)

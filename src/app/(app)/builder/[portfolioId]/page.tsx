@@ -16,7 +16,7 @@ import { PaywallCard } from '@/components/ui/paywall'
 import type { Portfolio, PortfolioContent, ParsedResume } from '@/types/database'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { portfolioGoalLabel } from '@/lib/constants'
+import { portfolioGoalLabel, resumeIntakePath } from '@/lib/constants'
 import { THEME_LIST, coerceThemeId, type ThemeId } from '@/lib/portfolio/themes'
 import { LivePreviewFrame } from '@/components/portfolio/live-preview-frame'
 import { ImageUploader } from '@/components/portfolio/image-uploader'
@@ -64,6 +64,7 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
   const [hasUsedFreeGeneration, setHasUsedFreeGeneration] = useState(false)
   const [resumeText, setResumeText] = useState('')
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
+  const [resumeLoadError, setResumeLoadError] = useState(false)
   const [profileMeta, setProfileMeta] = useState<{
     industry: string | null
     portfolio_goal: string | null
@@ -104,12 +105,13 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     // which Postgres rejects as an invalid uuid (400). Real portfolios are created on the
     // /builder index, which then routes here with a real id.
     if (!portfolioId || !/^[0-9a-f-]{36}$/i.test(portfolioId)) { router.push('/builder'); return }
+    setLoading(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const [portfolioRes, subRes, resumeRes, profileRes, genCountRes] = await Promise.all([
       supabase.from('portfolios').select('*').eq('id', portfolioId).single(),
       supabase.from('subscriptions').select('status').maybeSingle(),
-      supabase.from('resumes').select('raw_text, parsed_json').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('resumes').select('raw_text, parsed_json').not('parsed_json', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle(),
       user
         ? supabase.from('profiles').select('industry, portfolio_goal, linkedin_url, github_url, website_url').eq('id', user.id).single()
         : Promise.resolve({ data: null }),
@@ -136,8 +138,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     setIsPro(subRes.data?.status === 'active' || subRes.data?.status === 'trialing')
     const generatedCount = genCountRes.count ?? 0
     setHasUsedFreeGeneration(generatedCount > 0)
-    setResumeText(resumeRes.data?.raw_text ?? '')
-    setParsedResume((resumeRes.data?.parsed_json as unknown as ParsedResume) ?? null)
+    setResumeLoadError(!!resumeRes.error)
+    setResumeText(resumeRes.error ? '' : (resumeRes.data?.raw_text ?? ''))
+    setParsedResume(resumeRes.error ? null : ((resumeRes.data?.parsed_json as unknown as ParsedResume) ?? null))
     const loadedProfile = profileRes.data as unknown as {
       industry: string | null
       portfolio_goal: string | null
@@ -250,7 +253,13 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     // Free includes the first generation; regeneration needs Pro. The server enforces
     // this authoritatively - this check just gives a clear message without a round trip.
     if (!isPro && hasUsedFreeGeneration) { toast.error('Your free plan includes one AI generation. Upgrade to Pro to regenerate.'); return }
-    if (!resumeText && !parsedResume) { toast.error('Upload a resume first on the Resume page'); return }
+    if (resumeLoadError) { toast.error('Could not verify your saved résumé. Retry before importing another copy.'); return }
+    if (!parsedResume) {
+      toast.error('Import a resume before generating your portfolio.', {
+        action: { label: 'Import résumé', onClick: () => router.push(resumeIntakePath(`/builder/${portfolioId}`)) },
+      })
+      return
+    }
     if (generatingRef.current) return
     generatingRef.current = true
 
@@ -268,21 +277,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
     const iv = setInterval(() => { mi = (mi + 1) % MSGS.length; setGenMsg(MSGS[mi]) }, 3000)
 
     try {
-      // Reuse the resume's already-parsed structured data (from onboarding or the Resume
-      // page) instead of re-parsing from scratch on every generation - faster, and avoids
-      // paying for the same AI call twice. Only fall back to a fresh parse for legacy
-      // resumes that predate parsed_json being stored.
-      let resolvedParsedResume = parsedResume
-      if (!resolvedParsedResume) {
-        const analyzeRes = await fetch('/api/ai/analyze-resume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resumeText }),
-        })
-        const { data, error: analyzeErr } = await analyzeRes.json()
-        if (!analyzeRes.ok) throw new Error(analyzeErr?.message ?? analyzeErr ?? 'Resume analysis failed')
-        resolvedParsedResume = data
-      }
+      // Intake persists only readable, structured resumes. Reuse that authority rather
+      // than paying to parse the same document again inside the builder.
+      const resolvedParsedResume = parsedResume
 
       const links: Record<string, string> = {}
       if (profileMeta?.linkedin_url) links.linkedin = profileMeta.linkedin_url
@@ -650,24 +647,35 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         <div>
                           <h3 className="text-sm font-semibold text-foreground">AI Portfolio Generator</h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {resumeText
+                            {resumeLoadError
+                              ? 'We could not verify your saved résumé. Retry before importing another copy.'
+                              : parsedResume
                               ? `Resume loaded (${Math.round(resumeText.length / 5)} words). AI will generate your full portfolio.`
-                              : 'No resume found. Upload one on the Resume page first.'}
+                              : 'No resume found. Import a PDF, DOCX, or pasted resume first.'}
                           </p>
                         </div>
-                        {resumeText && <Badge variant="success" className="shrink-0">Ready</Badge>}
+                        {parsedResume && <Badge variant="success" className="shrink-0">Ready</Badge>}
                       </div>
-                      <Button
-                        variant="gradient"
-                        size="sm"
-                        onClick={() => generatePortfolio()}
-                        loading={generating}
-                        disabled={!resumeText}
-                        className="gap-1.5 w-full"
-                      >
-                        <Zap className="h-3.5 w-3.5" />
-                        {generating ? genMsg : 'Generate portfolio with AI'}
-                      </Button>
+                      {resumeLoadError ? (
+                        <Button variant="secondary" size="sm" className="gap-1.5 w-full" onClick={() => void load()}>
+                          Retry résumé check
+                        </Button>
+                      ) : parsedResume ? (
+                        <Button
+                          variant="gradient"
+                          size="sm"
+                          onClick={() => generatePortfolio()}
+                          loading={generating}
+                          className="gap-1.5 w-full"
+                        >
+                          <Zap className="h-3.5 w-3.5" />
+                          {generating ? genMsg : 'Generate portfolio with AI'}
+                        </Button>
+                      ) : (
+                        <Button asChild variant="gradient" size="sm" className="gap-1.5 w-full">
+                          <Link href={resumeIntakePath(`/builder/${portfolioId}`)}>Import résumé</Link>
+                        </Button>
+                      )}
                       {generating && (
                         <p className="text-xs text-muted-foreground/60 text-center mt-2">This takes 30-60 seconds. Don&apos;t close this tab.</p>
                       )}
@@ -1019,9 +1027,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         { key: 'title', label: 'Project title', placeholder: 'e.g. Checkout Redesign', multi: false },
                         { key: 'role', label: 'Your role', placeholder: 'e.g. Lead Product Designer', multi: false },
                         { key: 'summary', label: 'One-line summary', placeholder: 'e.g. Redesigned the payment flow to reduce drop-off', multi: false },
-                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (no invention - use real context)', multi: true },
+                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (use only real context)', multi: true },
                         { key: 'process', label: 'Process', placeholder: 'What did you do and how did you make decisions?', multi: true },
-                        { key: 'outcome', label: 'Outcome', placeholder: 'What was the measurable result? If no metrics exist, write "[Add: X% improvement]"', multi: true },
+                        { key: 'outcome', label: 'Outcome', placeholder: 'What was the result? Add only a metric you can verify; otherwise describe the real qualitative outcome.', multi: true },
                       ].map(({ key, label, placeholder, multi }) => (
                         <div key={key} className="space-y-1">
                           <Label className="text-xs">{label}</Label>

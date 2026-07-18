@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!shared) return { title: 'Evidence audit', robots: { index: false } }
   return {
     title: `Evidence score: ${shared.score}/100 · Showcase`,
-    description: `An evidence-based hiring-readiness score${shared.role ? ` for ${shared.role}` : ''}, created with Showcase.`,
+    description: `An evidence clarity and coverage review${shared.role ? ` for ${shared.role}` : ''}, created with Showcase.`,
     robots: { index: false },
     twitter: { card: 'summary_large_image' },
   }
@@ -75,7 +75,7 @@ export default async function SharedProofScorePage({ params }: Props) {
           <p className="text-display text-2xl font-semibold text-foreground mt-4">
             {scoreLabel(shared.score)}
           </p>
-          <p className="text-sm text-muted-foreground mt-1">Evidence-based hiring-readiness score</p>
+          <p className="text-sm text-muted-foreground mt-1">Evidence clarity and coverage review</p>
 
           {shared.categories.length > 0 && (
             <div className="mt-7 space-y-2.5 text-left">

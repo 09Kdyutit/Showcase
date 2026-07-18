@@ -118,11 +118,11 @@ assert.equal(Object.keys(releaseManifest.contracts.crons).length, 6)
 const canonicalMigrations = readdirSync(resolve('supabase/migrations'))
   .filter((file) => file.endsWith('.sql'))
   .sort((left, right) => left.localeCompare(right))
-assert.equal(canonicalMigrations.length, 49)
+assert.equal(canonicalMigrations.length, 50)
 assert.equal(
   canonicalMigrations.at(-1),
-  '20260712035035_retire_public_proofscore_infrastructure.sql',
-  'the current repository ledger must extend through migration 048',
+  '20260718010000_ai_feature_usage_leases.sql',
+  'the current repository ledger must extend through the AI feature-usage lease migration',
 )
 
 const backupEvidence = JSON.parse(read('security/production-backup-evidence.json'))

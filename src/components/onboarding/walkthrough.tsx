@@ -45,18 +45,18 @@ const SLIDES: Slide[] = [
       'Edit any AI suggestion — you have the final word',
       'Private preview link for your own eyes while you work',
     ],
-    footnote: 'AI drafts are grounded in what you provide. Nothing is invented for you to catch later — you review everything.',
+    footnote: 'AI drafts start from what you provide, but AI can make mistakes. You review and can edit everything.',
   },
   {
     icon: Gauge,
     tone: 'oklch(72% 0.16 162)',
     area: 'Evidence Audit',
     title: 'A score that tells you what to fix.',
-    desc: 'The Evidence Audit reads your portfolio like a skeptical recruiter: it scores how provable and specific your story is, and gives a concrete fix per category.',
+    desc: 'The Evidence Audit reviews how specific and supported your story is across 11 dimensions, then gives you a concrete fix for each dimension.',
     points: [
-      'Run it daily as you edit — watch the score respond',
-      'Free shows your score + 4 core categories',
-      'Pro unlocks the full 11-category review',
+      'Free includes one complete Audit every 24 hours',
+      'Each Audit includes all 11 dimensions and specific fixes',
+      'Pro raises the Audit limit to 10 every 24 hours',
     ],
   },
   {
@@ -104,7 +104,7 @@ const SLIDES: Slide[] = [
     desc: 'Free covers building, editing, and private previews. When the portfolio is ready to share, Pro publishes it at a live link with a preview card you can drop into any application or DM.',
     points: [
       'Free: build, edit, private preview — no time limit',
-      'Pro ($15/mo or $150/yr): live publishing, full audits, higher limits',
+      'Pro ($15/mo or $150/yr): live publishing, 10 complete Audits every 24 hours, higher limits',
       'First up next: your résumé. That is step one of two.',
     ],
   },

@@ -35,6 +35,7 @@ const interviewRetryRoute = source('src/app/api/interviews/sessions/[id]/answers
 const interviewUpgradeIntent = source('src/lib/interviews/upgrade-intent.ts')
 const interviewEntitlementUsage = source('src/lib/interviews/entitlements/usage.ts')
 const rateLimit = source('src/lib/ai/rate-limit.ts')
+const featureUsageLeases = source('src/lib/ai/feature-usage-leases.ts')
 const useUserHook = source('src/hooks/use-user.ts')
 const billing = source('src/app/(app)/billing/page.tsx')
 const signup = source('src/app/(auth)/signup/page.tsx')
@@ -189,7 +190,7 @@ expect('Billing preserves publish intent in its visible decision copy',
   billing.includes("title: 'Put your portfolio'") &&
   billing.includes("titleAccent: 'live.'") &&
   billing.includes('Unlock a live URL and preview card with Pro.') &&
-  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'"))
+  billing.includes("fromPublish ? 'Continue with Pro' : fromAudit ? 'Increase Audit frequency' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'"))
 expect('Billing repeats that Checkout does not auto-publish',
   billing.includes('Checkout upgrades your account; it does not publish your draft.') &&
   billing.includes('return to your portfolio and choose Publish'))
@@ -457,39 +458,40 @@ expect('personalised opportunity matching is enforced as Pro on the server befor
   opportunitiesView.includes('void fetchForYou()') &&
   opportunitiesView.includes('Your plan could not be verified') &&
   opportunitiesView.includes('isVerifiedFree || forYouAccessDenied'))
-expect('a completed Free audit exposes one clear, priced route to the full 11-category result',
-  audit.includes('const visibleCategories = sortedCategories.filter((category) => !category.gated)') &&
-  audit.includes('const gatedCategories = sortedCategories.filter((category) => category.gated)') &&
-  audit.indexOf('{visibleCategories.map((cat, i) => (') < audit.indexOf('<FullAuditUpgradeCard gatedCategoryCount={gatedCategoryCount} />') &&
-  audit.includes('See all 11 audit categories.') &&
-  audit.includes('Free shows a score based on') &&
-  audit.includes('A Pro rerun evaluates the full 11-category Audit') &&
-  audit.includes('recalculates the score from every category supported by your saved materials, so it may change') &&
-  audit.includes('wherever the material supports one') &&
+expect('Free and Pro receive the same complete 11-dimension Audit result',
+  audit.includes('{sortedCategories.map((cat, i) => (') &&
+  audit.includes('{sortedCategories.length} dimensions reviewed') &&
+  !audit.includes('if (cat.gated)') &&
+  !audit.includes('visibleCategories') &&
+  !audit.includes('gatedCategories'))
+expect('the authoritative Free success limit exposes one clear, priced frequency upgrade route',
+  featureUsageLeases.includes("denial.tierAtReservation === 'free' && denial.denialReason === 'success_limit'") &&
+  featureUsageLeases.includes('upgradeAvailable:') &&
+  audit.includes("data.code === 'RATE_LIMITED' && data.upgradeAvailable === true") &&
+  audit.includes('setAuditLimitReached(true)') &&
+  audit.includes('{auditLimitReached && <AuditLimitUpgradeCard />}') &&
+  audit.includes('Run more complete Audits.') &&
+  audit.includes('Free includes one complete 11-dimension Evidence Audit every 24 hours.') &&
+  audit.includes('Pro raises that frequency to 10 complete Audits every 24 hours.') &&
+  audit.includes('Your last result stays saved; Checkout does not rerun it.') &&
   audit.includes('href="/billing?plan=monthly&source=audit"') &&
   (audit.match(/\/billing\?plan=monthly&source=audit/g) ?? []).length === 1 &&
-  audit.includes('See Pro options · $15/mo') &&
+  audit.includes('Increase Audit frequency · $15/mo') &&
   audit.includes('Or $150/year (save $30) · cancel anytime') &&
-  audit.includes('gatedCategoryCount > 0') &&
-  audit.includes('rerun the Audit to evaluate this category against your saved materials') &&
-  !audit.includes("unlock this category&apos;s analysis and next fix") &&
-  audit.includes("gatedCategoryCount > 0 ? 'Core category breakdown' : 'Full category breakdown'") &&
-  audit.includes('flex flex-col items-start gap-1 sm:flex-row') &&
   audit.includes('h-auto w-full gap-2 whitespace-normal') &&
   !audit.includes('Founding') &&
   !audit.includes("fetch('/api/stripe/create-checkout-session'"))
-expect('Billing preserves full-audit intent without changing the held Checkout implementation',
+expect('Billing preserves frequency-only Audit intent without changing the held Checkout implementation',
   billing.includes("const fromAudit = searchParams.get('source') === 'audit'") &&
-  billing.includes("title: 'Unlock your full'") &&
-  billing.includes("titleAccent: 'Evidence Audit.'") &&
-  billing.includes('Free calculates your score from 4 core categories.') &&
-  billing.includes('Pro evaluates the full 11-category Audit') &&
-  billing.includes('recalculates from every category supported by your saved materials, so it may change') &&
-  billing.includes('where the material supports them') &&
-  billing.includes("fromAudit ? 'Unlock full Audit' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
-  billing.includes('it does not rerun the audit you just viewed') &&
-  billing.includes('return to Evidence Audit and run it again to evaluate all 11 categories') &&
-  billing.includes('marked unavailable instead of being guessed'))
+  billing.includes("title: 'Run more complete'") &&
+  billing.includes("titleAccent: 'Evidence Audits.'") &&
+  billing.includes('Free includes one complete 11-dimension Evidence Audit every 24 hours.') &&
+  billing.includes('Pro raises the frequency to 10 complete Audits every 24 hours') &&
+  billing.includes('both plans review the same 11 dimensions') &&
+  billing.includes("fromAudit ? 'Increase Audit frequency' : fromExport ? 'Unlock HTML export' : fromTailor ? 'Unlock application kit' : fromInterview ? 'Unlock Interview Lab' : 'Upgrade to Pro'") &&
+  billing.includes('it does not rerun an Audit') &&
+  billing.includes('Your last complete Audit stays saved.') &&
+  !billing.includes('Free calculates your score from 4 core categories.'))
 expect('Billing keeps the approved two-step Checkout implementation unchanged',
   billing.includes("fetch('/api/stripe/create-checkout-session'") &&
   billing.includes("body: JSON.stringify({ plan, source: searchParams.get('source') ?? 'billing' })"))
@@ -499,6 +501,13 @@ expect('signup intent is measured once without recording form values',
   signup.includes("onStart={() => markSignupStarted('google')}") &&
   signup.includes('if (signupStarted.current) return') &&
   !signup.includes("trackMarketingEvent('signup_started', { email"))
+expect('signup preserves the free-portfolio promise and explains the immediate next step',
+  signup.includes('Build your portfolio free') &&
+  signup.includes('Create your account, then upload a PDF/DOCX résumé or paste the text to start a private, editable portfolio draft. No credit card required.') &&
+  signup.includes('Create free account') &&
+  signup.includes("router.push('/onboarding')") &&
+  !signup.includes('Create account and import résumé') &&
+  !signup.includes('mb-3 text-sm text-muted-foreground lg:hidden'))
 expect('Google signup exposes a pre-redirect intent callback',
   googleButton.includes('onStart?: () => void') &&
   googleButton.indexOf('onStart?.()') < googleButton.indexOf('signInWithOAuth'))

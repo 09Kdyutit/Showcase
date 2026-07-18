@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { ArrowRight, CheckCircle2, Globe, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -29,13 +28,6 @@ interface PublishPaywallDialogProps {
   content: Partial<PortfolioContent>
 }
 
-interface FoundingAvailability {
-  configured: boolean
-  available: boolean
-  remaining: number | null
-  limit?: number
-}
-
 export function PublishPaywallDialog({
   open,
   onOpenChange,
@@ -47,19 +39,8 @@ export function PublishPaywallDialog({
   content,
 }: PublishPaywallDialogProps) {
   const router = useRouter()
-  const [founding, setFounding] = useState<FoundingAvailability | null>(null)
 
-  useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    fetch('/api/stripe/founding-availability', { cache: 'no-store' })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (!cancelled) setFounding(data) })
-      .catch(() => { if (!cancelled) setFounding(null) })
-    return () => { cancelled = true }
-  }, [open])
-
-  function choosePlan(plan: 'monthly' | 'annual' | 'founding') {
+  function choosePlan(plan: 'monthly' | 'annual') {
     const params = new URLSearchParams({ plan, source: 'publish', portfolio_id: portfolioId })
     router.push(`/billing?${params.toString()}`)
   }
@@ -101,32 +82,9 @@ export function PublishPaywallDialog({
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
               <p className="text-sm font-semibold text-foreground">What remains available on Free</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Your saved draft, daily evidence audit, previewing, and editing remain available while your account exists. Publishing the live page is the Pro feature.
+                Your saved draft, editing, private preview, and one complete 11-dimension Evidence Audit every 24 hours remain available. Publishing the live page is the Pro feature.
               </p>
             </div>
-
-            {founding?.configured && founding.available && typeof founding.remaining === 'number' && (
-              <button
-                type="button"
-                onClick={() => choosePlan('founding')}
-                className="w-full rounded-xl border border-brand-500/35 bg-brand-500/10 p-4 text-left transition-colors hover:bg-brand-500/15"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Founding member · $99/year</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      Everything in Pro at $99/year while continuously subscribed. The live counter is limited to ten active members or checkout holds.
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs font-semibold text-brand-300">
-                    {founding.remaining} of {founding.limit ?? 10} left
-                  </span>
-                </div>
-                <span className="mt-3 flex items-center gap-1 text-xs font-semibold text-brand-300">
-                  Claim a founding spot <ArrowRight className="h-3 w-3" />
-                </span>
-              </button>
-            )}
 
             <div className="grid gap-3">
               <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
@@ -150,7 +108,8 @@ export function PublishPaywallDialog({
 
             <div className="space-y-2 text-xs text-muted-foreground">
               <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Live shareable URL and social preview card</p>
-              <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Higher AI limits and portfolio regeneration</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> 10 complete 11-dimension Evidence Audits every 24 hours</p>
+              <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Higher limits and portfolio regeneration</p>
               <p className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> Cancel anytime; when Pro access ends, the page unpublishes and remains a private draft</p>
             </div>
 

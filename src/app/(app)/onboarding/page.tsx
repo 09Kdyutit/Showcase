@@ -16,7 +16,8 @@ import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { Logo } from '@/components/shared/logo'
 import { Walkthrough } from '@/components/onboarding/walkthrough'
 import { generateSlug } from '@/lib/utils'
-import { PORTFOLIO_GOALS } from '@/lib/constants'
+import { PORTFOLIO_GOALS, safeResumeReturnTo } from '@/lib/constants'
+import { requirePersistedRow } from '@/lib/db-authority'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
 import {
   INVITE_STORAGE_KEY,
@@ -84,6 +85,17 @@ const GENERATE_MSGS = [
 export default function OnboardingPage() {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('upload')
+  const [resumeReturnTo, setResumeReturnTo] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('intent') === 'resume') {
+      // Recovery links preserve the workflow that asked for a resume. Admission is still
+      // checked below before any resume mutation is enabled.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time URL-derived workflow return target
+      setResumeReturnTo(safeResumeReturnTo(params.get('returnTo')))
+    }
+  }, [])
   const [pasteText, setPasteText] = useState('')
   const [busyMsg, setBusyMsg] = useState('')
   const [editOpen, setEditOpen] = useState(false)
@@ -222,16 +234,10 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: resume } = await supabase
-        .from('resumes')
-        .insert({ user_id: user.id, title: 'My Resume', raw_text: text })
-        .select()
-        .single()
-
       const res = await fetch('/api/ai/analyze-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText: text, resumeId: resume?.id }),
+        body: JSON.stringify({ resumeText: text }),
       })
       const { data, error } = await res.json()
       if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that resume')
@@ -247,16 +253,32 @@ export default function OnboardingPage() {
   }
 
   async function skipResume() {
+    if (resumeReturnTo) {
+      router.push(resumeReturnTo)
+      return
+    }
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     try {
-      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
-      toast.success('Welcome to Showcase! Upload a resume anytime from the Resume page.')
+      const profileWrite = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id)
+        .select('id')
+        .single()
+      requirePersistedRow(profileWrite, 'Could not save your progress. Please try again.')
+      toast.success('Welcome to Showcase! You can import a resume anytime from your dashboard.')
       router.push('/dashboard')
     } catch {
       toast.error('Something went wrong. Please try again.')
     }
+  }
+
+  async function finishResumeImport() {
+    if (!resumeReturnTo) return
+    toast.success('Résumé imported.')
+    router.push(resumeReturnTo)
   }
 
   async function createPortfolio() {
@@ -271,16 +293,22 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      await supabase.from('profiles').update({
-        target_role: targetRole,
-        experience_level: experienceLevel,
-        industry,
-        portfolio_goal: portfolioGoal,
-        linkedin_url: linkedin || null,
-        github_url: github || null,
-        website_url: website || null,
-        onboarding_completed: true,
-      }).eq('id', user.id)
+      const profileWrite = await supabase
+        .from('profiles')
+        .update({
+          target_role: targetRole,
+          experience_level: experienceLevel,
+          industry,
+          portfolio_goal: portfolioGoal,
+          linkedin_url: linkedin || null,
+          github_url: github || null,
+          website_url: website || null,
+          onboarding_completed: true,
+        })
+        .eq('id', user.id)
+        .select('id')
+        .single()
+      requirePersistedRow(profileWrite, 'Could not save your profile. Please try again.')
 
       const slug = generateSlug(targetRole || 'portfolio')
       const { data: portfolio, error: createErr } = await supabase
@@ -483,7 +511,7 @@ export default function OnboardingPage() {
             disabled={admissionPending}
             className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Skip - I&apos;ll set this up manually
+            {resumeReturnTo ? 'Cancel and go back' : "Skip - I'll set this up manually"}
           </button>
         </div>
       </div>
@@ -507,7 +535,11 @@ export default function OnboardingPage() {
             Here&apos;s your experience,{' '}
             <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>structured.</em>
           </h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Nothing here is published yet. Review it, then one click builds your full portfolio from this evidence.</p>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+            {resumeReturnTo
+              ? 'Nothing here is published. Review the structured experience, then return to the work you were doing.'
+              : 'Nothing here is published yet. Review it, then one click builds your full portfolio from this experience.'}
+          </p>
         </div>
 
         <div className="glass-card p-6 space-y-6">
@@ -660,13 +692,13 @@ export default function OnboardingPage() {
         </div>
 
         {/* Dominant primary CTA */}
-        <Button variant="gradient" size="xl" className="w-full gap-2 mt-6" onClick={createPortfolio}>
-          <Sparkles className="h-4 w-4" />
-          Create my portfolio
+        <Button variant="gradient" size="xl" className="w-full gap-2 mt-6" onClick={resumeReturnTo ? finishResumeImport : createPortfolio}>
+          {resumeReturnTo ? <CheckCircle2 className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+          {resumeReturnTo ? 'Return to previous task' : 'Create my portfolio'}
           <ArrowRight className="h-4 w-4" />
         </Button>
         <p className="text-center text-xs text-muted-foreground/50 mt-3">
-          Builds your full portfolio from what&apos;s above. You can edit anything after.
+          {resumeReturnTo ? 'Keeps your current workflow intact. Nothing is published.' : 'Builds your full portfolio from what\'s above. You can edit anything after.'}
         </p>
       </div>
     </div>

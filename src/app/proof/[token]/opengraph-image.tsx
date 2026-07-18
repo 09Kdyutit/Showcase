@@ -3,15 +3,14 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createServiceClient } from '@/lib/supabase/server'
 
-export const alt = 'Evidence score on Showcase'
+export const alt = 'Evidence clarity and coverage review on Showcase'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 const iconBase64 = readFileSync(join(process.cwd(), 'public', 'logo-icon.png')).toString('base64')
 const iconDataUri = `data:image/png;base64,${iconBase64}`
 
-// The share card: "I'm 84/100 job-ready" is inherently screenshot-worthy — each shared
-// Shared evidence-score links expose only the number and target role.
+// Shared Evidence Audit cards expose only the score and optional target-role context.
 export default async function ProofOgImage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   let score = 0
@@ -54,9 +53,9 @@ export default async function ProofOgImage({ params }: { params: Promise<{ token
           <span style={{ color: '#71717a', fontSize: 60, fontWeight: 700 }}>/100</span>
         </div>
         <span style={{ color: '#fafafa', fontSize: 34, fontWeight: 700, marginTop: 24 }}>
-          {role ? `Hiring-ready for ${role}` : 'Evidence-based hiring readiness'}
+          {role ? `Evidence clarity for ${role}` : 'Evidence clarity and coverage'}
         </span>
-        <span style={{ color: '#71717a', fontSize: 22, marginTop: 40 }}>Turn your résumé into evidence with Showcase</span>
+        <span style={{ color: '#71717a', fontSize: 22, marginTop: 40 }}>A diagnostic review, not a hiring prediction</span>
       </div>
     ),
     { ...size }

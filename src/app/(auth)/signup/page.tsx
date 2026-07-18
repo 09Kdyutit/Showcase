@@ -231,9 +231,9 @@ export default function SignupPage() {
           </Link>
 
           <div className="mb-7">
-            <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Create your account</h1>
-            <p className="mb-3 text-sm text-muted-foreground lg:hidden">
-              Build, edit, and privately preview your portfolio free. No credit card required.
+            <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Build your portfolio free</h1>
+            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+              Create your account, then upload a PDF/DOCX résumé or paste the text to start a private, editable portfolio draft. No credit card required.
             </p>
             <p className="text-muted-foreground text-sm">
               Already have one?{' '}
@@ -347,7 +347,7 @@ export default function SignupPage() {
               loading={loading}
               disabled={admissionState === 'checking' || admissionState === 'invalid' || referralState === 'checking' || referralState === 'invalid' || referralState === 'unavailable'}
             >
-              Create account
+              Create free account
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>

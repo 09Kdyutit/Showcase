@@ -201,7 +201,7 @@ export function ProofAssembly() {
         className="mt-3 text-center text-[11px]"
         style={{ color: 'rgba(191,219,254,0.5)' }}
       >
-        Missing proof is flagged, never invented.
+        Missing support is flagged rather than filled in; review every suggestion before using it.
       </p>
     </div>
   )

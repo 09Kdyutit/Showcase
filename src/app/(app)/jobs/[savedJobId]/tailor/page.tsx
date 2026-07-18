@@ -19,6 +19,7 @@ import { createClient } from '@/lib/supabase/client'
 import { TailorPaywallDialog } from '@/components/billing/tailor-paywall-dialog'
 import type { TailoredResumeOutput } from '@/lib/ai/schemas'
 import type { JobListing, TruthEntry, TailoredBullet, SavedJob, MatchBreakdown } from '@/types/database'
+import { resumeIntakePath } from '@/lib/constants'
 
 // ── Truth Entry Card ──────────────────────────────────────────────────────────
 function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confirmed: boolean) => void }) {
@@ -502,15 +503,17 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
   async function markApplied() {
     if (!savedJobId || isApplied) return
     setApplying(true)
+    // Optimistic: the pipeline badge flips immediately; a failed PATCH flips it back.
+    setMarkedApplied(true)
     try {
       const res = await fetch('/api/jobs/save', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: savedJobId, status: 'applied' }),
       })
-      if (res.ok) { setMarkedApplied(true); toast.success('Marked as applied — we\'ll nudge you to follow up.') }
-      else toast.error('Could not update status.')
-    } catch { toast.error('Could not update status.') }
+      if (res.ok) { toast.success('Marked as applied — we\'ll nudge you to follow up.') }
+      else { setMarkedApplied(false); toast.error('Could not update status.') }
+    } catch { setMarkedApplied(false); toast.error('Could not update status.') }
     finally { setApplying(false) }
   }
   const [activeSection, setActiveSection] = useState<'summary' | 'experience' | 'truth' | 'interview'>('summary')
@@ -821,7 +824,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
         <div className="mx-4 mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-center gap-3">
           <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
           <p className="text-sm text-amber-400">
-            Upload your resume first. <Link href="/resume" className="underline">Go to Resume →</Link>
+            Upload your resume first. <Link href={resumeIntakePath(`/jobs/${savedJobId}/tailor`)} className="underline">Import résumé →</Link>
           </p>
         </div>
       )}
@@ -841,7 +844,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>{job?.title ?? 'this role'}</em>
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-              Showcase will rewrite your resume to foreground the experience most relevant to this role - using only your existing evidence, never fabricating facts.
+              Showcase starts from your existing evidence and foregrounds the experience most relevant to this role. Review the draft and correct any unsupported wording before using it.
             </p>
             <p className="text-xs text-muted-foreground/60 mb-6">
               Every change will be shown in the Truth Ledger for your review before use.

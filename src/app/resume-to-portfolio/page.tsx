@@ -259,7 +259,7 @@ export default function ResumeToPortfolioPage() {
                     'One AI portfolio generation',
                     'Full editing, themes, images, and checklist',
                     'Private portfolio preview',
-                    'Daily Evidence Audit with core feedback',
+                    'One complete 11-dimension Evidence Audit every 24 hours',
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" /> {item}</li>
                   ))}
@@ -278,7 +278,7 @@ export default function ResumeToPortfolioPage() {
                   {[
                     'Live portfolio publishing and preview card',
                     'Portfolio regeneration and higher AI limits',
-                    'Complete 11-category Evidence Audit',
+                    '10 complete 11-dimension Evidence Audits every 24 hours',
                     'Personalized job tools and expanded application workflows',
                     'Standalone HTML portfolio export',
                   ].map((item) => (

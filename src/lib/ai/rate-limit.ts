@@ -5,11 +5,6 @@ import { isAIEnabled, KILL_SWITCH_MESSAGE } from '@/lib/feature-flags'
 const LIMITS = {
   free: {
     resume_analyzed: { max: 3, windowHours: 24 },
-    audit_completed: { max: 1, windowHours: 24 },
-    // Free gets one first-generation attempt per window. The route's server-owned
-    // ai_generated_at check remains the lifetime success gate; this atomic counter is the
-    // in-flight mutex that stops parallel first-generation requests reaching the provider.
-    portfolio_generated: { max: 1, windowHours: 24 },
     bullet_improved: { max: 5, windowHours: 24 },
     role_matched: { max: 2, windowHours: 24 },
     job_imported: { max: 3, windowHours: 24 },
@@ -24,8 +19,6 @@ const LIMITS = {
   },
   pro: {
     resume_analyzed: { max: 25, windowHours: 24 },
-    audit_completed: { max: 10, windowHours: 24 },
-    portfolio_generated: { max: 10, windowHours: 24 },
     bullet_improved: { max: 50, windowHours: 24 },
     role_matched: { max: 20, windowHours: 24 },
     job_imported: { max: 50, windowHours: 24 },
@@ -45,6 +38,13 @@ export type EventName = keyof typeof LIMITS.free
 export type RateLimitResult =
   | { allowed: true }
   | { allowed: false; reason: string; retryAfter?: string; status?: 403 | 429 | 503 }
+
+export function resolveGlobalAiDailyLimit(): number {
+  const configuredGlobalMax = Number(process.env.AI_GLOBAL_DAILY_LIMIT)
+  return Number.isFinite(configuredGlobalMax) && configuredGlobalMax > 0
+    ? Math.min(Math.floor(configuredGlobalMax), 1_000_000)
+    : 2000
+}
 
 /**
  * A short-window attempt throttle, separate from product quota and referral credits.
@@ -120,10 +120,7 @@ export async function checkRateLimit(
     // in one transaction. Over-limit spam never advances the global counter; a global
     // denial restores the user's counter/credit; concurrent bonus uses serialize on the
     // profile row. This makes "+5 credits" five calls total, not +5 to every feature forever.
-    const configuredGlobalMax = Number(process.env.AI_GLOBAL_DAILY_LIMIT)
-    const globalMax = Number.isFinite(configuredGlobalMax) && configuredGlobalMax > 0
-      ? Math.min(Math.floor(configuredGlobalMax), 1_000_000)
-      : 2000
+    const globalMax = resolveGlobalAiDailyLimit()
     const windowSeconds = limit.windowHours * 60 * 60
     const { data, error } = await supabase
       .rpc('consume_ai_request_quota', {
@@ -132,9 +129,9 @@ export async function checkRateLimit(
         p_window_seconds: windowSeconds,
         p_base_max: limit.max,
         p_global_max: globalMax,
-        // Referral credits add usage to ordinary Free AI tools, but they must never turn
-        // the one-time first-portfolio entitlement into regeneration/additional portfolios.
-        p_allow_bonus: !isPro && eventName !== 'portfolio_generated',
+        // The two activation-critical features use server-owned leases and never enter
+        // this legacy product-counter/referral-credit path.
+        p_allow_bonus: !isPro,
       })
       .single() as {
         data: {
