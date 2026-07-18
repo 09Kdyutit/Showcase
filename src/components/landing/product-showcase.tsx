@@ -262,7 +262,7 @@ export function ProductShowcase() {
                   <WorkspaceCard
                     icon={TrendingUp}
                     eyebrow="Evidence Audit"
-                    title="11-category Pro review"
+                    title="Complete 11-dimension review"
                     className="col-span-1 md:col-span-2"
                     accent="oklch(74% 0.13 195)"
                   >

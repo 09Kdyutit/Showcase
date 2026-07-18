@@ -225,7 +225,7 @@ export default function StoryBankPage() {
 
       <div className="rounded-xl border border-border/60 bg-surface-100 p-4 text-xs text-muted-foreground flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-        <p>Stories are private to you. Showcase never invents facts to complete a story - only what you write here, or evidence you&apos;ve verified from your resume or portfolio, is ever used.</p>
+        <p>Stories are private to you. Showcase uses what you write here and evidence from your resume or portfolio as context; review and correct every AI suggestion before using it.</p>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const PRO_FEATURES = [
   '10 portfolio generations per day',
-  '10 complete evidence audits per day',
+  '10 complete 11-dimension Evidence Audits every 24 hours',
   'Public portfolio at /p/alex-chen',
   'Standalone HTML portfolio export',
   '15 tailored applications per day',

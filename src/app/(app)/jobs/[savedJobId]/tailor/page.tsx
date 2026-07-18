@@ -832,7 +832,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
               <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>{job?.title ?? 'this role'}</em>
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-              Showcase will rewrite your resume to foreground the experience most relevant to this role - using only your existing evidence, never fabricating facts.
+              Showcase starts from your existing evidence and foregrounds the experience most relevant to this role. Review the draft and correct any unsupported wording before using it.
             </p>
             <p className="text-xs text-muted-foreground/60 mb-6">
               Every change will be shown in the Truth Ledger for your review before use.

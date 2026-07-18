@@ -39,7 +39,7 @@ After you try it, go to [FEEDBACK_LINK] and answer a few questions. Blunt feedba
 
 **A few things to know**
 
-Showcase never invents experience. Every word in your portfolio comes from what you provide. We do not fabricate employers, projects, metrics, certifications, or claims.
+Showcase starts from the experience you provide and keeps the result editable. AI can make mistakes or add unsupported wording, so review and correct the portfolio before using or publishing it.
 
 Nothing gets published without your review. Your portfolio starts as a private draft.
 

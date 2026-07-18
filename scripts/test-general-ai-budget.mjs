@@ -196,9 +196,7 @@ check(providerIndex >= 0, 'central provider path must remain present')
 
 const quotaGuardedRoutes = [
   'src/app/api/ai/analyze-resume/route.ts',
-  'src/app/api/ai/audit-portfolio/route.ts',
   'src/app/api/ai/cover-letter/route.ts',
-  'src/app/api/ai/generate-portfolio/route.ts',
   'src/app/api/ai/improve-resume/route.ts',
   'src/app/api/ai/outreach/route.ts',
   'src/app/api/ai/role-match/route.ts',
@@ -215,6 +213,36 @@ for (const routePath of quotaGuardedRoutes) {
   check(route.includes('runPromptWithQuota('), `${routePath} must use reserve-before-quota flow`)
   check(!route.includes('await runPrompt('), `${routePath} must not bypass reserve-before-quota flow`)
 }
+
+const featureLeaseRoutes = [
+  'src/app/api/ai/audit-portfolio/route.ts',
+  'src/app/api/ai/generate-portfolio/route.ts',
+]
+for (const routePath of featureLeaseRoutes) {
+  const route = readFileSync(resolve(routePath), 'utf8')
+  check(route.includes('runPromptWithFeatureUsageLease('),
+    `${routePath} must use the reserve-before-feature-lease flow`)
+  check(!route.includes('await runPrompt('),
+    `${routePath} must not bypass the budget and feature-lease guards`)
+}
+
+const featureLeaseRunnerStart = client.indexOf('export async function runPromptWithFeatureUsageLease')
+const featureLeaseRunnerEnd = client.indexOf('\nexport async function runPrompt<', featureLeaseRunnerStart)
+const featureLeaseRunner = client.slice(featureLeaseRunnerStart, featureLeaseRunnerEnd)
+const featureBudgetIndex = featureLeaseRunner.indexOf('preparePromptCall(spec, input)')
+const featureQuotaIndex = featureLeaseRunner.indexOf('reserveAiFeatureUsageLease(usage.service')
+const featureProviderIndex = featureLeaseRunner.indexOf('...await prepared.run()')
+check(
+  featureLeaseRunnerStart >= 0
+    && featureBudgetIndex >= 0
+    && featureBudgetIndex < featureQuotaIndex
+    && featureQuotaIndex < featureProviderIndex,
+  'feature-lease prompts must reserve dollars, then entitlement, before provider contact',
+)
+check(
+  featureLeaseRunner.includes("if (!lease.allowed) {\n    await prepared.release()"),
+  'a feature-lease denial must release its unused dollar reservation',
+)
 
 const envExample = readFileSync(resolve('.env.example'), 'utf8')
 check(envExample.includes('OPENAI_GENERAL_DAILY_BUDGET_USD=4'), 'general daily allocation must be $4')

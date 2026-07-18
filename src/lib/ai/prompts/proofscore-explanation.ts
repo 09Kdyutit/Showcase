@@ -66,13 +66,13 @@ Return JSON:
     { "key": string, "explanation": string, "issues": [string], "fix": string, "example": string }
   ],
   "missing_evidence": ["Specific claims in the content that lack supporting proof"],
-  "top_priorities": ["Top 3-5 specific actions ranked by impact on ${targetRole} hiring, consistent with the lowest-scoring categories"]
+  "top_priorities": ["Top 3-5 specific actions ranked by impact on how clearly the supplied evidence supports ${targetRole}, consistent with the lowest-scoring categories"]
 }`
 }
 
 export const proofScoreExplanationPrompt = definePrompt<ProofScoreExplanationInput, AuditExplanationResultOutput>({
   id: 'proofscore-explanation',
-  version: '2.1.0',
+  version: '2.2.0',
   task: 'Explain deterministically-computed ProofScore category scores in plain language with grounded, actionable fixes. Never assigns or changes a score.',
   routes: ['/api/ai/audit-portfolio'],
   modelTier: 'main',

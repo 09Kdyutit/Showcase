@@ -19,7 +19,7 @@ const FAQS = [
   },
   {
     q: 'How does the evidence audit work?',
-    a: 'The Evidence Audit produces a 0–100 score and specific fixes based on your uploaded resume and target role. Free shows the overall score and core category feedback. Pro unlocks the full 11-category breakdown and higher daily limits. It is guidance, not a hiring prediction.',
+    a: 'The Evidence Audit produces a 0–100 score across 11 dimensions with specific fixes based on your uploaded resume, portfolio, and target role. Free includes one complete Audit every 24 hours. Pro raises the limit to 10 complete Audits every 24 hours. It is guidance, not a hiring prediction.',
   },
   {
     q: 'Are the jobs and match scores real?',
@@ -35,7 +35,7 @@ const FAQS = [
   },
   {
     q: 'What is the difference between Free and Pro?',
-    a: 'Free requires no card and includes resume parsing, one AI portfolio generation, draft editing and private preview, a daily Evidence Audit with core feedback, demo job browsing, role import, a basic match score, written interview practice, and daily ATS tools within Free limits. Pro is $15/month or $150/year and adds live publishing with a preview card, regeneration, the full audit breakdown, higher limits, Tailor Studio, personalized job tools, standalone HTML export, and voice or recorded interview allowance when enabled.',
+    a: 'Free requires no card and includes resume parsing, one AI portfolio generation, draft editing and private preview, one complete 11-dimension Evidence Audit every 24 hours, demo job browsing, role import, a basic match score, written interview practice, and daily ATS tools within Free limits. Pro is $15/month or $150/year and adds live publishing with a preview card, portfolio regeneration, 10 complete Audits every 24 hours, higher limits, Tailor Studio, personalized job tools, standalone HTML export, and voice or recorded interview allowance when enabled.',
   },
   {
     q: 'Who can see my portfolio and shared reports?',

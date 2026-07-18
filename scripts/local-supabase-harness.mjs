@@ -25,7 +25,7 @@ const DB_TEST_SCRIPTS = [
   'test:referral-credit',
   'test:interview-rls',
   'test:ai-budget-live',
-  'test:portfolio-entitlement-live',
+  'test:ai-feature-leases-live',
   'test:stripe-webhook-expanded',
 ]
 

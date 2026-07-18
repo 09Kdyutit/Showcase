@@ -863,9 +863,9 @@ export default function BuilderEditorPage({ params }: BuilderPageProps) {
                         { key: 'title', label: 'Project title', placeholder: 'e.g. Checkout Redesign', multi: false },
                         { key: 'role', label: 'Your role', placeholder: 'e.g. Lead Product Designer', multi: false },
                         { key: 'summary', label: 'One-line summary', placeholder: 'e.g. Redesigned the payment flow to reduce drop-off', multi: false },
-                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (no invention - use real context)', multi: true },
+                        { key: 'problem', label: 'Problem', placeholder: 'What specific problem did you solve? (use only real context)', multi: true },
                         { key: 'process', label: 'Process', placeholder: 'What did you do and how did you make decisions?', multi: true },
-                        { key: 'outcome', label: 'Outcome', placeholder: 'What was the measurable result? If no metrics exist, write "[Add: X% improvement]"', multi: true },
+                        { key: 'outcome', label: 'Outcome', placeholder: 'What was the result? Add only a metric you can verify; otherwise describe the real qualitative outcome.', multi: true },
                       ].map(({ key, label, placeholder, multi }) => (
                         <div key={key} className="space-y-1">
                           <Label className="text-xs">{label}</Label>

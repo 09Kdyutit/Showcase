@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { CheckCircle2, Zap, CreditCard, ArrowRight, AlertCircle, ExternalLink, Crown } from 'lucide-react'
+import { CheckCircle2, Zap, CreditCard, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,21 +16,14 @@ import type { Subscription } from '@/types/database'
 const PRO_FEATURES = [
   'Publish your portfolio at /p/your-name with a social preview card',
   'Regenerate portfolios up to 10 times per day',
-  '10 full evidence audits per day',
+  '10 complete 11-dimension Evidence Audits every 24 hours',
   '15 tailored applications and 40 cover letters per day',
   '25 resume analyses and 20 ATS checks per day',
   '150 written interviews per billing period',
   'Standalone HTML portfolio export',
 ]
 
-type CheckoutPlan = 'monthly' | 'annual' | 'founding'
-
-interface FoundingAvailability {
-  configured: boolean
-  available: boolean
-  remaining: number | null
-  limit?: number
-}
+type CheckoutPlan = 'monthly' | 'annual'
 
 export default function BillingPage() {
   const searchParams = useSearchParams()
@@ -40,7 +33,6 @@ export default function BillingPage() {
   const [confirming, setConfirming] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
-  const [founding, setFounding] = useState<FoundingAvailability | null>(null)
   const [checkoutPlan, setCheckoutPlan] = useState<CheckoutPlan | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>(
     searchParams.get('plan') === 'monthly' ? 'monthly' : 'annual'
@@ -53,17 +45,12 @@ export default function BillingPage() {
 
     const fetchSub = async () =>
       (await supabase.from('subscriptions').select('*').maybeSingle()).data
-    const fetchFounding = async () => {
-      const response = await fetch('/api/stripe/founding-availability', { cache: 'no-store' })
-      return response.ok ? response.json() as Promise<FoundingAvailability> : null
-    }
     const isProRow = (s: Subscription | null) => s?.status === 'active' || s?.status === 'trialing'
 
     async function init() {
-      const [data, foundingData] = await Promise.all([fetchSub(), fetchFounding()])
+      const data = await fetchSub()
       if (cancelled) return
       setSub(data)
-      setFounding(foundingData)
       setLoading(false)
 
       // Returned from a successful Stripe Checkout. The webhook that flips the row to
@@ -138,12 +125,6 @@ export default function BillingPage() {
       toast.error(err instanceof Error ? err.message : 'Failed to start checkout')
       setCheckoutLoading(false)
       setCheckoutPlan(null)
-      if (plan === 'founding') {
-        fetch('/api/stripe/founding-availability', { cache: 'no-store' })
-          .then((response) => response.ok ? response.json() : null)
-          .then((data) => { if (data) setFounding(data) })
-          .catch(() => {})
-      }
     }
   }
 
@@ -230,7 +211,7 @@ export default function BillingPage() {
           ) : (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <AlertCircle className="h-4 w-4" />
-              You are on the Free plan with limited features.
+              Free requires no card and includes one complete 11-dimension Evidence Audit every 24 hours.
             </div>
           )}
         </CardContent>
@@ -239,51 +220,6 @@ export default function BillingPage() {
       {/* Upgrade card (if free) */}
       {!isPro && (
         <>
-        {founding?.configured && founding.available && typeof founding.remaining === 'number' && (
-          <div className="relative overflow-hidden rounded-2xl border border-brand-500/35 bg-brand-500/5 p-8">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-300/70 to-transparent" />
-            <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-              <div>
-                <Badge variant="pro" className="mb-3"><Crown className="h-3 w-3" /> Founding member</Badge>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-foreground">$99</span>
-                  <span className="text-muted-foreground">/year</span>
-                </div>
-              </div>
-              <p className="text-sm font-semibold text-brand-300">
-                {founding.remaining} of {founding.limit ?? 10} spots left
-              </p>
-            </div>
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Ten database-capped annual subscriptions at the Founding price. The live counter includes active memberships and unexpired checkout holds.
-            </p>
-            <ul className="my-6 grid gap-3 text-sm text-foreground/80 sm:grid-cols-2">
-              {[
-                'Everything in Pro, including your portfolio live',
-                '$99/year locked while continuously subscribed',
-                'One of ten database-capped Founding memberships',
-                'Same product access and limits as Pro',
-              ].map((feature) => (
-                <li key={feature} className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" /> {feature}
-                </li>
-              ))}
-            </ul>
-            <Button
-              variant="gradient"
-              size="lg"
-              onClick={() => startCheckout('founding')}
-              loading={checkoutLoading && checkoutPlan === 'founding'}
-              disabled={checkoutLoading && checkoutPlan !== 'founding'}
-              className="gap-2"
-            >
-              <Crown className="h-4 w-4" /> Claim a founding spot · $99/year <ArrowRight className="h-4 w-4" />
-            </Button>
-            <p className="mt-3 text-xs text-muted-foreground/70">
-              Renews at $99/year while continuously subscribed. Standard refund policy applies. The live counter includes active members and checkout holds.
-            </p>
-          </div>
-        )}
         <div className="relative overflow-hidden rounded-2xl border border-border bg-surface-50 p-8">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-400/40 to-transparent" />
           <div className="relative">

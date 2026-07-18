@@ -2,6 +2,7 @@ import 'server-only'
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
 import type { z } from 'zod'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { openai, MODELS, modelSupportsTemperature, isReasoningModel, type ModelTier } from './openai'
 import type { PromptSpec } from './prompts/types'
 import {
@@ -14,9 +15,16 @@ import {
 import {
   checkAiReservationAttemptLimit,
   checkRateLimit,
+  resolveGlobalAiDailyLimit,
   type EventName,
   type RateLimitResult,
 } from '@/lib/ai/rate-limit'
+import {
+  releaseAiFeatureUsageLease,
+  reserveAiFeatureUsageLease,
+  type AiFeatureUsageEvent,
+  type AiFeatureUsageLeaseReservation,
+} from '@/lib/ai/feature-usage-leases'
 
 const IS_MOCK_MODE = !process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'development'
 
@@ -250,10 +258,10 @@ export async function callStructured<T>(
 // ── Registry-driven calls ─────────────────────────────────────────────────────
 //
 // Takes a PromptSpec from src/lib/ai/prompts/registry.ts so model tier, temperature, token
-// budget, schema, and version all come from one place. Quota-bearing API routes must use
-// runPromptWithQuota(); internal flows without a product quota may use runPrompt(). Both
-// return operational metadata so callers can persist prompt_id/prompt_version/provider/
-// model without hand-typing those strings.
+// budget, schema, and version all come from one place. Ordinary quota-bearing routes use
+// runPromptWithQuota(); Portfolio generation and complete Audit use the durable feature-
+// lease runner below; internal flows without product quota use runPrompt(). All variants
+// return prompt/provider/model metadata for authoritative persistence.
 
 export interface RunPromptResult<T> {
   data: T
@@ -368,7 +376,11 @@ export type RunPromptWithQuotaResult<T> =
 export async function runPromptWithQuota<TInput, TOutput>(
   spec: PromptSpec<TInput, TOutput>,
   input: TInput,
-  quota: { userId: string; eventName: EventName; isPro: boolean }
+  quota: {
+    userId: string
+    eventName: EventName
+    isPro: boolean
+  }
 ): Promise<RunPromptWithQuotaResult<TOutput>> {
   // This is an abuse-attempt throttle, not a product allowance. It bounds concurrent
   // reservation churn without consuming the user's feature quota or referral credits.
@@ -387,7 +399,104 @@ export async function runPromptWithQuota<TInput, TOutput>(
     await prepared.release()
     return { allowed: false, rateLimit }
   }
+
   return { allowed: true, ...await prepared.run() }
+}
+
+export type RunPromptWithFeatureUsageLeaseResult<T> =
+  | ({
+      allowed: true
+      leaseId: string
+      tierAtReservation: 'free' | 'pro'
+    } & RunPromptResult<T>)
+  | {
+      allowed: false
+      denial:
+        | { kind: 'attempt_throttle'; rateLimit: Extract<RateLimitResult, { allowed: false }> }
+        | { kind: 'feature_lease'; lease: Extract<AiFeatureUsageLeaseReservation, { allowed: false }> }
+    }
+
+/**
+ * Reserve dollars, then one exact server-owned feature lease, before contacting the
+ * provider. The lease RPC is the sole success/attempt/global-capacity authority for
+ * portfolio generation and complete audits; referral credits and legacy feature counters
+ * are intentionally not involved.
+ */
+export async function runPromptWithFeatureUsageLease<TInput, TOutput>(
+  spec: PromptSpec<TInput, TOutput>,
+  input: TInput,
+  usage: {
+    service: SupabaseClient
+    userId: string
+    eventName: AiFeatureUsageEvent
+    portfolioId?: string | null
+    resumeId?: string | null
+    expectedPortfolioContent?: Record<string, unknown> | null
+    expectedPortfolioTargetRole?: string | null
+    expectedResumeRawText?: string | null
+    expectedResumeParsedJson?: Record<string, unknown> | null
+    isProForAttemptThrottle: boolean
+  },
+): Promise<RunPromptWithFeatureUsageLeaseResult<TOutput>> {
+  const attemptLimit = await checkAiReservationAttemptLimit(
+    usage.userId,
+    usage.isProForAttemptThrottle,
+  )
+  if (!attemptLimit.allowed) {
+    return {
+      allowed: false,
+      denial: { kind: 'attempt_throttle', rateLimit: attemptLimit },
+    }
+  }
+
+  const prepared = await preparePromptCall(spec, input)
+  let lease: AiFeatureUsageLeaseReservation
+  try {
+    lease = await reserveAiFeatureUsageLease(usage.service, {
+      userId: usage.userId,
+      eventName: usage.eventName,
+      portfolioId: usage.portfolioId,
+      resumeId: usage.resumeId,
+      expectedPortfolioContent: usage.expectedPortfolioContent,
+      expectedPortfolioTargetRole: usage.expectedPortfolioTargetRole,
+      expectedResumeRawText: usage.expectedResumeRawText,
+      expectedResumeParsedJson: usage.expectedResumeParsedJson,
+      globalMax: resolveGlobalAiDailyLimit(),
+    })
+  } catch (error) {
+    await prepared.release()
+    throw error
+  }
+
+  if (!lease.allowed) {
+    await prepared.release()
+    return {
+      allowed: false,
+      denial: { kind: 'feature_lease', lease },
+    }
+  }
+
+  try {
+    return {
+      allowed: true,
+      leaseId: lease.leaseId,
+      tierAtReservation: lease.tierAtReservation,
+      ...await prepared.run(),
+    }
+  } catch (error) {
+    try {
+      await releaseAiFeatureUsageLease(usage.service, {
+        leaseId: lease.leaseId,
+        userId: usage.userId,
+        eventName: usage.eventName,
+        reason: 'provider_or_prompt_failure',
+      })
+    } catch (releaseError) {
+      console.error('[ai-feature-lease] provider failure lease release failed:',
+        releaseError instanceof Error ? releaseError.message : 'unknown error')
+    }
+    throw error
+  }
 }
 
 export async function runPrompt<TInput, TOutput>(

@@ -171,7 +171,7 @@
       "pillar": "founder-ethos",
       "status": "draft",
       "scheduledAt": "2026-08-03 09:00",
-      "text": "Showcase keeps the boundary simple: build, edit, and preview your private portfolio free. Publishing a live shareable page is Pro.\n\nNo blurred work or countdown. Nothing gets invented, and your draft remains yours.\n\nSee how it works: {{url}}",
+      "text": "Showcase keeps the boundary simple: build, edit, and preview your private portfolio free. Publishing a live shareable page is Pro.\n\nNo blurred work or countdown. AI drafts start from what you provide, stay editable, and need your review. Your draft remains yours.\n\nSee how it works: {{url}}",
       "linkPath": "/",
       "evidenceRequired": ["billing and publish paywall copy still match these entitlements"],
       "permissionEvidence": null,
@@ -231,14 +231,14 @@
       "approvedAt": null
     },
     {
-      "id": "x-18-honest-scarcity",
+      "id": "x-18-free-workflow",
       "channel": "x",
-      "pillar": "founder-ethos",
+      "pillar": "portfolio-workflow",
       "status": "draft",
       "scheduledAt": "2026-08-11 09:00",
-      "text": "Showcase has 10 founding memberships—not an endless countdown.\n\nThe database reserves each spot and refuses the 11th. If reservations pause, the offer disappears.\n\nScarcity should be verifiable in code or absent from the copy. {{url}}",
-      "linkPath": "/billing",
-      "evidenceRequired": ["Founding Member offer is enabled", "live availability is greater than zero"],
+      "text": "Start with the résumé you already have.\n\nShowcase turns it into an editable portfolio and keeps the same experience connected across role matching, application materials, and interview practice.\n\nFree requires no card and includes one complete 11-dimension Evidence Audit every 24 hours. Pro is $15/month or $150/year and adds live publishing, regeneration, 10 Audits every 24 hours, and higher limits. {{url}}",
+      "linkPath": "/",
+      "evidenceRequired": ["Free and Pro offer copy matches the live pricing page", "landing page remains workflow-first"],
       "permissionEvidence": null,
       "approvedBy": null,
       "approvedAt": null

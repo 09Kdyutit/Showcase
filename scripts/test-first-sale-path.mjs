@@ -98,6 +98,13 @@ expect('signup intent is measured once without recording form values',
   signup.includes("onStart={() => markSignupStarted('google')}") &&
   signup.includes('if (signupStarted.current) return') &&
   !signup.includes("trackMarketingEvent('signup_started', { email"))
+expect('signup preserves the free-portfolio promise and explains the immediate next step',
+  signup.includes('Build your portfolio free') &&
+  signup.includes('Create your account, then upload a PDF/DOCX résumé or paste the text to start a private, editable portfolio draft. No credit card required.') &&
+  signup.includes('Create free account') &&
+  signup.includes("router.push('/onboarding')") &&
+  !signup.includes('Create account and import résumé') &&
+  !signup.includes('mb-3 text-sm text-muted-foreground lg:hidden'))
 expect('Google signup exposes a pre-redirect intent callback',
   googleButton.includes('onStart?: () => void') &&
   googleButton.indexOf('onStart?.()') < googleButton.indexOf('signInWithOAuth'))

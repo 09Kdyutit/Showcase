@@ -118,7 +118,7 @@ function AuditStage() {
           </div>
         ))}
       </div>
-      <p className="text-xs pt-1" style={{ color: DIMMER }}>Free shows your score + 4 core categories daily. Pro shows all 11.</p>
+      <p className="text-xs pt-1" style={{ color: DIMMER }}>Free includes all 11 dimensions once every 24 hours. Pro raises the limit to 10.</p>
     </div>
   )
 }
@@ -192,8 +192,8 @@ const STEPS: Step[] = [
     icon: Gauge,
     title: 'See exactly what to fix',
     short: 'Evidence Audit: a score with instructions',
-    desc: 'The Evidence Audit scores how provable and specific your story is, category by category, with a concrete fix for each — so improving it is a checklist, not guesswork.',
-    boundary: 'Free: score + 4 core categories, daily. Pro: all 11 categories.',
+    desc: 'The Evidence Audit scores how specific and supported your story is, dimension by dimension, with a concrete fix for each — so improving it is a checklist, not guesswork.',
+    boundary: 'Free: one complete 11-dimension Audit every 24 hours. Pro: 10 every 24 hours.',
     stage: <AuditStage />,
   },
   {

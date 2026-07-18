@@ -71,7 +71,7 @@ export default async function InterviewHubPage() {
       </div>
 
       <p className="text-xs text-muted-foreground text-center pt-2">
-        Showcase never invents experience for your answers. Camera is optional and never used for appearance scoring.
+        Coaching starts from the experience you provide, but review suggested wording before using it. Camera is optional and never used for appearance scoring.
       </p>
     </main>
     </PageShell>

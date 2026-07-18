@@ -54,6 +54,13 @@ export const HERO = {
   secondaryCta: 'See the full workflow',
 } as const
 
+export const PLAN_OFFER = {
+  free:
+    'Free requires no card and includes one complete 11-dimension Evidence Audit every 24 hours, alongside resume import, the first AI portfolio generation, editing, and private preview.',
+  pro:
+    'Pro is $15/month or $150/year and adds live publishing, portfolio regeneration, 10 complete 11-dimension Evidence Audits every 24 hours, and higher limits across the workspace.',
+} as const
+
 // Benefit-first descriptions for public marketing surfaces. The mechanism stays
 // explicit enough that each promise can be checked against the product.
 export const FEATURE_BENEFITS = [
@@ -67,7 +74,7 @@ export const FEATURE_BENEFITS = [
   },
   {
     feature: 'Evidence Audit',
-    benefit: 'Get a 0-100 review with concrete fixes; Pro unlocks the complete 11-category breakdown.',
+    benefit: 'Get a complete 0-100 review across 11 dimensions with concrete fixes once every 24 hours on Free; Pro raises the audit limit to 10 every 24 hours.',
   },
   {
     feature: 'Job search and matching',

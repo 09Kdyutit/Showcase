@@ -36,7 +36,7 @@ const STEPS: Step[] = [
   {
     icon: BarChart3, step: '03', title: 'Audit what needs work',
     desc: 'Get a 0–100 score and specific next fixes.',
-    detail: 'Free shows the score and core feedback. Pro unlocks the full 11-category breakdown and higher daily limits.',
+    detail: 'Free includes one complete 11-dimension Evidence Audit every 24 hours. Pro raises the Audit limit to 10 every 24 hours.',
   },
   {
     icon: Target, step: '04', title: 'Find or import a role',

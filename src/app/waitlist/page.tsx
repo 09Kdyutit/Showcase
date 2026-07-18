@@ -48,14 +48,14 @@ const WORKSPACE_FEATURES = [
 const FREE_FEATURES = [
   'Resume import and AI parsing',
   'One generated portfolio with full editing and private preview',
-  'Daily Evidence Audit with core feedback',
+  'One complete 11-dimension Evidence Audit every 24 hours',
   'Written interview practice and daily ATS tools within Free limits',
 ]
 
 const PRO_FEATURES = [
   'Live publishing with a shareable link and preview card',
   'Portfolio regeneration and higher AI limits',
-  'Full 11-category Evidence Audit breakdown',
+  '10 complete 11-dimension Evidence Audits every 24 hours',
   'Tailor Studio, personalized job tools, and voice allowances when enabled',
 ]
 
@@ -248,7 +248,9 @@ function WaitlistContent() {
                   Evidence Audit stays in the toolkit
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                  It gives an honest 0-100 review and specific fixes. Free includes core feedback; Pro unlocks the full 11-category breakdown. It supports the workflow instead of defining the whole product.
+                  It gives an honest 0-100 review across 11 dimensions with specific fixes.
+                  Free includes one complete Audit every 24 hours; Pro raises that limit to 10.
+                  It supports the workflow instead of defining the whole product.
                 </p>
               </div>
             </div>
