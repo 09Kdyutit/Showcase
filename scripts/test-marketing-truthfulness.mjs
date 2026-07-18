@@ -135,6 +135,9 @@ const positioningSurface = [
 const landingEntry = readFileSync('src/app/page.tsx', 'utf8')
 const heroEntry = readFileSync('src/components/landing/hero-section.tsx', 'utf8')
 const signupEntry = readFileSync('src/app/(auth)/signup/page.tsx', 'utf8')
+const pricingEntry = readFileSync('src/app/pricing/page.tsx', 'utf8')
+const billingEntry = readFileSync('src/app/(app)/billing/page.tsx', 'utf8')
+const publishPaywallEntry = readFileSync('src/components/billing/publish-paywall-dialog.tsx', 'utf8')
 for (const { label, content, pattern } of [
   { label: 'fictional testimonial carousel', content: landingEntry, pattern: /VoicesSection|StaggerTestimonials/ },
   { label: 'retired Evidence Field hero animation', content: heroEntry, pattern: /EvidenceField/ },
@@ -147,14 +150,22 @@ for (const { label, content, pattern } of [
 }
 
 for (const { label, pattern } of [
-  { label: 'mobile free-portfolio promise', pattern: /Build, edit, and privately preview your portfolio free/i },
-  { label: 'mobile no-card reassurance', pattern: /No credit card required/i },
+  { label: 'free-portfolio signup headline', pattern: /Build your portfolio free/i },
+  { label: 'resume-import next step', pattern: /upload a PDF\/DOCX résumé or paste the text/i },
+  { label: 'private editable draft expectation', pattern: /private, editable portfolio draft/i },
+  { label: 'all-viewport no-card reassurance', pattern: /No credit card required/i },
+  { label: 'truthful free-account CTA', pattern: /Create free account/i },
   { label: 'audience-neutral email label', pattern: /<Label htmlFor="email">Email address<\/Label>/i },
 ]) {
   if (!pattern.test(signupEntry)) {
     console.log(`  ❌ signup entry point — missing ${label}`)
     violations++
   }
+}
+
+if (/No credit card required[\s\S]{0,80}lg:hidden|lg:hidden[\s\S]{0,80}No credit card required/i.test(signupEntry)) {
+  console.log('  ❌ signup entry point — hides the no-card reassurance on desktop')
+  violations++
 }
 
 if (/<Label htmlFor="email">Work email<\/Label>/i.test(signupEntry)) {
@@ -183,6 +194,8 @@ const REQUIRED_POSITIONING = [
   { label: 'monthly Pro price', pattern: /\$15\s*\/\s*month/i },
   { label: 'annual Pro price', pattern: /\$150\s*\/\s*year/i },
   { label: 'Pro-only live publishing', pattern: /Pro.{0,100}publish|publish.{0,100}Pro/is },
+  { label: 'Pro portfolio regeneration', pattern: /Pro.{0,180}regeneration|regeneration.{0,180}Pro/is },
+  { label: 'Pro higher limits', pattern: /Pro.{0,180}higher limits|higher limits.{0,180}Pro/is },
 ]
 
 for (const { label, pattern } of REQUIRED_POSITIONING) {
@@ -200,6 +213,65 @@ for (const { label, pattern } of [
 ]) {
   if (pattern.test(positioningSurface)) {
     console.log(`  ❌ positioning contract — found ${label}`)
+    violations++
+  }
+}
+
+for (const { label, content, pattern } of [
+  {
+    label: 'pricing Free private-preview promise',
+    content: pricingEntry,
+    pattern: /Build, edit, and privately preview portfolio drafts/i,
+  },
+  {
+    label: 'publish paywall live-link value',
+    content: publishPaywallEntry,
+    pattern: /Unlock a live link for this portfolio/i,
+  },
+  {
+    label: 'publish paywall monthly price',
+    content: publishPaywallEntry,
+    pattern: /\$15\/month/i,
+  },
+  {
+    label: 'publish paywall annual price',
+    content: publishPaywallEntry,
+    pattern: /\$150\/year/i,
+  },
+  {
+    label: 'publish paywall regeneration and higher-limits value',
+    content: publishPaywallEntry,
+    pattern: /Higher AI limits and portfolio regeneration/i,
+  },
+  {
+    label: 'publish paywall post-checkout publishing instruction',
+    content: publishPaywallEntry,
+    pattern: /Checkout upgrades your account; it does not publish this draft/i,
+  },
+  {
+    label: 'billing publish-intent handoff',
+    content: billingEntry,
+    pattern: /Unlock a live URL and preview card with Pro[\s\S]{0,180}draft stays private/i,
+  },
+  {
+    label: 'billing post-checkout publishing instruction',
+    content: billingEntry,
+    pattern: /Checkout upgrades your account; it does not publish your draft/i,
+  },
+]) {
+  if (!pattern.test(content)) {
+    console.log(`  ❌ conversion contract — missing ${label}`)
+    violations++
+  }
+}
+
+for (const { label, content } of [
+  { label: 'billing page', content: billingEntry },
+  { label: 'publish paywall', content: publishPaywallEntry },
+]) {
+  const match = content.match(/Founding(?: member| membership| plan)?|\$99\s*\/\s*year|founding-availability|startCheckout\('founding'\)/i)
+  if (match) {
+    console.log(`  ❌ ${label} — promotes paused legacy plan: "${match[0]}"`)
     violations++
   }
 }

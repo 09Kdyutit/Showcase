@@ -169,11 +169,12 @@ expect('paywall buttons still route through Billing instead of bypassing the app
   publishPaywall.includes('router.push(`/billing?${params.toString()}`)') &&
   !publishPaywall.includes("fetch('/api/stripe/create-checkout-session'"))
 expect('paywall plan choices fit their decision column with compact, truthful pricing',
-  publishPaywall.includes('<span>Monthly Pro</span>') &&
+  publishPaywall.includes('Continue with monthly Pro') &&
   publishPaywall.includes('$15/month') &&
-  publishPaywall.includes('Annual Pro') &&
+  publishPaywall.includes('Continue with annual Pro') &&
   publishPaywall.includes('Save $30') &&
   publishPaywall.includes('$150/year') &&
+  (publishPaywall.match(/whitespace-normal/g) ?? []).length >= 2 &&
   !publishPaywall.includes('sm:grid-cols-2') &&
   !publishPaywall.includes('Publish live · $15/month'))
 expect('mobile paywall shows the upgrade decision before the duplicate portfolio preview',

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { ArrowRight, CheckCircle2, Globe, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -29,13 +28,6 @@ interface PublishPaywallDialogProps {
   content: Partial<PortfolioContent>
 }
 
-interface FoundingAvailability {
-  configured: boolean
-  available: boolean
-  remaining: number | null
-  limit?: number
-}
-
 export function PublishPaywallDialog({
   open,
   onOpenChange,
@@ -47,19 +39,8 @@ export function PublishPaywallDialog({
   content,
 }: PublishPaywallDialogProps) {
   const router = useRouter()
-  const [founding, setFounding] = useState<FoundingAvailability | null>(null)
 
-  useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    fetch('/api/stripe/founding-availability', { cache: 'no-store' })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (!cancelled) setFounding(data) })
-      .catch(() => { if (!cancelled) setFounding(null) })
-    return () => { cancelled = true }
-  }, [open])
-
-  function choosePlan(plan: 'monthly' | 'annual' | 'founding') {
+  function choosePlan(plan: 'monthly' | 'annual') {
     const params = new URLSearchParams({ plan, source: 'publish', portfolio_id: portfolioId })
     router.push(`/billing?${params.toString()}`)
   }
@@ -105,42 +86,19 @@ export function PublishPaywallDialog({
               </p>
             </div>
 
-            {founding?.configured && founding.available && typeof founding.remaining === 'number' && (
-              <button
-                type="button"
-                onClick={() => choosePlan('founding')}
-                className="w-full rounded-xl border border-brand-500/35 bg-brand-500/10 p-4 text-left transition-colors hover:bg-brand-500/15"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Founding member · $99/year</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      Everything in Pro at $99/year while continuously subscribed. The live counter is limited to ten active members or checkout holds.
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs font-semibold text-brand-300">
-                    {founding.remaining} of {founding.limit ?? 10} left
-                  </span>
-                </div>
-                <span className="mt-3 flex items-center gap-1 text-xs font-semibold text-brand-300">
-                  Claim a founding spot <ArrowRight className="h-3 w-3" />
-                </span>
-              </button>
-            )}
-
             <div className="grid gap-3">
-              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
-                <span>Monthly Pro</span>
-                <span className="ml-auto flex items-center gap-1.5 text-white/90">
+              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 whitespace-normal px-5 py-3">
+                <span className="min-w-0 text-left">Continue with monthly Pro</span>
+                <span className="ml-auto flex shrink-0 items-center gap-1.5 text-white/90">
                   $15/month <ArrowRight className="h-4 w-4" />
                 </span>
               </Button>
-              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
-                <span className="flex items-center gap-2">
-                  Annual Pro
+              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 w-full justify-between gap-3 whitespace-normal px-5 py-3">
+                <span className="flex min-w-0 flex-wrap items-center gap-2 text-left">
+                  Continue with annual Pro
                   <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Save $30</span>
                 </span>
-                <span className="ml-auto text-muted-foreground">$150/year</span>
+                <span className="ml-auto shrink-0 text-muted-foreground">$150/year</span>
               </Button>
             </div>
 

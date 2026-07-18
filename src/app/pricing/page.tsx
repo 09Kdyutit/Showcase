@@ -17,7 +17,7 @@ const FREE_FEATURES = [
   'PDF, DOCX, and pasted resume import with up to 3 analyses / day',
   'One AI portfolio generation',
   'One Evidence Audit score / day with 4 core categories',
-  'Build, edit, and preview portfolio drafts',
+  'Build, edit, and privately preview portfolio drafts',
   '5 AI bullet improvements / day',
   'Browse job listings (demo data)',
   'Import up to 3 job descriptions / day',
