@@ -16,6 +16,7 @@ import { ProofScoreRing } from '@/components/ui/proof-score-ring'
 import { createClient } from '@/lib/supabase/client'
 import { cn, scoreColor } from '@/lib/utils'
 import { PageShell, PageHeader } from '@/components/shared/page-header'
+import { resumeIntakePath } from '@/lib/constants'
 import type { AuditResult, AuditCategory, Resume } from '@/types/database'
 
 function CategoryCard({ cat, index }: { cat: AuditCategory; index: number }) {
@@ -399,7 +400,7 @@ export default function AuditPage() {
                 Upload your resume first - the evidence audit reviews it for a target role.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/resume">Go to Resume</Link>
+                <Link href={resumeIntakePath('/audit')}>Import résumé</Link>
               </Button>
             </div>
           ) : (

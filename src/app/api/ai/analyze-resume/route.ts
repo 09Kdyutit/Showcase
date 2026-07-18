@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { hashString } from '@/lib/utils'
 import { sanitizeParsedResume } from '@/lib/ai/sanitize-resume'
 import { recordPromptCost } from '@/lib/growth/prompt-cost'
+import { requirePersistedRow } from '@/lib/db-authority'
 
 // Heavy AI/render route — raise the serverless timeout above the platform default so
 // slow provider responses (portfolio gen, analysis, exports) complete instead of 504ing.
@@ -37,12 +38,13 @@ export async function POST(request: NextRequest) {
     // the user's daily rate limit for nothing. Only short-circuit when the stored text is an
     // exact match for what's being submitted now; any actual edit still gets a fresh parse.
     if (resumeId) {
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('resumes')
         .select('raw_text, parsed_json')
         .eq('id', resumeId)
         .eq('user_id', user.id)
         .single()
+      if (existingError) throw new Error('Could not load the saved resume')
       if (existing?.parsed_json && existing.raw_text === resumeText) {
         return NextResponse.json({ data: existing.parsed_json, cached: true })
       }
@@ -74,15 +76,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    let persistedResumeId = resumeId
     if (resumeId) {
-      await supabase
+      const resumeWrite = await supabase
         .from('resumes')
         .update({ parsed_json: result as unknown as Record<string, unknown>, updated_at: new Date().toISOString() })
         .eq('id', resumeId)
         .eq('user_id', user.id)
+        .select('id')
+        .single()
+      requirePersistedRow(resumeWrite, 'Could not save the analyzed resume')
+    } else {
+      const resumeWrite = await supabase
+        .from('resumes')
+        .insert({
+          user_id: user.id,
+          title: 'My Resume',
+          raw_text: resumeText,
+          parsed_json: result as unknown as Record<string, unknown>,
+        })
+        .select('id')
+        .single()
+      persistedResumeId = requirePersistedRow(resumeWrite, 'Could not save the analyzed resume').id
     }
 
-    await supabase.from('generations').insert({
+    const { error: generationLedgerError } = await supabase.from('generations').insert({
       user_id: user.id,
       type: 'resume_analysis',
       input_hash: inputHash,
@@ -93,18 +111,23 @@ export async function POST(request: NextRequest) {
       provider: meta.provider,
       status: 'completed',
     })
+    if (generationLedgerError) {
+      // The saved parsed resume is the user-facing authority. Keep that success usable,
+      // but make the best-effort diagnostic ledger failure explicit in server logs.
+      console.error('[analyze-resume] generation ledger insert failed:', generationLedgerError.message)
+    }
 
     trackAsync(user.id, 'resume_analyzed', {
-      resume_id: resumeId ?? null,
+      resume_id: persistedResumeId ?? null,
       word_count: resumeText.split(' ').length,
     })
     trackAsync(user.id, 'resume_parsed', {
-      resume_id: resumeId ?? null,
+      resume_id: persistedResumeId ?? null,
       word_count: resumeText.split(' ').length,
       seniority: result.seniority_level ?? null,
     })
 
-    return NextResponse.json({ data: result })
+    return NextResponse.json({ data: result, resumeId: persistedResumeId })
   } catch (err) {
     console.error('[analyze-resume]', err instanceof Error ? (err.cause ?? err.message) : 'unknown error')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Analysis failed. Please try again.' }, { status: 500 })

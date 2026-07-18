@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { TailoredResumeOutput } from '@/lib/ai/schemas'
 import type { JobListing, TruthEntry, TailoredBullet, SavedJob, MatchBreakdown } from '@/types/database'
+import { resumeIntakePath } from '@/lib/constants'
 
 // ── Truth Entry Card ──────────────────────────────────────────────────────────
 function TruthCard({ entry, onConfirm }: { entry: TruthEntry; onConfirm: (confirmed: boolean) => void }) {
@@ -811,7 +812,7 @@ export default function TailorStudioPage({ params }: { params: Promise<{ savedJo
         <div className="mx-4 mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-center gap-3">
           <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
           <p className="text-sm text-amber-400">
-            Upload your resume first. <Link href="/resume" className="underline">Go to Resume →</Link>
+            Upload your resume first. <Link href={resumeIntakePath(`/jobs/${savedJobId}/tailor`)} className="underline">Import résumé →</Link>
           </p>
         </div>
       )}

@@ -98,6 +98,7 @@
     "capture:screenshots": "node scripts/capture-screenshots.mjs",
     "test:marketing-truthfulness": "node scripts/test-marketing-truthfulness.mjs",
     "test:first-sale-path": "node scripts/test-first-sale-path.mjs",
+    "test:resume-intake-path": "node --experimental-strip-types scripts/test-resume-intake-path.mjs",
     "audit:first-sale": "node --env-file=.env.local scripts/audit-first-sale-authority.mjs",
     "test:prompts": "node --env-file=.env.local scripts/eval-prompts.mjs",
     "test:eval-graders": "node scripts/test-eval-graders.mjs",

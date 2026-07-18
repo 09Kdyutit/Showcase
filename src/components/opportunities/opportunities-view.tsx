@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUser } from '@/hooks/use-user'
+import { resumeIntakePath } from '@/lib/constants'
 import type { Opportunity, OpportunityCategory } from '@/app/api/opportunities/search/route'
 
 // ── Opportunity helpers ───────────────────────────────────────────────────────
@@ -345,6 +346,12 @@ export function OpportunitiesView({ region }: { region: string }) {
               <p className="text-xs text-muted-foreground max-w-[260px]">
                 We&apos;ll match scholarships, hackathons, internships, and more to your skills, location, and background.
               </p>
+              <Link
+                href={resumeIntakePath('/opportunities')}
+                className="mt-4 inline-flex items-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-95"
+              >
+                Import résumé
+              </Link>
             </div>
           ) : (
             <>
@@ -403,4 +410,3 @@ export function OpportunitiesView({ region }: { region: string }) {
     </div>
   )
 }
-

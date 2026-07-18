@@ -16,7 +16,8 @@ import { FileUploadZone } from '@/components/shared/file-upload-zone'
 import { Logo } from '@/components/shared/logo'
 import { Walkthrough, TOUR_DONE_KEY } from '@/components/onboarding/walkthrough'
 import { generateSlug } from '@/lib/utils'
-import { PORTFOLIO_GOALS } from '@/lib/constants'
+import { PORTFOLIO_GOALS, safeResumeReturnTo } from '@/lib/constants'
+import { requirePersistedRow } from '@/lib/db-authority'
 import { THEME_LIST, DEFAULT_THEME_ID, type ThemeId } from '@/lib/portfolio/themes'
 import type { ParsedResume } from '@/types/database'
 
@@ -79,11 +80,20 @@ const GENERATE_MSGS = [
 export default function OnboardingPage() {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>('boot')
+  const [resumeReturnTo, setResumeReturnTo] = useState<string | null>(null)
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('intent') === 'resume') {
+      // Recovery links from inside the app should land on intake immediately,
+      // even when this browser has not completed the optional product tour.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate one-frame mount decision from the URL
+      setResumeReturnTo(safeResumeReturnTo(params.get('returnTo')))
+      setPhase('upload')
+      return
+    }
     let seen = false
     try { seen = !!window.localStorage.getItem(TOUR_DONE_KEY) } catch { /* no storage → show the tour */ }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- deliberate one-frame mount decision; server can't read localStorage
     setPhase(seen ? 'upload' : 'tour')
   }, [])
   const [pasteText, setPasteText] = useState('')
@@ -95,6 +105,7 @@ export default function OnboardingPage() {
   // success refresh the JWT so proxy sees the admission metadata written by the DB RPC.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    if (params.get('intent') === 'resume') return
     if (params.has('invite')) {
       // Admission paths are mutually exclusive. Prefer the email-bound waitlist token and
       // never spend a member's referral slot on the same account.
@@ -139,7 +150,9 @@ export default function OnboardingPage() {
   // exists. Carry the single-use token through the callback, redeem it here, then immediately
   // remove it from both the URL and local storage. Transient failures keep the token retryable.
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get('invite')?.trim().toLowerCase()
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('intent') === 'resume') return
+    const fromUrl = params.get('invite')?.trim().toLowerCase()
     const token = fromUrl || localStorage.getItem('showcase_invite')
     if (!token || !/^[a-f0-9]{48}$/.test(token)) return
 
@@ -202,16 +215,10 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: resume } = await supabase
-        .from('resumes')
-        .insert({ user_id: user.id, title: 'My Resume', raw_text: text })
-        .select()
-        .single()
-
       const res = await fetch('/api/ai/analyze-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText: text, resumeId: resume?.id }),
+        body: JSON.stringify({ resumeText: text }),
       })
       const { data, error } = await res.json()
       if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that resume')
@@ -227,16 +234,32 @@ export default function OnboardingPage() {
   }
 
   async function skipResume() {
+    if (resumeReturnTo) {
+      router.push(resumeReturnTo)
+      return
+    }
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     try {
-      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
-      toast.success('Welcome to Showcase! Upload a resume anytime from the Resume page.')
+      const profileWrite = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id)
+        .select('id')
+        .single()
+      requirePersistedRow(profileWrite, 'Could not save your progress. Please try again.')
+      toast.success('Welcome to Showcase! You can import a resume anytime from your dashboard.')
       router.push('/dashboard')
     } catch {
       toast.error('Something went wrong. Please try again.')
     }
+  }
+
+  async function finishResumeImport() {
+    if (!resumeReturnTo) return
+    toast.success('Résumé imported.')
+    router.push(resumeReturnTo)
   }
 
   async function createPortfolio() {
@@ -251,16 +274,22 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      await supabase.from('profiles').update({
-        target_role: targetRole,
-        experience_level: experienceLevel,
-        industry,
-        portfolio_goal: portfolioGoal,
-        linkedin_url: linkedin || null,
-        github_url: github || null,
-        website_url: website || null,
-        onboarding_completed: true,
-      }).eq('id', user.id)
+      const profileWrite = await supabase
+        .from('profiles')
+        .update({
+          target_role: targetRole,
+          experience_level: experienceLevel,
+          industry,
+          portfolio_goal: portfolioGoal,
+          linkedin_url: linkedin || null,
+          github_url: github || null,
+          website_url: website || null,
+          onboarding_completed: true,
+        })
+        .eq('id', user.id)
+        .select('id')
+        .single()
+      requirePersistedRow(profileWrite, 'Could not save your profile. Please try again.')
 
       const slug = generateSlug(targetRole || 'portfolio')
       const { data: portfolio, error: createErr } = await supabase
@@ -405,7 +434,7 @@ export default function OnboardingPage() {
           </details>
 
           <button onClick={skipResume} className="w-full text-center text-xs text-muted-foreground/50 hover:text-muted-foreground mt-6 transition-colors">
-            Skip - I&apos;ll set this up manually
+            {resumeReturnTo ? 'Cancel and go back' : "Skip - I'll set this up manually"}
           </button>
         </div>
       </div>
@@ -429,7 +458,11 @@ export default function OnboardingPage() {
             Here&apos;s your experience,{' '}
             <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>structured.</em>
           </h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Nothing here is published yet. Review it, then one click builds your full portfolio from this evidence.</p>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+            {resumeReturnTo
+              ? 'Nothing here is published. Review the structured experience, then return to the work you were doing.'
+              : 'Nothing here is published yet. Review it, then one click builds your full portfolio from this experience.'}
+          </p>
         </div>
 
         <div className="glass-card p-6 space-y-6">
@@ -582,13 +615,13 @@ export default function OnboardingPage() {
         </div>
 
         {/* Dominant primary CTA */}
-        <Button variant="gradient" size="xl" className="w-full gap-2 mt-6" onClick={createPortfolio}>
-          <Sparkles className="h-4 w-4" />
-          Create my portfolio
+        <Button variant="gradient" size="xl" className="w-full gap-2 mt-6" onClick={resumeReturnTo ? finishResumeImport : createPortfolio}>
+          {resumeReturnTo ? <CheckCircle2 className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+          {resumeReturnTo ? 'Return to previous task' : 'Create my portfolio'}
           <ArrowRight className="h-4 w-4" />
         </Button>
         <p className="text-center text-xs text-muted-foreground/50 mt-3">
-          Builds your full portfolio from what&apos;s above. You can edit anything after.
+          {resumeReturnTo ? 'Keeps your current workflow intact. Nothing is published.' : 'Builds your full portfolio from what\'s above. You can edit anything after.'}
         </p>
       </div>
     </div>

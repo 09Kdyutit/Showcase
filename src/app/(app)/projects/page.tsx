@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/use-user'
 import { PageShell, PageHeader } from '@/components/shared/page-header'
 import { Tilt3D } from '@/components/ui/tilt-3d'
+import { resumeIntakePath } from '@/lib/constants'
 
 type Difficulty = 'Beginner' | 'Intermediate' | 'Master'
 
@@ -370,7 +371,7 @@ export default function ProjectSuggestionsPage() {
             <div className="text-center py-4 space-y-3">
               <p className="text-sm text-muted-foreground/60">No resume found -- add one to get personalized project suggestions.</p>
               <Button asChild variant="gradient" size="sm" className="gap-1.5">
-                <Link href="/resume">
+                <Link href={resumeIntakePath('/projects')}>
                   <Zap className="h-3.5 w-3.5" />
                   Add a Resume
                 </Link>
