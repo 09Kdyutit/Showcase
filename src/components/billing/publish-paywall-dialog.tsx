@@ -87,18 +87,18 @@ export function PublishPaywallDialog({
             </div>
 
             <div className="grid gap-3">
-              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
-                <span>Monthly Pro</span>
-                <span className="ml-auto flex items-center gap-1.5 text-white/90">
+              <Button type="button" variant="gradient" size="lg" onClick={() => choosePlan('monthly')} className="h-auto min-h-12 w-full justify-between gap-3 whitespace-normal px-5 py-3">
+                <span className="min-w-0 text-left">Continue with monthly Pro</span>
+                <span className="ml-auto flex shrink-0 items-center gap-1.5 text-white/90">
                   $15/month <ArrowRight className="h-4 w-4" />
                 </span>
               </Button>
-              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 w-full justify-between gap-3 px-5 py-3">
-                <span className="flex items-center gap-2">
-                  Annual Pro
+              <Button type="button" variant="secondary" size="lg" onClick={() => choosePlan('annual')} className="h-auto min-h-12 w-full justify-between gap-3 whitespace-normal px-5 py-3">
+                <span className="flex min-w-0 flex-wrap items-center gap-2 text-left">
+                  Continue with annual Pro
                   <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">Save $30</span>
                 </span>
-                <span className="ml-auto text-muted-foreground">$150/year</span>
+                <span className="ml-auto shrink-0 text-muted-foreground">$150/year</span>
               </Button>
             </div>
 
