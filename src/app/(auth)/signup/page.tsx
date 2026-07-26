@@ -231,9 +231,12 @@ export default function SignupPage() {
           </Link>
 
           <div className="mb-7">
-            <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Build your portfolio free</h1>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
+              Step 1 of 3 · Create your account
+            </p>
+            <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Build your portfolio free</h1>
             <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              Create your account, then upload a PDF/DOCX résumé or paste the text to start a private, editable portfolio draft. No credit card required.
+              Create your account, then upload a PDF/DOCX résumé or paste the text. You&apos;ll review what we find before Showcase creates a private, editable portfolio draft. No credit card required.
             </p>
             <p className="text-muted-foreground text-sm">
               Already have one?{' '}
@@ -351,6 +354,10 @@ export default function SignupPage() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
+
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Next: upload your résumé and review your experience.
+          </p>
 
           <p className="text-xs text-muted-foreground text-center mt-6 leading-relaxed">
             By creating an account, you agree to our{' '}

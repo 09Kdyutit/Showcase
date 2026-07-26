@@ -35,10 +35,10 @@ export function StickyMobileCTA() {
           className="flex items-center justify-center gap-2 w-full h-12 rounded-xl font-semibold text-sm text-white"
           style={{ background: 'linear-gradient(135deg, var(--color-brand-500), var(--color-brand-500))' }}
         >
-          Build my portfolio free
+          Create my portfolio free
           <ArrowRight className="h-4 w-4" />
         </TrackedLink>
-        <p className="text-center text-xs text-muted-foreground mt-2">No credit card required</p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">No credit card required</p>
       </div>
     </div>
   )

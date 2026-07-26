@@ -26,9 +26,9 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '/#how-it-works', label: 'Product tour' },
+    { href: '/#how-it-works', label: 'How it works' },
+    { href: '/#example', label: 'Examples' },
     { href: '/pricing', label: 'Pricing' },
-    { href: '/for-career-services', label: 'Career services' },
   ]
 
   return (
@@ -80,7 +80,7 @@ export function Navbar() {
                     event="hero_primary_cta_clicked"
                     ctaLabel="navbar_desktop"
                   >
-                    <Zap className="h-3.5 w-3.5" />
+                    <Zap className="h-3.5 w-3.5" aria-hidden="true" />
                     Start free
                   </TrackedLink>
                 </Button>
@@ -129,7 +129,7 @@ export function Navbar() {
                     ctaLabel="navbar_mobile"
                     onClick={() => setMobileOpen(false)}
                   >
-                    <Zap className="h-3.5 w-3.5" />
+                    <Zap className="h-3.5 w-3.5" aria-hidden="true" />
                     Start free
                   </TrackedLink>
                 </Button>

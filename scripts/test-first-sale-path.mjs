@@ -67,7 +67,7 @@ expect('newly confirmed users reach résumé intake before any product tour',
   onboarding.indexOf("if (phase === 'upload')") > -1 &&
   onboarding.includes('<FileUploadZone onText={handleResumeText} />'))
 expect('the workspace tour remains an explicit optional action',
-  onboarding.includes('See how Showcase works · 1 minute') &&
+  onboarding.includes('Preview the three-step process · 1 minute') &&
   onboarding.includes('restoreResumeFocusRef.current = true') &&
   onboarding.includes('resumeHeadingRef.current?.focus()') &&
   onboardingWalkthrough.includes("export function Walkthrough({ onDone }") &&
@@ -504,7 +504,7 @@ expect('signup intent is measured once without recording form values',
   !signup.includes("trackMarketingEvent('signup_started', { email"))
 expect('signup preserves the free-portfolio promise and explains the immediate next step',
   signup.includes('Build your portfolio free') &&
-  signup.includes('Create your account, then upload a PDF/DOCX résumé or paste the text to start a private, editable portfolio draft. No credit card required.') &&
+  signup.includes('Create your account, then upload a PDF/DOCX résumé or paste the text. You&apos;ll review what we find before Showcase creates a private, editable portfolio draft. No credit card required.') &&
   signup.includes('Create free account') &&
   signup.includes("router.push('/onboarding')") &&
   !signup.includes('Create account and import résumé') &&

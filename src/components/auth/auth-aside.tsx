@@ -9,20 +9,20 @@ import { Logo } from '@/components/shared/logo'
 const EASE = [0.21, 0.47, 0.32, 0.98] as const
 
 const BENEFITS = [
-  'Import your resume and build an editable portfolio',
-  'Browse roles and prepare application materials',
-  'Practice written interviews with answer coaching',
+  'Upload the résumé you already have',
+  'Build and privately preview an editable portfolio',
+  'Review every AI-assisted suggestion',
   'No credit card needed to start',
 ]
 
 const STEPS = [
-  { step: '01', icon: FileText, title: 'Import your resume', desc: 'Upload a PDF or DOCX, or paste your text', color: 'oklch(63% 0.200 255)' },
-  { step: '02', icon: PenLine, title: 'Build and make it yours', desc: 'Generate a portfolio draft, then edit every part', color: 'oklch(62% 0.20 295)' },
-  { step: '03', icon: BriefcaseBusiness, title: 'Search, apply, and practice', desc: 'Use the same career context through the job hunt', color: 'oklch(72% 0.16 162)' },
+  { step: '01', icon: FileText, title: 'Upload your résumé', desc: 'Add a PDF or DOCX, or paste the text', color: 'oklch(63% 0.200 255)' },
+  { step: '02', icon: PenLine, title: 'Review your experience', desc: 'Check the roles, projects, skills, and results we found', color: 'oklch(62% 0.20 295)' },
+  { step: '03', icon: BriefcaseBusiness, title: 'Edit your portfolio', desc: 'Open a private draft and make every part yours', color: 'oklch(72% 0.16 162)' },
 ]
 
 const WORKSPACE_ITEMS = [
-  { icon: FileText, label: 'Resume', detail: 'Your source material', color: 'oklch(63% 0.200 255)' },
+  { icon: FileText, label: 'Résumé', detail: 'Your source material', color: 'oklch(63% 0.200 255)' },
   { icon: PenLine, label: 'Portfolio', detail: 'Editable case studies', color: 'oklch(62% 0.20 295)' },
   { icon: BriefcaseBusiness, label: 'Job search', detail: 'Matches and application kits', color: 'oklch(72% 0.16 162)' },
   { icon: MessagesSquare, label: 'Interview prep', detail: 'Questions and answer coaching', color: 'oklch(74% 0.16 85)' },
@@ -80,7 +80,7 @@ export function AuthAside({ variant }: { variant: 'login' | 'signup' }) {
               className="text-2xl italic leading-snug mb-5"
               style={{ fontFamily: 'var(--font-serif)', color: 'oklch(92% 0.01 255)' }}
             >
-              &ldquo;One résumé. Your whole job search, connected.&rdquo;
+              &ldquo;Turn your résumé into a job-ready portfolio.&rdquo;
             </motion.blockquote>
           ) : (
             <motion.div

@@ -11,11 +11,11 @@ export function Footer() {
               <Logo />
             </div>
             <p className="text-sm font-medium text-foreground/80 mb-2">
-              Your whole job search, connected.
+              Your experience, presented better.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Turn one resume into an editable portfolio, focused applications,
-              interview practice, and a live Pro portfolio when you are ready.
+              Turn your résumé into an editable portfolio, then use the same
+              experience to apply and prepare.
             </p>
           </div>
           <div>
@@ -23,11 +23,11 @@ export function Footer() {
             <ul className="space-y-2.5">
               {[
                 { href: '/pricing', label: 'Pricing' },
-                { href: '/#how-it-works', label: 'Product tour' },
-                { href: '/resume-to-portfolio', label: 'Resume to portfolio' },
+                { href: '/#how-it-works', label: 'How it works' },
+                { href: '/resume-to-portfolio', label: 'Résumé to portfolio' },
                 { href: '/for-career-services', label: 'For career services teams' },
                 { href: '/login', label: 'Sign in' },
-                { href: '/signup', label: 'Build my portfolio free' },
+                { href: '/signup', label: 'Create my portfolio free' },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 max-md:py-1.5 max-md:inline-block">
@@ -59,7 +59,7 @@ export function Footer() {
             © {new Date().getFullYear()} Showcase. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground font-serif italic">
-            AI-assisted. Source-grounded. Always yours to review.
+            AI-assisted. Editable. Always yours to review.
           </p>
         </div>
       </div>

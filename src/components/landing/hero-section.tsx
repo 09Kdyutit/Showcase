@@ -1,150 +1,124 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
-import Image from 'next/image'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FileText, LayoutTemplate } from 'lucide-react'
 import { HERO } from '@/lib/marketing/positioning'
 import { TrackedLink } from './tracked-link'
 
 const TRUST = [
   'No credit card required',
-  'Private by default',
-  'Review every AI change',
+  'Private until you publish',
+  'Review every AI-assisted change',
 ]
 
-// Blur-to-sharp headline (the "sui" treatment): the copy stays sourced from
-// positioning.ts — only the trailing word gets the italic gradient accent, and
-// both layers must render identical content or the cursor reveal misregisters.
-const ACCENT = 'connected.'
-const LEAD = HERO.headline.endsWith(ACCENT)
-  ? HERO.headline.slice(0, -ACCENT.length)
-  : HERO.headline
-
-const HEADLINE = (
-  <>
-    {LEAD}
-    {HERO.headline.endsWith(ACCENT) && (
-      <span
-        style={{
-          fontStyle: 'italic',
-          background: 'linear-gradient(100deg, #93c5fd, #60a5fa 55%, #818cf8)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        {ACCENT}
-      </span>
-    )}
-  </>
-)
-
-const HEADLINE_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-fraunces), Georgia, serif',
-  fontSize: 'clamp(2.6rem, 6.5vw, 5rem)',
-  lineHeight: 1.05,
-  letterSpacing: '-0.02em',
-  fontWeight: 600,
-}
-
 export function HeroSection() {
-  const sharpRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    let raf = 0
-    function onMove(e: MouseEvent) {
-      if (raf) return
-      raf = requestAnimationFrame(() => {
-        raf = 0
-        const sharp = sharpRef.current
-        if (!sharp) return
-        const r = sharp.getBoundingClientRect()
-        sharp.style.setProperty('--mx', `${e.clientX - r.left}px`)
-        sharp.style.setProperty('--my', `${e.clientY - r.top}px`)
-      })
-    }
-    window.addEventListener('mousemove', onMove, { passive: true })
-    return () => { window.removeEventListener('mousemove', onMove); if (raf) cancelAnimationFrame(raf) }
-  }, [])
-
   return (
     <section
-      className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden"
+      className="relative overflow-hidden px-6 pb-24 pt-36 sm:pb-28 sm:pt-40"
       style={{
-        background: 'radial-gradient(130% 95% at 50% -5%, #244aa8 0%, #1a3a8f 32%, #122a6b 62%, #0b1a45 82%, #071433 100%)',
+        background: 'radial-gradient(120% 100% at 18% 0%, #244aa8 0%, #17377e 34%, #0c2154 68%, #071433 100%)',
       }}
     >
-      {/* Blue glow orbs — bright, non-blurry accents so it reads BLUE, not black */}
       <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div style={{ position: 'absolute', top: '-12%', left: '18%', width: 560, height: 560, background: 'rgba(96,165,250,0.35)', filter: 'blur(120px)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', bottom: '-18%', right: '14%', width: 520, height: 520, background: 'rgba(99,102,241,0.3)', filter: 'blur(130px)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', top: '-20%', left: '-8%', width: 620, height: 620, background: 'rgba(96,165,250,0.28)', filter: 'blur(130px)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '-30%', right: '-8%', width: 560, height: 560, background: 'rgba(99,102,241,0.22)', filter: 'blur(140px)', borderRadius: '50%' }} />
       </div>
-      <div className="absolute inset-0 pointer-events-none hero-grid" style={{ opacity: 0.4 }} />
+      <div className="absolute inset-0 pointer-events-none hero-grid opacity-30" />
 
-      <div className="relative max-w-5xl mx-auto px-6 pt-20 pb-16 text-center" style={{ zIndex: 2 }}>
-        {/* Brand lockup — the first thing you see */}
-        <div className="flex items-center justify-center gap-3 mb-9" style={{ animation: 'fadeIn 0.7s ease both' }}>
-          <Image src="/logo-icon.png" alt="" width={48} height={48} priority className="select-none drop-shadow-lg" />
-          <span className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: '#fff', letterSpacing: '-0.03em' }}>
-            Showcase
-          </span>
-        </div>
-
-        {/* Headline — Fraunces serif, blur-to-sharp under the cursor */}
-        <div className="sui-headline relative mb-7" style={{ animation: 'fadeIn 0.9s ease 0.12s both' }}>
-          <h1 className="sui-headline-base" style={HEADLINE_STYLE} aria-hidden="true">{HEADLINE}</h1>
-          <h1 ref={sharpRef} className="sui-headline-sharp" style={HEADLINE_STYLE}>{HEADLINE}</h1>
-        </div>
-
-        {/* Subtext */}
-        <p
-          className="text-lg sm:text-xl max-w-2xl mx-auto mb-8 leading-relaxed"
-          style={{ color: 'rgba(226,236,255,0.85)', animation: 'fadeIn 0.8s ease 0.24s both' }}
-        >
-          {HERO.subheadline}
-        </p>
-
-        {/* CTAs — primary is a vibrant blue */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8" style={{ animation: 'fadeIn 0.8s ease 0.34s both' }}>
-          <TrackedLink
-            href="/signup"
-            event="hero_primary_cta_clicked"
-            ctaLabel="hero_primary"
-            className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.99]"
-            style={{ background: 'linear-gradient(120deg, #3b82f6, #4f46e5)', color: '#fff', boxShadow: '0 10px 34px rgba(59,130,246,0.45)' }}
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.02fr_0.98fr]">
+        <div className="max-w-2xl">
+          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-blue-200">
+            {HERO.eyebrow}
+          </p>
+          <h1
+            className="text-balance font-semibold text-white"
+            style={{
+              fontFamily: 'var(--font-fraunces), Georgia, serif',
+              fontSize: 'clamp(3rem, 6.4vw, 5.5rem)',
+              lineHeight: 0.98,
+              letterSpacing: '-0.035em',
+            }}
           >
-            {HERO.primaryCta.live}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </TrackedLink>
-          <TrackedLink
-            href="#how-it-works"
-            event="hero_secondary_cta_clicked"
-            ctaLabel="see_how"
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.01]"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(147,197,253,0.3)', color: '#e2ecff' }}
-          >
-            {HERO.secondaryCta}
-          </TrackedLink>
+            {HERO.headline}
+          </h1>
+          <p className="mt-7 max-w-xl text-base leading-relaxed text-blue-100/80 sm:text-lg">
+            {HERO.subheadline}
+          </p>
+          <p className="mt-4 text-sm font-medium text-blue-100/70">
+            Built for students, recent graduates, and early-career job seekers.
+          </p>
+
+          <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
+            <TrackedLink
+              href="/signup"
+              event="hero_primary_cta_clicked"
+              ctaLabel="hero_primary"
+              className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-semibold text-white transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99]"
+              style={{ background: 'linear-gradient(120deg, #3b82f6, #4f46e5)', boxShadow: '0 12px 36px rgba(59,130,246,0.42)' }}
+            >
+              {HERO.primaryCta.live}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </TrackedLink>
+            <TrackedLink
+              href="#how-it-works"
+              event="hero_secondary_cta_clicked"
+              ctaLabel="see_how"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-blue-200/25 bg-white/[0.06] px-7 py-3.5 text-sm font-semibold text-blue-50 transition-colors hover:bg-white/[0.1]"
+            >
+              {HERO.secondaryCta}
+            </TrackedLink>
+          </div>
+
+          <div className="mt-7 flex flex-col gap-2 text-sm text-blue-100/70 sm:flex-row sm:flex-wrap sm:gap-x-5">
+            {TRUST.map((item) => (
+              <span key={item} className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-300" />
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Trust */}
-        <div
-          className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm mb-9"
-          style={{ color: 'rgba(191,219,254,0.75)', animation: 'fadeIn 0.8s ease 0.44s both' }}
-        >
-          {TRUST.map((t) => (
-            <span key={t} className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: '#60a5fa' }} />
-              {t}
-            </span>
-          ))}
+        <div className="relative mx-auto w-full max-w-xl" aria-label="Illustration of a résumé becoming a portfolio">
+          <div className="absolute -inset-6 rounded-[2.5rem] bg-blue-400/10 blur-3xl" />
+          <div className="relative grid gap-4 rounded-[2rem] border border-blue-200/20 bg-[#071433]/70 p-4 shadow-2xl backdrop-blur-xl sm:grid-cols-[0.82fr_auto_1.18fr] sm:items-center sm:p-5">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-200/70">
+                <FileText className="h-4 w-4" />
+                Résumé
+              </div>
+              <div className="space-y-2">
+                <div className="h-2 w-2/3 rounded-full bg-white/30" />
+                <div className="h-1.5 w-full rounded-full bg-white/15" />
+                <div className="h-1.5 w-5/6 rounded-full bg-white/15" />
+              </div>
+              <div className="mt-5 rounded-xl border border-white/10 bg-black/10 p-3 text-xs leading-relaxed text-blue-50/70">
+                Internal tooling used by 40 people weekly. Improved CI pipeline and cut deploy time 30%.
+              </div>
+            </div>
+
+            <ArrowRight className="mx-auto h-5 w-5 rotate-90 text-blue-300 sm:rotate-0" aria-hidden="true" />
+
+            <div className="overflow-hidden rounded-2xl border border-blue-300/25 bg-[#0b1a45]">
+              <div className="bg-gradient-to-r from-blue-500/35 to-indigo-500/30 px-4 py-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-100/80">
+                  <LayoutTemplate className="h-4 w-4" />
+                  Editable portfolio
+                </div>
+                <p className="mt-3 text-lg font-semibold text-white">Jordan Chen</p>
+                <p className="text-xs text-blue-100/70">Software Engineer</p>
+              </div>
+              <div className="grid gap-2 p-4">
+                {['Clear case studies', 'Results made easy to scan', 'Private draft you control'].map((item) => (
+                  <div key={item} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-blue-50/80">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-blue-300" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 text-center text-[11px] uppercase tracking-[0.15em] text-blue-200/45">
+            Illustrative product example
+          </p>
         </div>
-
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center overflow-hidden" style={{ animation: 'fadeIn 1s ease 1s both', zIndex: 2, height: 44 }}>
-        <div className="w-px h-full scroll-line" style={{ background: 'rgba(147,197,253,0.6)' }} />
       </div>
     </section>
   )

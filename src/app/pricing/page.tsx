@@ -14,7 +14,7 @@ const APP_HOST = configuredAppHost()
 const VOICE_INTERVIEWS_AVAILABLE = process.env.NEXT_PUBLIC_INTERVIEW_VOICE_AVAILABLE === 'true'
 
 const FREE_FEATURES = [
-  'PDF, DOCX, and pasted resume import with up to 3 analyses / day',
+  'PDF, DOCX, and pasted résumé import with up to 3 analyses / day',
   'One AI portfolio generation',
   'One complete 11-dimension Evidence Audit every 24 hours',
   'Build, edit, and preview portfolio drafts',
@@ -40,7 +40,7 @@ const PRO_FEATURES = [
   'Everything in Free',
   `Publish a live portfolio at ${APP_HOST}/p/your-name`,
   '10 portfolio generations and 10 complete 11-dimension Evidence Audits every 24 hours',
-  '25 resume analyses and 50 bullet improvements / day',
+  '25 résumé analyses and 50 bullet improvements / day',
   '15 tailored application kits and 40 cover letters / day',
   ...(VOICE_INTERVIEWS_AVAILABLE ? ['20 voice or recorded interviews / billing period'] : []),
   '150 written interviews / billing period',
@@ -68,7 +68,7 @@ export default function PricingPage() {
             <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>pricing.</em>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
-            Start free with resume import, an editable portfolio, job-search tools, and
+            Start free with résumé import, an editable portfolio, job-search tools, and
             written interview practice, plus one complete Evidence Audit every 24 hours.
             Pro adds live publishing, regeneration, personalized matching, application
             kits, 10 audits every 24 hours, and higher limits.
@@ -201,12 +201,12 @@ export default function PricingPage() {
           <div className="space-y-4">
             {[
               { q: 'What happens when I cancel?', a: 'You keep Showcase Pro access until the end of your billing period. After that, your account reverts to Free and all your data - portfolio content, audit history, and uploaded materials - is preserved.' },
-              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. Free requires no card and lets you import a resume, build and preview a portfolio, run one complete 11-dimension Evidence Audit every 24 hours, browse jobs, and practice written interviews before deciding whether Pro is worth it.' },
+              { q: 'Is there a free trial for Pro?', a: 'No trial with auto-charge. Free requires no card and lets you import a résumé, build and preview a portfolio, run one complete 11-dimension Evidence Audit every 24 hours, browse jobs, and practice written interviews before deciding whether Pro is worth it.' },
               { q: 'Does Showcase guarantee job interviews?', a: 'No. Showcase helps you present your real experience more clearly and professionally. Your results depend on your background, the roles you target, and the market. We help you put your best work forward - not guarantee outcomes.' },
               { q: 'Can I get a refund?', a: 'You can request a refund within 7 days if you have not substantively used Pro features. See the refund policy for the exact conditions.' },
-              { q: 'How does Showcase keep AI suggestions grounded?', a: 'Showcase uses the resume and career information you provide as its source material. You review and can edit every generated suggestion. Unsupported details should not be added, and Evidence Audit flags gaps instead of filling them with invented metrics or experience.' },
+              { q: 'How does Showcase keep AI suggestions grounded?', a: 'Showcase uses the résumé and career information you provide as its source material. You review and can edit every generated suggestion. Unsupported details should not be added, and Evidence Audit flags gaps instead of filling them with invented metrics or experience.' },
               { q: 'Can I have multiple portfolios?', a: 'Yes. You can build and edit portfolio drafts on Free. Your first AI generation is included; regenerating or AI-building additional portfolios requires Pro, and publishing any live portfolio is a Pro feature.' },
-              { q: 'What file formats can I import?', a: 'You can paste your resume as plain text, or upload a PDF or DOCX file. Showcase parses it automatically and uses it as the foundation for your portfolio content.' },
+              { q: 'What file formats can I import?', a: 'You can paste your résumé as plain text, or upload a PDF or DOCX file. Showcase parses it automatically and uses it as the foundation for your portfolio content.' },
               { q: 'Who can see my public portfolio?', a: `Only you can see your draft portfolio. When you publish it as a Showcase Pro user, it becomes publicly accessible at ${APP_HOST}/p/your-name. You can unpublish it at any time.` },
             ].map(({ q, a }) => (
               <div key={q} className="glass-card p-5">

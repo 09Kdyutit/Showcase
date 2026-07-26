@@ -76,10 +76,10 @@ function guessIndustry(role: string): string {
 // available on demand, but never blocks a newly confirmed user from starting.
 type Phase = 'tour' | 'upload' | 'analyzing' | 'review' | 'generating'
 
-const ANALYZE_MSGS = ['Reading your resume…', 'Finding your strongest achievements…', 'Structuring your experience…']
+const ANALYZE_MSGS = ['Reading your résumé…', 'Organizing your roles and projects…', 'Checking the important details…']
 const GENERATE_MSGS = [
-  'Identifying your strongest proof points…', 'Building your first case study…',
-  'Writing your hero section…', 'Crafting positioning copy…', 'Finalizing your portfolio…',
+  'Starting your private draft…', 'Building your first case study…',
+  'Organizing your portfolio sections…', 'Preparing the editor…', 'Finalizing your draft…',
 ]
 
 export default function OnboardingPage() {
@@ -226,7 +226,7 @@ export default function OnboardingPage() {
   }
 
   async function handleResumeText(text: string) {
-    if (text.trim().length < 50) { toast.error('That resume looks too short to analyze.'); return }
+    if (text.trim().length < 50) { toast.error('That résumé looks too short to analyze.'); return }
     setPhase('analyzing')
     const stop = rotateMessages(ANALYZE_MSGS)
     try {
@@ -240,12 +240,12 @@ export default function OnboardingPage() {
         body: JSON.stringify({ resumeText: text }),
       })
       const { data, error } = await res.json()
-      if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that resume')
+      if (!res.ok) throw new Error(error?.message ?? error ?? 'Could not analyze that résumé')
 
       applyParsedResume(data as ParsedResume)
       setPhase('review')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not analyze that resume. You can try again or skip for now.')
+      toast.error(err instanceof Error ? err.message : 'Could not analyze that résumé. You can try again or skip for now.')
       setPhase('upload')
     } finally {
       stop()
@@ -268,7 +268,7 @@ export default function OnboardingPage() {
         .select('id')
         .single()
       requirePersistedRow(profileWrite, 'Could not save your progress. Please try again.')
-      toast.success('Welcome to Showcase! You can import a resume anytime from your dashboard.')
+      toast.success('Welcome to Showcase! You can import a résumé anytime from your dashboard.')
       router.push('/dashboard')
     } catch {
       toast.error('Something went wrong. Please try again.')
@@ -376,7 +376,7 @@ export default function OnboardingPage() {
           </div>
           <p className="text-display text-xl font-semibold text-foreground mb-1.5">{busyMsg}</p>
           <p className="text-sm text-muted-foreground/70">
-            {phase === 'analyzing' ? 'Reading your résumé and structuring the evidence…' : "Building your full portfolio. This takes 30–60 seconds — don't close this tab."}
+            {phase === 'analyzing' ? 'Organizing your experience so you can review it next.' : "Building your editable portfolio. This takes 30–60 seconds — don't close this tab."}
           </p>
         </div>
       </div>
@@ -397,7 +397,9 @@ export default function OnboardingPage() {
             <div className="flex items-center justify-center gap-2 mb-6">
               <Logo size="lg" />
             </div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'oklch(63% 0.20 255)' }}>Step 1 of 2 · Your résumé</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'oklch(63% 0.20 255)' }}>
+              {resumeReturnTo ? 'Step 1 of 2 · Upload your résumé' : 'Step 2 of 3 · Upload your résumé'}
+            </p>
             <h1
               ref={resumeHeadingRef}
               tabIndex={-1}
@@ -406,7 +408,9 @@ export default function OnboardingPage() {
               Start with what you{' '}
               <em style={{ fontStyle: 'italic', color: 'oklch(70% 0.17 255)' }}>already have.</em>
             </h1>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">Drop in your résumé — we extract the role, skills, experience, projects and links, and turn them into structured evidence. No forms to fill out.</p>
+            <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
+              Upload a PDF or DOCX, or paste the text. Showcase will organize your roles, skills, projects, and links for you to review next.
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -415,7 +419,7 @@ export default function OnboardingPage() {
               }}
               className="mt-4 text-xs font-medium text-brand-300 transition-colors hover:text-brand-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              See how Showcase works · 1 minute
+              Preview the three-step process · 1 minute
             </button>
           </div>
 
@@ -475,7 +479,7 @@ export default function OnboardingPage() {
                 <div className="flex-1 h-px bg-border" />
               </div>
               <Textarea
-                placeholder="Paste your resume text here..."
+                placeholder="Paste your résumé text here..."
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
                 className="min-h-[140px] font-mono text-xs leading-relaxed"
@@ -529,7 +533,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 mb-4">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Résumé parsed · Step 2 of 2
+            {resumeReturnTo ? 'Résumé ready · Step 2 of 2' : 'Résumé ready · Step 3 of 3'}
           </div>
           <h1 className="text-display text-3xl sm:text-[2.6rem] font-semibold text-foreground mb-3 leading-[1.05]">
             Here&apos;s your experience,{' '}
@@ -538,7 +542,7 @@ export default function OnboardingPage() {
           <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
             {resumeReturnTo
               ? 'Nothing here is published. Review the structured experience, then return to the work you were doing.'
-              : 'Nothing here is published yet. Review it, then one click builds your full portfolio from this experience.'}
+              : 'Review what we found. Next, Showcase creates a private portfolio draft and opens it in the editor.'}
           </p>
         </div>
 
@@ -600,7 +604,7 @@ export default function OnboardingPage() {
               <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-amber-400">{needsConfirmation.length} item{needsConfirmation.length === 1 ? '' : 's'} need real numbers or context</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">We won&apos;t invent these - you can add them after your portfolio is built. Nothing blocks you from generating now.</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">Showcase will not fill these gaps with made-up details. You can add real context after the portfolio is built.</p>
               </div>
             </div>
           )}
@@ -698,7 +702,7 @@ export default function OnboardingPage() {
           <ArrowRight className="h-4 w-4" />
         </Button>
         <p className="text-center text-xs text-muted-foreground/50 mt-3">
-          {resumeReturnTo ? 'Keeps your current workflow intact. Nothing is published.' : 'Builds your full portfolio from what\'s above. You can edit anything after.'}
+          {resumeReturnTo ? 'Keeps your current workflow intact. Nothing is published.' : 'Next: your private draft opens in the editor. You can change anything before publishing.'}
         </p>
       </div>
     </div>
